@@ -179,10 +179,72 @@
                                             </div>
                                         </div>
                                         <div class="flex items-center space-x-4">
-                                            @if(in_array($match->status, ['in_progress', 'completed']))
+                                            @if(in_array($match->status, ['in_progress', 'completed', 'forfeited']))
+                                                @if($match->status === 'forfeited')
+                                                <div class="text-white font-bold flex items-center space-x-2">
+                                                    <span class="
+                                                        @if($match->forfeited_by === 'home') text-red-400
+                                                        @else text-green-400 @endif
+                                                    ">
+                                                        @if($league->is_team_based)
+                                                            {{ $match->homeTeam->name ?? 'TBD' }}
+                                                        @else
+                                                            {{ $match->homePlayer->name ?? 'TBD' }}
+                                                        @endif
+                                                    </span>
+                                                    <span class="text-gray-400">vs</span>
+                                                    <span class="
+                                                        @if($match->forfeited_by === 'away') text-red-400
+                                                        @else text-green-400 @endif
+                                                    ">
+                                                        @if($league->is_team_based)
+                                                            {{ $match->awayTeam->name ?? 'TBD' }}
+                                                        @else
+                                                            {{ $match->awayPlayer->name ?? 'TBD' }}
+                                                        @endif
+                                                    </span>
+                                                </div>
+                                                @elseif($match->status === 'completed')
+                                                <div class="text-white font-bold flex items-center space-x-2">
+                                                    <span class="
+                                                        @if($match->home_score > $match->away_score) text-green-400
+                                                        @elseif($match->home_score < $match->away_score) text-red-400
+                                                        @else text-yellow-400 @endif
+                                                    ">
+                                                        @if($league->is_team_based)
+                                                            {{ $match->homeTeam->name ?? 'TBD' }}
+                                                        @else
+                                                            {{ $match->homePlayer->name ?? 'TBD' }}
+                                                        @endif
+                                                    </span>
+                                                    <span class="text-gray-400">{{ $match->home_score }} - {{ $match->away_score }}</span>
+                                                    <span class="
+                                                        @if($match->away_score > $match->home_score) text-green-400
+                                                        @elseif($match->away_score < $match->home_score) text-red-400
+                                                        @else text-yellow-400 @endif
+                                                    ">
+                                                        @if($league->is_team_based)
+                                                            {{ $match->awayTeam->name ?? 'TBD' }}
+                                                        @else
+                                                            {{ $match->awayPlayer->name ?? 'TBD' }}
+                                                        @endif
+                                                    </span>
+                                                </div>
+                                                @else
+                                                <div class="text-white font-bold">
+                                                    {{ $match->home_score }} - {{ $match->away_score }}
+                                                </div>
+                                                @endif
+                                            @elseif($match->status === 'cancelled')
+                                            @if($match->home_score || $match->away_score)
                                             <div class="text-white font-bold">
                                                 {{ $match->home_score }} - {{ $match->away_score }}
                                             </div>
+                                            @else
+                                            <div class="text-orange-400 italic">
+                                                Cancelled
+                                            </div>
+                                            @endif
                                             @else
                                             <div class="text-gray-400">
                                                 {{ $match->scheduled_at ? $match->scheduled_at->format('M d, H:i') : __('Not scheduled') }}
@@ -191,6 +253,8 @@
                                             <span class="px-2 py-1 text-xs rounded-full
                                                 @if($match->status === 'completed') bg-green-500/20 text-green-400
                                                 @elseif($match->status === 'in_progress') bg-yellow-500/20 text-yellow-400
+                                                @elseif($match->status === 'forfeited') bg-red-500/20 text-red-400
+                                                @elseif($match->status === 'cancelled') bg-orange-500/20 text-orange-400
                                                 @else bg-gray-500/20 text-gray-400 @endif">
                                                 {{ ucfirst(str_replace('_', ' ', $match->status)) }}
                                             </span>

@@ -117,9 +117,9 @@
                                 @endif
                                 Score
                             </label>
-                            <input type="number" name="home_score" id="home_score" value="{{ old('home_score', $match->home_score) }}"
-                                   class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                   min="0" required>
+                <input type="number" name="home_score" id="home_score" value="{{ old('home_score', $match->home_score) }}"
+                    class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    min="0">
                         </div>
 
                         <div>
@@ -131,9 +131,9 @@
                                 @endif
                                 Score
                             </label>
-                            <input type="number" name="away_score" id="away_score" value="{{ old('away_score', $match->away_score) }}"
-                                   class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                   min="0" required>
+                <input type="number" name="away_score" id="away_score" value="{{ old('away_score', $match->away_score) }}"
+                    class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    min="0">
                         </div>
                     </div>
 
@@ -232,6 +232,8 @@
             const forfeitedSection = document.getElementById('forfeited-section');
             const scoresSection = document.querySelector('.grid.grid-cols-2.gap-6');
             const setsSection = document.getElementById('sets-section');
+            const homeScoreInput = document.getElementById('home_score');
+            const awayScoreInput = document.getElementById('away_score');
 
             if (status === 'forfeited') {
                 forfeitedSection.classList.remove('hidden');
@@ -239,18 +241,44 @@
                 setsSection.classList.add('hidden');
                 // Make forfeited_by required when status is forfeited
                 document.getElementById('forfeited_by').setAttribute('required', 'required');
+                // Remove required from scores
+                homeScoreInput.removeAttribute('required');
+                awayScoreInput.removeAttribute('required');
             } else if (status === 'scheduled') {
                 forfeitedSection.classList.add('hidden');
                 scoresSection.classList.add('hidden');
                 setsSection.classList.add('hidden');
-                // Remove required attribute
+                // Remove required attributes
                 document.getElementById('forfeited_by').removeAttribute('required');
+                homeScoreInput.removeAttribute('required');
+                awayScoreInput.removeAttribute('required');
+                // Reset scores to 0
+                homeScoreInput.value = '0';
+                awayScoreInput.value = '0';
+            } else if (status === 'completed') {
+                forfeitedSection.classList.add('hidden');
+                scoresSection.classList.remove('hidden');
+                setsSection.classList.remove('hidden');
+                // Remove required from forfeited_by
+                document.getElementById('forfeited_by').removeAttribute('required');
+                // Make scores required for completed matches
+                homeScoreInput.setAttribute('required', 'required');
+                awayScoreInput.setAttribute('required', 'required');
+                // Set default scores if empty
+                if (!homeScoreInput.value || homeScoreInput.value === '') {
+                    homeScoreInput.value = '0';
+                }
+                if (!awayScoreInput.value || awayScoreInput.value === '') {
+                    awayScoreInput.value = '0';
+                }
             } else {
                 forfeitedSection.classList.add('hidden');
                 scoresSection.classList.remove('hidden');
                 setsSection.classList.remove('hidden');
-                // Remove required attribute
+                // Remove required attributes
                 document.getElementById('forfeited_by').removeAttribute('required');
+                homeScoreInput.removeAttribute('required');
+                awayScoreInput.removeAttribute('required');
             }
         });
 

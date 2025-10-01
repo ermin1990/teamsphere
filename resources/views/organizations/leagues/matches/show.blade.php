@@ -12,6 +12,7 @@
                     @if($match->status === 'completed') bg-green-500/20 text-green-400
                     @elseif($match->status === 'in_progress') bg-yellow-500/20 text-yellow-400
                     @elseif($match->status === 'forfeited') bg-red-500/20 text-red-400
+                    @elseif($match->status === 'cancelled') bg-orange-500/20 text-orange-400
                     @else bg-gray-500/20 text-gray-400 @endif"
                 >
                     {{ ucfirst(str_replace('_', ' ', $match->status)) }}
@@ -75,6 +76,15 @@
                                             <div class="text-lg font-bold">Forfeit</div>
                                         </div>
                                     @endif
+                                @elseif($match->status === 'cancelled')
+                                @if($match->home_score || $match->away_score)
+                                <div class="text-4xl font-bold text-blue-400 mt-2">{{ $match->home_score }}</div>
+                                @else
+                                <div class="text-orange-400 mt-2 text-center">
+                                    <div class="text-sm">Match</div>
+                                    <div class="text-lg font-bold">Cancelled</div>
+                                </div>
+                                @endif
                                 @elseif(in_array($match->status, ['in_progress', 'completed']))
                                 <div class="text-4xl font-bold text-blue-400 mt-2">{{ $match->home_score }}</div>
                                 @endif
@@ -89,6 +99,8 @@
                                 <div class="text-yellow-400 text-sm">In Progress</div>
                                 @elseif($match->status === 'forfeited')
                                 <div class="text-red-400 text-sm">Forfeited</div>
+                                @elseif($match->status === 'cancelled')
+                                <div class="text-orange-400 text-sm">Cancelled</div>
                                 @else
                                 <div class="text-gray-400 text-sm">Scheduled</div>
                                 @endif
@@ -124,6 +136,15 @@
                                             <div class="text-lg font-bold">Forfeit</div>
                                         </div>
                                     @endif
+                                @elseif($match->status === 'cancelled')
+                                @if($match->home_score || $match->away_score)
+                                <div class="text-4xl font-bold text-red-400 mt-2">{{ $match->away_score }}</div>
+                                @else
+                                <div class="text-orange-400 mt-2 text-center">
+                                    <div class="text-sm">Match</div>
+                                    <div class="text-lg font-bold">Cancelled</div>
+                                </div>
+                                @endif
                                 @elseif(in_array($match->status, ['in_progress', 'completed']))
                                 <div class="text-4xl font-bold text-red-400 mt-2">{{ $match->away_score }}</div>
                                 @endif

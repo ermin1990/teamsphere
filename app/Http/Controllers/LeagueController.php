@@ -477,9 +477,18 @@ class LeagueController extends Controller
             'goal_difference' => 0,
         ]);
 
-        // Get all completed and forfeited matches
+        // Get all completed, forfeited matches and cancelled matches with scores
         $completedMatches = LeagueMatch::where('league_id', $league->id)
-            ->whereIn('status', ['completed', 'forfeited'])
+            ->where(function($query) {
+                $query->whereIn('status', ['completed', 'forfeited'])
+                      ->orWhere(function($q) {
+                          $q->where('status', 'cancelled')
+                            ->where(function($sq) {
+                                $sq->where('home_score', '>', 0)
+                                   ->orWhere('away_score', '>', 0);
+                            });
+                      });
+            })
             ->get();
 
         foreach ($completedMatches as $match) {
@@ -627,50 +636,52 @@ class LeagueController extends Controller
             abort(404);
         }
 
+        // Validation
         $validated = $request->validate([
-            'home_score' => 'nullable|integer|min:0',
-            'away_score' => 'nullable|integer|min:0',
-            'sets' => 'nullable|array',
-            'sets.*.home' => 'required|integer|min:0',
-            'sets.*.away' => 'required|integer|min:0',
             'status' => 'required|in:scheduled,in_progress,completed,forfeited,cancelled',
-            'forfeited_by' => 'required_if:status,forfeited|in:home,away',
-            'played_at' => 'nullable|date',
+            'home_score' => 'nullable|numeric|min:0',
+            'away_score' => 'nullable|numeric|min:0',
+            'forfeited_by' => 'nullable|in:home,away',
         ]);
 
-        // Reset scores and related fields when status changes to scheduled
+        // Prepare update data
+        $updateData = ['status' => $validated['status']];
+
         if ($validated['status'] === 'scheduled') {
-            $match->update([
-                'home_score' => 0,
-                'away_score' => 0,
-                'sets' => [],
-                'status' => 'scheduled',
-                'forfeited_by' => null,
-                'played_at' => null,
-            ]);
+            // Reset everything
+            $updateData['home_score'] = 0;
+            $updateData['away_score'] = 0;
+            $updateData['forfeited_by'] = null;
+            $updateData['played_at'] = null;
         } else {
-            $match->update([
-                'home_score' => $validated['home_score'] ?? 0,
-                'away_score' => $validated['away_score'] ?? 0,
-                'sets' => $validated['sets'] ?? [],
-                'status' => $validated['status'],
-                'forfeited_by' => $validated['forfeited_by'] ?? null,
-                'played_at' => $validated['played_at'] ? now() : $match->played_at,
-            ]);
+            // Update scores if provided
+            if (isset($validated['home_score'])) {
+                $updateData['home_score'] = $validated['home_score'];
+            }
+            if (isset($validated['away_score'])) {
+                $updateData['away_score'] = $validated['away_score'];
+            }
+            if (isset($validated['forfeited_by'])) {
+                $updateData['forfeited_by'] = $validated['forfeited_by'];
+            }
+            
+            // Set played_at for completed or forfeited matches
+            if (in_array($validated['status'], ['completed', 'forfeited'])) {
+                $updateData['played_at'] = now();
+            }
         }
 
-        // Update standings if match is completed or forfeited
-        if (in_array($validated['status'], ['completed', 'forfeited'])) {
-            $this->updateStandings($league);
-        }
+        // Update match
+        $match->update($updateData);
 
-        // If changing from completed/forfeited to scheduled, update standings to remove the match results
-        if ($validated['status'] === 'scheduled' && in_array($match->getOriginal('status'), ['completed', 'forfeited'])) {
+        // Update standings if needed
+        if (in_array($validated['status'], ['completed', 'forfeited']) ||
+            ($validated['status'] === 'cancelled' && ($validated['home_score'] > 0 || $validated['away_score'] > 0))) {
             $this->updateStandings($league);
         }
 
         return redirect()->route('organizations.leagues.matches.show', [$organization, $league, $match])
-            ->with('success', 'Match results updated successfully.');
+            ->with('success', 'Match updated successfully!');
     }
 
     /**
@@ -815,4 +826,4 @@ class LeagueController extends Controller
         return redirect()->route('organizations.leagues.matches.show', [$organization, $league, $match])
             ->with('success', 'Match has been reset to initial state.');
     }
-    }
+}
