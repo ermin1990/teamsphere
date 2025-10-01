@@ -815,3 +815,4 @@ class LeagueController extends Controller
         return redirect()->route('organizations.leagues.matches.show', [$organization, $league, $match])
             ->with('success', 'Match has been reset to initial state.');
     }
+    }
