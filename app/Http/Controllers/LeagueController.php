@@ -527,25 +527,27 @@ class LeagueController extends Controller
         }
 
         $validated = $request->validate([
-            'home_score' => 'required|integer|min:0',
-            'away_score' => 'required|integer|min:0',
+            'home_score' => 'required_unless:status,forfeited|integer|min:0',
+            'away_score' => 'required_unless:status,forfeited|integer|min:0',
             'sets' => 'nullable|array',
             'sets.*.home' => 'required|integer|min:0',
             'sets.*.away' => 'required|integer|min:0',
-            'status' => 'required|in:scheduled,in_progress,completed,cancelled',
+            'status' => 'required|in:scheduled,in_progress,completed,forfeited,cancelled',
+            'forfeited_by' => 'required_if:status,forfeited|in:home,away',
             'played_at' => 'nullable|date',
         ]);
 
         $match->update([
-            'home_score' => $validated['home_score'],
-            'away_score' => $validated['away_score'],
+            'home_score' => $validated['home_score'] ?? 0,
+            'away_score' => $validated['away_score'] ?? 0,
             'sets' => $validated['sets'] ?? [],
             'status' => $validated['status'],
+            'forfeited_by' => $validated['forfeited_by'] ?? null,
             'played_at' => $validated['played_at'] ? now() : $match->played_at,
         ]);
 
-        // Update standings if match is completed
-        if ($validated['status'] === 'completed') {
+        // Update standings if match is completed or forfeited
+        if (in_array($validated['status'], ['completed', 'forfeited'])) {
             $this->updateStandings($league);
         }
 
@@ -605,12 +607,13 @@ class LeagueController extends Controller
         }
 
         $validated = $request->validate([
-            'home_score' => 'required|integer|min:0',
-            'away_score' => 'required|integer|min:0',
+            'home_score' => 'required_unless:action,forfeit_match|integer|min:0',
+            'away_score' => 'required_unless:action,forfeit_match|integer|min:0',
             'sets' => 'nullable|array',
             'sets.*.home' => 'required|integer|min:0',
             'sets.*.away' => 'required|integer|min:0',
-            'action' => 'required|in:update_score,complete_match,pause_match',
+            'forfeited_by' => 'required_if:action,forfeit_match|in:home,away',
+            'action' => 'required|in:update_score,complete_match,pause_match,forfeit_match',
         ]);
 
         if ($validated['action'] === 'complete_match') {
@@ -625,6 +628,19 @@ class LeagueController extends Controller
             $this->updateStandings($league);
 
             return response()->json(['status' => 'completed', 'message' => 'Match completed successfully.']);
+        } elseif ($validated['action'] === 'forfeit_match') {
+            $match->update([
+                'home_score' => $validated['forfeited_by'] === 'away' ? 1 : 0,
+                'away_score' => $validated['forfeited_by'] === 'home' ? 1 : 0,
+                'sets' => [],
+                'status' => 'forfeited',
+                'forfeited_by' => $validated['forfeited_by'],
+            ]);
+
+            // Update standings
+            $this->updateStandings($league);
+
+            return response()->json(['status' => 'forfeited', 'message' => 'Match forfeited successfully.']);
         } elseif ($validated['action'] === 'pause_match') {
             $match->update(['status' => 'scheduled']);
             return response()->json(['status' => 'paused', 'message' => 'Match paused.']);

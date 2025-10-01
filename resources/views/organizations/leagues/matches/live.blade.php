@@ -115,6 +115,14 @@
                             <button type="button" id="complete-match" class="w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors">
                                 ✅ Complete Match
                             </button>
+                            <div class="space-y-2">
+                                <button type="button" id="forfeit-home" class="w-full px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors text-sm">
+                                    🚫 {{ $league->is_team_based ? ($match->homeTeam->name ?? 'Home') : ($match->homePlayer->name ?? 'Home') }} Forfeits
+                                </button>
+                                <button type="button" id="forfeit-away" class="w-full px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors text-sm">
+                                    🚫 {{ $league->is_team_based ? ($match->awayTeam->name ?? 'Away') : ($match->awayPlayer->name ?? 'Away') }} Forfeits
+                                </button>
+                            </div>
                             <button type="button" id="pause-match" class="w-full px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition-colors">
                                 ⏸️ Pause Match
                             </button>
@@ -198,19 +206,25 @@
             updateDisplay();
         }
 
-        function sendScoreUpdate(action = 'update_score') {
+        function sendScoreUpdate(action = 'update_score', forfeitedBy = null) {
+            const data = {
+                home_score: homeScore,
+                away_score: awayScore,
+                sets: sets,
+                action: action
+            };
+
+            if (forfeitedBy) {
+                data.forfeited_by = forfeitedBy;
+            }
+
             fetch('{{ route("organizations.leagues.matches.live-score", [$organization, $league, $match]) }}', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': csrfToken
                 },
-                body: JSON.stringify({
-                    home_score: homeScore,
-                    away_score: awayScore,
-                    sets: sets,
-                    action: action
-                })
+                body: JSON.stringify(data)
             })
             .then(response => response.json())
             .then(data => {
@@ -291,6 +305,27 @@
             addToLog(`Started set ${currentSet}`);
             sendScoreUpdate();
             updateDisplay();
+        });
+
+        // Forfeit buttons
+        document.getElementById('forfeit-home').addEventListener('click', function() {
+            if (confirm('Are you sure {{ $league->is_team_based ? ($match->homeTeam->name ?? "Home Team") : ($match->homePlayer->name ?? "Home Player") }} wants to forfeit?')) {
+                sendScoreUpdate('forfeit_match', 'home');
+                addToLog('{{ $league->is_team_based ? ($match->homeTeam->name ?? "Home Team") : ($match->homePlayer->name ?? "Home Player") }} forfeited');
+                setTimeout(() => {
+                    window.location.href = '{{ route("organizations.leagues.matches.show", [$organization, $league, $match]) }}';
+                }, 1000);
+            }
+        });
+
+        document.getElementById('forfeit-away').addEventListener('click', function() {
+            if (confirm('Are you sure {{ $league->is_team_based ? ($match->awayTeam->name ?? "Away Team") : ($match->awayPlayer->name ?? "Away Player") }} wants to forfeit?')) {
+                sendScoreUpdate('forfeit_match', 'away');
+                addToLog('{{ $league->is_team_based ? ($match->awayTeam->name ?? "Away Team") : ($match->awayPlayer->name ?? "Away Player") }} forfeited');
+                setTimeout(() => {
+                    window.location.href = '{{ route("organizations.leagues.matches.show", [$organization, $league, $match]) }}';
+                }, 1000);
+            }
         });
 
         // Initialize display

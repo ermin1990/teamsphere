@@ -79,7 +79,30 @@
                             <option value="scheduled" {{ $match->status === 'scheduled' ? 'selected' : '' }}>Scheduled</option>
                             <option value="in_progress" {{ $match->status === 'in_progress' ? 'selected' : '' }}>In Progress</option>
                             <option value="completed" {{ $match->status === 'completed' ? 'selected' : '' }}>Completed</option>
+                            <option value="forfeited" {{ $match->status === 'forfeited' ? 'selected' : '' }}>Forfeited</option>
                             <option value="cancelled" {{ $match->status === 'cancelled' ? 'selected' : '' }}>Cancelled</option>
+                        </select>
+                    </div>
+
+                    <!-- Forfeited By (only shown when status is forfeited) -->
+                    <div id="forfeited-section" class="hidden">
+                        <label for="forfeited_by" class="block text-sm font-medium text-gray-300 mb-2">Forfeited By</label>
+                        <select name="forfeited_by" id="forfeited_by" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="">Select who forfeited</option>
+                            <option value="home" {{ $match->forfeited_by === 'home' ? 'selected' : '' }}>
+                                @if($league->is_team_based)
+                                    {{ $match->homeTeam->name ?? 'Home Team' }}
+                                @else
+                                    {{ $match->homePlayer->name ?? 'Home Player' }}
+                                @endif
+                            </option>
+                            <option value="away" {{ $match->forfeited_by === 'away' ? 'selected' : '' }}>
+                                @if($league->is_team_based)
+                                    {{ $match->awayTeam->name ?? 'Away Team' }}
+                                @else
+                                    {{ $match->awayPlayer->name ?? 'Away Player' }}
+                                @endif
+                            </option>
                         </select>
                     </div>
 
@@ -202,5 +225,30 @@
                 row.querySelector('input[name*="[away]"]').name = `sets[${index}][away]`;
             });
         }
+
+        // Handle status change
+        document.getElementById('status').addEventListener('change', function() {
+            const status = this.value;
+            const forfeitedSection = document.getElementById('forfeited-section');
+            const scoresSection = document.querySelector('.grid.grid-cols-2.gap-6');
+            const setsSection = document.getElementById('sets-section');
+
+            if (status === 'forfeited') {
+                forfeitedSection.classList.remove('hidden');
+                scoresSection.classList.add('hidden');
+                setsSection.classList.add('hidden');
+                // Make forfeited_by required when status is forfeited
+                document.getElementById('forfeited_by').setAttribute('required', 'required');
+            } else {
+                forfeitedSection.classList.add('hidden');
+                scoresSection.classList.remove('hidden');
+                setsSection.classList.remove('hidden');
+                // Remove required attribute
+                document.getElementById('forfeited_by').removeAttribute('required');
+            }
+        });
+
+        // Initialize on page load
+        document.getElementById('status').dispatchEvent(new Event('change'));
     </script>
 </x-app-layout>

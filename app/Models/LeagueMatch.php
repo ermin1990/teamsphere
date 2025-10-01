@@ -25,6 +25,7 @@ class LeagueMatch extends Model
         'status',
         'round',
         'sets',
+        'forfeited_by',
     ];
 
     protected $casts = [
@@ -34,6 +35,7 @@ class LeagueMatch extends Model
         'home_score' => 'integer',
         'away_score' => 'integer',
         'round' => 'integer',
+        'forfeited_by' => 'string',
     ];
 
     /**
@@ -81,6 +83,16 @@ class LeagueMatch extends Model
      */
     public function getWinnerAttribute()
     {
+        // Handle forfeited matches
+        if ($this->status === 'forfeited') {
+            if ($this->forfeited_by === 'home') {
+                return $this->away_team_id ? $this->awayTeam : $this->awayPlayer;
+            } elseif ($this->forfeited_by === 'away') {
+                return $this->home_team_id ? $this->homeTeam : $this->homePlayer;
+            }
+        }
+
+        // Handle completed matches
         if ($this->home_score > $this->away_score) {
             return $this->home_team_id ? $this->homeTeam : $this->homePlayer;
         } elseif ($this->away_score > $this->home_score) {

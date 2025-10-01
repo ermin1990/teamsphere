@@ -11,9 +11,13 @@
                 <span class="px-3 py-1 text-sm rounded-full
                     @if($match->status === 'completed') bg-green-500/20 text-green-400
                     @elseif($match->status === 'in_progress') bg-yellow-500/20 text-yellow-400
+                    @elseif($match->status === 'forfeited') bg-red-500/20 text-red-400
                     @else bg-gray-500/20 text-gray-400 @endif"
                 >
                     {{ ucfirst(str_replace('_', ' ', $match->status)) }}
+                    @if($match->status === 'forfeited' && $match->forfeited_by)
+                        - {{ $match->forfeited_by === 'home' ? ($league->is_team_based ? $match->homeTeam->name : $match->homePlayer->name) : ($league->is_team_based ? $match->awayTeam->name : $match->awayPlayer->name) }} Forfeited
+                    @endif
                 </span>
                 <div class="flex space-x-2">
                     <a href="{{ route('organizations.leagues.matches.edit', [$organization, $league, $match]) }}"
@@ -59,7 +63,19 @@
                                         {{ $match->homePlayer->name ?? 'TBD' }}
                                     @endif
                                 </h3>
-                                @if($match->home_score !== null)
+                                @if($match->status === 'forfeited')
+                                    @if($match->forfeited_by === 'home')
+                                        <div class="text-red-400 mt-2 text-center">
+                                            <div class="text-sm">Forfeited</div>
+                                            <div class="text-lg font-bold">Lost by Forfeit</div>
+                                        </div>
+                                    @else
+                                        <div class="text-green-400 mt-2 text-center">
+                                            <div class="text-sm">Won by</div>
+                                            <div class="text-lg font-bold">Forfeit</div>
+                                        </div>
+                                    @endif
+                                @elseif($match->home_score !== null)
                                 <div class="text-4xl font-bold text-blue-400 mt-2">{{ $match->home_score }}</div>
                                 @endif
                             </div>
@@ -71,6 +87,8 @@
                                 <div class="text-green-400 text-sm">Completed</div>
                                 @elseif($match->status === 'in_progress')
                                 <div class="text-yellow-400 text-sm">In Progress</div>
+                                @elseif($match->status === 'forfeited')
+                                <div class="text-red-400 text-sm">Forfeited</div>
                                 @else
                                 <div class="text-gray-400 text-sm">Scheduled</div>
                                 @endif
@@ -94,7 +112,19 @@
                                         {{ $match->awayPlayer->name ?? 'TBD' }}
                                     @endif
                                 </h3>
-                                @if($match->away_score !== null)
+                                @if($match->status === 'forfeited')
+                                    @if($match->forfeited_by === 'away')
+                                        <div class="text-red-400 mt-2 text-center">
+                                            <div class="text-sm">Forfeited</div>
+                                            <div class="text-lg font-bold">Lost by Forfeit</div>
+                                        </div>
+                                    @else
+                                        <div class="text-green-400 mt-2 text-center">
+                                            <div class="text-sm">Won by</div>
+                                            <div class="text-lg font-bold">Forfeit</div>
+                                        </div>
+                                    @endif
+                                @elseif($match->away_score !== null)
                                 <div class="text-4xl font-bold text-red-400 mt-2">{{ $match->away_score }}</div>
                                 @endif
                             </div>
