@@ -22,6 +22,8 @@ class DatabaseSeeder extends Seeder
 
         $this->call([
             SportSeeder::class,
+            PlanSeeder::class,
+            UserPlanSeeder::class,
         ]);
     }
 }
