@@ -1,4 +1,4 @@
- <x-app-layout>
+<x-app-layout>
     <x-slot name="header">
         <div class="flex items-center justify-between">
             <div>
@@ -12,7 +12,8 @@
                     @if($league->status === 'active') bg-green-500/20 text-green-400
                     @elseif($league->status === 'draft') bg-yellow-500/20 text-yellow-400
                     @elseif($league->status === 'completed') bg-blue-500/20 text-blue-400
-                    @else bg-red-500/20 text-red-400 @endif">
+                    @else bg-red-500/20 text-red-400 @endif"
+                >
                     {{ ucfirst($league->status) }}
                 </span>
             </div>
@@ -23,10 +24,8 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
-                <!-- League Info -->
                 <div class="lg:col-span-2 space-y-6">
 
-                    <!-- League Details -->
                     <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl">
                         <h3 class="text-xl font-semibold text-white mb-4">{{ __('League Details') }}</h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -69,45 +68,318 @@
                         @endif
                     </div>
 
-                    <!-- League Settings -->
-                    @if($league->settings)
+                    @if($league->status === 'active')
                     <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl">
-                        <h3 class="text-xl font-semibold text-white mb-4">{{ __('League Settings') }}</h3>
-                        <div class="space-y-4">
-                            @if($league->is_team_based || isset($league->settings['format']))
+                        <h3 class="text-xl font-semibold text-white mb-4">{{ __('Standings') }}</h3>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm">
+                                <thead>
+                                    <tr class="border-b border-gray-700">
+                                        <th class="text-left py-3 px-2 text-gray-400 font-medium">#</th>
+                                        <th class="text-left py-3 px-2 text-gray-400 font-medium">{{ $league->is_team_based ? __('Team') : __('Player') }}</th>
+                                        <th class="text-center py-3 px-2 text-gray-400 font-medium">{{ __('P') }}</th>
+                                        <th class="text-center py-3 px-2 text-gray-400 font-medium">{{ __('W') }}</th>
+                                        <th class="text-center py-3 px-2 text-gray-400 font-medium">{{ __('D') }}</th>
+                                        <th class="text-center py-3 px-2 text-gray-400 font-medium">{{ __('L') }}</th>
+                                        <th class="text-center py-3 px-2 text-gray-400 font-medium">{{ __('GF') }}</th>
+                                        <th class="text-center py-3 px-2 text-gray-400 font-medium">{{ __('GA') }}</th>
+                                        <th class="text-center py-3 px-2 text-gray-400 font-medium">{{ __('GD') }}</th>
+                                        <th class="text-center py-3 px-2 text-gray-400 font-medium">{{ __('Pts') }}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($league->standings->sortBy('position') as $standing)
+                                    <tr class="border-b border-gray-700/50 hover:bg-gray-700/20">
+                                        <td class="py-3 px-2 text-white font-medium">{{ $standing->position }}</td>
+                                        <td class="py-3 px-2 text-white">{{ $standing->participant_name }}</td>
+                                        <td class="py-3 px-2 text-center text-gray-300">{{ $standing->played }}</td>
+                                        <td class="py-3 px-2 text-center text-green-400">{{ $standing->won }}</td>
+                                        <td class="py-3 px-2 text-center text-yellow-400">{{ $standing->drawn }}</td>
+                                        <td class="py-3 px-2 text-center text-red-400">{{ $standing->lost }}</td>
+                                        <td class="py-3 px-2 text-center text-gray-300">{{ $standing->goals_for }}</td>
+                                        <td class="py-3 px-2 text-center text-gray-300">{{ $standing->goals_against }}</td>
+                                        <td class="py-3 px-2 text-center {{ $standing->goal_difference >= 0 ? 'text-green-400' : 'text-red-400' }}">
+                                            {{ $standing->goal_difference >= 0 ? '+' : '' }}{{ $standing->goal_difference }}
+                                        </td>
+                                        <td class="py-3 px-2 text-center text-white font-bold">{{ $standing->points }}</td>
+                                    </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+
+                        @if(true)
+                        <div class="mt-6 pt-6 border-t border-gray-600/50">
+                            <h4 class="text-lg font-semibold text-white mb-4">{{ __('Points Rules') }}</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div class="text-center">
+                                    <div class="text-2xl font-bold text-green-400">{{ $league->settings['points_win'] ?? 3 }}</div>
+                                    <div class="text-sm text-gray-400">{{ __('Points for Win') }}</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-2xl font-bold text-yellow-400">{{ $league->settings['points_draw'] ?? 1 }}</div>
+                                    <div class="text-sm text-gray-400">{{ __('Points for Draw') }}</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-2xl font-bold text-red-400">{{ $league->settings['points_loss'] ?? 0 }}</div>
+                                    <div class="text-sm text-gray-400">{{ __('Points for Loss') }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        @endif
+
+                        @if($league->sport->slug === 'stoni-tenis')
+                        <div class="mt-6 pt-6 border-t border-gray-600/50">
+                            <h4 class="text-lg font-semibold text-white mb-4">{{ __('Match Rules') }}</h4>
+                            <div class="text-center">
+                                <div class="text-lg font-semibold text-white">{{ __('Best of :sets sets (:wins sets to win)', ['sets' => ($league->settings['sets_to_win'] ?? 2) * 2 - 1, 'wins' => $league->settings['sets_to_win'] ?? 2]) }}</div>
+                                <div class="text-sm text-gray-400">{{ __('Sets to win match') }}</div>
+                            </div>
+                        </div>
+                        @endif
+                    </div>
+                    @endif
+
+                    @if($league->status === 'active')
+                    <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl">
+                        <h3 class="text-xl font-semibold text-white mb-4">{{ __('Match Schedule') }}</h3>
+
+                        @if($league->matches->count() > 0)
+                        <div class="space-y-6">
+                            @php
+                                $matchesByRound = $league->matches->groupBy('round');
+                            @endphp
+
+                            @foreach($matchesByRound as $round => $roundMatches)
                             <div>
-                                <label class="block text-sm font-medium text-gray-400 mb-1">{{ __('Competition Format') }}</label>
-                                <p class="text-white">
-                                    @if(isset($league->settings['format']))
-                                        @switch($league->settings['format'])
-                                            @case('round_robin')
-                                                {{ __('Single Round Robin') }}
-                                                @break
-                                            @case('dual_robin')
-                                                {{ __('Double Round Robin') }}
-                                                @break
-                                            @case('dual_robin_knockout')
-                                                {{ __('Double Round Robin + Knockout') }}
-                                                @break
-                                            @case('knockout')
-                                                {{ __('Knockout Only') }}
-                                                @break
-                                            @default
-                                                {{ ucfirst(str_replace('_', ' ', $league->settings['format'])) }}
-                                        @endswitch
-                                    @else
-                                        <span class="text-gray-500 italic">{{ __('Not configured yet') }}</span>
-                                    @endif
-                                </p>
+                                <h4 class="text-lg font-medium text-white mb-3">{{ __('Round :round', ['round' => $round]) }}</h4>
+                                <div class="space-y-3">
+                                    @foreach($roundMatches as $match)
+                                    <div class="flex items-center justify-between p-4 bg-gray-700/30 rounded-lg">
+                                        <div class="flex items-center space-x-4">
+                                            <div class="text-center">
+                                                <div class="text-white font-medium">
+                                                    @if($league->is_team_based)
+                                                        {{ $match->homeTeam->name ?? 'TBD' }}
+                                                    @else
+                                                        {{ $match->homePlayer->name ?? 'TBD' }}
+                                                    @endif
+                                                </div>
+                                            </div>
+                                            <div class="text-gray-400">vs</div>
+                                            <div class="text-center">
+                                                <div class="text-white font-medium">
+                                                    @if($league->is_team_based)
+                                                        {{ $match->awayTeam->name ?? 'TBD' }}
+                                                    @else
+                                                        {{ $match->awayPlayer->name ?? 'TBD' }}
+                                                    @endif
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center space-x-4">
+                                            @if($match->home_score !== null && $match->away_score !== null)
+                                            <div class="text-white font-bold">
+                                                {{ $match->home_score }} - {{ $match->away_score }}
+                                            </div>
+                                            @else
+                                            <div class="text-gray-400">
+                                                {{ $match->scheduled_at ? $match->scheduled_at->format('M d, H:i') : __('Not scheduled') }}
+                                            </div>
+                                            @endif
+                                            <span class="px-2 py-1 text-xs rounded-full
+                                                @if($match->status === 'completed') bg-green-500/20 text-green-400
+                                                @elseif($match->status === 'in_progress') bg-yellow-500/20 text-yellow-400
+                                                @else bg-gray-500/20 text-gray-400 @endif">
+                                                {{ ucfirst(str_replace('_', ' ', $match->status)) }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                            @endforeach
+                        </div>
+                        @else
+                        <div class="text-center py-8">
+                            <div class="w-16 h-16 bg-gray-700/50 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3a2 2 0 012-2h4a2 2 0 012 2v4m-6 4v10a2 2 0 002 2h4a2 2 0 002-2V11M9 11h6"></path>
+                                </svg>
+                            </div>
+                            <h4 class="text-white font-semibold mb-2">{{ __('No matches scheduled') }}</h4>
+                            <p class="text-gray-400">{{ __('Matches will be scheduled when the league starts.') }}</p>
+                        </div>
+                        @endif
+                    </div>
+                    @endif
+
+                    @if($league->status === 'draft')
+                    <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl">
+                        <h3 class="text-xl font-semibold text-white mb-6">{{ __('League Configuration') }}</h3>
+                        
+                        <form action="{{ route('organizations.leagues.update', [$organization, $league]) }}" method="POST" class="space-y-8">
+                            @csrf
+                            @method('PUT')
+
+                            <div>
+                                <label class="block text-lg font-medium text-white mb-4">{{ __('Competition Format') }}</label>
+                                <div class="space-y-3">
+                                    <div class="flex items-center p-3 bg-gray-700/30 rounded-lg hover:bg-gray-700/50 transition-colors">
+                                        <input type="radio" id="format_round_robin" name="format" value="round_robin" 
+                                               {{ old('format', $league->settings['format'] ?? '') === 'round_robin' ? 'checked' : '' }}
+                                               class="w-4 h-4 text-purple-600 bg-gray-700 border-gray-600 focus:ring-purple-500 focus:ring-2">
+                                        <label for="format_round_robin" class="ml-3 text-white cursor-pointer flex-1">
+                                            <div class="font-medium">{{ __('Single Round Robin') }}</div>
+                                            <div class="text-sm text-gray-400">{{ __('Each player/team plays every other once') }}</div>
+                                        </label>
+                                    </div>
+                                    
+                                    <div class="flex items-center p-3 bg-gray-700/30 rounded-lg hover:bg-gray-700/50 transition-colors">
+                                        <input type="radio" id="format_dual_robin" name="format" value="dual_robin"
+                                               {{ old('format', $league->settings['format'] ?? '') === 'dual_robin' ? 'checked' : '' }}
+                                               class="w-4 h-4 text-purple-600 bg-gray-700 border-gray-600 focus:ring-purple-500 focus:ring-2">
+                                        <label for="format_dual_robin" class="ml-3 text-white cursor-pointer flex-1">
+                                            <div class="font-medium">{{ __('Double Round Robin') }}</div>
+                                            <div class="text-sm text-gray-400">{{ __('Each player/team plays every other twice') }}</div>
+                                        </label>
+                                    </div>
+                                    
+                                    <div class="flex items-center p-3 bg-gray-700/30 rounded-lg hover:bg-gray-700/50 transition-colors">
+                                        <input type="radio" id="format_knockout" name="format" value="knockout"
+                                               {{ old('format', $league->settings['format'] ?? '') === 'knockout' ? 'checked' : '' }}
+                                               class="w-4 h-4 text-purple-600 bg-gray-700 border-gray-600 focus:ring-purple-500 focus:ring-2">
+                                        <label for="format_knockout" class="ml-3 text-white cursor-pointer flex-1">
+                                            <div class="font-medium">{{ __('Knockout Only') }}</div>
+                                            <div class="text-sm text-gray-400">{{ __('Single elimination tournament') }}</div>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            @if(!$league->is_team_based || $league->sport->slug === 'stoni-tenis')
+                            <div>
+                                <label class="block text-lg font-medium text-white mb-4">{{ __('Sets to Win Match') }}</label>
+                                <div class="space-y-3">
+                                    <div class="flex items-center p-3 bg-gray-700/30 rounded-lg hover:bg-gray-700/50 transition-colors">
+                                        <input type="radio" id="sets_2" name="sets_to_win" value="2"
+                                               {{ old('sets_to_win', $league->settings['sets_to_win'] ?? '') == 2 ? 'checked' : '' }}
+                                               class="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 focus:ring-blue-500 focus:ring-2">
+                                        <label for="sets_2" class="ml-3 text-white cursor-pointer flex-1">
+                                            <div class="font-medium">{{ __('Best of 3 (2 sets to win)') }}</div>
+                                            <div class="text-sm text-gray-400">{{ __('Quick matches') }}</div>
+                                        </label>
+                                    </div>
+                                    
+                                    <div class="flex items-center p-3 bg-gray-700/30 rounded-lg hover:bg-gray-700/50 transition-colors">
+                                        <input type="radio" id="sets_3" name="sets_to_win" value="3"
+                                               {{ old('sets_to_win', $league->settings['sets_to_win'] ?? '') == 3 ? 'checked' : '' }}
+                                               class="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 focus:ring-blue-500 focus:ring-2">
+                                        <label for="sets_3" class="ml-3 text-white cursor-pointer flex-1">
+                                            <div class="font-medium">{{ __('Best of 5 (3 sets to win)') }}</div>
+                                            <div class="text-sm text-gray-400">{{ __('Standard matches') }}</div>
+                                        </label>
+                                    </div>
+                                    
+                                    <div class="flex items-center p-3 bg-gray-700/30 rounded-lg hover:bg-gray-700/50 transition-colors">
+                                        <input type="radio" id="sets_4" name="sets_to_win" value="4"
+                                               {{ old('sets_to_win', $league->settings['sets_to_win'] ?? '') == 4 ? 'checked' : '' }}
+                                               class="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 focus:ring-blue-500 focus:ring-2">
+                                        <label for="sets_4" class="ml-3 text-white cursor-pointer flex-1">
+                                            <div class="font-medium">{{ __('Best of 7 (4 sets to win)') }}</div>
+                                            <div class="text-sm text-gray-400">{{ __('Long matches') }}</div>
+                                        </label>
+                                    </div>
+                                </div>
                             </div>
                             @endif
 
-                            @if($league->is_team_based && $league->sport->slug !== 'stoni-tenis')
-                                @if(isset($league->settings['points_win']))
+                            <div>
+                                <label class="block text-lg font-medium text-white mb-4">{{ __('Points System') }}</label>
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-400 mb-3">{{ __('Points for Win') }}</label>
+                                        <div class="space-y-2">
+                                            @for($i = 1; $i <= 5; $i++)
+                                            <div class="flex items-center">
+                                                <input type="radio" id="points_win_{{ $i }}" name="points_win" value="{{ $i }}"
+                                                       {{ old('points_win', $league->settings['points_win'] ?? 3) == $i ? 'checked' : '' }}
+                                                       class="w-4 h-4 text-green-600 bg-gray-700 border-gray-600 focus:ring-green-500 focus:ring-2">
+                                                <label for="points_win_{{ $i }}" class="ml-2 text-white cursor-pointer">{{ $i }} {{ __('points') }}</label>
+                                            </div>
+                                            @endfor
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-400 mb-3">{{ __('Points for Draw') }}</label>
+                                        <div class="space-y-2">
+                                            @for($i = 0; $i <= 3; $i++)
+                                            <div class="flex items-center">
+                                                <input type="radio" id="points_draw_{{ $i }}" name="points_draw" value="{{ $i }}"
+                                                       {{ old('points_draw', $league->settings['points_draw'] ?? 1) == $i ? 'checked' : '' }}
+                                                       class="w-4 h-4 text-yellow-600 bg-gray-700 border-gray-600 focus:ring-yellow-500 focus:ring-2">
+                                                <label for="points_draw_{{ $i }}" class="ml-2 text-white cursor-pointer">{{ $i }} {{ __('points') }}</label>
+                                            </div>
+                                            @endfor
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-400 mb-3">{{ __('Points for Loss') }}</label>
+                                        <div class="space-y-2">
+                                            @for($i = 0; $i <= 2; $i++)
+                                            <div class="flex items-center">
+                                                <input type="radio" id="points_loss_{{ $i }}" name="points_loss" value="{{ $i }}"
+                                                       {{ old('points_loss', $league->settings['points_loss'] ?? 0) == $i ? 'checked' : '' }}
+                                                       class="w-4 h-4 text-red-600 bg-gray-700 border-gray-600 focus:ring-red-500 focus:ring-2">
+                                                <label for="points_loss_{{ $i }}" class="ml-2 text-white cursor-pointer">{{ $i }} {{ __('points') }}</label>
+                                            </div>
+                                            @endfor
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="pt-6 border-t border-gray-600/50">
+                                <button type="submit"
+                                        class="w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white px-8 py-4 rounded-lg font-medium transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-purple-500/25">
+                                    {{ __('Save League Settings') }}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    @else
+                    <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl">
+                        <h3 class="text-xl font-semibold text-white mb-4">{{ __('League Settings') }}</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-400 mb-1">{{ __('Competition Format') }}</label>
+                                <p class="text-white">
+                                    @php
+                                        $format = $league->settings['format'] ?? 'round_robin';
+                                    @endphp
+                                    @switch($format)
+                                        @case('round_robin')
+                                            {{ __('Single Round Robin') }}
+                                            @break
+                                        @case('dual_robin')
+                                            {{ __('Double Round Robin') }}
+                                            @break
+                                        @case('knockout')
+                                            {{ __('Knockout Only') }}
+                                            @break
+                                        @default
+                                            {{ ucfirst(str_replace('_', ' ', $format)) }}
+                                    @endswitch
+                                </p>
+                            </div>
+
+                            @if(true)
                                 <div class="grid grid-cols-3 gap-4">
                                     <div>
                                         <label class="block text-sm font-medium text-gray-400 mb-1">{{ __('Points for Win') }}</label>
-                                        <p class="text-white">{{ $league->settings['points_win'] }}</p>
+                                        <p class="text-white">{{ $league->settings['points_win'] ?? 3 }}</p>
                                     </div>
                                     <div>
                                         <label class="block text-sm font-medium text-gray-400 mb-1">{{ __('Points for Draw') }}</label>
@@ -115,23 +387,21 @@
                                     </div>
                                     <div>
                                         <label class="block text-sm font-medium text-gray-400 mb-1">{{ __('Points for Loss') }}</label>
-                                        <p class="text-white">{{ $league->settings['points_loss'] }}</p>
+                                        <p class="text-white">{{ $league->settings['points_loss'] ?? 0 }}</p>
                                     </div>
                                 </div>
-                                @endif
-                            @else
-                                @if(isset($league->settings['sets_to_win']))
+                            @endif
+
+                            @if($league->sport->slug === 'stoni-tenis')
                                 <div>
                                     <label class="block text-sm font-medium text-gray-400 mb-1">{{ __('Sets to Win Match') }}</label>
-                                    <p class="text-white">{{ __('Best of :sets sets (:wins sets to win)', ['sets' => $league->settings['sets_to_win'] * 2 - 1, 'wins' => $league->settings['sets_to_win']]) }}</p>
+                                    <p class="text-white">{{ __('Best of :sets sets (:wins sets to win)', ['sets' => ($league->settings['sets_to_win'] ?? 2) * 2 - 1, 'wins' => $league->settings['sets_to_win'] ?? 2]) }}</p>
                                 </div>
-                                @endif
                             @endif
                         </div>
                     </div>
                     @endif
 
-                    <!-- Teams/Players Section -->
                     <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl">
                         <div class="flex items-center justify-between mb-4">
                             <h3 class="text-xl font-semibold text-white">
@@ -203,7 +473,6 @@
                         @endif
                     </div>
 
-                    <!-- Select Players Section -->
                     @if($league->status === 'draft')
                     <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl">
                         <h3 class="text-xl font-semibold text-white mb-4">{{ __('Select Players to Start League') }}</h3>
@@ -272,28 +541,22 @@
                     @endif
                 </div>
 
-                <!-- Sidebar -->
                 <div class="space-y-6">
 
-                    <!-- Quick Actions -->
                     <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl">
                         <h3 class="text-lg font-semibold text-white mb-4">{{ __('Quick Actions') }}</h3>
                         <div class="space-y-3">
-                            @if($league->status === 'draft')
-                            <button onclick="openFormatModal()"
-                                    class="w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white px-4 py-3 rounded-lg font-medium transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-purple-500/25">
-                                {{ __('Set Competition Format') }}
-                            </button>
-
-                            <button onclick="openRulesModal()"
-                                    class="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-4 py-3 rounded-lg font-medium transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-blue-500/25">
-                                {{ __('Configure Rules') }}
-                            </button>
-
-                            <button onclick="startLeague()"
-                                    class="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white px-4 py-3 rounded-lg font-medium transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-green-500/25">
-                                {{ __('Start League') }}
-                            </button>
+                            @if($league->status === 'draft' && $league->players->count() >= 2)
+                            <form method="POST" action="{{ route('organizations.leagues.start', [$organization, $league]) }}"
+                                  onsubmit="return confirm('{{ __('Are you sure you want to start this league? This will generate matches and standings.') }}')"
+                                  class="w-full">
+                                @csrf
+                                @method('PATCH')
+                                <button type="submit"
+                                        class="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white px-4 py-3 rounded-lg font-medium transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-green-500/25 mb-3">
+                                    {{ __('Start League') }}
+                                </button>
+                            </form>
                             @endif
 
                             <a href="{{ route('organizations.show', $organization) }}"
@@ -316,7 +579,6 @@
                         </div>
                     </div>
 
-                    <!-- League Stats -->
                     <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl">
                         <h3 class="text-lg font-semibold text-white mb-4">{{ __('Statistics') }}</h3>
                         <div class="space-y-4">
@@ -324,11 +586,27 @@
                                 <span class="text-gray-400">{{ $league->is_team_based ? __('Teams') : __('Players') }}</span>
                                 <span class="text-white font-medium">{{ $league->is_team_based ? $league->teams->count() : $league->players->count() }}</span>
                             </div>
+                            @if($league->status === 'active')
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">{{ __('Total Matches') }}</span>
+                                <span class="text-white font-medium">{{ $league->matches->count() }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">{{ __('Completed') }}</span>
+                                <span class="text-white font-medium">{{ $league->matches->where('status', 'completed')->count() }}</span>
+                            </div>
+                            @if($league->standings->count() > 0)
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">{{ __('Leader') }}</span>
+                                <span class="text-white font-medium">{{ $league->standings->sortBy('position')->first()->participant_name }}</span>
+                            </div>
+                            @endif
                             @if($league->is_team_based && $league->max_teams)
                             <div class="flex justify-between">
                                 <span class="text-gray-400">{{ __('Max Teams') }}</span>
                                 <span class="text-white font-medium">{{ $league->max_teams }}</span>
                             </div>
+                            @endif
                             @endif
                             <div class="flex justify-between">
                                 <span class="text-gray-400">{{ __('Status') }}</span>
@@ -341,197 +619,14 @@
         </div>
     </div>
 
-    <!-- Format Configuration Modal -->
-    @if($league->status === 'draft')
-    <div id="formatModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
-        <div class="flex items-center justify-center min-h-screen p-4">
-            <div class="bg-gray-800 rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
-                <div class="p-6 border-b border-gray-700">
-                    <div class="flex items-center justify-between">
-                        <h3 class="text-xl font-semibold text-white">{{ __('Set Competition Format') }}</h3>
-                        <button onclick="closeFormatModal()" class="text-gray-400 hover:text-white">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-
-                <form action="{{ route('organizations.leagues.update', [$organization, $league]) }}" method="POST" class="p-6 space-y-6">
-                    @csrf
-                    @method('PUT')
-
-                    <div>
-                        <label for="format_only" class="block text-sm font-medium text-white mb-2">
-                            {{ __('Competition Format') }} <span class="text-red-400">*</span>
-                        </label>
-                        <select id="format_only" name="format" required
-                                class="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200">
-                            <option value="">{{ __('Select format') }}</option>
-                            <option value="round_robin" {{ old('format', $league->settings['format'] ?? '') === 'round_robin' ? 'selected' : '' }}>
-                                {{ __('Single Round Robin') }}
-                            </option>
-                            <option value="dual_robin" {{ old('format', $league->settings['format'] ?? '') === 'dual_robin' ? 'selected' : '' }}>
-                                {{ __('Double Round Robin') }}
-                            </option>
-                            <option value="dual_robin_knockout" {{ old('format', $league->settings['format'] ?? '') === 'dual_robin_knockout' ? 'selected' : '' }}>
-                                {{ __('Double Round Robin + Knockout') }}
-                            </option>
-                            <option value="knockout" {{ old('format', $league->settings['format'] ?? '') === 'knockout' ? 'selected' : '' }}>
-                                {{ __('Knockout Only') }}
-                            </option>
-                        </select>
-                        @error('format')
-                            <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <div class="flex items-center justify-end space-x-4 pt-6 border-t border-gray-600/50">
-                        <button type="button" onclick="closeFormatModal()"
-                                class="px-6 py-3 border border-gray-600/50 text-white/70 hover:text-white hover:border-gray-500 rounded-lg transition-all duration-200">
-                            {{ __('Cancel') }}
-                        </button>
-                        <button type="submit"
-                                class="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white px-8 py-3 rounded-lg font-medium transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-purple-500/25">
-                            {{ __('Save Format') }}
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-    @endif
-
-    <!-- Rules Configuration Modal -->
-    <div id="rulesModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
-        <div class="flex items-center justify-center min-h-screen p-4">
-            <div class="bg-gray-800 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-                <div class="p-6 border-b border-gray-700">
-                    <div class="flex items-center justify-between">
-                        <h3 class="text-xl font-semibold text-white">{{ __('Configure League Rules') }}</h3>
-                        <button onclick="closeRulesModal()" class="text-gray-400 hover:text-white">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-
-                <form action="{{ route('organizations.leagues.update', [$organization, $league]) }}" method="POST" class="p-6 space-y-6">
-                    @csrf
-                    @method('PUT')
-
-                    @if($league->is_team_based && $league->sport->slug !== 'stoni-tenis')
-                        <!-- Team-based competition settings -->
-                        <div>
-                            <label for="format" class="block text-sm font-medium text-white mb-2">
-                                {{ __('Competition Format') }} <span class="text-red-400">*</span>
-                            </label>
-                            <select id="format" name="format" required
-                                    class="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200">
-                                <option value="">{{ __('Select format') }}</option>
-                                <option value="round_robin" {{ old('format', $league->settings['format'] ?? '') === 'round_robin' ? 'selected' : '' }}>
-                                    {{ __('Single Round Robin') }}
-                                </option>
-                                <option value="dual_robin" {{ old('format', $league->settings['format'] ?? '') === 'dual_robin' ? 'selected' : '' }}>
-                                    {{ __('Double Round Robin') }}
-                                </option>
-                                <option value="dual_robin_knockout" {{ old('format', $league->settings['format'] ?? '') === 'dual_robin_knockout' ? 'selected' : '' }}>
-                                    {{ __('Double Round Robin + Knockout') }}
-                                </option>
-                                <option value="knockout" {{ old('format', $league->settings['format'] ?? '') === 'knockout' ? 'selected' : '' }}>
-                                    {{ __('Knockout Only') }}
-                                </option>
-                            </select>
-                            @error('format')
-                                <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
-                            @enderror
-                        </div>
-
-                        <!-- Points system -->
-                        <div class="grid grid-cols-3 gap-4">
-                            <div>
-                                <label for="points_win" class="block text-sm font-medium text-white mb-2">
-                                    {{ __('Points for Win') }} <span class="text-red-400">*</span>
-                                </label>
-                                <input type="number" id="points_win" name="points_win"
-                                       value="{{ old('points_win', $league->settings['points_win'] ?? 3) }}"
-                                       min="1" max="10" required
-                                       class="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200">
-                                @error('points_win')
-                                    <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
-                                @enderror
-                            </div>
-                            <div>
-                                <label for="points_draw" class="block text-sm font-medium text-white mb-2">
-                                    {{ __('Points for Draw') }}
-                                </label>
-                                <input type="number" id="points_draw" name="points_draw"
-                                       value="{{ old('points_draw', $league->settings['points_draw'] ?? 1) }}"
-                                       min="0" max="5"
-                                       class="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200">
-                                @error('points_draw')
-                                    <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
-                                @enderror
-                            </div>
-                            <div>
-                                <label for="points_loss" class="block text-sm font-medium text-white mb-2">
-                                    {{ __('Points for Loss') }} <span class="text-red-400">*</span>
-                                </label>
-                                <input type="number" id="points_loss" name="points_loss"
-                                       value="{{ old('points_loss', $league->settings['points_loss'] ?? 0) }}"
-                                       min="0" max="5" required
-                                       class="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200">
-                                @error('points_loss')
-                                    <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
-                                @enderror
-                            </div>
-                        </div>
-                    @else
-                        <!-- Individual competition settings or Table Tennis -->
-                        <div>
-                            <label for="sets_to_win" class="block text-sm font-medium text-white mb-2">
-                                {{ __('Sets to Win Match') }} <span class="text-red-400">*</span>
-                            </label>
-                            <select id="sets_to_win" name="sets_to_win" required
-                                    class="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200">
-                                <option value="">{{ __('Select sets to win') }}</option>
-                                <option value="2" {{ old('sets_to_win', $league->settings['sets_to_win'] ?? '') == 2 ? 'selected' : '' }}>
-                                    {{ __('Best of 3 (2 sets to win)') }}
-                                </option>
-                                <option value="3" {{ old('sets_to_win', $league->settings['sets_to_win'] ?? '') == 3 ? 'selected' : '' }}>
-                                    {{ __('Best of 5 (3 sets to win)') }}
-                                </option>
-                                <option value="4" {{ old('sets_to_win', $league->settings['sets_to_win'] ?? '') == 4 ? 'selected' : '' }}>
-                                    {{ __('Best of 7 (4 sets to win)') }}
-                                </option>
-                            </select>
-                            @error('sets_to_win')
-                                <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
-                            @enderror
-                        </div>
-                    @endif
-
-                    <div class="flex items-center justify-end space-x-4 pt-6 border-t border-gray-600/50">
-                        <button type="button" onclick="closeRulesModal()"
-                                class="px-6 py-3 border border-gray-600/50 text-white/70 hover:text-white hover:border-gray-500 rounded-lg transition-all duration-200">
-                            {{ __('Cancel') }}
-                        </button>
-                        <button type="submit"
-                                class="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-8 py-3 rounded-lg font-medium transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-blue-500/25">
-                            {{ __('Save Rules') }}
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
     <script>
         // Update selected players count
         function updateSelectedCount() {
-            const checkboxes = document.querySelectorAll('input[name="player_ids[]"]:checked');
-            document.getElementById('selectedCount').textContent = checkboxes.length;
+            const selectedCountElement = document.getElementById('selectedCount');
+            if (selectedCountElement) {
+                const checkboxes = document.querySelectorAll('input[name="player_ids[]"]:checked');
+                selectedCountElement.textContent = checkboxes.length;
+            }
         }
 
         // Add event listeners to checkboxes
@@ -540,64 +635,6 @@
         });
 
         // Initialize count on page load
-        document.addEventListener('DOMContentLoaded', updateSelectedCount);
-
-        function startLeague() {
-            if (confirm('{{ __("Are you sure you want to start this league?") }}')) {
-                // Create a form to submit PATCH request
-                const form = document.createElement('form');
-                form.method = 'POST';
-                form.action = '{{ route("organizations.leagues.start", [$organization, $league]) }}';
-
-                // Add CSRF token
-                const csrfToken = document.createElement('input');
-                csrfToken.type = 'hidden';
-                csrfToken.name = '_token';
-                csrfToken.value = '{{ csrf_token() }}';
-                form.appendChild(csrfToken);
-
-                // Add method spoofing for PATCH
-                const methodField = document.createElement('input');
-                methodField.type = 'hidden';
-                methodField.name = '_method';
-                methodField.value = 'PATCH';
-                form.appendChild(methodField);
-
-                document.body.appendChild(form);
-                form.submit();
-            }
-        }
-
-        function openFormatModal() {
-            document.getElementById('formatModal').classList.remove('hidden');
-        }
-
-        function closeFormatModal() {
-            document.getElementById('formatModal').classList.add('hidden');
-        }
-
-        // Close format modal when clicking outside
-        @if($league->status === 'draft')
-        document.getElementById('formatModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeFormatModal();
-            }
-        });
-        @endif
-
-        function openRulesModal() {
-            document.getElementById('rulesModal').classList.remove('hidden');
-        }
-
-        function closeRulesModal() {
-            document.getElementById('rulesModal').classList.add('hidden');
-        }
-
-        // Close modal when clicking outside
-        document.getElementById('rulesModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeRulesModal();
-            }
-        });
+        updateSelectedCount();
     </script>
 </x-app-layout>

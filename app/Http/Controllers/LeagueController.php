@@ -3,8 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\League;
+use App\Models\LeagueMatch;
 use App\Models\Organization;
+use App\Models\Player;
 use App\Models\Sport;
+use App\Models\Standing;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -123,7 +126,7 @@ class LeagueController extends Controller
             $settings['format'] = $request->format;
         }
 
-        if ($request->has(['points_win', 'points_draw', 'points_loss']) && $league->is_team_based && $league->sport->slug !== 'stoni-tenis') {
+        if ($request->has(['points_win', 'points_draw', 'points_loss'])) {
             $request->validate([
                 'points_win' => ['required', 'integer', 'min:1', 'max:10'],
                 'points_draw' => ['nullable', 'integer', 'min:0', 'max:5'],
@@ -290,10 +293,170 @@ class LeagueController extends Controller
             return back()->withErrors(['general' => __('League has already been started.')]);
         }
 
-        // Start the league
-        $league->update(['status' => 'active']);
+        // Validate that league has participants
+        $participantCount = $league->is_team_based ? $league->teams->count() : $league->players->count();
+        if ($participantCount < 2) {
+            return back()->withErrors(['general' => __('League must have at least 2 participants to start.')]);
+        }
 
-        return redirect()->route('organizations.leagues.show', [$organization, $league])
-                       ->with('success', __('League started successfully!'));
+        try {
+            // Generate matches based on format
+            $this->generateMatches($league);
+
+            // Generate standings table
+            $this->generateStandings($league);
+
+            // Start the league
+            $league->update(['status' => 'active']);
+
+            return redirect()->route('organizations.leagues.show', [$organization, $league])
+                           ->with('success', __('League started successfully!'));
+        } catch (\Exception $e) {
+            \Log::error('Error starting league: ' . $e->getMessage());
+            return back()->withErrors(['general' => 'Error starting league: ' . $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Generate matches for the league based on format.
+     */
+    private function generateMatches(League $league)
+    {
+        $participants = $league->is_team_based ? $league->teams : $league->players;
+        $participantIds = $participants->pluck('id')->toArray();
+
+        $format = $league->settings['format'] ?? 'round_robin';
+        $matches = [];
+
+        switch ($format) {
+            case 'round_robin':
+                $matches = $this->generateRoundRobinMatches($participantIds, false);
+                break;
+            case 'dual_robin':
+                $matches = $this->generateRoundRobinMatches($participantIds, true);
+                break;
+            case 'dual_robin_knockout':
+                // First round-robin, then knockout - for now just round-robin
+                $matches = $this->generateRoundRobinMatches($participantIds, true);
+                break;
+            case 'knockout':
+                // Generate knockout bracket
+                $matches = $this->generateKnockoutMatches($participantIds);
+                break;
+        }
+
+        // Create matches in database
+        foreach ($matches as $round => $roundMatches) {
+            foreach ($roundMatches as $match) {
+                LeagueMatch::create([
+                    'league_id' => $league->id,
+                    'home_team_id' => $league->is_team_based ? $match['home'] : null,
+                    'away_team_id' => $league->is_team_based ? $match['away'] : null,
+                    'home_player_id' => !$league->is_team_based ? $match['home'] : null,
+                    'away_player_id' => !$league->is_team_based ? $match['away'] : null,
+                    'round' => $round + 1,
+                    'status' => 'scheduled',
+                ]);
+            }
+        }
+    }
+
+    /**
+     * Generate round-robin matches.
+     */
+    private function generateRoundRobinMatches(array $participantIds, bool $doubleRound = false): array
+    {
+        $matches = [];
+        $numParticipants = count($participantIds);
+
+        // If odd number of participants, add a bye
+        $hasBye = $numParticipants % 2 !== 0;
+        if ($hasBye) {
+            $participantIds[] = null; // Bye
+            $numParticipants++;
+        }
+
+        $rounds = $numParticipants - 1;
+        $matchesPerRound = $numParticipants / 2;
+
+        for ($round = 0; $round < $rounds; $round++) {
+            $roundMatches = [];
+
+            for ($i = 0; $i < $matchesPerRound; $i++) {
+                $home = $participantIds[$i];
+                $away = $participantIds[$numParticipants - 1 - $i];
+
+                // Skip bye matches
+                if ($home !== null && $away !== null) {
+                    $roundMatches[] = ['home' => $home, 'away' => $away];
+                }
+            }
+
+            $matches[] = $roundMatches;
+
+            // Rotate participants for next round (keep first fixed)
+            $first = array_shift($participantIds);
+            $participantIds[] = array_pop($participantIds);
+            array_unshift($participantIds, $first);
+        }
+
+        // If double round, add reverse fixtures
+        if ($doubleRound) {
+            $reverseMatches = [];
+            foreach ($matches as $roundMatches) {
+                $reverseRound = [];
+                foreach ($roundMatches as $match) {
+                    $reverseRound[] = ['home' => $match['away'], 'away' => $match['home']];
+                }
+                $reverseMatches[] = $reverseRound;
+            }
+            $matches = array_merge($matches, $reverseMatches);
+        }
+
+        return $matches;
+    }
+
+    /**
+     * Generate knockout matches.
+     */
+    private function generateKnockoutMatches(array $participantIds): array
+    {
+        shuffle($participantIds); // Randomize bracket
+        $matches = [];
+
+        // First round
+        $firstRoundMatches = [];
+        for ($i = 0; $i < count($participantIds); $i += 2) {
+            if (isset($participantIds[$i + 1])) {
+                $firstRoundMatches[] = [
+                    'home' => $participantIds[$i],
+                    'away' => $participantIds[$i + 1]
+                ];
+            }
+        }
+        $matches[] = $firstRoundMatches;
+
+        // For now, just return first round. Full knockout would need multiple rounds
+        // based on number of participants
+
+        return $matches;
+    }
+
+    /**
+     * Generate standings table for the league.
+     */
+    private function generateStandings(League $league)
+    {
+        $participants = $league->is_team_based ? $league->teams : $league->players;
+
+        $position = 1;
+        foreach ($participants as $participant) {
+            Standing::create([
+                'league_id' => $league->id,
+                'team_id' => $league->is_team_based ? $participant->id : null,
+                'player_id' => !$league->is_team_based ? $participant->id : null,
+                'position' => $position++,
+            ]);
+        }
     }
 }

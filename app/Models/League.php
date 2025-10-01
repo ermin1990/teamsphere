@@ -82,6 +82,22 @@ class League extends Model
     }
 
     /**
+     * Get the matches for this league.
+     */
+    public function matches(): HasMany
+    {
+        return $this->hasMany(LeagueMatch::class);
+    }
+
+    /**
+     * Get the standings for this league.
+     */
+    public function standings(): HasMany
+    {
+        return $this->hasMany(Standing::class)->orderBy('position');
+    }
+
+    /**
      * Scope a query to only include active leagues.
      */
     public function scopeActive($query)
