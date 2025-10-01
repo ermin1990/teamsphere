@@ -15,6 +15,18 @@
                 >
                     {{ ucfirst(str_replace('_', ' ', $match->status)) }}
                 </span>
+                <div class="flex space-x-2">
+                    <a href="{{ route('organizations.leagues.matches.edit', [$organization, $league, $match]) }}"
+                       class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition-colors">
+                        ✏️ Edit Results
+                    </a>
+                    @if($match->status !== 'completed')
+                    <a href="{{ route('organizations.leagues.matches.live', [$organization, $league, $match]) }}"
+                       class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm rounded-lg transition-colors">
+                        🎯 Live Score
+                    </a>
+                    @endif
+                </div>
             </div>
         </div>
     </x-slot>

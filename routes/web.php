@@ -43,6 +43,10 @@ Route::middleware('auth')->group(function () {
     Route::post('organizations/{organization}/leagues/{league}/add-players', [LeagueController::class, 'addPlayers'])->name('organizations.leagues.addPlayers');
     Route::patch('organizations/{organization}/leagues/{league}/start', [LeagueController::class, 'startLeague'])->name('organizations.leagues.start');
     Route::get('organizations/{organization}/leagues/{league}/matches/{match}', [LeagueController::class, 'showMatch'])->name('organizations.leagues.matches.show');
+    Route::get('organizations/{organization}/leagues/{league}/matches/{match}/edit', [LeagueController::class, 'editMatch'])->name('organizations.leagues.matches.edit');
+    Route::put('organizations/{organization}/leagues/{league}/matches/{match}', [LeagueController::class, 'updateMatch'])->name('organizations.leagues.matches.update');
+    Route::get('organizations/{organization}/leagues/{league}/matches/{match}/live', [LeagueController::class, 'liveScore'])->name('organizations.leagues.matches.live');
+    Route::post('organizations/{organization}/leagues/{league}/matches/{match}/live-score', [LeagueController::class, 'updateLiveScore'])->name('organizations.leagues.matches.live-score');
 
     // Player routes (nested under organizations)
     Route::resource('organizations.players', PlayerController::class)->shallow();

@@ -482,4 +482,161 @@ class LeagueController extends Controller
 
         return view('organizations.leagues.matches.show', compact('organization', 'league', 'match'));
     }
+
+    /**
+     * Show the form for editing match results.
+     */
+    public function editMatch(Request $request, Organization $organization, League $league, LeagueMatch $match)
+    {
+        // Ensure user owns this organization
+        if ($organization->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        // Ensure league belongs to organization
+        if ($league->organization_id !== $organization->id) {
+            abort(404);
+        }
+
+        // Ensure match belongs to league
+        if ($match->league_id !== $league->id) {
+            abort(404);
+        }
+
+        return view('organizations.leagues.matches.edit', compact('organization', 'league', 'match'));
+    }
+
+    /**
+     * Update match results.
+     */
+    public function updateMatch(Request $request, Organization $organization, League $league, LeagueMatch $match)
+    {
+        // Ensure user owns this organization
+        if ($organization->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        // Ensure league belongs to organization
+        if ($league->organization_id !== $organization->id) {
+            abort(404);
+        }
+
+        // Ensure match belongs to league
+        if ($match->league_id !== $league->id) {
+            abort(404);
+        }
+
+        $validated = $request->validate([
+            'home_score' => 'required|integer|min:0',
+            'away_score' => 'required|integer|min:0',
+            'sets' => 'nullable|array',
+            'sets.*.home' => 'required|integer|min:0',
+            'sets.*.away' => 'required|integer|min:0',
+            'status' => 'required|in:scheduled,in_progress,completed,cancelled',
+            'played_at' => 'nullable|date',
+        ]);
+
+        $match->update([
+            'home_score' => $validated['home_score'],
+            'away_score' => $validated['away_score'],
+            'sets' => $validated['sets'] ?? [],
+            'status' => $validated['status'],
+            'played_at' => $validated['played_at'] ? now() : $match->played_at,
+        ]);
+
+        // Update standings if match is completed
+        if ($validated['status'] === 'completed') {
+            $this->updateStandings($league);
+        }
+
+        return redirect()->route('organizations.leagues.matches.show', [$organization, $league, $match])
+            ->with('success', 'Match results updated successfully.');
+    }
+
+    /**
+     * Show live scoring interface for a match.
+     */
+    public function liveScore(Request $request, Organization $organization, League $league, LeagueMatch $match)
+    {
+        // Ensure user owns this organization
+        if ($organization->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        // Ensure league belongs to organization
+        if ($league->organization_id !== $organization->id) {
+            abort(404);
+        }
+
+        // Ensure match belongs to league
+        if ($match->league_id !== $league->id) {
+            abort(404);
+        }
+
+        // Start the match if not already started
+        if ($match->status === 'scheduled') {
+            $match->update([
+                'status' => 'in_progress',
+                'played_at' => now(),
+            ]);
+        }
+
+        return view('organizations.leagues.matches.live', compact('organization', 'league', 'match'));
+    }
+
+    /**
+     * Update live match score.
+     */
+    public function updateLiveScore(Request $request, Organization $organization, League $league, LeagueMatch $match)
+    {
+        // Ensure user owns this organization
+        if ($organization->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        // Ensure league belongs to organization
+        if ($league->organization_id !== $organization->id) {
+            abort(404);
+        }
+
+        // Ensure match belongs to league
+        if ($match->league_id !== $league->id) {
+            abort(404);
+        }
+
+        $validated = $request->validate([
+            'home_score' => 'required|integer|min:0',
+            'away_score' => 'required|integer|min:0',
+            'sets' => 'nullable|array',
+            'sets.*.home' => 'required|integer|min:0',
+            'sets.*.away' => 'required|integer|min:0',
+            'action' => 'required|in:update_score,complete_match,pause_match',
+        ]);
+
+        if ($validated['action'] === 'complete_match') {
+            $match->update([
+                'home_score' => $validated['home_score'],
+                'away_score' => $validated['away_score'],
+                'sets' => $validated['sets'] ?? [],
+                'status' => 'completed',
+            ]);
+
+            // Update standings
+            $this->updateStandings($league);
+
+            return response()->json(['status' => 'completed', 'message' => 'Match completed successfully.']);
+        } elseif ($validated['action'] === 'pause_match') {
+            $match->update(['status' => 'scheduled']);
+            return response()->json(['status' => 'paused', 'message' => 'Match paused.']);
+        } else {
+            // Update current score
+            $match->update([
+                'home_score' => $validated['home_score'],
+                'away_score' => $validated['away_score'],
+                'sets' => $validated['sets'] ?? [],
+            ]);
+
+            return response()->json(['status' => 'updated', 'message' => 'Score updated.']);
+        }
+    }
 }
