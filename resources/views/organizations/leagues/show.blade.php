@@ -179,7 +179,7 @@
                                             </div>
                                         </div>
                                         <div class="flex items-center space-x-4">
-                                            @if($match->home_score !== null && $match->away_score !== null)
+                                            @if(in_array($match->status, ['in_progress', 'completed']))
                                             <div class="text-white font-bold">
                                                 {{ $match->home_score }} - {{ $match->away_score }}
                                             </div>
