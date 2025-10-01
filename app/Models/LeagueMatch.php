@@ -26,6 +26,8 @@ class LeagueMatch extends Model
         'round',
         'sets',
         'forfeited_by',
+        'first_server',
+        'current_server',
     ];
 
     protected $casts = [
@@ -36,6 +38,8 @@ class LeagueMatch extends Model
         'away_score' => 'integer',
         'round' => 'integer',
         'forfeited_by' => 'string',
+        'first_server' => 'string',
+        'current_server' => 'string',
     ];
 
     /**

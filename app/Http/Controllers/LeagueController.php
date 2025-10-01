@@ -736,16 +736,26 @@ class LeagueController extends Controller
         }
 
         $validated = $request->validate([
-            'home_score' => 'required_unless:action,forfeit_match|integer|min:0',
-            'away_score' => 'required_unless:action,forfeit_match|integer|min:0',
+            'home_score' => 'required_unless:action,forfeit_match,start_match|integer|min:0',
+            'away_score' => 'required_unless:action,forfeit_match,start_match|integer|min:0',
             'sets' => 'nullable|array',
             'sets.*.home' => 'required|integer|min:0',
             'sets.*.away' => 'required|integer|min:0',
             'forfeited_by' => 'required_if:action,forfeit_match|in:home,away',
-            'action' => 'required|in:update_score,complete_match,pause_match,forfeit_match',
+            'first_server' => 'required_if:action,start_match|in:home,away',
+            'action' => 'required|in:update_score,complete_match,pause_match,forfeit_match,start_match',
         ]);
 
-        if ($validated['action'] === 'complete_match') {
+        if ($validated['action'] === 'start_match') {
+            $match->update([
+                'status' => 'in_progress',
+                'played_at' => now(),
+                'first_server' => $validated['first_server'],
+                'current_server' => $validated['first_server'],
+            ]);
+
+            return response()->json(['status' => 'started', 'message' => 'Match started successfully.']);
+        } elseif ($validated['action'] === 'complete_match') {
             $match->update([
                 'home_score' => $validated['home_score'],
                 'away_score' => $validated['away_score'],

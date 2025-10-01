@@ -151,10 +151,10 @@
                                 @foreach($match->sets as $index => $set)
                                     <div class="set-row flex items-center space-x-4 p-3 bg-gray-700/50 rounded-lg">
                                         <span class="text-sm font-medium text-gray-300 w-16">Set {{ $index + 1 }}:</span>
-                                        <input type="number" name="sets[{{ $index }}][home]" value="{{ $set['home'] ?? 0 }}"
+                                        <input type="number" name="sets[{{ $index }}][home_score]" value="{{ $set['home_score'] ?? $set['home'] ?? 0 }}"
                                                class="w-20 px-2 py-1 bg-gray-600 border border-gray-500 rounded text-white text-center" min="0">
                                         <span class="text-gray-400">-</span>
-                                        <input type="number" name="sets[{{ $index }}][away]" value="{{ $set['away'] ?? 0 }}"
+                                        <input type="number" name="sets[{{ $index }}][away_score]" value="{{ $set['away_score'] ?? $set['away'] ?? 0 }}"
                                                class="w-20 px-2 py-1 bg-gray-600 border border-gray-500 rounded text-white text-center" min="0">
                                         <button type="button" class="remove-set px-2 py-1 bg-red-600 hover:bg-red-700 text-white text-sm rounded transition-colors">
                                             Remove

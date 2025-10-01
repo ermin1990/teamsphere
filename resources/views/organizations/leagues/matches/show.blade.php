@@ -8,7 +8,7 @@
                 <p class="text-gray-400 mt-1">{{ $league->name }} • Round {{ $match->round }}</p>
             </div>
             <div class="flex items-center space-x-4">
-                <span class="px-3 py-1 text-sm rounded-full
+                <span class="px-2 py-1 text-xs sm:text-sm rounded-full whitespace-nowrap overflow-hidden text-ellipsis max-w-32 sm:max-w-none
                     @if($match->status === 'completed') bg-green-500/20 text-green-400
                     @elseif($match->status === 'in_progress') bg-yellow-500/20 text-yellow-400
                     @elseif($match->status === 'forfeited') bg-red-500/20 text-red-400
@@ -167,6 +167,64 @@
                     </div>
                 </div>
 
+                <!-- Match Sets (if applicable) -->
+                @if($league->sport->slug === 'stoni-tenis' && $match->sets)
+                <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl">
+                    <h3 class="text-xl font-semibold text-white mb-4">Set Scores</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="border-b border-gray-700">
+                                    <th class="text-left py-3 px-2 text-gray-400 font-medium">Set</th>
+                                    <th class="text-center py-3 px-2 text-gray-400 font-medium">
+                                        @if($league->is_team_based)
+                                            {{ $match->homeTeam->name ?? 'Home' }}
+                                        @else
+                                            {{ $match->homePlayer->name ?? 'Home' }}
+                                        @endif
+                                    </th>
+                                    <th class="text-center py-3 px-2 text-gray-400 font-medium">
+                                        @if($league->is_team_based)
+                                            {{ $match->awayTeam->name ?? 'Away' }}
+                                        @else
+                                            {{ $match->awayPlayer->name ?? 'Away' }}
+                                        @endif
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @php
+                                    $sets = $match->sets ?? [];
+                                @endphp
+                                @foreach($sets as $setNumber => $set)
+                                <tr class="border-b border-gray-700/50">
+                                    <td class="py-3 px-2 text-white font-medium">Set {{ $setNumber + 1 }}</td>
+                                    <td class="py-3 px-2 text-center">
+                                        @php
+                                            $homeScore = $set['home_score'] ?? $set['home'] ?? 0;
+                                            $awayScore = $set['away_score'] ?? $set['away'] ?? 0;
+                                            $homeWon = $homeScore > $awayScore;
+                                        @endphp
+                                        <span class="{{ $homeWon ? 'text-green-400 font-bold text-lg' : 'text-white' }}">
+                                            {{ $homeScore }}
+                                        </span>
+                                    </td>
+                                    <td class="py-3 px-2 text-center">
+                                        @php
+                                            $awayWon = $awayScore > $homeScore;
+                                        @endphp
+                                        <span class="{{ $awayWon ? 'text-green-400 font-bold text-lg' : 'text-white' }}">
+                                            {{ $awayScore }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                @endif
+
                 <!-- Match Details -->
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
@@ -268,48 +326,6 @@
                     </div>
 
                 </div>
-
-                <!-- Match Sets (if applicable) -->
-                @if($league->sport->slug === 'stoni-tenis' && $match->sets)
-                <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl">
-                    <h3 class="text-xl font-semibold text-white mb-4">Set Scores</h3>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-sm">
-                            <thead>
-                                <tr class="border-b border-gray-700">
-                                    <th class="text-left py-3 px-2 text-gray-400 font-medium">Set</th>
-                                    <th class="text-center py-3 px-2 text-gray-400 font-medium">
-                                        @if($league->is_team_based)
-                                            {{ $match->homeTeam->name ?? 'Home' }}
-                                        @else
-                                            {{ $match->homePlayer->name ?? 'Home' }}
-                                        @endif
-                                    </th>
-                                    <th class="text-center py-3 px-2 text-gray-400 font-medium">
-                                        @if($league->is_team_based)
-                                            {{ $match->awayTeam->name ?? 'Away' }}
-                                        @else
-                                            {{ $match->awayPlayer->name ?? 'Away' }}
-                                        @endif
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @php
-                                    $sets = $match->sets ?? [];
-                                @endphp
-                                @foreach($sets as $setNumber => $set)
-                                <tr class="border-b border-gray-700/50">
-                                    <td class="py-3 px-2 text-white font-medium">Set {{ $setNumber + 1 }}</td>
-                                    <td class="py-3 px-2 text-center text-white">{{ $set['home_score'] ?? '-' }}</td>
-                                    <td class="py-3 px-2 text-center text-white">{{ $set['away_score'] ?? '-' }}</td>
-                                </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                @endif
 
                 <!-- Navigation -->
                 <div class="flex justify-center space-x-4">
