@@ -461,6 +461,107 @@ class LeagueController extends Controller
     }
 
     /**
+     * Update standings table based on completed matches.
+     */
+    private function updateStandings(League $league)
+    {
+        // Reset all standings for this league
+        Standing::where('league_id', $league->id)->update([
+            'played' => 0,
+            'won' => 0,
+            'drawn' => 0,
+            'lost' => 0,
+            'points' => 0,
+            'goals_for' => 0,
+            'goals_against' => 0,
+            'goal_difference' => 0,
+        ]);
+
+        // Get all completed and forfeited matches
+        $completedMatches = LeagueMatch::where('league_id', $league->id)
+            ->whereIn('status', ['completed', 'forfeited'])
+            ->get();
+
+        foreach ($completedMatches as $match) {
+            $homeParticipantId = $league->is_team_based ? $match->home_team_id : $match->home_player_id;
+            $awayParticipantId = $league->is_team_based ? $match->away_team_id : $match->away_player_id;
+
+            $homeStanding = Standing::where('league_id', $league->id)
+                ->where($league->is_team_based ? 'team_id' : 'player_id', $homeParticipantId)
+                ->first();
+
+            $awayStanding = Standing::where('league_id', $league->id)
+                ->where($league->is_team_based ? 'team_id' : 'player_id', $awayParticipantId)
+                ->first();
+
+            if ($homeStanding && $awayStanding) {
+                // Update played games
+                $homeStanding->increment('played');
+                $awayStanding->increment('played');
+
+                // Handle forfeited matches
+                if ($match->status === 'forfeited') {
+                    if ($match->forfeited_by === 'home') {
+                        // Away wins by forfeit
+                        $awayStanding->increment('won');
+                        $awayStanding->increment('points', $league->settings['points_win'] ?? 3);
+                        $homeStanding->increment('lost');
+                        $homeStanding->increment('points', $league->settings['points_loss'] ?? 1);
+                    } elseif ($match->forfeited_by === 'away') {
+                        // Home wins by forfeit
+                        $homeStanding->increment('won');
+                        $homeStanding->increment('points', $league->settings['points_win'] ?? 3);
+                        $awayStanding->increment('lost');
+                        $awayStanding->increment('points', $league->settings['points_loss'] ?? 1);
+                    }
+                } else {
+                    // Regular completed match
+                    $homeStanding->increment('goals_for', $match->home_score);
+                    $homeStanding->increment('goals_against', $match->away_score);
+                    $awayStanding->increment('goals_for', $match->away_score);
+                    $awayStanding->increment('goals_against', $match->home_score);
+
+                    if ($match->home_score > $match->away_score) {
+                        $homeStanding->increment('won');
+                        $awayStanding->increment('lost');
+                        $homeStanding->increment('points', $league->settings['points_win'] ?? 3);
+                        $awayStanding->increment('points', $league->settings['points_loss'] ?? 1);
+                    } elseif ($match->away_score > $match->home_score) {
+                        $awayStanding->increment('won');
+                        $homeStanding->increment('lost');
+                        $awayStanding->increment('points', $league->settings['points_win'] ?? 3);
+                        $homeStanding->increment('points', $league->settings['points_loss'] ?? 1);
+                    } else {
+                        $homeStanding->increment('drawn');
+                        $awayStanding->increment('drawn');
+                        $homeStanding->increment('points', $league->settings['points_draw'] ?? 0);
+                        $awayStanding->increment('points', $league->settings['points_draw'] ?? 0);
+                    }
+                }
+
+                // Update goal difference
+                $homeStanding->goal_difference = $homeStanding->goals_for - $homeStanding->goals_against;
+                $awayStanding->goal_difference = $awayStanding->goals_for - $awayStanding->goals_against;
+
+                $homeStanding->save();
+                $awayStanding->save();
+            }
+        }
+
+        // Update positions based on points, goal difference, goals for
+        $standings = Standing::where('league_id', $league->id)
+            ->orderBy('points', 'desc')
+            ->orderBy('goal_difference', 'desc')
+            ->orderBy('goals_for', 'desc')
+            ->get();
+
+        $position = 1;
+        foreach ($standings as $standing) {
+            $standing->update(['position' => $position++]);
+        }
+    }
+
+    /**
      * Show a specific match.
      */
     public function showMatch(Request $request, Organization $organization, League $league, LeagueMatch $match)
@@ -560,6 +661,11 @@ class LeagueController extends Controller
 
         // Update standings if match is completed or forfeited
         if (in_array($validated['status'], ['completed', 'forfeited'])) {
+            $this->updateStandings($league);
+        }
+
+        // If changing from completed/forfeited to scheduled, update standings to remove the match results
+        if ($validated['status'] === 'scheduled' && in_array($match->getOriginal('status'), ['completed', 'forfeited'])) {
             $this->updateStandings($league);
         }
 
