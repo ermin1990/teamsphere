@@ -275,7 +275,7 @@
                             </thead>
                             <tbody>
                                 @php
-                                    $sets = json_decode($match->sets, true) ?? [];
+                                    $sets = $match->sets ?? [];
                                 @endphp
                                 @foreach($sets as $setNumber => $set)
                                 <tr class="border-b border-gray-700/50">

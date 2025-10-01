@@ -239,6 +239,12 @@
                 setsSection.classList.add('hidden');
                 // Make forfeited_by required when status is forfeited
                 document.getElementById('forfeited_by').setAttribute('required', 'required');
+            } else if (status === 'scheduled') {
+                forfeitedSection.classList.add('hidden');
+                scoresSection.classList.add('hidden');
+                setsSection.classList.add('hidden');
+                // Remove required attribute
+                document.getElementById('forfeited_by').removeAttribute('required');
             } else {
                 forfeitedSection.classList.add('hidden');
                 scoresSection.classList.remove('hidden');

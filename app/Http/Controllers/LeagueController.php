@@ -527,8 +527,8 @@ class LeagueController extends Controller
         }
 
         $validated = $request->validate([
-            'home_score' => 'required_unless:status,forfeited|integer|min:0',
-            'away_score' => 'required_unless:status,forfeited|integer|min:0',
+            'home_score' => 'nullable|integer|min:0',
+            'away_score' => 'nullable|integer|min:0',
             'sets' => 'nullable|array',
             'sets.*.home' => 'required|integer|min:0',
             'sets.*.away' => 'required|integer|min:0',
@@ -537,14 +537,26 @@ class LeagueController extends Controller
             'played_at' => 'nullable|date',
         ]);
 
-        $match->update([
-            'home_score' => $validated['home_score'] ?? 0,
-            'away_score' => $validated['away_score'] ?? 0,
-            'sets' => $validated['sets'] ?? [],
-            'status' => $validated['status'],
-            'forfeited_by' => $validated['forfeited_by'] ?? null,
-            'played_at' => $validated['played_at'] ? now() : $match->played_at,
-        ]);
+        // Reset scores and related fields when status changes to scheduled
+        if ($validated['status'] === 'scheduled') {
+            $match->update([
+                'home_score' => 0,
+                'away_score' => 0,
+                'sets' => [],
+                'status' => 'scheduled',
+                'forfeited_by' => null,
+                'played_at' => null,
+            ]);
+        } else {
+            $match->update([
+                'home_score' => $validated['home_score'] ?? 0,
+                'away_score' => $validated['away_score'] ?? 0,
+                'sets' => $validated['sets'] ?? [],
+                'status' => $validated['status'],
+                'forfeited_by' => $validated['forfeited_by'] ?? null,
+                'played_at' => $validated['played_at'] ? now() : $match->played_at,
+            ]);
+        }
 
         // Update standings if match is completed or forfeited
         if (in_array($validated['status'], ['completed', 'forfeited'])) {
