@@ -126,10 +126,24 @@
                 <h3 class="text-xl font-bold text-white mb-4">{{ __('Available Sports') }}</h3>
                 <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
                     @foreach(\App\Models\Sport::active()->get() as $sport)
-                        <div class="bg-gray-700/30 rounded-xl p-4 text-center hover:bg-gray-600/30 transition-all duration-200 transform hover:scale-[1.02] cursor-pointer">
+                        <div class="bg-gray-700/30 rounded-xl p-4 text-center hover:bg-gray-600/30 transition-all duration-200 transform hover:scale-[1.02] cursor-pointer group">
                             <div class="text-3xl mb-2">{{ $sport->icon }}</div>
-                            <h4 class="text-white font-semibold text-sm">{{ $sport->name }}</h4>
-                            <p class="text-gray-400 text-xs mt-1">{{ Str::limit($sport->description, 40) }}</p>
+                            <h4 class="text-white font-semibold text-sm mb-1">{{ $sport->name }}</h4>
+                            <p class="text-gray-400 text-xs mb-2">{{ Str::limit($sport->description, 40) }}</p>
+
+                            <!-- Sport Rules Preview -->
+                            <div class="text-xs text-gray-500 space-y-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                @if($sport->isPointsBased())
+                                    <div>{{ $sport->getMaxPointsPerGame() }} {{ __('points') }}/{{ __('game') }}</div>
+                                    <div>{{ $sport->getGamesToWin() }} {{ __('games to win') }}</div>
+                                @elseif($sport->isSetsGamesBased())
+                                    <div>{{ $sport->getGamesPerSet() }} {{ __('games') }}/{{ __('set') }}</div>
+                                    <div>{{ $sport->getSetsToWin() }} {{ __('sets to win') }}</div>
+                                @elseif($sport->isTimeBased())
+                                    <div>{{ $sport->getRule('periods') }}x {{ $sport->getRule('period_duration') / 60 }}min</div>
+                                    <div>{{ $sport->getPlayersPerTeam() }} {{ __('players') }}</div>
+                                @endif
+                            </div>
                         </div>
                     @endforeach
                 </div>

@@ -123,6 +123,13 @@ return [
         'schedule_match' => 'Schedule Match',
         'view_stats' => 'View Stats',
         'available_sports' => 'Available Sports',
+        'points' => 'points',
+        'game' => 'game',
+        'games_to_win' => 'games to win',
+        'games' => 'games',
+        'set' => 'set',
+        'sets_to_win' => 'sets to win',
+        'players' => 'players',
     ],
         'login' => [
             'title' => 'Welcome Back',

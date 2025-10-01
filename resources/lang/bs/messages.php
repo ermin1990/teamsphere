@@ -123,6 +123,13 @@ return [
         'schedule_match' => 'Zakaži Utakmicu',
         'view_stats' => 'Pogledaj Statistike',
         'available_sports' => 'Dostupni Sportovi',
+        'points' => 'poena',
+        'game' => 'gem',
+        'games_to_win' => 'gemova za pobjedu',
+        'games' => 'gemova',
+        'set' => 'set',
+        'sets_to_win' => 'setova za pobjedu',
+        'players' => 'igrača',
     ],
         'login' => [
             'title' => 'Dobrodošli Nazad',
