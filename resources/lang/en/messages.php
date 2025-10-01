@@ -102,8 +102,28 @@ return [
         'already_have_account' => 'Already have an account? Sign In',
     ],
 
-    // Authentication
-    'auth' => [
+    // Dashboard
+    'dashboard' => [
+        'welcome_back' => 'Welcome back, :name!',
+        'welcome_title' => 'Welcome to Team Sphere',
+        'welcome_subtitle' => 'Manage your teams, track performance, and achieve greatness together.',
+        'active_teams' => 'Active Teams',
+        'total_players' => 'Total Players',
+        'matches_played' => 'Matches Played',
+        'avg_performance' => 'Avg Performance',
+        'from_last_month' => 'from last month',
+        'recent_activity' => 'Recent Activity',
+        'welcome_message' => 'Welcome to Team Sphere!',
+        'account_created' => 'Your account has been created successfully',
+        'just_now' => 'Just now',
+        'no_recent_activity' => 'No recent activity yet. Start by creating your first team!',
+        'quick_actions' => 'Quick Actions',
+        'create_team' => 'Create Team',
+        'add_player' => 'Add Player',
+        'schedule_match' => 'Schedule Match',
+        'view_stats' => 'View Stats',
+        'available_sports' => 'Available Sports',
+    ],
         'login' => [
             'title' => 'Welcome Back',
             'subtitle' => 'Sign in to your Team Sphere account',

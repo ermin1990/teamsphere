@@ -102,8 +102,28 @@ return [
         'already_have_account' => 'Već imate račun? Prijavi se',
     ],
 
-    // Authentication
-    'auth' => [
+    // Dashboard
+    'dashboard' => [
+        'welcome_back' => 'Dobrodošli nazad, :name!',
+        'welcome_title' => 'Dobrodošli u Team Sphere',
+        'welcome_subtitle' => 'Upravljajte svojim timovima, pratite performanse i postignite veličinu zajedno.',
+        'active_teams' => 'Aktivni Timovi',
+        'total_players' => 'Ukupno Igrača',
+        'matches_played' => 'Odigrane Utakmice',
+        'avg_performance' => 'Prosječna Performansa',
+        'from_last_month' => 'od prošlog mjeseca',
+        'recent_activity' => 'Nedavne Aktivnosti',
+        'welcome_message' => 'Dobrodošli u Team Sphere!',
+        'account_created' => 'Vaš nalog je uspješno kreiran',
+        'just_now' => 'Upravo sada',
+        'no_recent_activity' => 'Još nema nedavnih aktivnosti. Započnite kreiranjem vašeg prvog tima!',
+        'quick_actions' => 'Brze Akcije',
+        'create_team' => 'Kreiraj Tim',
+        'add_player' => 'Dodaj Igrača',
+        'schedule_match' => 'Zakaži Utakmicu',
+        'view_stats' => 'Pogledaj Statistike',
+        'available_sports' => 'Dostupni Sportovi',
+    ],
         'login' => [
             'title' => 'Dobrodošli Nazad',
             'subtitle' => 'Prijavite se na vaš Team Sphere nalog',
