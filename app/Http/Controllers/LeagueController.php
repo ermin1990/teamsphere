@@ -459,4 +459,27 @@ class LeagueController extends Controller
             ]);
         }
     }
+
+    /**
+     * Show a specific match.
+     */
+    public function showMatch(Request $request, Organization $organization, League $league, LeagueMatch $match)
+    {
+        // Ensure user owns this organization
+        if ($organization->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        // Ensure league belongs to organization
+        if ($league->organization_id !== $organization->id) {
+            abort(404);
+        }
+
+        // Ensure match belongs to league
+        if ($match->league_id !== $league->id) {
+            abort(404);
+        }
+
+        return view('organizations.leagues.matches.show', compact('organization', 'league', 'match'));
+    }
 }

@@ -42,6 +42,7 @@ Route::middleware('auth')->group(function () {
     Route::post('organizations/{organization}/leagues/{league}/players', [LeagueController::class, 'addPlayer'])->name('organizations.leagues.players.store');
     Route::post('organizations/{organization}/leagues/{league}/add-players', [LeagueController::class, 'addPlayers'])->name('organizations.leagues.addPlayers');
     Route::patch('organizations/{organization}/leagues/{league}/start', [LeagueController::class, 'startLeague'])->name('organizations.leagues.start');
+    Route::get('organizations/{organization}/leagues/{league}/matches/{match}', [LeagueController::class, 'showMatch'])->name('organizations.leagues.matches.show');
 
     // Player routes (nested under organizations)
     Route::resource('organizations.players', PlayerController::class)->shallow();

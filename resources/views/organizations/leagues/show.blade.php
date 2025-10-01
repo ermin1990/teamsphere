@@ -155,7 +155,8 @@
                                 <h4 class="text-lg font-medium text-white mb-3">{{ __('Round :round', ['round' => $round]) }}</h4>
                                 <div class="space-y-3">
                                     @foreach($roundMatches as $match)
-                                    <div class="flex items-center justify-between p-4 bg-gray-700/30 rounded-lg">
+                                    <a href="{{ route('organizations.leagues.matches.show', [$organization, $league, $match]) }}"
+                                       class="flex items-center justify-between p-4 bg-gray-700/30 rounded-lg hover:bg-gray-700/50 transition-colors cursor-pointer block">
                                         <div class="flex items-center space-x-4">
                                             <div class="text-center">
                                                 <div class="text-white font-medium">
@@ -194,7 +195,7 @@
                                                 {{ ucfirst(str_replace('_', ' ', $match->status)) }}
                                             </span>
                                         </div>
-                                    </div>
+                                    </a>
                                     @endforeach
                                 </div>
                             </div>
