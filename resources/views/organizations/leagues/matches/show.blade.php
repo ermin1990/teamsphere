@@ -75,7 +75,7 @@
                                             <div class="text-lg font-bold">Forfeit</div>
                                         </div>
                                     @endif
-                                @elseif($match->home_score !== null)
+                                @elseif(in_array($match->status, ['in_progress', 'completed']))
                                 <div class="text-4xl font-bold text-blue-400 mt-2">{{ $match->home_score }}</div>
                                 @endif
                             </div>
@@ -124,7 +124,7 @@
                                             <div class="text-lg font-bold">Forfeit</div>
                                         </div>
                                     @endif
-                                @elseif($match->away_score !== null)
+                                @elseif(in_array($match->status, ['in_progress', 'completed']))
                                 <div class="text-4xl font-bold text-red-400 mt-2">{{ $match->away_score }}</div>
                                 @endif
                             </div>
