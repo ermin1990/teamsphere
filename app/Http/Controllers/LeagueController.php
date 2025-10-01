@@ -773,4 +773,45 @@ class LeagueController extends Controller
             return response()->json(['status' => 'updated', 'message' => 'Score updated.']);
         }
     }
-}
+
+    /**
+     * Reset match to initial state.
+     */
+    public function resetMatch(Request $request, Organization $organization, League $league, LeagueMatch $match)
+    {
+        // Ensure user owns this organization
+        if ($organization->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        // Ensure league belongs to organization
+        if ($league->organization_id !== $organization->id) {
+            abort(404);
+        }
+
+        // Ensure match belongs to league
+        if ($match->league_id !== $league->id) {
+            abort(404);
+        }
+
+        // Check if match was previously completed or forfeited
+        $wasCompleted = in_array($match->status, ['completed', 'forfeited']);
+
+        // Reset match to initial state
+        $match->update([
+            'status' => 'scheduled',
+            'home_score' => 0,
+            'away_score' => 0,
+            'sets' => [],
+            'played_at' => null,
+            'forfeited_by' => null,
+        ]);
+
+        // Update standings if match was previously completed/forfeited
+        if ($wasCompleted) {
+            $this->updateStandings($league);
+        }
+
+        return redirect()->route('organizations.leagues.matches.show', [$organization, $league, $match])
+            ->with('success', 'Match has been reset to initial state.');
+    }

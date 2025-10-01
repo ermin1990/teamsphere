@@ -291,7 +291,15 @@
                 @endif
 
                 <!-- Navigation -->
-                <div class="flex justify-center">
+                <div class="flex justify-center space-x-4">
+                    <form method="POST" action="{{ route('organizations.leagues.matches.reset', [$organization, $league, $match]) }}"
+                          onsubmit="return confirm('Are you sure you want to reset this match? All current data will be lost.')"
+                          class="inline">
+                        @csrf
+                        <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-medium transition-all duration-200">
+                            🔄 Reset Match
+                        </button>
+                    </form>
                     <a href="{{ route('organizations.leagues.show', [$organization, $league]) }}"
                        class="bg-gray-700/50 hover:bg-gray-600/50 text-white px-6 py-3 rounded-lg font-medium transition-all duration-200">
                         ← Back to League
