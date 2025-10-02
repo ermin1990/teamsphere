@@ -3,56 +3,34 @@
 namespace App\Http\Controllers;
 
 use App\Models\Organization;
+use App\Models\FriendlyMatch;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 class OrganizationController extends Controller
 {
-    /**
-     * Show the form for creating a new organization.
-     */
-    public function create()
+    // ...existing code...
+
+    public function showFriendlyMatch(Organization $organization, FriendlyMatch $match)
     {
-        return view('organizations.create');
+        // For doubles, split names if needed
+        if (str_contains($match->home_player_name, ' / ')) {
+            [$match->home_player_name, $match->home_player2_name] = explode(' / ', $match->home_player_name);
+        } else {
+            $match->home_player2_name = null;
+        }
+        if (str_contains($match->away_player_name, ' / ')) {
+            [$match->away_player_name, $match->away_player2_name] = explode(' / ', $match->away_player_name);
+        } else {
+            $match->away_player2_name = null;
+        }
+        return view('organizations.friendly-matches.show', [
+            'organization' => $organization,
+            'match' => $match,
+        ]);
     }
 
-    /**
-     * Store a newly created organization.
-     */
-    public function store(Request $request)
-    {
-        $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'description' => ['nullable', 'string', 'max:1000'],
-            'slug' => ['nullable', 'string', 'max:255', 'unique:organizations,slug'],
-        ]);
-
-        // Check if user can create more organizations
-        if (!auth()->user()->canCreateMoreOrganizations()) {
-            return back()->withErrors(['error' => __('You have reached the maximum number of organizations for your plan.')]);
-        }
-
-        $slug = $request->slug ?: Str::slug($request->name);
-
-        // Ensure slug is unique
-        $originalSlug = $slug;
-        $counter = 1;
-        while (Organization::where('slug', $slug)->exists()) {
-            $slug = $originalSlug . '-' . $counter;
-            $counter++;
-        }
-
-        Organization::create([
-            'name' => $request->name,
-            'slug' => $slug,
-            'description' => $request->description,
-            'user_id' => auth()->id(),
-            'is_active' => true,
-        ]);
-
-        return redirect()->route('dashboard')->with('success', __('Organization created successfully!'));
-    }
 
     /**
      * Display the specified organization.

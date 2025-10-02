@@ -15,17 +15,25 @@ class TableTennisFriendly extends Component
             // Only allow saving if match is completed
             return;
         }
-        FriendlyMatch::create([
+        $data = [
             'organization_id' => $this->organization->id,
-            'home_player_id' => $this->homePlayer['id'],
-            'away_player_id' => $this->awayPlayer['id'],
-            'home_player_name' => $this->homePlayer ? $this->homePlayer['name'] : 'Home Player',
-            'away_player_name' => $this->awayPlayer ? $this->awayPlayer['name'] : 'Away Player',
             'sets' => $this->sets,
             'set_durations' => $this->setDurations,
             'winner_name' => $this->getMatchWinner(),
             'completed_at' => now(),
-        ]);
+        ];
+        if ($this->matchType === 'team') {
+            $data['home_pair_ids'] = implode(',', [$this->homePlayer['id'], $this->homePlayer2['id']]);
+            $data['away_pair_ids'] = implode(',', [$this->awayPlayer['id'], $this->awayPlayer2['id']]);
+            $data['home_player_name'] = $this->homePlayer['name'] . ' / ' . $this->homePlayer2['name'];
+            $data['away_player_name'] = $this->awayPlayer['name'] . ' / ' . $this->awayPlayer2['name'];
+        } else {
+            $data['home_player_id'] = $this->homePlayer['id'];
+            $data['away_player_id'] = $this->awayPlayer['id'];
+            $data['home_player_name'] = $this->homePlayer ? $this->homePlayer['name'] : 'Home Player';
+            $data['away_player_name'] = $this->awayPlayer ? $this->awayPlayer['name'] : 'Away Player';
+        }
+        FriendlyMatch::create($data);
 
         session()->flash('message', 'Meč je uspješno snimljen!');
         return redirect()->route('organizations.friendly-matches.index', ['organization' => $this->organization->slug]);
@@ -37,9 +45,17 @@ class TableTennisFriendly extends Component
         $homeSets = count(array_filter($this->sets, fn($set) => $set['home_score'] > $set['away_score']));
         $awaySets = count(array_filter($this->sets, fn($set) => $set['away_score'] > $set['home_score']));
         if ($homeSets > $awaySets) {
-            return $this->homePlayer ? $this->homePlayer['name'] : 'Home Player';
+            if ($this->matchType === 'team') {
+                return $this->homePlayer['name'] . ' / ' . $this->homePlayer2['name'];
+            } else {
+                return $this->homePlayer ? $this->homePlayer['name'] : 'Home Player';
+            }
         } elseif ($awaySets > $homeSets) {
-            return $this->awayPlayer ? $this->awayPlayer['name'] : 'Away Player';
+            if ($this->matchType === 'team') {
+                return $this->awayPlayer['name'] . ' / ' . $this->awayPlayer2['name'];
+            } else {
+                return $this->awayPlayer ? $this->awayPlayer['name'] : 'Away Player';
+            }
         } else {
             return 'Draw';
         }
@@ -84,6 +100,11 @@ class TableTennisFriendly extends Component
     // Players/Teams
     public $homePlayer = null;
     public $awayPlayer = null;
+    // For doubles (multi-select)
+    public $homePair = [];
+    public $awayPair = [];
+    public $homePlayer2 = null;
+    public $awayPlayer2 = null;
     public $homeTeam = null;
     public $awayTeam = null;
 
@@ -100,12 +121,25 @@ class TableTennisFriendly extends Component
         $this->organization = $organization;
         $this->matchType = $matchType;
 
-        // Load available players for individual matches
-        if ($this->matchType === 'individual') {
-            $this->availablePlayers = Player::where('organization_id', $organization->id)
-                ->orderBy('name')
-                ->get()
-                ->toArray();
+        // Load available players for both types
+        $this->availablePlayers = Player::where('organization_id', $organization->id)
+            ->orderBy('name')
+            ->get()
+            ->toArray();
+    }
+    // For doubles
+    public function selectHomePlayer2($playerId)
+    {
+        $player = collect($this->availablePlayers)->firstWhere('id', $playerId);
+        if ($player) {
+            $this->homePlayer2 = $player;
+        }
+    }
+    public function selectAwayPlayer2($playerId)
+    {
+        $player = collect($this->availablePlayers)->firstWhere('id', $playerId);
+        if ($player) {
+            $this->awayPlayer2 = $player;
         }
     }
 
@@ -132,16 +166,33 @@ class TableTennisFriendly extends Component
 
     public function confirmPlayerSelection()
     {
-        if (!$this->homePlayer || !$this->awayPlayer) {
-            $this->addError('players', 'Please select both players.');
-            return;
+        if ($this->matchType === 'team') {
+            // Validate exactly 2 unique players per team
+            if (count($this->homePair) !== 2 || count($this->awayPair) !== 2) {
+                $this->addError('players', 'Odaberite po 2 igrača za svaki tim.');
+                return;
+            }
+            $ids = array_merge($this->homePair, $this->awayPair);
+            if (count($ids) !== count(array_unique($ids))) {
+                $this->addError('players', 'Svi igrači moraju biti različiti.');
+                return;
+            }
+            // Set homePlayer/homePlayer2 and awayPlayer/awayPlayer2 from selected IDs
+            $playersById = collect($this->availablePlayers)->keyBy('id');
+            $this->homePlayer = $playersById[$this->homePair[0]] ?? null;
+            $this->homePlayer2 = $playersById[$this->homePair[1]] ?? null;
+            $this->awayPlayer = $playersById[$this->awayPair[0]] ?? null;
+            $this->awayPlayer2 = $playersById[$this->awayPair[1]] ?? null;
+        } else {
+            if (!$this->homePlayer || !$this->awayPlayer) {
+                $this->addError('players', 'Please select both players.');
+                return;
+            }
+            if ($this->homePlayer['id'] === $this->awayPlayer['id']) {
+                $this->addError('players', 'Please select different players.');
+                return;
+            }
         }
-
-        if ($this->homePlayer['id'] === $this->awayPlayer['id']) {
-            $this->addError('players', 'Please select different players.');
-            return;
-        }
-
         $this->playersSelected = true;
     }
 
@@ -323,6 +374,13 @@ class TableTennisFriendly extends Component
         $this->matchStarted = false;
         $this->matchCompleted = false;
         $this->pointHistory = [];
+        $this->playersSelected = false;
+        $this->homePair = [];
+        $this->awayPair = [];
+        $this->homePlayer = null;
+        $this->homePlayer2 = null;
+        $this->awayPlayer = null;
+        $this->awayPlayer2 = null;
 
         // Stop any running timers and reset UI
         $this->dispatch('stop-timers');

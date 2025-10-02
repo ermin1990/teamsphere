@@ -1,59 +1,103 @@
 <div>
     <div class="contents">
         <!-- Player Selection (for individual matches) -->
-        @if(!$playersSelected && $matchType === 'individual')
+        @if(!$playersSelected)
         <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-8 border border-gray-700/50 shadow-xl mb-8">
             <h3 class="text-xl font-bold mb-6 text-center">
-                {{ __('Select Players') }}
+                @if($matchType === 'team')
+                    {{ __('Select Doubles Teams') }}
+                @else
+                    {{ __('Select Players') }}
+                @endif
             </h3>
             <div class="max-w-2xl mx-auto">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Home Player Selection -->
+                    <!-- Home Player(s) Selection -->
                     <div>
-                        <label class="block text-sm font-medium text-gray-300 mb-3">Home Player</label>
-                        <div class="space-y-2 max-h-64 overflow-y-auto">
-                            @foreach($availablePlayers as $player)
-                            <button type="button" wire:click="selectHomePlayer({{ $player['id'] }})"
-                                    class="w-full p-3 text-left rounded-lg transition-all {{ $homePlayer && $homePlayer['id'] === $player['id'] ? 'bg-blue-600/30 border-2 border-blue-500/50' : 'bg-gray-700/50 hover:bg-gray-600/50 border-2 border-transparent' }}">
-                                <div class="font-medium text-white">{{ $player['name'] }}</div>
-                            </button>
-                            @endforeach
-                        </div>
+                        @if($matchType==='team')
+                            <label class="block text-sm font-medium text-gray-300 mb-3">Home Pair (Select 2 Players)</label>
+                            <div class="grid grid-cols-1 gap-2">
+                                @foreach($availablePlayers as $player)
+                                    <label wire:key="home-{{ $player['id'] }}" class="flex items-center p-3 rounded-lg cursor-pointer transition-all border-2 {{ in_array($player['id'], $homePair) ? 'bg-blue-600/30 border-blue-500/50' : 'bg-gray-700/50 hover:bg-gray-600/50 border-transparent' }} {{ in_array($player['id'], $awayPair) ? 'opacity-50 cursor-not-allowed' : '' }}" wire:loading.class="opacity-60">
+                                        <input type="checkbox" value="{{ $player['id'] }}" wire:model="homePair" wire:change="$refresh" @if(in_array($player['id'], $awayPair)) disabled @endif class="form-checkbox h-5 w-5 text-blue-500 rounded focus:ring-blue-400 mr-3" />
+                                        <span class="font-medium text-white">{{ $player['name'] }}</span>
+                                    </label>
+                                @endforeach
+                            </div>
+                            <div class="text-xs text-gray-400 mt-1">Odaberite točno 2 igrača</div>
+                        @else
+                            <label class="block text-sm font-medium text-gray-300 mb-3">Home Player</label>
+                            <div class="space-y-2 max-h-64 overflow-y-auto">
+                                @foreach($availablePlayers as $player)
+                                <button type="button" wire:click="selectHomePlayer({{ $player['id'] }})"
+                                        class="w-full p-3 text-left rounded-lg transition-all {{ $homePlayer && $homePlayer['id'] === $player['id'] ? 'bg-blue-600/30 border-2 border-blue-500/50' : 'bg-gray-700/50 hover:bg-gray-600/50 border-2 border-transparent' }}">
+                                    <div class="font-medium text-white">{{ $player['name'] }}</div>
+                                </button>
+                                @endforeach
+                            </div>
+                        @endif
                     </div>
 
-                    <!-- Away Player Selection -->
+                    <!-- Away Player(s) Selection -->
                     <div>
-                        <label class="block text-sm font-medium text-gray-300 mb-3">Away Player</label>
-                        <div class="space-y-2 max-h-64 overflow-y-auto">
-                            @foreach($availablePlayers as $player)
-                            <button type="button" wire:click="selectAwayPlayer({{ $player['id'] }})"
-                                    class="w-full p-3 text-left rounded-lg transition-all {{ $awayPlayer && $awayPlayer['id'] === $player['id'] ? 'bg-red-600/30 border-2 border-red-500/50' : 'bg-gray-700/50 hover:bg-gray-600/50 border-2 border-transparent' }}">
-                                <div class="font-medium text-white">{{ $player['name'] }}</div>
-                            </button>
-                            @endforeach
-                        </div>
+                        @if($matchType==='team')
+                            <label class="block text-sm font-medium text-gray-300 mb-3">Away Pair (Select 2 Players)</label>
+                            <div class="grid grid-cols-1 gap-2">
+                                @foreach($availablePlayers as $player)
+                                    <label wire:key="away-{{ $player['id'] }}" class="flex items-center p-3 rounded-lg cursor-pointer transition-all border-2 {{ in_array($player['id'], $awayPair) ? 'bg-red-600/30 border-red-500/50' : 'bg-gray-700/50 hover:bg-gray-600/50 border-transparent' }} {{ in_array($player['id'], $homePair) ? 'opacity-50 cursor-not-allowed' : '' }}" wire:loading.class="opacity-60">
+                                        <input type="checkbox" value="{{ $player['id'] }}" wire:model="awayPair" wire:change="$refresh" @if(in_array($player['id'], $homePair)) disabled @endif class="form-checkbox h-5 w-5 text-red-500 rounded focus:ring-red-400 mr-3" />
+                                        <span class="font-medium text-white">{{ $player['name'] }}</span>
+                                    </label>
+                                @endforeach
+                            </div>
+                            <div class="text-xs text-gray-400 mt-1">Odaberite točno 2 igrača</div>
+                        @else
+                            <label class="block text-sm font-medium text-gray-300 mb-3">Away Player</label>
+                            <div class="space-y-2 max-h-64 overflow-y-auto">
+                                @foreach($availablePlayers as $player)
+                                <button type="button" wire:click="selectAwayPlayer({{ $player['id'] }})"
+                                        class="w-full p-3 text-left rounded-lg transition-all {{ $awayPlayer && $awayPlayer['id'] === $player['id'] ? 'bg-red-600/30 border-2 border-red-500/50' : 'bg-gray-700/50 hover:bg-gray-600/50 border-2 border-transparent' }}">
+                                    <div class="font-medium text-white">{{ $player['name'] }}</div>
+                                </button>
+                                @endforeach
+                            </div>
+                        @endif
                     </div>
                 </div>
 
                 <!-- Selected Players Display -->
-                @if($homePlayer || $awayPlayer)
+                @if($matchType==='team' ? ($homePlayer || $homePlayer2 || $awayPlayer || $awayPlayer2) : ($homePlayer || $awayPlayer))
                 <div class="mt-6 p-4 bg-gray-700/30 rounded-lg">
-                    <div class="text-sm text-gray-400 mb-2">Selected Players:</div>
+                    <div class="text-sm text-gray-400 mb-2">@if($matchType==='team') Selected Doubles: @else Selected Players: @endif</div>
                     <div class="grid grid-cols-2 gap-4">
                         <div class="text-center">
-                            <div class="text-blue-400 font-semibold">{{ $homePlayer ? $homePlayer['name'] : 'Not selected' }}</div>
+                            <div class="text-blue-400 font-semibold">
+                                @if($matchType==='team')
+                                    {{ $homePlayer ? $homePlayer['name'] : 'Not selected' }}<br>
+                                    {{ $homePlayer2 ? $homePlayer2['name'] : 'Not selected' }}
+                                @else
+                                    {{ $homePlayer ? $homePlayer['name'] : 'Not selected' }}
+                                @endif
+                            </div>
                             <div class="text-xs text-gray-500">Home</div>
                         </div>
                         <div class="text-center">
-                            <div class="text-red-400 font-semibold">{{ $awayPlayer ? $awayPlayer['name'] : 'Not selected' }}</div>
+                            <div class="text-red-400 font-semibold">
+                                @if($matchType==='team')
+                                    {{ $awayPlayer ? $awayPlayer['name'] : 'Not selected' }}<br>
+                                    {{ $awayPlayer2 ? $awayPlayer2['name'] : 'Not selected' }}
+                                @else
+                                    {{ $awayPlayer ? $awayPlayer['name'] : 'Not selected' }}
+                                @endif
+                            </div>
                             <div class="text-xs text-gray-500">Away</div>
                         </div>
                     </div>
                 </div>
-
+                @endif
                 <!-- Sets Selection -->
                 <div class="mt-6">
-                    <label class="block text-sm font-medium text-gray-300 mb-3">Sets to Win</label>
+                    <label class="block text-sm font-medium text-gray-300 mb-3">Sets to Play</label>
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
                         <button type="button" wire:click="setSetsToWin(2)"
                                 class="p-3 rounded-lg transition-all {{ $setsToWin === 2 ? 'bg-green-600/30 border-2 border-green-500/50' : 'bg-gray-700/50 hover:bg-gray-600/50 border-2 border-transparent' }}">
@@ -88,15 +132,21 @@
                         Best of {{ $setsToWin }} sets (needs {{ ceil($setsToWin / 2) }} sets to win)
                     </div>
                 </div>
-                @endif
-
                 <!-- Confirm Button -->
                 <div class="mt-6 text-center">
-                    <button type="button" wire:click="confirmPlayerSelection"
-                            class="px-8 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-all duration-200 font-semibold {{ (!$homePlayer || !$awayPlayer) ? 'opacity-50 cursor-not-allowed' : '' }}"
-                            {{ (!$homePlayer || !$awayPlayer) ? 'disabled' : '' }}>
-                        Confirm Players & Start Match
-                    </button>
+                    @if($matchType==='team')
+                        <button type="button" wire:click="confirmPlayerSelection"
+                                class="px-8 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-all duration-200 font-semibold {{ (count($homePair) !== 2 || count($awayPair) !== 2) ? 'opacity-50 cursor-not-allowed' : '' }}"
+                                @if(count($homePair) !== 2 || count($awayPair) !== 2) disabled @endif>
+                            Započni meč
+                        </button>
+                    @else
+                        <button type="button" wire:click="confirmPlayerSelection"
+                                class="px-8 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-all duration-200 font-semibold {{ (!$homePlayer || !$awayPlayer) ? 'opacity-50 cursor-not-allowed' : '' }}"
+                                {{ (!$homePlayer || !$awayPlayer) ? 'disabled' : '' }}>
+                            Započni meč
+                        </button>
+                    @endif
                 </div>
 
                 <!-- Error Display -->
@@ -173,13 +223,17 @@
                 <!-- Player 1 (Home) -->
                 <div class="text-center">
                     <div class="mb-4 flex items-center justify-center gap-2">
-                        <h3 class="text-3xl font-bold transition-all duration-300 {{ $currentServer === 'home' ? 'text-blue-400 animate-pulse drop-shadow-lg' : 'text-white' }} mb-2">
+                        <div class="mb-2">
                             @if($matchType === 'team')
-                                {{ __('Home Team') }}
+                                <span class="block text-lg md:inline md:text-3xl">{{ $homePlayer ? $homePlayer['name'] : '' }}</span>
+                                @if($homePlayer2)
+                                    <span class="hidden md:inline text-3xl"> / </span>
+                                    <span class="block text-lg md:inline md:text-3xl">{{ $homePlayer2['name'] }}</span>
+                                @endif
                             @else
-                                {{ $homePlayer ? $homePlayer['name'] : __('Home Player') }}
+                                <span class="block text-lg md:text-3xl">{{ $homePlayer ? $homePlayer['name'] : __('Home Player') }}</span>
                             @endif
-                        </h3>
+                        </div>
                         @if($currentServer === 'home')
                             <span class="ml-1 flex items-center">
                                 <span class="inline-block w-4 h-4 bg-yellow-300 rounded-full shadow-lg animate-pulse border-2 border-yellow-400" title="Serves" style="margin-left:0.1rem;"></span>
@@ -207,13 +261,17 @@
                 <!-- Player 2 (Away) -->
                 <div class="text-center">
                     <div class="mb-4 flex items-center justify-center gap-2">
-                        <h3 class="text-3xl font-bold transition-all duration-300 {{ $currentServer === 'away' ? 'text-red-400 animate-pulse drop-shadow-lg' : 'text-white' }} mb-2">
+                        <div class="mb-2">
                             @if($matchType === 'team')
-                                {{ __('Away Team') }}
+                                <span class="block text-lg md:inline md:text-3xl">{{ $awayPlayer ? $awayPlayer['name'] : '' }}</span>
+                                @if($awayPlayer2)
+                                    <span class="hidden md:inline text-3xl"> / </span>
+                                    <span class="block text-lg md:inline md:text-3xl">{{ $awayPlayer2['name'] }}</span>
+                                @endif
                             @else
-                                {{ $awayPlayer ? $awayPlayer['name'] : __('Away Player') }}
+                                <span class="block text-lg md:text-3xl">{{ $awayPlayer ? $awayPlayer['name'] : __('Away Player') }}</span>
                             @endif
-                        </h3>
+                        </div>
                         @if($currentServer === 'away')
                             <span class="ml-1 flex items-center">
                                 <span class="inline-block w-4 h-4 bg-yellow-300 rounded-full shadow-lg animate-pulse border-2 border-yellow-400" title="Serves" style="margin-left:0.1rem;"></span>
@@ -259,13 +317,13 @@
                         <div class="text-lg font-bold text-yellow-400">
                             @if($currentServer === 'home')
                                 @if($matchType === 'team')
-                                    {{ __('Home Team') }}
+                                    {{ $homePlayer ? $homePlayer['name'] : '' }}{{ $homePlayer2 ? ' / ' . $homePlayer2['name'] : '' }}
                                 @else
                                     {{ $homePlayer ? $homePlayer['name'] : __('Home Player') }}
                                 @endif
                             @else
                                 @if($matchType === 'team')
-                                    {{ __('Away Team') }}
+                                    {{ $awayPlayer ? $awayPlayer['name'] : '' }}{{ $awayPlayer2 ? ' / ' . $awayPlayer2['name'] : '' }}
                                 @else
                                     {{ $awayPlayer ? $awayPlayer['name'] : __('Away Player') }}
                                 @endif

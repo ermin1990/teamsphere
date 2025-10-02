@@ -31,6 +31,7 @@ Route::middleware('auth')->group(function () {
 
     // Friendly matches routes (nested under organizations)
     Route::get('organizations/{organization}/friendly-matches', [OrganizationController::class, 'friendlyMatches'])->name('organizations.friendly-matches.index');
+    Route::get('organizations/{organization}/friendly-matches/{match}', [OrganizationController::class, 'showFriendlyMatch'])->name('organizations.friendly-matches.show');
     Route::get('organizations/{organization}/friendly-matches/table-tennis', [OrganizationController::class, 'tableTennisFriendly'])->name('organizations.friendly-matches.table-tennis');
 
     // Player details route

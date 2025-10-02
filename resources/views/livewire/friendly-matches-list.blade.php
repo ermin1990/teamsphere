@@ -9,33 +9,55 @@
 
             <div class="text-center mb-4">
                 <div class="flex items-center justify-center space-x-4 mb-2">
-                    <!-- Home Player -->
+                    <!-- Home Team -->
                     <div class="flex flex-col items-center space-y-2">
-                        <div class="w-10 h-10 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center">
-                            <span class="text-white font-bold text-sm">
-                                {{ substr($match->home_player_name, 0, 1) }}
-                            </span>
-                        </div>
-                        @if($match->home_player_id)
-                            <a href="{{ route('organizations.players.show', ['organization' => $organization->slug, 'player' => $match->home_player_id]) }}" class="text-white hover:text-blue-400 transition text-sm font-medium">{{ $match->home_player_name }}</a>
+                        @if(str_contains($match->home_player_name, ' / '))
+                            @php [$h1, $h2] = explode(' / ', $match->home_player_name); @endphp
+                            <div class="flex space-x-1">
+                                <div class="w-8 h-8 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center">
+                                    <span class="text-white font-bold text-xs">{{ substr($h1, 0, 1) }}</span>
+                                </div>
+                                <div class="w-8 h-8 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center">
+                                    <span class="text-white font-bold text-xs">{{ substr($h2, 0, 1) }}</span>
+                                </div>
+                            </div>
+                            <span class="text-white text-sm font-medium">{{ $h1 }} & {{ $h2 }}</span>
                         @else
-                            <span class="text-white text-sm font-medium">{{ $match->home_player_name }}</span>
+                            <div class="w-10 h-10 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center">
+                                <span class="text-white font-bold text-sm">{{ substr($match->home_player_name, 0, 1) }}</span>
+                            </div>
+                            @if($match->home_player_id)
+                                <a href="{{ route('organizations.players.show', ['organization' => $organization->slug, 'player' => $match->home_player_id]) }}" class="text-white hover:text-blue-400 transition text-sm font-medium">{{ $match->home_player_name }}</a>
+                            @else
+                                <span class="text-white text-sm font-medium">{{ $match->home_player_name }}</span>
+                            @endif
                         @endif
                     </div>
 
                     <div class="text-white font-bold text-lg">vs</div>
 
-                    <!-- Away Player -->
+                    <!-- Away Team -->
                     <div class="flex flex-col items-center space-y-2">
-                        <div class="w-10 h-10 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center">
-                            <span class="text-white font-bold text-sm">
-                                {{ substr($match->away_player_name, 0, 1) }}
-                            </span>
-                        </div>
-                        @if($match->away_player_id)
-                            <a href="{{ route('organizations.players.show', ['organization' => $organization->slug, 'player' => $match->away_player_id]) }}" class="text-white hover:text-blue-400 transition text-sm font-medium">{{ $match->away_player_name }}</a>
+                        @if(str_contains($match->away_player_name, ' / '))
+                            @php [$a1, $a2] = explode(' / ', $match->away_player_name); @endphp
+                            <div class="flex space-x-1">
+                                <div class="w-8 h-8 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center">
+                                    <span class="text-white font-bold text-xs">{{ substr($a1, 0, 1) }}</span>
+                                </div>
+                                <div class="w-8 h-8 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center">
+                                    <span class="text-white font-bold text-xs">{{ substr($a2, 0, 1) }}</span>
+                                </div>
+                            </div>
+                            <span class="text-white text-sm font-medium">{{ $a1 }} & {{ $a2 }}</span>
                         @else
-                            <span class="text-white text-sm font-medium">{{ $match->away_player_name }}</span>
+                            <div class="w-10 h-10 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center">
+                                <span class="text-white font-bold text-sm">{{ substr($match->away_player_name, 0, 1) }}</span>
+                            </div>
+                            @if($match->away_player_id)
+                                <a href="{{ route('organizations.players.show', ['organization' => $organization->slug, 'player' => $match->away_player_id]) }}" class="text-white hover:text-blue-400 transition text-sm font-medium">{{ $match->away_player_name }}</a>
+                            @else
+                                <span class="text-white text-sm font-medium">{{ $match->away_player_name }}</span>
+                            @endif
                         @endif
                     </div>
                 </div>
@@ -57,9 +79,24 @@
                 </div>
             </div>
 
-            <div class="text-center">
+            <div class="text-center space-y-2">
                 <div class="inline-flex items-center px-3 py-1 bg-emerald-600/20 border border-emerald-500/30 rounded-full">
-                    <span class="text-emerald-400 font-semibold text-sm">{{ __('Winner:') }} {{ $match->winner_name }}</span>
+                    <span class="text-emerald-400 font-semibold text-sm">
+                        {{ __('Winner:') }}
+                        @if(str_contains($match->winner_name, ' / '))
+                            @php [$p1, $p2] = explode(' / ', $match->winner_name); @endphp
+                            {{ $p1 }} & {{ $p2 }}
+                        @elseif(str_contains($match->home_player_name, ' / ') && str_contains($match->home_player_name, $match->winner_name))
+                            {{ str_replace(' / ', ' & ', $match->home_player_name) }}
+                        @elseif(str_contains($match->away_player_name, ' / ') && str_contains($match->away_player_name, $match->winner_name))
+                            {{ str_replace(' / ', ' & ', $match->away_player_name) }}
+                        @else
+                            {{ $match->winner_name }}
+                        @endif
+                    </span>
+                </div>
+                <div>
+                    <a href="{{ route('organizations.friendly-matches.show', ['organization' => $organization->slug, 'match' => $match->id]) }}" class="text-blue-400 hover:underline text-xs">Detalji meča</a>
                 </div>
             </div>
         </div>
