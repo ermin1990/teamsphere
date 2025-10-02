@@ -5,7 +5,7 @@
 
 <div>
     <div class="contents">
-        <!-- Match Setup (always show when no first server selected) -->
+        
         @if(!$firstServer)
         <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-8 border border-gray-700/50 shadow-xl mb-8">
             <h3 class="text-xl font-bold mb-6 text-center">Match Setup</h3>
@@ -54,13 +54,25 @@
             </div>
         </div>
         @endif
-
-        <!-- Live Scoring Interface -->
+        
+        @if($firstServer)
+        <div class="text-center mb-8">
+            <div class="inline-flex items-center space-x-8 bg-gray-700/30 rounded-lg p-4">
+                <div>
+                    <div class="text-sm text-gray-400">Current Set</div>
+                    <div class="text-2xl font-bold text-white">{{ $currentSet }}</div>
+                </div>
+                <div class="w-px h-8 bg-gray-600"></div>
+                <div>
+                    <div class="text-sm text-gray-400">To Win</div>
+                    <div class="text-2xl font-bold text-green-400">11</div>
+                </div>
+            </div>
+        </div>
+        @endif
         @if($firstServer)
         <div class="contents">
-            <!-- Players Side by Side -->
             <div class="grid grid-cols-2 gap-4 md:gap-8 mb-8">
-                <!-- Player 1 (Home) -->
                 <div class="text-center">
                     <div class="mb-4">
                         <h3 class="text-xl font-bold transition-all duration-300 {{ $currentServer === 'home' ? 'text-blue-400 animate-pulse drop-shadow-lg' : 'text-white' }} mb-2">
@@ -72,7 +84,6 @@
                         </h3>
                     </div>
 
-                    <!-- Score Display -->
                     <div class="relative mb-6">
                         <div class="text-8xl md:text-9xl font-bold transition-all duration-300 mb-2 {{ $match->status === 'completed' ? '' : 'cursor-pointer hover:text-blue-300 active:scale-95 select-none' }} {{ $currentServer === 'home' ? 'text-blue-400 animate-pulse drop-shadow-lg' : 'text-blue-400' }}"
                              @if($match->status !== 'completed') wire:click="addPoint('home')" @endif>
@@ -85,14 +96,12 @@
                                 {{ $match->homePlayer->name ?? 'Home Player' }}
                             @endif
                         </div>
-                        <!-- Serving Indicator -->
                         <div class="absolute -top-2 -right-2 w-6 h-6 bg-yellow-400 rounded-full transition-opacity duration-300 shadow-lg shadow-yellow-400/50"
                              style="opacity: {{ $currentServer === 'home' ? '1' : '0' }}">
                             <div class="w-full h-full bg-yellow-300 rounded-full animate-ping"></div>
                         </div>
                     </div>
 
-                    <!-- Score Buttons -->
                     <div class="flex justify-center">
                         <button type="button" @if($match->status !== 'completed') wire:click="subtractPoint('home')" @endif
                                 class="px-4 py-2 bg-gray-600 {{ $match->status === 'completed' ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-700' }} text-white rounded-lg transition-all duration-200 font-semibold text-sm">
@@ -101,7 +110,6 @@
                     </div>
                 </div>
 
-                <!-- Player 2 (Away) -->
                 <div class="text-center">
                     <div class="mb-4">
                         <h3 class="text-xl font-bold transition-all duration-300 {{ $currentServer === 'away' ? 'text-red-400 animate-pulse drop-shadow-lg' : 'text-white' }} mb-2">
@@ -113,7 +121,6 @@
                         </h3>
                     </div>
 
-                    <!-- Score Display -->
                     <div class="relative mb-6">
                         <div class="text-8xl md:text-9xl font-bold transition-all duration-300 mb-2 {{ $match->status === 'completed' ? '' : 'cursor-pointer hover:text-red-300 active:scale-95 select-none' }} {{ $currentServer === 'away' ? 'text-red-400 animate-pulse drop-shadow-lg' : 'text-red-400' }}"
                              @if($match->status !== 'completed') wire:click="addPoint('away')" @endif>
@@ -126,14 +133,12 @@
                                 {{ $match->awayPlayer->name ?? 'Away Player' }}
                             @endif
                         </div>
-                        <!-- Serving Indicator -->
                         <div class="absolute -top-2 -left-2 w-6 h-6 bg-yellow-400 rounded-full transition-opacity duration-300 shadow-lg shadow-yellow-400/50"
                              style="opacity: {{ $currentServer === 'away' ? '1' : '0' }}">
                             <div class="w-full h-full bg-yellow-300 rounded-full animate-ping"></div>
                         </div>
                     </div>
 
-                    <!-- Score Buttons -->
                     <div class="flex justify-center">
                         <button type="button" @if($match->status !== 'completed') wire:click="subtractPoint('away')" @endif
                                 class="px-4 py-2 bg-gray-600 {{ $match->status === 'completed' ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-700' }} text-white rounded-lg transition-all duration-200 font-semibold text-sm">
@@ -143,29 +148,6 @@
                 </div>
             </div>
 
-            <!-- Set Information moved below scores -->
-            <div class="text-center mb-8">
-                <div class="inline-flex items-center space-x-8 bg-gray-700/30 rounded-lg p-4">
-                    <div>
-                        <div class="text-sm text-gray-400">Current Set</div>
-                        <div class="text-2xl font-bold text-white">{{ $currentSet }}</div>
-                    </div>
-                    <div class="w-px h-8 bg-gray-600"></div>
-                    <div>
-                        <div class="text-sm text-gray-400">Set Time</div>
-                        <div class="text-xl font-mono text-white">
-                            <span id="set-timer" wire:ignore>00:00</span>
-                        </div>
-                    </div>
-                    <div class="w-px h-8 bg-gray-600"></div>
-                    <div>
-                        <div class="text-sm text-gray-400">To Win</div>
-                        <div class="text-2xl font-bold text-green-400">11</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Set Scores -->
             <div class="border-t border-gray-700 pt-6" wire:key="sets-{{ $setsVersion }}">
                 <h4 class="text-lg font-semibold text-white mb-4 text-center">Completed Sets</h4>
                 <div class="flex justify-center space-x-4">
@@ -190,7 +172,6 @@
                 </div>
             </div>
 
-            <!-- Match Controls -->
             <div class="border-t border-gray-700 pt-6 mt-6">
                 <div class="flex justify-center space-x-4 mb-4">
                     @if($match->status !== 'completed')
@@ -219,7 +200,6 @@
         @endif
     </div>
 
-    <!-- Match End Confirmation Modal -->
     <div x-data="{ showModal: false, winner: '', homeSets: 0, awaySets: 0, setsToWin: 0, finalSets: [] }"
          x-show="showModal"
          x-on:match-won.window="showModal = true; winner = $event.detail.winner; homeSets = $event.detail.homeSets; awaySets = $event.detail.awaySets; setsToWin = $event.detail.setsToWin; finalSets = $event.detail.finalSets"
@@ -269,125 +249,6 @@
 
 @push('scripts')
 <script>
-    let setTimerEl = null;
-    let setTimerInterval = null;
-    let setTimerStart = null;
-    let timerRunning = false;
-
-    document.addEventListener('DOMContentLoaded', function() {
-        setTimerEl = document.getElementById('set-timer');
-        console.log('Timer element found:', setTimerEl);
-        
-        // Check if match is in progress and auto-start timer
-        const matchStatus = @json($match->status);
-        const setStartTime = @json($setStartTime?->toISOString());
-        
-        console.log('Match status:', matchStatus, 'Set start time:', setStartTime);
-        
-        if (matchStatus === 'in_progress' && setStartTime) {
-            startTimer(new Date(setStartTime));
-        } else if (matchStatus === 'in_progress') {
-            startTimer();
-        }
-    });
-
-    function startTimer(startTime = null) {
-        console.log('Starting timer with start time:', startTime);
-        
-        if (setTimerInterval) {
-            clearInterval(setTimerInterval);
-        }
-        
-        if (!startTime) {
-            startTime = new Date();
-        }
-        
-        setTimerStart = startTime;
-        timerRunning = true;
-        
-        // Update immediately
-        updateTimer();
-        
-        // Then update every second
-        setTimerInterval = setInterval(updateTimer, 1000);
-        
-        console.log('Timer started, interval ID:', setTimerInterval);
-    }
-
-    function updateTimer() {
-        if (!setTimerEl || !setTimerStart || !timerRunning) {
-            return;
-        }
-        
-        const now = new Date();
-        const elapsed = Math.floor((now.getTime() - setTimerStart.getTime()) / 1000);
-        const minutes = Math.floor(elapsed / 60);
-        const seconds = elapsed % 60;
-        
-        const timeString = String(minutes).padStart(2, '0') + ':' + String(seconds).padStart(2, '0');
-        setTimerEl.textContent = timeString;
-        
-        console.log('Timer updated:', timeString);
-    }
-
-    function stopTimer() {
-        console.log('Stopping timer');
-        if (setTimerInterval) {
-            clearInterval(setTimerInterval);
-            setTimerInterval = null;
-        }
-        timerRunning = false;
-    }
-
-    function resetTimer() {
-        stopTimer();
-        if (setTimerEl) {
-            setTimerEl.textContent = '00:00';
-        }
-        setTimerStart = null;
-    }
-
-    // Livewire event listeners
-    document.addEventListener('livewire:initialized', function() {
-        console.log('Livewire initialized, setting up event listeners');
-        
-        Livewire.on('start-timers', function(data) {
-            console.log('Received start-timers event:', data);
-            if (data && data.setStartedAt) {
-                startTimer(new Date(data.setStartedAt));
-            } else {
-                startTimer();
-            }
-        });
-
-        Livewire.on('stop-timers', function() {
-            console.log('Received stop-timers event');
-            stopTimer();
-        });
-
-        Livewire.on('set-changed', function() {
-            console.log('Received set-changed event');
-            // Record current timer value before resetting
-            if (timerRunning && setTimerEl) {
-                const timeText = setTimerEl.textContent;
-                const [mm, ss] = timeText.split(':').map(Number);
-                const duration = (mm * 60) + ss;
-                if (duration > 0) {
-                    console.log('Recording set duration:', duration);
-                    Livewire.dispatch('recordSetDuration', { seconds: duration });
-                }
-            }
-            
-            // Reset and start timer for new set
-            resetTimer();
-            startTimer();
-        });
-    });
-
-    // Make functions globally available for debugging
-    window.startTimer = startTimer;
-    window.stopTimer = stopTimer;
-    window.resetTimer = resetTimer;
-    window.updateTimer = updateTimer;
+    // Timer functionality removed - no longer needed
 </script>
 @endpush
