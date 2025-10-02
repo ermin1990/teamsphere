@@ -22,18 +22,22 @@ class LeagueMatch extends Model
         'away_score',
         'scheduled_at',
         'played_at',
+        'current_set_started_at',
         'status',
         'round',
         'sets',
         'forfeited_by',
         'first_server',
         'current_server',
+        'set_durations',
     ];
 
     protected $casts = [
         'scheduled_at' => 'datetime',
         'played_at' => 'datetime',
+        'current_set_started_at' => 'datetime',
         'sets' => 'array',
+        'set_durations' => 'array',
         'home_score' => 'integer',
         'away_score' => 'integer',
         'round' => 'integer',

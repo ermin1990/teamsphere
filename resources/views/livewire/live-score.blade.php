@@ -1,278 +1,223 @@
+@php
+    // Pass setStartTime as JS variable for timer
+    $setStartTime = $setStartTime ?? ($match->current_set_started_at ?? $match->played_at);
+@endphp
+
 <div>
-    <!-- Match Setup (always show when no first server selected) -->
-    @if(!$firstServer)
-    <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-8 border border-gray-700/50 shadow-xl mb-8">
-        <h3 class="text-xl font-semibold text-white mb-6 text-center">Match Setup</h3>
-        <div class="max-w-md mx-auto">
-            <label class="block text-sm font-medium text-gray-300 mb-3">Who serves first?</label>
-            <div class="space-y-3">
-                <button type="button" wire:click="selectFirstServer('home')"
-                        class="w-full p-4 bg-blue-600/20 hover:bg-blue-600/30 border-2 border-blue-500/30 hover:border-blue-500/50 rounded-lg transition-all">
-                    <div class="text-center">
-                        <div class="text-lg font-bold text-blue-400 mb-1">
+    <div class="contents">
+        <!-- Match Setup (always show when no first server selected) -->
+        @if(!$firstServer)
+        <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-8 border border-gray-700/50 shadow-xl mb-8">
+            <h3 class="text-xl font-bold mb-6 text-center">Match Setup</h3>
+            <div class="max-w-md mx-auto">
+                <label class="block text-sm font-medium text-gray-300 mb-3">Who serves first?</label>
+                <div class="space-y-3">
+                    <button type="button" wire:click="selectFirstServer('home')"
+                            class="w-full p-4 bg-blue-600/20 hover:bg-blue-600/30 border-2 border-blue-500/30 hover:border-blue-500/50 rounded-lg transition-all">
+                        <div class="text-center">
+                            <div class="text-lg font-bold text-blue-400 mb-1">
+                                @if($match->league->is_team_based)
+                                    {{ $match->homeTeam->name ?? 'Home Team' }}
+                                @else
+                                    {{ $match->homePlayer->name ?? 'Home Player' }}
+                                @endif
+                            </div>
+                            <div class="text-sm text-gray-400">Serves First</div>
+                        </div>
+                    </button>
+                    <button type="button" wire:click="selectFirstServer('away')"
+                            class="w-full p-4 bg-red-600/20 hover:bg-red-600/30 border-2 border-red-500/30 hover:border-red-500/50 rounded-lg transition-all">
+                        <div class="text-center">
+                            <div class="text-lg font-bold text-red-400 mb-1">
+                                @if($match->league->is_team_based)
+                                    {{ $match->awayTeam->name ?? 'Away Team' }}
+                                @else
+                                    {{ $match->awayPlayer->name ?? 'Away Player' }}
+                                @endif
+                            </div>
+                            <div class="text-sm text-gray-400">Serves First</div>
+                        </div>
+                    </button>
+                    <button type="button" wire:click="selectRandomServer"
+                            class="w-full p-4 bg-purple-600/20 hover:bg-purple-600/30 border-2 border-purple-500/30 hover:border-purple-500/50 rounded-lg transition-all">
+                        <div class="text-center">
+                            <div class="text-lg font-bold text-purple-400 mb-1">
+                                🎲 Random
+                            </div>
+                            <div class="text-sm text-gray-400">Random Server</div>
+                        </div>
+                    </button>
+                </div>
+                <div class="mt-6 text-center text-gray-400 text-sm">
+                    Select who serves first to start the match
+                </div>
+            </div>
+        </div>
+        @endif
+
+        <!-- Live Scoring Interface -->
+        @if($firstServer)
+        <div class="contents">
+            <!-- Players Side by Side -->
+            <div class="grid grid-cols-2 gap-4 md:gap-8 mb-8">
+                <!-- Player 1 (Home) -->
+                <div class="text-center">
+                    <div class="mb-4">
+                        <h3 class="text-xl font-bold transition-all duration-300 {{ $currentServer === 'home' ? 'text-blue-400 animate-pulse drop-shadow-lg' : 'text-white' }} mb-2">
+                            @if($match->league->is_team_based)
+                                {{ $match->homeTeam->name ?? 'Home Team' }}
+                            @else
+                                {{ $match->homePlayer->name ?? 'Home Player' }}
+                            @endif
+                        </h3>
+                    </div>
+
+                    <!-- Score Display -->
+                    <div class="relative mb-6">
+                        <div class="text-8xl md:text-9xl font-bold transition-all duration-300 mb-2 {{ $match->status === 'completed' ? '' : 'cursor-pointer hover:text-blue-300 active:scale-95 select-none' }} {{ $currentServer === 'home' ? 'text-blue-400 animate-pulse drop-shadow-lg' : 'text-blue-400' }}"
+                             @if($match->status !== 'completed') wire:click="addPoint('home')" @endif>
+                            {{ $homeScore }}
+                        </div>
+                        <div class="text-lg font-semibold text-white">
                             @if($match->league->is_team_based)
                                 {{ $match->homeTeam->name ?? 'Home Team' }}
                             @else
                                 {{ $match->homePlayer->name ?? 'Home Player' }}
                             @endif
                         </div>
-                        <div class="text-sm text-gray-400">Serves First</div>
+                        <!-- Serving Indicator -->
+                        <div class="absolute -top-2 -right-2 w-6 h-6 bg-yellow-400 rounded-full transition-opacity duration-300 shadow-lg shadow-yellow-400/50"
+                             style="opacity: {{ $currentServer === 'home' ? '1' : '0' }}">
+                            <div class="w-full h-full bg-yellow-300 rounded-full animate-ping"></div>
+                        </div>
                     </div>
-                </button>
-                <button type="button" wire:click="selectFirstServer('away')"
-                        class="w-full p-4 bg-red-600/20 hover:bg-red-600/30 border-2 border-red-500/30 hover:border-red-500/50 rounded-lg transition-all">
-                    <div class="text-center">
-                        <div class="text-lg font-bold text-red-400 mb-1">
+
+                    <!-- Score Buttons -->
+                    <div class="flex justify-center">
+                        <button type="button" @if($match->status !== 'completed') wire:click="subtractPoint('home')" @endif
+                                class="px-4 py-2 bg-gray-600 {{ $match->status === 'completed' ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-700' }} text-white rounded-lg transition-all duration-200 font-semibold text-sm">
+                            -1
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Player 2 (Away) -->
+                <div class="text-center">
+                    <div class="mb-4">
+                        <h3 class="text-xl font-bold transition-all duration-300 {{ $currentServer === 'away' ? 'text-red-400 animate-pulse drop-shadow-lg' : 'text-white' }} mb-2">
+                            @if($match->league->is_team_based)
+                                {{ $match->awayTeam->name ?? 'Away Team' }}
+                            @else
+                                {{ $match->awayPlayer->name ?? 'Away Player' }}
+                            @endif
+                        </h3>
+                    </div>
+
+                    <!-- Score Display -->
+                    <div class="relative mb-6">
+                        <div class="text-8xl md:text-9xl font-bold transition-all duration-300 mb-2 {{ $match->status === 'completed' ? '' : 'cursor-pointer hover:text-red-300 active:scale-95 select-none' }} {{ $currentServer === 'away' ? 'text-red-400 animate-pulse drop-shadow-lg' : 'text-red-400' }}"
+                             @if($match->status !== 'completed') wire:click="addPoint('away')" @endif>
+                            {{ $awayScore }}
+                        </div>
+                        <div class="text-lg font-semibold text-white">
                             @if($match->league->is_team_based)
                                 {{ $match->awayTeam->name ?? 'Away Team' }}
                             @else
                                 {{ $match->awayPlayer->name ?? 'Away Player' }}
                             @endif
                         </div>
-                        <div class="text-sm text-gray-400">Serves First</div>
-                    </div>
-                </button>
-                <button type="button" wire:click="selectRandomServer"
-                        class="w-full p-4 bg-purple-600/20 hover:bg-purple-600/30 border-2 border-purple-500/30 hover:border-purple-500/50 rounded-lg transition-all">
-                    <div class="text-center">
-                        <div class="text-lg font-bold text-purple-400 mb-1">
-                            🎲 Random
+                        <!-- Serving Indicator -->
+                        <div class="absolute -top-2 -left-2 w-6 h-6 bg-yellow-400 rounded-full transition-opacity duration-300 shadow-lg shadow-yellow-400/50"
+                             style="opacity: {{ $currentServer === 'away' ? '1' : '0' }}">
+                            <div class="w-full h-full bg-yellow-300 rounded-full animate-ping"></div>
                         </div>
-                        <div class="text-sm text-gray-400">Random Server</div>
                     </div>
-                </button>
-            </div>
-            <div class="mt-6 text-center text-gray-400 text-sm">
-                Select who serves first to start the match
-            </div>
-        </div>
-    </div>
-    @endif
 
-    <!-- Live Scoring Interface -->
-    @if($firstServer)
-        <!-- Match Timer -->
-        <div class="text-center mb-8">
-            <div class="flex items-center justify-center space-x-4 mb-4">
-                <div class="text-4xl font-mono text-white" id="match-timer">00:00:00</div>
-                @if(!$matchStartTime)
-                <button type="button" wire:click="startTimer"
-                        class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors font-semibold">
-                    ▶️ Start Timer
-                </button>
-                @endif
-            </div>
-            <div class="text-sm text-gray-400">Match Time</div>
-        </div>
-
-        <!-- Players Side by Side -->
-        <div class="grid grid-cols-2 gap-4 md:gap-8 mb-8">
-            <!-- Player 1 (Home) -->
-            <div class="text-center">
-                <div class="mb-4">
-                    <h3 class="text-xl font-bold transition-all duration-300 {{ $currentServer === 'home' ? 'text-blue-400 animate-pulse drop-shadow-lg' : 'text-white' }} mb-2">
-                        @if($match->league->is_team_based)
-                            {{ $match->homeTeam->name ?? 'Home Team' }}
-                        @else
-                            {{ $match->homePlayer->name ?? 'Home Player' }}
-                        @endif
-                    </h3>
-                </div>
-
-                <!-- Score Display -->
-                <div class="relative mb-6">
-                    <div class="text-8xl md:text-9xl font-bold transition-all duration-300 mb-2 {{ $match->status === 'completed' ? '' : 'cursor-pointer hover:text-blue-300 active:scale-95 select-none' }} {{ $currentServer === 'home' ? 'text-blue-400 animate-pulse drop-shadow-lg' : 'text-blue-400' }}"
-                         @if($match->status !== 'completed') wire:click="addPoint('home')" @endif>
-                        {{ $homeScore }}
-                    </div>
-                    <div class="text-lg font-semibold text-white">
-                        @if($match->league->is_team_based)
-                            {{ $match->homeTeam->name ?? 'Home Team' }}
-                        @else
-                            {{ $match->homePlayer->name ?? 'Home Player' }}
-                        @endif
-                    </div>
-                    <!-- Serving Indicator -->
-                    <div class="absolute -top-2 -right-2 w-6 h-6 bg-yellow-400 rounded-full transition-opacity duration-300 shadow-lg shadow-yellow-400/50"
-                         style="opacity: {{ $currentServer === 'home' ? '1' : '0' }}">
-                        <div class="w-full h-full bg-yellow-300 rounded-full animate-ping"></div>
+                    <!-- Score Buttons -->
+                    <div class="flex justify-center">
+                        <button type="button" @if($match->status !== 'completed') wire:click="subtractPoint('away')" @endif
+                                class="px-4 py-2 bg-gray-600 {{ $match->status === 'completed' ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-700' }} text-white rounded-lg transition-all duration-200 font-semibold text-sm">
+                            -1
+                        </button>
                     </div>
                 </div>
+            </div>
 
-                <!-- Score Buttons -->
-                <div class="flex justify-center">
-                    <button type="button" @if($match->status !== 'completed') wire:click="subtractPoint('home')" @endif
-                            class="px-4 py-2 bg-gray-600 {{ $match->status === 'completed' ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-700' }} text-white rounded-lg transition-all duration-200 font-semibold text-sm">
-                        -1
+            <!-- Set Information moved below scores -->
+            <div class="text-center mb-8">
+                <div class="inline-flex items-center space-x-8 bg-gray-700/30 rounded-lg p-4">
+                    <div>
+                        <div class="text-sm text-gray-400">Current Set</div>
+                        <div class="text-2xl font-bold text-white">{{ $currentSet }}</div>
+                    </div>
+                    <div class="w-px h-8 bg-gray-600"></div>
+                    <div>
+                        <div class="text-sm text-gray-400">Set Time</div>
+                        <div class="text-xl font-mono text-white">
+                            <span id="set-timer" wire:ignore>00:00</span>
+                        </div>
+                    </div>
+                    <div class="w-px h-8 bg-gray-600"></div>
+                    <div>
+                        <div class="text-sm text-gray-400">To Win</div>
+                        <div class="text-2xl font-bold text-green-400">11</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Set Scores -->
+            <div class="border-t border-gray-700 pt-6" wire:key="sets-{{ $setsVersion }}">
+                <h4 class="text-lg font-semibold text-white mb-4 text-center">Completed Sets</h4>
+                <div class="flex justify-center space-x-4">
+                    @foreach($sets as $index => $set)
+                    <div class="text-center p-3 bg-gray-700/30 rounded-lg" wire:key="set-{{ $index }}-{{ $setsVersion }}">
+                        <div class="text-sm text-gray-400 mb-1">Set {{ $index + 1 }}</div>
+                        <div class="text-lg font-bold text-white">{{ $set['home_score'] ?? $set['home'] ?? 0 }} - {{ $set['away_score'] ?? $set['away'] ?? 0 }}</div>
+                        <div class="text-xs text-gray-400">
+                            @if(is_numeric($setDurations[$index] ?? null))
+                                @php
+                                    $duration = $setDurations[$index];
+                                    $minutes = floor($duration / 60);
+                                    $seconds = $duration % 60;
+                                    echo sprintf('%02d:%02d', $minutes, $seconds);
+                                @endphp
+                            @else
+                                {{ $setDurations[$index] ?? '00:00' }}
+                            @endif
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+            </div>
+
+            <!-- Match Controls -->
+            <div class="border-t border-gray-700 pt-6 mt-6">
+                <div class="flex justify-center space-x-4 mb-4">
+                    @if($match->status !== 'completed')
+                    <button type="button" wire:click="undoPoint"
+                            class="px-6 py-3 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg transition-colors font-semibold"
+                            wire:loading.attr="disabled"
+                            @if(empty($pointHistory)) disabled @endif>
+                        ↩️ Undo
                     </button>
-                </div>
-            </div>
-
-            <!-- Player 2 (Away) -->
-            <div class="text-center">
-                <div class="mb-4">
-                    <h3 class="text-xl font-bold transition-all duration-300 {{ $currentServer === 'away' ? 'text-red-400 animate-pulse drop-shadow-lg' : 'text-white' }} mb-2">
-                        @if($match->league->is_team_based)
-                            {{ $match->awayTeam->name ?? 'Away Team' }}
-                        @else
-                            {{ $match->awayPlayer->name ?? 'Away Player' }}
-                        @endif
-                    </h3>
-                </div>
-
-                <!-- Score Display -->
-                <div class="relative mb-6">
-                    <div class="text-8xl md:text-9xl font-bold transition-all duration-300 mb-2 {{ $match->status === 'completed' ? '' : 'cursor-pointer hover:text-red-300 active:scale-95 select-none' }} {{ $currentServer === 'away' ? 'text-red-400 animate-pulse drop-shadow-lg' : 'text-red-400' }}"
-                         @if($match->status !== 'completed') wire:click="addPoint('away')" @endif>
-                        {{ $awayScore }}
-                    </div>
-                    <div class="text-lg font-semibold text-white">
-                        @if($match->league->is_team_based)
-                            {{ $match->awayTeam->name ?? 'Away Team' }}
-                        @else
-                            {{ $match->awayPlayer->name ?? 'Away Player' }}
-                        @endif
-                    </div>
-                    <!-- Serving Indicator -->
-                    <div class="absolute -top-2 -left-2 w-6 h-6 bg-yellow-400 rounded-full transition-opacity duration-300 shadow-lg shadow-yellow-400/50"
-                         style="opacity: {{ $currentServer === 'away' ? '1' : '0' }}">
-                        <div class="w-full h-full bg-yellow-300 rounded-full animate-ping"></div>
-                    </div>
-                </div>
-
-                <!-- Score Buttons -->
-                <div class="flex justify-center">
-                    <button type="button" @if($match->status !== 'completed') wire:click="subtractPoint('away')" @endif
-                            class="px-4 py-2 bg-gray-600 {{ $match->status === 'completed' ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-700' }} text-white rounded-lg transition-all duration-200 font-semibold text-sm">
-                        -1
+                    <button type="button" wire:click="togglePause"
+                            class="px-6 py-3 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg transition-colors font-semibold">
+                        {{ $matchPaused ? '▶️ Resume Timer' : '⏸️ Pause Timer' }}
                     </button>
+                    <button type="button" wire:click="endMatch"
+                            class="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors font-semibold">
+                        🏁 End Match
+                    </button>
+                    @else
+                    <div class="text-center text-green-400 font-semibold">
+                        ✅ Match Completed
+                    </div>
+                    @endif
                 </div>
             </div>
         </div>
-
-        <!-- Set Information -->
-        <div class="text-center mb-8">
-            <div class="inline-flex items-center space-x-8 bg-gray-700/30 rounded-lg p-4">
-                <div>
-                    <div class="text-sm text-gray-400">Current Set</div>
-                    <div class="text-2xl font-bold text-white">{{ $currentSet }}</div>
-                </div>
-                <div class="w-px h-8 bg-gray-600"></div>
-                <div>
-                    <div class="text-sm text-gray-400">Set Time</div>
-                    <div class="text-xl font-mono text-white" id="set-timer">00:00</div>
-                </div>
-                <div class="w-px h-8 bg-gray-600"></div>
-                <div>
-                    <div class="text-sm text-gray-400">To Win</div>
-                    <div class="text-2xl font-bold text-green-400">11</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Set Scores -->
-        <div class="border-t border-gray-700 pt-6">
-            <h4 class="text-lg font-semibold text-white mb-4 text-center">Completed Sets</h4>
-            <div class="flex justify-center space-x-4">
-                @foreach($sets as $index => $set)
-                <div class="text-center p-3 bg-gray-700/30 rounded-lg">
-                    <div class="text-sm text-gray-400 mb-1">Set {{ $index + 1 }}</div>
-                    <div class="text-lg font-bold text-white">{{ $set['home_score'] ?? $set['home'] ?? 0 }} - {{ $set['away_score'] ?? $set['away'] ?? 0 }}</div>
-                    <div class="text-xs text-gray-400">{{ $setTimes[$index] ?? '00:00' }}</div>
-                </div>
-                @endforeach
-            </div>
-        </div>
-
-        <!-- Match Controls -->
-        <div class="border-t border-gray-700 pt-6 mt-6">
-            <div class="flex justify-center space-x-4">
-                @if($match->status !== 'completed')
-                <button type="button" wire:click="togglePause"
-                        class="px-6 py-3 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg transition-colors font-semibold">
-                    {{ $matchPaused ? '▶️ Resume Match' : '⏸️ Pause Match' }}
-                </button>
-                <button type="button" wire:click="endMatch"
-                        class="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors font-semibold">
-                    🏁 End Match
-                </button>
-                @else
-                <div class="text-center text-green-400 font-semibold">
-                    ✅ Match Completed
-                </div>
-                @endif
-            </div>
-        </div>
+        @endif
     </div>
-
-    <script>
-        // Real-time timer updates
-        let matchStartTime = {{ $matchStartTime ? $matchStartTime->timestamp * 1000 : 'null' }};
-        let setStartTime = {{ $setStartTime ? $setStartTime->timestamp * 1000 : 'null' }};
-        let matchPaused = {{ $matchPaused ? 'true' : 'false' }};
-
-        // Listen for start-timers event from Livewire
-        document.addEventListener('livewire:updated', () => {
-            @this.on('start-timers', () => {
-                matchStartTime = Date.now();
-                setStartTime = Date.now();
-                matchPaused = false;
-                updateTimers();
-            });
-
-            @this.on('set-changed', () => {
-                setStartTime = Date.now();
-                updateTimers();
-            });
-        });
-
-        function updateTimers() {
-            const matchCompleted = {{ $match->status === 'completed' ? 'true' : 'false' }};
-
-            if (!matchPaused && matchStartTime && !matchCompleted) {
-                const elapsed = Math.floor((Date.now() - matchStartTime) / 1000);
-                const matchTimer = document.getElementById('match-timer');
-                if (matchTimer) {
-                    matchTimer.textContent = formatTime(elapsed);
-                }
-            }
-
-            if (!matchPaused && setStartTime && !matchCompleted) {
-                const setElapsed = Math.floor((Date.now() - setStartTime) / 1000);
-                const setTimer = document.getElementById('set-timer');
-                if (setTimer) {
-                    setTimer.textContent = formatSetTime(setElapsed);
-                }
-            }
-        }
-
-        function formatTime(seconds) {
-            const hrs = Math.floor(seconds / 3600);
-            const mins = Math.floor((seconds % 3600) / 60);
-            const secs = seconds % 60;
-            return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-        }
-
-        function formatSetTime(seconds) {
-            const mins = Math.floor(seconds / 60);
-            const secs = seconds % 60;
-            return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-        }
-
-        // Update timers every second
-        setInterval(updateTimers, 1000);
-        updateTimers(); // Initial update
-
-        // Listen for Livewire updates to refresh timer variables
-        document.addEventListener('livewire:updated', () => {
-            // Update setStartTime when it changes
-            const newSetStartTime = {{ $setStartTime ? $setStartTime->timestamp * 1000 : 'null' }};
-            if (newSetStartTime !== setStartTime) {
-                setStartTime = newSetStartTime;
-                updateTimers();
-            }
-        });
-    </script>
 
     <!-- Match End Confirmation Modal -->
     <div x-data="{ showModal: false, winner: '', homeSets: 0, awaySets: 0, setsToWin: 0, finalSets: [] }"
@@ -320,5 +265,129 @@
             </div>
         </div>
     </div>
-    @endif
 </div>
+
+@push('scripts')
+<script>
+    let setTimerEl = null;
+    let setTimerInterval = null;
+    let setTimerStart = null;
+    let timerRunning = false;
+
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimerEl = document.getElementById('set-timer');
+        console.log('Timer element found:', setTimerEl);
+        
+        // Check if match is in progress and auto-start timer
+        const matchStatus = @json($match->status);
+        const setStartTime = @json($setStartTime?->toISOString());
+        
+        console.log('Match status:', matchStatus, 'Set start time:', setStartTime);
+        
+        if (matchStatus === 'in_progress' && setStartTime) {
+            startTimer(new Date(setStartTime));
+        } else if (matchStatus === 'in_progress') {
+            startTimer();
+        }
+    });
+
+    function startTimer(startTime = null) {
+        console.log('Starting timer with start time:', startTime);
+        
+        if (setTimerInterval) {
+            clearInterval(setTimerInterval);
+        }
+        
+        if (!startTime) {
+            startTime = new Date();
+        }
+        
+        setTimerStart = startTime;
+        timerRunning = true;
+        
+        // Update immediately
+        updateTimer();
+        
+        // Then update every second
+        setTimerInterval = setInterval(updateTimer, 1000);
+        
+        console.log('Timer started, interval ID:', setTimerInterval);
+    }
+
+    function updateTimer() {
+        if (!setTimerEl || !setTimerStart || !timerRunning) {
+            return;
+        }
+        
+        const now = new Date();
+        const elapsed = Math.floor((now.getTime() - setTimerStart.getTime()) / 1000);
+        const minutes = Math.floor(elapsed / 60);
+        const seconds = elapsed % 60;
+        
+        const timeString = String(minutes).padStart(2, '0') + ':' + String(seconds).padStart(2, '0');
+        setTimerEl.textContent = timeString;
+        
+        console.log('Timer updated:', timeString);
+    }
+
+    function stopTimer() {
+        console.log('Stopping timer');
+        if (setTimerInterval) {
+            clearInterval(setTimerInterval);
+            setTimerInterval = null;
+        }
+        timerRunning = false;
+    }
+
+    function resetTimer() {
+        stopTimer();
+        if (setTimerEl) {
+            setTimerEl.textContent = '00:00';
+        }
+        setTimerStart = null;
+    }
+
+    // Livewire event listeners
+    document.addEventListener('livewire:initialized', function() {
+        console.log('Livewire initialized, setting up event listeners');
+        
+        Livewire.on('start-timers', function(data) {
+            console.log('Received start-timers event:', data);
+            if (data && data.setStartedAt) {
+                startTimer(new Date(data.setStartedAt));
+            } else {
+                startTimer();
+            }
+        });
+
+        Livewire.on('stop-timers', function() {
+            console.log('Received stop-timers event');
+            stopTimer();
+        });
+
+        Livewire.on('set-changed', function() {
+            console.log('Received set-changed event');
+            // Record current timer value before resetting
+            if (timerRunning && setTimerEl) {
+                const timeText = setTimerEl.textContent;
+                const [mm, ss] = timeText.split(':').map(Number);
+                const duration = (mm * 60) + ss;
+                if (duration > 0) {
+                    console.log('Recording set duration:', duration);
+                    Livewire.dispatch('recordSetDuration', { seconds: duration });
+                }
+            }
+            
+            // Reset and start timer for new set
+            resetTimer();
+            startTimer();
+        });
+    });
+
+    // Make functions globally available for debugging
+    window.startTimer = startTimer;
+    window.stopTimer = stopTimer;
+    window.resetTimer = resetTimer;
+    window.updateTimer = updateTimer;
+</script>
+@endpush

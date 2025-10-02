@@ -5,33 +5,32 @@ namespace App\Livewire;
 use App\Models\LeagueMatch;
 use Livewire\Component;
 
-class LiveScore extends Component
+class LiveScore extends Component 
 {
-    public LeagueMatch $match;
+    public $match;
     public $homeScore = 0;
     public $awayScore = 0;
-    public $currentSet = 1;
     public $sets = [];
+    public $setDurations = [];
+    public $setsVersion = 0; // Used to force UI updates
+    public $serveCount = 0;
+    public $pointHistory = [];
     public $firstServer = null;
     public $currentServer = null;
     public $matchStartTime = null;
     public $setStartTime = null;
     public $matchPaused = false;
-    public $setTimes = [];
-    public $serveCount = 0;
+    public $currentSet = 1;
 
-    public function mount(LeagueMatch $match)
+    public function recordSetDuration($seconds)
     {
-        $this->match = $match;
-        $this->homeScore = $match->home_score ?? 0;
-        $this->awayScore = $match->away_score ?? 0;
-        $this->sets = $match->sets ?? [];
-        $this->firstServer = $match->first_server;
-        $this->currentServer = $match->current_server;
-
-        if ($match->status === 'in_progress') {
-            $this->startTimers();
-        }
+        // Add the duration to the setDurations array
+        $this->setDurations[] = (int)$seconds;
+        $this->match->update([
+            'set_durations' => $this->setDurations,
+        ]);
+        // Force UI update
+        $this->setsVersion++;
     }
 
     public function selectFirstServer($player)
@@ -55,54 +54,98 @@ class LiveScore extends Component
 
     public function startMatch()
     {
-        $this->matchStartTime = now();
-        $this->setStartTime = now();
+        $now = now();
+        $this->matchStartTime = $now;
+        $this->setStartTime = $now;
 
         $this->match->update([
             'status' => 'in_progress',
-            'played_at' => now(),
+            'played_at' => $now,
+            'current_set_started_at' => $now,
             'first_server' => $this->firstServer,
             'current_server' => $this->currentServer,
         ]);
 
         $this->startTimers();
+
     }
 
     public function startTimer()
     {
-        $this->matchStartTime = now();
-        $this->setStartTime = now();
+        $now = now();
+        $this->matchStartTime = $now;
+        $this->setStartTime = $now;
+        // Persist times and status
+        $this->match->update([
+            'status' => 'in_progress',
+            'played_at' => $now,
+            'current_set_started_at' => $now,
+        ]);
         $this->startTimers();
     }
 
     public function addPoint($player)
     {
+        // Save current state for undo functionality
+        $this->pointHistory[] = [
+            'homeScore' => $this->homeScore,
+            'awayScore' => $this->awayScore,
+            'serveCount' => $this->serveCount,
+            'currentServer' => $this->currentServer,
+            'sets' => $this->sets,
+            'setDurations' => $this->setDurations,
+            'currentSet' => $this->currentSet
+        ];
+
         if ($player === 'home') {
             $this->homeScore++;
         } else {
             $this->awayScore++;
         }
 
-        // Change server every 2 serves
-        $this->serveCount++;
-        if ($this->serveCount % 2 === 0) {
+        // Change server based on score
+        if ($this->homeScore >= 10 && $this->awayScore >= 10) {
+            // When both players are at 10+, change server every point
             $this->currentServer = $this->currentServer === 'home' ? 'away' : 'home';
-            $this->match->update(['current_server' => $this->currentServer]);
+        } else {
+            // Normal rotation: change server every 2 serves
+            $this->serveCount++;
+            if ($this->serveCount % 2 === 0) {
+                $this->currentServer = $this->currentServer === 'home' ? 'away' : 'home';
+            }
         }
+
+        $this->match->update(['current_server' => $this->currentServer]);
 
         $this->updateScore();
         $this->checkSetWin();
     }
 
-    public function subtractPoint($player)
+    public function undoPoint()
     {
-        if ($player === 'home' && $this->homeScore > 0) {
-            $this->homeScore--;
-        } elseif ($player === 'away' && $this->awayScore > 0) {
-            $this->awayScore--;
-        }
+        if (count($this->pointHistory) > 0) {
+            $lastState = array_pop($this->pointHistory);
 
-        $this->updateScore();
+            $this->homeScore = $lastState['homeScore'];
+            $this->awayScore = $lastState['awayScore'];
+            $this->serveCount = $lastState['serveCount'];
+            $this->currentServer = $lastState['currentServer'];
+            $this->sets = $lastState['sets'];
+            $this->setDurations = $lastState['setDurations'];
+            $this->currentSet = $lastState['currentSet'];
+
+            // Update database
+            $this->match->update([
+                'home_score' => $this->homeScore,
+                'away_score' => $this->awayScore,
+                'current_server' => $this->currentServer,
+                'sets' => $this->sets,
+                'set_durations' => $this->setDurations,
+            ]);
+
+            // Force UI update
+            $this->setsVersion++;
+        }
     }
 
     private function updateScore()
@@ -119,6 +162,7 @@ class LiveScore extends Component
         $scoreDiff = abs($this->homeScore - $this->awayScore);
 
         if (($this->homeScore >= $winScore || $this->awayScore >= $winScore) && $scoreDiff >= 2) {
+            // Automatically end the current set
             $this->endCurrentSet();
         }
     }
@@ -127,10 +171,15 @@ class LiveScore extends Component
     {
         // Record set time
         if ($this->setStartTime) {
-            $setDuration = now()->diffInSeconds($this->setStartTime);
-            $minutes = floor($setDuration / 60);
-            $seconds = $setDuration % 60;
-            $this->setTimes[] = sprintf('%02d:%02d', $minutes, $seconds);
+            $setDuration = $this->setStartTime->diffInSeconds(now());
+            $this->setDurations[] = $setDuration; // Store as seconds
+
+            \Log::info('Set duration recorded', [
+                'duration_seconds' => $setDuration,
+                'setStartTime' => $this->setStartTime,
+                'now' => now(),
+                'diffInSeconds' => $setDuration
+            ]);
         }
 
         // Add set to history
@@ -138,6 +187,11 @@ class LiveScore extends Component
             'home_score' => $this->homeScore,
             'away_score' => $this->awayScore
         ];
+
+        \Log::info('Set added to history', [
+            'sets' => $this->sets,
+            'setDurations' => $this->setDurations
+        ]);
 
         // Reset scores for next set
         $this->homeScore = 0;
@@ -152,14 +206,56 @@ class LiveScore extends Component
         $this->firstServer = $this->currentServer; // Update first server for next set
         $this->setStartTime = now();
 
-        $this->match->update([
+        \Log::info('Before database update', [
             'sets' => $this->sets,
+            'set_durations' => $this->setDurations,
+            'current_set_started_at' => $this->setStartTime
+        ]);
+
+        $result = $this->match->update([
+            'sets' => $this->sets,
+            'set_durations' => $this->setDurations,
+            'current_set_started_at' => $this->setStartTime,
             'current_server' => $this->currentServer,
             'first_server' => $this->firstServer,
         ]);
 
-        // Dispatch event to update JavaScript timers
-        $this->dispatch('set-changed');
+        \Log::info('Database update result', [
+            'result' => $result,
+            'sets_to_save' => $this->sets,
+            'durations_to_save' => $this->setDurations,
+            'match_id' => $this->match->id
+        ]);
+
+        // Check if update was successful
+        if (!$result) {
+            \Log::error('Database update failed', [
+                'match_id' => $this->match->id,
+                'sets' => $this->sets,
+                'set_durations' => $this->setDurations
+            ]);
+        }
+
+        // Force refresh the match data and update component properties
+        $this->match->refresh();
+        $freshSets = $this->match->sets ?? [];
+        $freshDurations = $this->match->set_durations ?? [];
+        
+        // Explicitly update properties to ensure Livewire reactivity
+        $this->sets = $freshSets;
+        $this->setDurations = $freshDurations;
+
+        \Log::info('After refresh', [
+            'sets' => $this->sets,
+            'setDurations' => $this->setDurations,
+            'freshSets' => $freshSets,
+            'freshDurations' => $freshDurations
+        ]);
+
+        // Dispatch event to update JavaScript timers with fresh start time
+        $this->dispatch('set-changed', [
+            'setStartedAt' => $this->setStartTime->toIso8601String(),
+        ]);
 
         // Check if match is won
         $this->checkMatchWin();
@@ -170,14 +266,59 @@ class LiveScore extends Component
         $this->matchPaused = !$this->matchPaused;
 
         if ($this->matchPaused) {
-            $this->match->update(['status' => 'scheduled']);
+            // Stop timers on pause
+            $this->dispatch('stop-timers');
         } else {
-            $this->match->update(['status' => 'in_progress']);
+            // Resume timers - calculate correct start time accounting for pause duration
+            $this->dispatch('start-timers', [
+                'playedAt' => optional($this->match->played_at)->toIso8601String(),
+                'setStartedAt' => optional($this->setStartTime)->toIso8601String(),
+            ]);
         }
+    }
+
+    public function resetMatch()
+    {
+        // Reset local state
+        $this->homeScore = 0;
+        $this->awayScore = 0;
+        $this->sets = [];
+        $this->setDurations = [];
+        $this->currentSet = 1;
+        $this->serveCount = 0;
+        $this->firstServer = null;
+        $this->currentServer = null;
+        $this->matchPaused = false;
+        $this->matchStartTime = null;
+        $this->setStartTime = null;
+
+        // Persist reset
+        $this->match->update([
+            'status' => 'scheduled',
+            'home_score' => null,
+            'away_score' => null,
+            'sets' => null,
+            'set_durations' => null,
+            'played_at' => null,
+            'current_set_started_at' => null,
+            'first_server' => null,
+            'current_server' => null,
+        ]);
+
+        // Stop any running timers and reset UI
+        $this->dispatch('stop-timers');
     }
 
     public function endMatch()
     {
+        // Record final set duration if not already recorded
+        if ($this->setStartTime && empty($this->setDurations) || count($this->setDurations) < $this->currentSet) {
+            $setDuration = now()->diffInSeconds($this->setStartTime);
+            $minutes = floor($setDuration / 60);
+            $seconds = $setDuration % 60;
+            $this->setDurations[] = sprintf('%02d:%02d', $minutes, $seconds);
+        }
+
         // Calculate final match scores from sets
         $homeSetsWon = 0;
         $awaySetsWon = 0;
@@ -194,11 +335,20 @@ class LiveScore extends Component
             'home_score' => $homeSetsWon,
             'away_score' => $awaySetsWon,
             'sets' => $this->sets,
+            'set_durations' => $this->setDurations,
             'status' => 'completed',
         ]);
 
-        // Don't redirect, just mark as completed and disable further editing
-        $this->match->refresh();
+        // Stop timers and reset to 00:00
+        $this->dispatch('stop-timers');
+        $this->dispatch('reset-timer-display');
+
+
+        return redirect()->route('organizations.leagues.matches.show', [
+            'organization' => $this->match->league->organization,
+            'league' => $this->match->league,
+            'match' => $this->match
+        ]);
     }
 
     private function checkMatchWin()
@@ -229,18 +379,87 @@ class LiveScore extends Component
 
     public function confirmMatchEnd()
     {
-        $this->endMatch();
+        return $this->endMatch();
+    }
+
+    public function confirmSetWin()
+    {
+        // Debug logging
+        \Log::info('confirmSetWin called', [
+            'match_id' => $this->match->id,
+            'currentSet' => $this->currentSet,
+            'homeScore' => $this->homeScore,
+            'awayScore' => $this->awayScore,
+            'setStartTime' => $this->setStartTime,
+            'sets_before' => $this->sets,
+            'durations_before' => $this->setDurations
+        ]);
+
+        $this->endCurrentSet();
+
+        // After ending the set, ensure UI updates
+        $this->match->refresh();
+        $this->sets = $this->match->sets ?? [];
+        $this->setDurations = $this->match->set_durations ?? [];
+
+        \Log::info('confirmSetWin completed', [
+            'sets_after' => $this->sets,
+            'durations_after' => $this->setDurations,
+            'match_sets' => $this->match->sets,
+            'match_durations' => $this->match->set_durations
+        ]);
+
+        // Force UI update by incrementing version
+        $this->setsVersion++;
+
+        // Force UI update by dispatching a custom event
+        $this->dispatch('sets-updated', [
+            'sets' => $this->sets,
+            'durations' => $this->setDurations,
+            'version' => $this->setsVersion
+        ]);
+
+        // Force a full component refresh to ensure UI updates
+        $this->dispatch('$refresh');
+
+        // Also try to force reactivity by reassigning the arrays
+        $tempSets = $this->sets;
+        $tempDurations = $this->setDurations;
+        $this->sets = [];
+        $this->setDurations = [];
+        $this->sets = $tempSets;
+        $this->setDurations = $tempDurations;
+    }
+
+    public function pauseTimer()
+    {
+        // Stop the timer by dispatching stop event
+        $this->dispatch('stop-timers');
     }
 
     private function startTimers()
     {
-        // Timers will be handled by Livewire's reactivity
-        // We can use JavaScript for real-time timer display
-        $this->dispatch('start-timers');
+        // Timers handled in JS; send anchors to client
+        $this->dispatch('start-timers',
+            playedAt: optional($this->matchStartTime)->toIso8601String(),
+            setStartedAt: optional($this->setStartTime)->toIso8601String()
+        );
     }
 
     public function render()
     {
-        return view('livewire.live-score');
+        return view('livewire.live-score', [
+            'match' => $this->match,
+            'firstServer' => $this->firstServer,
+            'currentServer' => $this->currentServer,
+            'homeScore' => $this->homeScore,
+            'awayScore' => $this->awayScore,
+            'currentSet' => $this->currentSet,
+            'setDurations' => $this->setDurations,
+            'sets' => $this->sets,
+            'setsVersion' => $this->setsVersion,
+            'setStartTime' => $this->setStartTime,
+            'matchPaused' => $this->matchPaused,
+        ]);
     }
 }

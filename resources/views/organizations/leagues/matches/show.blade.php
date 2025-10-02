@@ -190,11 +190,13 @@
                                             {{ $match->awayPlayer->name ?? 'Away' }}
                                         @endif
                                     </th>
+                                    <th class="text-center py-3 px-2 text-gray-400 font-medium">Duration</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @php
                                     $sets = $match->sets ?? [];
+                                    $setDurations = $match->set_durations ?? [];
                                 @endphp
                                 @foreach($sets as $setNumber => $set)
                                 <tr class="border-b border-gray-700/50">
@@ -216,6 +218,18 @@
                                         <span class="{{ $awayWon ? 'text-green-400 font-bold text-lg' : 'text-white' }}">
                                             {{ $awayScore }}
                                         </span>
+                                    </td>
+                                    <td class="py-3 px-2 text-center text-gray-300">
+                                        @if(is_numeric($setDurations[$setNumber] ?? null))
+                                            @php
+                                                $duration = $setDurations[$setNumber];
+                                                $minutes = floor($duration / 60);
+                                                $seconds = $duration % 60;
+                                                echo sprintf('%02d:%02d', $minutes, $seconds);
+                                            @endphp
+                                        @else
+                                            {{ $setDurations[$setNumber] ?? '00:00' }}
+                                        @endif
                                     </td>
                                 </tr>
                                 @endforeach
@@ -262,6 +276,26 @@
                             <div class="flex justify-between">
                                 <span class="text-gray-400">Played</span>
                                 <span class="text-white">{{ $match->played_at->format('M d, Y H:i') }}</span>
+                            </div>
+                            @endif
+                            @if($match->set_durations && count($match->set_durations) > 0)
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">Total Match Time</span>
+                                <span class="text-white font-medium">
+                                    @php
+                                        $totalSeconds = 0;
+                                        foreach($match->set_durations as $duration) {
+                                            if (is_numeric($duration)) {
+                                                $totalSeconds += $duration;
+                                            } elseif (preg_match('/^(\d{2}):(\d{2})$/', $duration, $matches)) {
+                                                $totalSeconds += ($matches[1] * 60) + $matches[2];
+                                            }
+                                        }
+                                        $totalMinutes = floor($totalSeconds / 60);
+                                        $totalRemainingSeconds = $totalSeconds % 60;
+                                        echo sprintf('%02d:%02d', $totalMinutes, $totalRemainingSeconds);
+                                    @endphp
+                                </span>
                             </div>
                             @endif
                         </div>
