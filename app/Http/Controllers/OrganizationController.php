@@ -124,4 +124,30 @@ class OrganizationController extends Controller
 
         return redirect()->route('dashboard')->with('success', __('Organization deleted successfully!'));
     }
+
+    /**
+     * Show friendly matches index for the organization.
+     */
+    public function friendlyMatches(Organization $organization)
+    {
+        // Ensure user owns this organization
+        if ($organization->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        return view('organizations.friendly-matches.index', compact('organization'));
+    }
+
+    /**
+     * Show table tennis friendly match interface.
+     */
+    public function tableTennisFriendly(Organization $organization)
+    {
+        // Ensure user owns this organization
+        if ($organization->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        return view('organizations.friendly-matches.table-tennis', compact('organization'));
+    }
 }

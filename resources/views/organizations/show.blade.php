@@ -164,6 +164,32 @@
                 @endif
             </div>
 
+            <!-- Friendly Matches Section -->
+            <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-xl font-bold text-white">{{ __('Friendly Matches') }}</h3>
+                    <a href="{{ route('organizations.friendly-matches.index', $organization) }}" class="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white px-4 py-2 rounded-xl transition-all duration-200 transform hover:scale-[1.02] hover:shadow-lg hover:shadow-green-500/25 inline-block">
+                        <span class="flex items-center space-x-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
+                            <span>{{ __('Start Friendly Match') }}</span>
+                        </span>
+                    </a>
+                </div>
+
+                <div class="text-center py-8">
+                    <div class="w-16 h-16 bg-gray-700/50 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <span class="text-3xl">🏓</span>
+                    </div>
+                    <h4 class="text-white font-semibold mb-2">{{ __('Play Friendly Matches') }}</h4>
+                    <p class="text-gray-400 mb-4">{{ __('Practice and have fun with table tennis matches') }}</p>
+                    <a href="{{ route('organizations.friendly-matches.index', $organization) }}" class="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white px-6 py-3 rounded-xl transition-all duration-200 transform hover:scale-[1.02] hover:shadow-lg hover:shadow-green-500/25 inline-block">
+                        {{ __('Get Started') }}
+                    </a>
+                </div>
+            </div>
+
             <!-- Players Section -->
             <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl">
                 <div class="flex items-center justify-between mb-6">

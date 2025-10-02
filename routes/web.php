@@ -29,6 +29,10 @@ Route::middleware('auth')->group(function () {
     // Organization routes
     Route::resource('organizations', OrganizationController::class);
 
+    // Friendly matches routes (nested under organizations)
+    Route::get('organizations/{organization}/friendly-matches', [OrganizationController::class, 'friendlyMatches'])->name('organizations.friendly-matches.index');
+    Route::get('organizations/{organization}/friendly-matches/table-tennis', [OrganizationController::class, 'tableTennisFriendly'])->name('organizations.friendly-matches.table-tennis');
+
     // League routes (nested under organizations)
     Route::get('organizations/{organization}/leagues/create', [LeagueController::class, 'create'])->name('organizations.leagues.create');
     Route::get('organizations/{organization}/leagues/{league}', [LeagueController::class, 'show'])->name('organizations.leagues.show');
