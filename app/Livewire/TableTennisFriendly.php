@@ -17,6 +17,8 @@ class TableTennisFriendly extends Component
         }
         FriendlyMatch::create([
             'organization_id' => $this->organization->id,
+            'home_player_id' => $this->homePlayer['id'],
+            'away_player_id' => $this->awayPlayer['id'],
             'home_player_name' => $this->homePlayer ? $this->homePlayer['name'] : 'Home Player',
             'away_player_name' => $this->awayPlayer ? $this->awayPlayer['name'] : 'Away Player',
             'sets' => $this->sets,

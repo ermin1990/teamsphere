@@ -1,5 +1,3 @@
-@extends('layouts.app')
-
-@section('content')
+<x-app-layout>
     <livewire:friendly-matches-list :organization-id="auth()->user()->organization_id ?? null" />
-@endsection
+</x-app-layout>

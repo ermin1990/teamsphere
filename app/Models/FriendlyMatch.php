@@ -8,6 +8,8 @@ class FriendlyMatch extends Model
 {
     protected $fillable = [
         'organization_id',
+        'home_player_id',
+        'away_player_id',
         'home_player_name',
         'away_player_name',
         'sets',

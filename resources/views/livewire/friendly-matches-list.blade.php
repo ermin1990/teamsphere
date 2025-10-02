@@ -8,7 +8,37 @@
             </div>
 
             <div class="text-center mb-4">
-                <div class="text-lg font-bold text-white mb-2">{{ $match->home_player_name }} vs {{ $match->away_player_name }}</div>
+                <div class="flex items-center justify-center space-x-4 mb-2">
+                    <!-- Home Player -->
+                    <div class="flex flex-col items-center space-y-2">
+                        <div class="w-10 h-10 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center">
+                            <span class="text-white font-bold text-sm">
+                                {{ substr($match->home_player_name, 0, 1) }}
+                            </span>
+                        </div>
+                        @if($match->home_player_id)
+                            <a href="{{ route('organizations.players.show', ['organization' => $organization->slug, 'player' => $match->home_player_id]) }}" class="text-white hover:text-blue-400 transition text-sm font-medium">{{ $match->home_player_name }}</a>
+                        @else
+                            <span class="text-white text-sm font-medium">{{ $match->home_player_name }}</span>
+                        @endif
+                    </div>
+
+                    <div class="text-white font-bold text-lg">vs</div>
+
+                    <!-- Away Player -->
+                    <div class="flex flex-col items-center space-y-2">
+                        <div class="w-10 h-10 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center">
+                            <span class="text-white font-bold text-sm">
+                                {{ substr($match->away_player_name, 0, 1) }}
+                            </span>
+                        </div>
+                        @if($match->away_player_id)
+                            <a href="{{ route('organizations.players.show', ['organization' => $organization->slug, 'player' => $match->away_player_id]) }}" class="text-white hover:text-blue-400 transition text-sm font-medium">{{ $match->away_player_name }}</a>
+                        @else
+                            <span class="text-white text-sm font-medium">{{ $match->away_player_name }}</span>
+                        @endif
+                    </div>
+                </div>
                 <div class="text-2xl font-extrabold text-blue-400">
                     {{
                         collect($match->sets)->map(fn($set) => $set['home_score'].'-'.$set['away_score'])->implode(' | ')

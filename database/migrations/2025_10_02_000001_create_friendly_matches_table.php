@@ -10,6 +10,8 @@ return new class extends Migration {
         Schema::create('friendly_matches', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('organization_id');
+            $table->unsignedBigInteger('home_player_id');
+            $table->unsignedBigInteger('away_player_id');
             $table->string('home_player_name');
             $table->string('away_player_name');
             $table->json('sets'); // Array of set scores
@@ -19,6 +21,8 @@ return new class extends Migration {
             $table->timestamps();
 
             $table->foreign('organization_id')->references('id')->on('organizations')->onDelete('cascade');
+            $table->foreign('home_player_id')->references('id')->on('players')->onDelete('cascade');
+            $table->foreign('away_player_id')->references('id')->on('players')->onDelete('cascade');
         });
     }
 

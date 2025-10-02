@@ -71,7 +71,7 @@
                         </div>
 
                         <div class="flex items-center justify-between pt-4 border-t border-white/20">
-                            <a href="{{ route('players.show', $player) }}"
+                            <a href="{{ route('organizations.players.show', ['organization' => $organization, 'player' => $player]) }}"
                                class="text-purple-400 hover:text-purple-300 text-sm font-medium transition-colors">
                                 {{ __('View Details') }}
                             </a>
