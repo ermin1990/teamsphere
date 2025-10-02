@@ -624,6 +624,18 @@
                             </form>
                             @endif
 
+                            @if($league->status !== 'draft')
+                            <form method="POST" action="{{ route('organizations.leagues.reset', [$organization, $league]) }}"
+                                  onsubmit="return confirm('{{ __('Are you sure you want to reset this league? All matches and standings will be deleted and the league will return to draft status.') }}')"
+                                  class="w-full">
+                                @csrf
+                                <button type="submit"
+                                        class="w-full bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white px-4 py-3 rounded-lg font-medium transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-orange-500/25 mb-3">
+                                    {{ __('Reset League') }}
+                                </button>
+                            </form>
+                            @endif
+
                             <a href="{{ route('organizations.show', $organization) }}"
                                class="w-full bg-gray-700/50 hover:bg-gray-600/50 text-white px-4 py-3 rounded-lg font-medium transition-all duration-200 text-center block">
                                 {{ __('Back to Organization') }}

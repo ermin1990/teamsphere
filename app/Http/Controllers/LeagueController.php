@@ -379,12 +379,21 @@ class LeagueController extends Controller
         $rounds = $numParticipants - 1;
         $matchesPerRound = $numParticipants / 2;
 
+        // Create initial pairing
+        $homePositions = [];
+        $awayPositions = [];
+
+        for ($i = 0; $i < $matchesPerRound; $i++) {
+            $homePositions[] = $i;
+            $awayPositions[] = $numParticipants - 1 - $i;
+        }
+
         for ($round = 0; $round < $rounds; $round++) {
             $roundMatches = [];
 
             for ($i = 0; $i < $matchesPerRound; $i++) {
-                $home = $participantIds[$i];
-                $away = $participantIds[$numParticipants - 1 - $i];
+                $home = $participantIds[$homePositions[$i]];
+                $away = $participantIds[$awayPositions[$i]];
 
                 // Skip bye matches
                 if ($home !== null && $away !== null) {
@@ -394,10 +403,18 @@ class LeagueController extends Controller
 
             $matches[] = $roundMatches;
 
-            // Rotate participants for next round (keep first fixed)
-            $first = array_shift($participantIds);
-            $participantIds[] = array_pop($participantIds);
-            array_unshift($participantIds, $first);
+            // Rotate positions for next round (round-robin rotation)
+            // Keep first position fixed, rotate others
+            $temp = $homePositions[1];
+            for ($i = 1; $i < $matchesPerRound - 1; $i++) {
+                $homePositions[$i] = $homePositions[$i + 1];
+            }
+            $homePositions[$matchesPerRound - 1] = $awayPositions[0];
+
+            for ($i = 0; $i < $matchesPerRound - 1; $i++) {
+                $awayPositions[$i] = $awayPositions[$i + 1];
+            }
+            $awayPositions[$matchesPerRound - 1] = $temp;
         }
 
         // If double round, add reverse fixtures
@@ -835,5 +852,38 @@ class LeagueController extends Controller
 
         return redirect()->route('organizations.leagues.matches.show', [$organization, $league, $match])
             ->with('success', 'Match has been reset to initial state.');
+    }
+
+    /**
+     * Reset league to draft status and regenerate matches.
+     */
+    public function resetLeague(Request $request, Organization $organization, League $league)
+    {
+        // Ensure user owns this organization
+        if ($organization->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        // Ensure league belongs to organization
+        if ($league->organization_id !== $organization->id) {
+            abort(404);
+        }
+
+        try {
+            // Delete all existing matches
+            $league->matches()->delete();
+
+            // Delete all standings
+            $league->standings()->delete();
+
+            // Reset league to draft status
+            $league->update(['status' => 'draft']);
+
+            return redirect()->route('organizations.leagues.show', [$organization, $league])
+                           ->with('success', __('League has been reset to draft status. You can now restart it with correct match pairings.'));
+        } catch (\Exception $e) {
+            \Log::error('Error resetting league: ' . $e->getMessage());
+            return back()->withErrors(['general' => 'Error resetting league: ' . $e->getMessage()]);
+        }
     }
 }

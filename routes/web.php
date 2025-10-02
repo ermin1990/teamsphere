@@ -53,6 +53,7 @@ Route::middleware('auth')->group(function () {
     Route::post('organizations/{organization}/leagues/{league}/players', [LeagueController::class, 'addPlayer'])->name('organizations.leagues.players.store');
     Route::post('organizations/{organization}/leagues/{league}/add-players', [LeagueController::class, 'addPlayers'])->name('organizations.leagues.addPlayers');
     Route::patch('organizations/{organization}/leagues/{league}/start', [LeagueController::class, 'startLeague'])->name('organizations.leagues.start');
+    Route::post('organizations/{organization}/leagues/{league}/reset', [LeagueController::class, 'resetLeague'])->name('organizations.leagues.reset');
     Route::get('organizations/{organization}/leagues/{league}/matches/{match}', [LeagueController::class, 'showMatch'])->name('organizations.leagues.matches.show');
     Route::get('organizations/{organization}/leagues/{league}/matches/{match}/edit', [LeagueController::class, 'editMatch'])->name('organizations.leagues.matches.edit');
     Route::put('organizations/{organization}/leagues/{league}/matches/{match}', [LeagueController::class, 'updateMatch'])->name('organizations.leagues.matches.update');
