@@ -75,12 +75,19 @@
             <div class="grid grid-cols-2 gap-4 md:gap-8 mb-8">
                 <div class="text-center">
                     <div class="mb-4">
-                        <h3 class="text-xl font-bold transition-all duration-300 {{ $currentServer === 'home' ? 'text-blue-400 animate-pulse drop-shadow-lg' : 'text-white' }} mb-2">
-                            @if($match->league->is_team_based)
-                                {{ $match->homeTeam->name ?? 'Home Team' }}
-                            @else
-                                {{ $match->homePlayer->name ?? 'Home Player' }}
+                        <h3 class="text-2xl font-bold transition-all duration-300 mb-2 flex items-center justify-center gap-2">
+                            @if($currentServer === 'home')
+                            <div class="w-4 h-4 bg-yellow-400 rounded-full animate-pulse shadow-lg shadow-yellow-400/50">
+                                <div class="w-full h-full bg-yellow-300 rounded-full animate-ping"></div>
+                            </div>
                             @endif
+                            <span class="{{ $currentServer === 'home' ? 'text-blue-400 animate-pulse drop-shadow-lg' : 'text-white' }}">
+                                @if($match->league->is_team_based)
+                                    {{ $match->homeTeam->name ?? 'Home Team' }}
+                                @else
+                                    {{ $match->homePlayer->name ?? 'Home Player' }}
+                                @endif
+                            </span>
                         </h3>
                     </div>
 
@@ -88,17 +95,6 @@
                         <div class="text-8xl md:text-9xl font-bold transition-all duration-300 mb-2 {{ $match->status === 'completed' ? '' : 'cursor-pointer hover:text-blue-300 active:scale-95 select-none' }} {{ $currentServer === 'home' ? 'text-blue-400 animate-pulse drop-shadow-lg' : 'text-blue-400' }}"
                              @if($match->status !== 'completed') wire:click="addPoint('home')" @endif>
                             {{ $homeScore }}
-                        </div>
-                        <div class="text-lg font-semibold text-white">
-                            @if($match->league->is_team_based)
-                                {{ $match->homeTeam->name ?? 'Home Team' }}
-                            @else
-                                {{ $match->homePlayer->name ?? 'Home Player' }}
-                            @endif
-                        </div>
-                        <div class="absolute -top-2 -right-2 w-6 h-6 bg-yellow-400 rounded-full transition-opacity duration-300 shadow-lg shadow-yellow-400/50"
-                             style="opacity: {{ $currentServer === 'home' ? '1' : '0' }}">
-                            <div class="w-full h-full bg-yellow-300 rounded-full animate-ping"></div>
                         </div>
                     </div>
 
@@ -112,11 +108,18 @@
 
                 <div class="text-center">
                     <div class="mb-4">
-                        <h3 class="text-xl font-bold transition-all duration-300 {{ $currentServer === 'away' ? 'text-red-400 animate-pulse drop-shadow-lg' : 'text-white' }} mb-2">
-                            @if($match->league->is_team_based)
-                                {{ $match->awayTeam->name ?? 'Away Team' }}
-                            @else
-                                {{ $match->awayPlayer->name ?? 'Away Player' }}
+                        <h3 class="text-2xl font-bold transition-all duration-300 mb-2 flex items-center justify-center gap-2">
+                            <span class="{{ $currentServer === 'away' ? 'text-red-400 animate-pulse drop-shadow-lg' : 'text-white' }}">
+                                @if($match->league->is_team_based)
+                                    {{ $match->awayTeam->name ?? 'Away Team' }}
+                                @else
+                                    {{ $match->awayPlayer->name ?? 'Away Player' }}
+                                @endif
+                            </span>
+                            @if($currentServer === 'away')
+                            <div class="w-4 h-4 bg-yellow-400 rounded-full animate-pulse shadow-lg shadow-yellow-400/50">
+                                <div class="w-full h-full bg-yellow-300 rounded-full animate-ping"></div>
+                            </div>
                             @endif
                         </h3>
                     </div>
@@ -125,17 +128,6 @@
                         <div class="text-8xl md:text-9xl font-bold transition-all duration-300 mb-2 {{ $match->status === 'completed' ? '' : 'cursor-pointer hover:text-red-300 active:scale-95 select-none' }} {{ $currentServer === 'away' ? 'text-red-400 animate-pulse drop-shadow-lg' : 'text-red-400' }}"
                              @if($match->status !== 'completed') wire:click="addPoint('away')" @endif>
                             {{ $awayScore }}
-                        </div>
-                        <div class="text-lg font-semibold text-white">
-                            @if($match->league->is_team_based)
-                                {{ $match->awayTeam->name ?? 'Away Team' }}
-                            @else
-                                {{ $match->awayPlayer->name ?? 'Away Player' }}
-                            @endif
-                        </div>
-                        <div class="absolute -top-2 -left-2 w-6 h-6 bg-yellow-400 rounded-full transition-opacity duration-300 shadow-lg shadow-yellow-400/50"
-                             style="opacity: {{ $currentServer === 'away' ? '1' : '0' }}">
-                            <div class="w-full h-full bg-yellow-300 rounded-full animate-ping"></div>
                         </div>
                     </div>
 
