@@ -373,37 +373,42 @@ class LeagueController extends Controller
             return $matches; // Not enough participants
         }
 
+        // Simple round-robin: each participant plays every other participant exactly once
         $participants = $participantIds;
 
-        // If odd number of participants, add a bye participant
-        $hasBye = $numParticipants % 2 !== 0;
-        if ($hasBye) {
-            $participants[] = 'bye';
-            $numParticipants++;
-        }
+        // For each participant, pair them with all others they haven't played yet
+        $playedPairs = [];
+        $round = 0;
 
-        $rounds = $numParticipants - 1;
-        $matchesPerRound = $numParticipants / 2;
-
-        for ($round = 0; $round < $rounds; $round++) {
+        while (true) {
             $roundMatches = [];
+            $usedParticipants = [];
 
-            // Create matches for this round
-            for ($i = 0; $i < $matchesPerRound; $i++) {
-                $home = $participants[$i];
-                $away = $participants[$numParticipants - 1 - $i];
+            // Find pairs for this round
+            for ($i = 0; $i < $numParticipants; $i++) {
+                if (in_array($participants[$i], $usedParticipants)) continue;
 
-                // Skip bye matches
-                if ($home !== 'bye' && $away !== 'bye') {
-                    $roundMatches[] = ['home' => $home, 'away' => $away];
+                for ($j = $i + 1; $j < $numParticipants; $j++) {
+                    if (in_array($participants[$j], $usedParticipants)) continue;
+
+                    $pairKey = min($participants[$i], $participants[$j]) . '-' . max($participants[$i], $participants[$j]);
+
+                    if (!in_array($pairKey, $playedPairs)) {
+                        $roundMatches[] = ['home' => $participants[$i], 'away' => $participants[$j]];
+                        $playedPairs[] = $pairKey;
+                        $usedParticipants[] = $participants[$i];
+                        $usedParticipants[] = $participants[$j];
+                        break;
+                    }
                 }
             }
 
-            $matches[] = $roundMatches;
+            if (empty($roundMatches)) {
+                break; // No more matches to schedule
+            }
 
-            // Rotate participants (keep first fixed, rotate others)
-            $first = array_shift($participants);
-            $participants[] = $first;
+            $matches[] = $roundMatches;
+            $round++;
         }
 
         // If double round, add reverse fixtures
