@@ -369,52 +369,41 @@ class LeagueController extends Controller
         $matches = [];
         $numParticipants = count($participantIds);
 
-        // If odd number of participants, add a bye
+        if ($numParticipants < 2) {
+            return $matches; // Not enough participants
+        }
+
+        $participants = $participantIds;
+
+        // If odd number of participants, add a bye participant
         $hasBye = $numParticipants % 2 !== 0;
         if ($hasBye) {
-            $participantIds[] = null; // Bye
+            $participants[] = 'bye';
             $numParticipants++;
         }
 
         $rounds = $numParticipants - 1;
         $matchesPerRound = $numParticipants / 2;
 
-        // Create initial pairing
-        $homePositions = [];
-        $awayPositions = [];
-
-        for ($i = 0; $i < $matchesPerRound; $i++) {
-            $homePositions[] = $i;
-            $awayPositions[] = $numParticipants - 1 - $i;
-        }
-
         for ($round = 0; $round < $rounds; $round++) {
             $roundMatches = [];
 
+            // Create matches for this round
             for ($i = 0; $i < $matchesPerRound; $i++) {
-                $home = $participantIds[$homePositions[$i]];
-                $away = $participantIds[$awayPositions[$i]];
+                $home = $participants[$i];
+                $away = $participants[$numParticipants - 1 - $i];
 
                 // Skip bye matches
-                if ($home !== null && $away !== null) {
+                if ($home !== 'bye' && $away !== 'bye') {
                     $roundMatches[] = ['home' => $home, 'away' => $away];
                 }
             }
 
             $matches[] = $roundMatches;
 
-            // Rotate positions for next round (round-robin rotation)
-            // Keep first position fixed, rotate others
-            $temp = $homePositions[1];
-            for ($i = 1; $i < $matchesPerRound - 1; $i++) {
-                $homePositions[$i] = $homePositions[$i + 1];
-            }
-            $homePositions[$matchesPerRound - 1] = $awayPositions[0];
-
-            for ($i = 0; $i < $matchesPerRound - 1; $i++) {
-                $awayPositions[$i] = $awayPositions[$i + 1];
-            }
-            $awayPositions[$matchesPerRound - 1] = $temp;
+            // Rotate participants (keep first fixed, rotate others)
+            $first = array_shift($participants);
+            $participants[] = $first;
         }
 
         // If double round, add reverse fixtures
