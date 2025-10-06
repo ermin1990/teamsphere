@@ -97,9 +97,58 @@ return [
     'cta' => [
         'title' => 'Spremni da :revolutionize Revolucionirate Upravljanje Sportom?',
         'title_highlight' => 'Revolucionirate',
-        'subtitle' => 'Pridružite se hiljadama timova koji već koriste Team Sphere da postignu neviđeni uspjeh',
-        'start_free' => 'Započni Besplatno Danas',
+        'subtitle' => 'Pridružite se hiljadama timova koji već koriste Team Sphere za pojednostavljenje upravljanja sportom.',
+        'start_free' => 'Započni Besplatnu Probnu Verziju',
         'already_have_account' => 'Već imate račun? Prijavi se',
+    ],
+
+    // Testimonials Section
+    'testimonials' => [
+        'badge' => 'Svjedočanstva',
+        'title' => 'Pouzdan od strane timova širom svijeta',
+        'subtitle' => 'Pogledajte šta naši korisnici kažu o Team Sphere-u',
+        'items' => [
+            [
+                'quote' => 'Team Sphere je revolucionirao način na koji upravljamo našom fudbalskom ligom. Analitičke i funkcije raspoređivanja uštedjele su nam bezbroj sati.',
+                'author' => 'Sarah Johnson',
+                'role' => 'Koordinator lige',
+                'organization' => 'Gradska fudbalska asocijacija'
+            ],
+            [
+                'quote' => 'Podrška za više sportova i ažuriranja u realnom vremenu drže naše košarkaške timove angažirane i informisane tokom cijele sezone.',
+                'author' => 'Marcus Chen',
+                'role' => 'Sportski direktor',
+                'organization' => 'Metro košarkaška liga'
+            ],
+            [
+                'quote' => 'Praćenje performansi igrača pomoglo nam je da identificiramo talente i poboljšamo timske strategije. Toplo preporučujem!',
+                'author' => 'Elena Rodriguez',
+                'role' => 'Menadžer tima',
+                'organization' => 'Regionalna odbojkaška liga'
+            ]
+        ]
+    ],
+
+    // Footer Section
+    'footer' => [
+        'description' => 'Najbolja platforma za upravljanje sportskim timovima i ligama sa moćnom analitikom i besprijekornom organizacijom.',
+        'links' => [
+            'features' => 'Funkcije',
+            'pricing' => 'Cijene',
+            'about' => 'O nama',
+            'contact' => 'Kontakt',
+            'support' => 'Podrška',
+            'privacy' => 'Politika privatnosti',
+            'terms' => 'Uslovi korištenja'
+        ],
+        'social' => [
+            'title' => 'Pratite nas',
+            'twitter' => 'Twitter',
+            'facebook' => 'Facebook',
+            'instagram' => 'Instagram',
+            'linkedin' => 'LinkedIn'
+        ],
+        'copyright' => '© 2024 Team Sphere. Sva prava zadržana.'
     ],
 
     // Dashboard
@@ -181,6 +230,9 @@ return [
         'update_your_organization_details' => 'Ažurirajte detalje vaše organizacije',
         'current_information' => 'Trenutne Informacije',
         'organization_updated_successfully' => 'Organizacija uspješno ažurirana!',
+    ],
+    // Auth Interface
+    'auth' => [
         'login' => [
             'title' => 'Dobrodošli Nazad',
             'subtitle' => 'Prijavite se na vaš Team Sphere nalog',
@@ -192,7 +244,7 @@ return [
             'forgot_password' => 'Zaboravili ste lozinku?',
             'log_in_button' => 'Prijavi se',
             'no_account' => 'Nemate nalog?',
-            'create_account' => 'Kreirajte ga',
+            'create_account' => 'Kreirajte jedan',
         ],
         'register' => [
             'title' => 'Kreirajte Nalog',
@@ -209,5 +261,132 @@ return [
             'sign_in' => 'Prijavite se',
             'register_button' => 'Kreirajte Nalog',
         ],
+        'forgot_password' => [
+            'title' => 'Zaboravljena Lozinka',
+            'subtitle' => 'Zaboravili ste lozinku? Nema problema. Samo nam javite vašu email adresu i poslat ćemo vam link za resetovanje lozinke koji će vam omogućiti da izaberete novu.',
+            'email' => 'Email',
+            'email_password_reset_link' => 'Pošalji Link za Reset Lozinke',
+        ],
+        'reset_password' => [
+            'title' => 'Resetuj Lozinku',
+            'email' => 'Email',
+            'password' => 'Lozinka',
+            'confirm_password' => 'Potvrdi Lozinku',
+            'reset_password' => 'Resetuj Lozinku',
+        ],
+        'verify_email' => [
+            'title' => 'Verifikacija Email-a',
+            'subtitle' => 'Hvala što ste se registrovali! Prije nego što počnete, možete li verificirati vašu email adresu klikom na link koji smo vam upravo poslali? Ako niste primili email, rado ćemo vam poslati drugi.',
+            'verification_link_sent' => 'Novi verifikacioni link je poslan na email adresu koju ste naveli prilikom registracije.',
+            'resend_verification_email' => 'Pošalji Ponovo Verifikacioni Email',
+            'log_out' => 'Odjavi se',
+        ],
+        'confirm_password' => [
+            'title' => 'Potvrdi Lozinku',
+            'subtitle' => 'Ovo je sigurna oblast aplikacije. Molimo potvrdite vašu lozinku prije nastavka.',
+            'password' => 'Lozinka',
+            'confirm' => 'Potvrdi',
+        ],
+    ],
+    // App Interface
+    'app' => [
+        'dashboard' => 'Kontrolna tabla',
+        'organizations' => 'Organizacije',
+        'leagues' => 'Lige',
+        'players' => 'Igrači',
+        'matches' => 'Mečevi',
+        'teams' => 'Timovi',
+        'settings' => 'Postavke',
+        'profile' => 'Profil',
+        'logout' => 'Odjava',
+        'language' => 'Jezik',
+        'english' => 'Engleski',
+        'bosnian' => 'Bosanski',
+        'select_language' => 'Odaberite Jezik',
+
+        // Player related
+        'edit_player' => 'Uredi Igrača',
+        'delete_player' => 'Obriši Igrača',
+        'are_you_sure_delete_player' => 'Da li ste sigurni da želite obrisati ovog igrača?',
+        'registered_user' => 'Registrovani Korisnik',
+        'named_player' => 'Imenovani Igrač',
+        'email' => 'Email',
+        'date_of_birth' => 'Datum Rođenja',
+        'years_old' => 'godina',
+        'position' => 'Pozicija',
+        'jersey_number' => 'Broj Dresa',
+        'status' => 'Status',
+        'active' => 'Aktivan',
+        'inactive' => 'Neaktivan',
+        'created' => 'Kreiran',
+        'quick_stats' => 'Brze Statistike',
+        'games_played' => 'Odigranih Mečeva',
+        'wins' => 'Pobjeda',
+        'points_scored' => 'Osvojenih Poena',
+        'statistics_available_games' => 'Statistike će biti dostupne kada se odigraju mečevi.',
+        'organization' => 'Organizacija',
+        'name' => 'Naziv',
+        'sport' => 'Sport',
+        'view_organization' => 'Pogledaj Organizaciju',
+
+        // Match related
+        'league_matches' => 'Ligaški Mečevi',
+        'friendly_matches' => 'Prijateljski Mečevi',
+        'all_matches_played' => 'Svi Odigrani Mečevi',
+        'no_matches_played' => 'Još nema odigranih mečeva.',
+        'no_league_matches' => 'Još nema odigranih ligaških mečeva.',
+        'no_friendly_matches' => 'Još nema odigranih prijateljskih mečeva.',
+        'view_match' => 'Pogledaj Meč',
+        'table_tennis' => 'Stoni Tenis',
+        'not_played_yet' => 'Još nije odigran',
+        'not_completed_yet' => 'Još nije završen',
+
+        // Organization related
+        'no_description_provided' => 'Nema opisa',
+        'edit' => 'Uredi',
+        'back_to_dashboard' => 'Nazad na Kontrolnu Tablu',
+        'total_leagues' => 'ukupno liga',
+        'total_players' => 'ukupno igrača',
+        'from_last_month' => 'od prošlog mjeseca',
+        'create_league' => 'Kreiraj Ligu',
+        'players_label' => 'Igrači',
+        'teams_label' => 'Timovi',
+        'type' => 'Tip',
+        'team' => 'Tim',
+        'individual' => 'Individualno',
+        'no_leagues_yet' => 'Još nema liga',
+        'create_first_league' => 'Kreirajte svoju prvu ligu da počnete organizovati takmičenja',
+        'create_your_first_league' => 'Kreirajte Svoju Prvu Ligu',
+        'max_leagues_reached' => 'Dostigli ste maksimalan broj liga za ovu organizaciju',
+
+        // Players section
+        'manage_players' => 'Upravljaj Igračima',
+        'no_position' => 'Nema pozicije',
+        'registered' => 'Registrovan',
+        'named' => 'Imenovan',
+        'view_all' => 'Pogledaj sve',
+        'no_players_yet' => 'Još nema igrača',
+        'add_players_description' => 'Dodajte igrače da počnete graditi svoje timove i pratiti statistiku',
+        'add_your_first_player' => 'Dodajte Svojeg Prvog Igrača',
+
+        // Matches section
+        'recent_friendly_matches' => 'Nedavni Prijateljski Mečevi',
+        'start_new_match' => 'Započni Novi Meč',
+        'view_all_caps' => 'Pogledaj Sve',
+
+        // Organization details
+        'organization_details' => 'Detalji Organizacije',
+        'url_slug' => 'URL Slug',
+        'owner' => 'Vlasnik',
+        'plan_limits' => 'Plan i Ograničenja',
+        'your_plan' => 'Vaš Plan',
+        'leagues_used' => 'Iskorištenih Liga',
+        'remaining_leagues' => 'Preostalih liga',
+
+        // Danger zone
+        'danger_zone' => 'Opasna Zona',
+        'delete_warning' => 'Jednom kada obrišete ovu organizaciju, nema povratka. Budite sigurni.',
+        'delete_confirmation' => 'Da li ste sigurni da želite obrisati ovu organizaciju? Ova akcija se ne može poništiti.',
+        'delete_organization' => 'Obriši Organizaciju',
     ],
 ];

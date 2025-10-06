@@ -43,6 +43,20 @@
                             {{ __('Profile') }}
                         </x-dropdown-link>
 
+                        <!-- Language Selector -->
+                        <div class="border-t border-gray-600/50 my-1"></div>
+                        <div class="px-4 py-2">
+                            <p class="text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">{{ __('messages.app.language') }}</p>
+                            <div class="space-y-1">
+                                <a href="{{ route('locale', ['locale' => 'en']) }}" class="block px-3 py-2 text-sm text-white hover:bg-gray-700/50 rounded-md transition-colors {{ app()->getLocale() === 'en' ? 'bg-blue-600/20 text-blue-400' : '' }}">
+                                    {{ __('messages.app.english') }}
+                                </a>
+                                <a href="{{ route('locale', ['locale' => 'bs']) }}" class="block px-3 py-2 text-sm text-white hover:bg-gray-700/50 rounded-md transition-colors {{ app()->getLocale() === 'bs' ? 'bg-blue-600/20 text-blue-400' : '' }}">
+                                    {{ __('messages.app.bosnian') }}
+                                </a>
+                            </div>
+                        </div>
+
                         <!-- Authentication -->
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
@@ -89,6 +103,20 @@
                 <x-responsive-nav-link :href="route('profile.edit')" class="text-white hover:bg-gray-700/50">
                     {{ __('Profile') }}
                 </x-responsive-nav-link>
+
+                <!-- Language Selector -->
+                <div class="border-t border-gray-700/50 my-2"></div>
+                <div class="px-4 py-2">
+                    <p class="text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">{{ __('messages.app.language') }}</p>
+                    <div class="space-y-1">
+                        <a href="{{ route('locale', ['locale' => 'en']) }}" class="block px-3 py-2 text-sm text-white hover:bg-gray-700/50 rounded-md transition-colors {{ app()->getLocale() === 'en' ? 'bg-blue-600/20 text-blue-400' : '' }}">
+                            {{ __('messages.app.english') }}
+                        </a>
+                        <a href="{{ route('locale', ['locale' => 'bs']) }}" class="block px-3 py-2 text-sm text-white hover:bg-gray-700/50 rounded-md transition-colors {{ app()->getLocale() === 'bs' ? 'bg-blue-600/20 text-blue-400' : '' }}">
+                            {{ __('messages.app.bosnian') }}
+                        </a>
+                    </div>
+                </div>
 
                 <!-- Authentication -->
                 <form method="POST" action="{{ route('logout') }}">

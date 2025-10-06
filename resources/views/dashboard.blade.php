@@ -22,7 +22,7 @@
                 <div class="flex items-center justify-between">
                     <div>
                         <h3 class="text-2xl font-bold text-white mb-2">{{ __('Welcome to Team Sphere') }}</h3>
-                        <p class="text-gray-400">{{ __('Manage your teams, track performance, and achieve greatness together.') }}</p>
+                        <p class="text-gray-400">{{ __('messages.app.manage_teams_description') }}</p>
                     </div>
                     <div class="hidden md:block">
                         <div class="w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
@@ -52,7 +52,7 @@
                     <div class="mt-4">
                         <div class="flex items-center text-sm">
                             <span class="text-green-400 font-medium">{{ Auth::user()->organizations->count() > 0 ? '+' . Auth::user()->organizations->count() : '0' }}%</span>
-                            <span class="text-gray-500 ml-2">{{ __('total organizations') }}</span>
+                            <span class="text-gray-500 ml-2">{{ __('messages.app.total_organizations') }}</span>
                         </div>
                     </div>
                 </div>
@@ -73,7 +73,7 @@
                     <div class="mt-4">
                         <div class="flex items-center text-sm">
                             <span class="text-green-400 font-medium">{{ Auth::user()->organizations->sum(function($org) { return $org->leagues->count(); }) > 0 ? '+' . Auth::user()->organizations->sum(function($org) { return $org->leagues->count(); }) : '0' }}%</span>
-                            <span class="text-gray-500 ml-2">{{ __('total leagues') }}</span>
+                            <span class="text-gray-500 ml-2">{{ __('messages.app.total_leagues') }}</span>
                         </div>
                     </div>
                 </div>
@@ -82,14 +82,14 @@
             <!-- My Organizations -->
             <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl">
                 <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-xl font-bold text-white">{{ __('My Organizations') }}</h3>
+                    <h3 class="text-xl font-bold text-white">{{ __('messages.app.my_organizations') }}</h3>
                     @if(Auth::user()->canCreateMoreOrganizations())
                         <a href="{{ route('organizations.create') }}" class="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-4 py-2 rounded-xl transition-all duration-200 transform hover:scale-[1.02] hover:shadow-lg hover:shadow-blue-500/25">
                             <span class="flex items-center space-x-2">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                                 </svg>
-                                <span>{{ __('Create Organization') }}</span>
+                                <span>{{ __('messages.app.create_organization') }}</span>
                             </span>
                         </a>
                     @endif
@@ -110,7 +110,7 @@
                                 </div>
                                 <div class="space-y-2">
                                     <div class="flex justify-between text-sm">
-                                        <span class="text-gray-400">{{ __('Leagues') }}:</span>
+                                        <span class="text-gray-400">{{ __('messages.app.leagues') }}:</span>
                                         <span class="text-white">{{ $organization->leagues->count() }}/{{ $organization->user->currentPlan() ? $organization->user->currentPlan()->max_leagues_per_organization : '∞' }}</span>
                                     </div>
                                     <div class="w-full bg-gray-600 rounded-full h-2">
@@ -127,10 +127,10 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
                             </svg>
                         </div>
-                        <h4 class="text-white font-semibold mb-2">{{ __('No organizations yet') }}</h4>
-                        <p class="text-gray-400 mb-4">{{ __('Create your first organization to start managing leagues and teams') }}</p>
+                        <h4 class="text-white font-semibold mb-2">{{ __('messages.app.no_organizations_yet') }}</h4>
+                        <p class="text-gray-400 mb-4">{{ __('messages.app.create_first_org_description') }}</p>
                         <a href="{{ route('organizations.create') }}" class="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-6 py-3 rounded-xl transition-all duration-200 transform hover:scale-[1.02] hover:shadow-lg hover:shadow-blue-500/25 inline-block">
-                            {{ __('Create Your First Organization') }}
+                            {{ __('messages.app.create_your_first_organization') }}
                         </a>
                     </div>
                 @endif
@@ -138,7 +138,7 @@
 
             <!-- Available Sports -->
             <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl">
-                <h3 class="text-xl font-bold text-white mb-4">{{ __('Available Sports') }}</h3>
+                <h3 class="text-xl font-bold text-white mb-4">{{ __('messages.app.available_sports') }}</h3>
                 <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
                     @foreach(\App\Models\Sport::active()->get() as $sport)
                         <div class="bg-gray-700/30 rounded-xl p-4 text-center hover:bg-gray-600/30 transition-all duration-200 transform hover:scale-[1.02] cursor-pointer group">
@@ -149,14 +149,14 @@
                             <!-- Sport Rules Preview -->
                             <div class="text-xs text-gray-500 space-y-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                 @if($sport->isPointsBased())
-                                    <div>{{ $sport->getMaxPointsPerGame() }} {{ __('points') }}/{{ __('game') }}</div>
-                                    <div>{{ $sport->getGamesToWin() }} {{ __('games to win') }}</div>
+                                    <div>{{ $sport->getMaxPointsPerGame() }} {{ __('messages.app.points') }}/{{ __('messages.app.game') }}</div>
+                                    <div>{{ $sport->getGamesToWin() }} {{ __('messages.app.games_to_win') }}</div>
                                 @elseif($sport->isSetsGamesBased())
-                                    <div>{{ $sport->getGamesPerSet() }} {{ __('games') }}/{{ __('set') }}</div>
-                                    <div>{{ $sport->getSetsToWin() }} {{ __('sets to win') }}</div>
+                                    <div>{{ $sport->getGamesPerSet() }} {{ __('messages.app.games') }}/{{ __('messages.app.set') }}</div>
+                                    <div>{{ $sport->getSetsToWin() }} {{ __('messages.app.sets_to_win') }}</div>
                                 @elseif($sport->isTimeBased())
                                     <div>{{ $sport->getRule('periods') }}x {{ $sport->getRule('period_duration') / 60 }}min</div>
-                                    <div>{{ $sport->getPlayersPerTeam() }} {{ __('players') }}</div>
+                                    <div>{{ $sport->getPlayersPerTeam() }} {{ __('messages.app.players') }}</div>
                                 @endif
                             </div>
                         </div>

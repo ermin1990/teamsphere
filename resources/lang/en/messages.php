@@ -97,9 +97,58 @@ return [
     'cta' => [
         'title' => 'Ready to :revolutionize Revolutionize Your Sports Management?',
         'title_highlight' => 'Revolutionize',
-        'subtitle' => 'Join thousands of teams already using Team Sphere to achieve unprecedented success',
-        'start_free' => 'Start Free Today',
+        'subtitle' => 'Join thousands of teams already using Team Sphere to streamline their sports management.',
+        'start_free' => 'Start Free Trial',
         'already_have_account' => 'Already have an account? Sign In',
+    ],
+
+    // Testimonials Section
+    'testimonials' => [
+        'badge' => 'Testimonials',
+        'title' => 'Trusted by Teams Worldwide',
+        'subtitle' => 'See what our users have to say about Team Sphere',
+        'items' => [
+            [
+                'quote' => 'Team Sphere revolutionized how we manage our football league. The analytics and scheduling features saved us countless hours.',
+                'author' => 'Sarah Johnson',
+                'role' => 'League Coordinator',
+                'organization' => 'City Football Association'
+            ],
+            [
+                'quote' => 'The multi-sport support and real-time updates keep our basketball teams engaged and informed throughout the season.',
+                'author' => 'Marcus Chen',
+                'role' => 'Sports Director',
+                'organization' => 'Metro Basketball League'
+            ],
+            [
+                'quote' => 'Player performance tracking has helped us identify talent and improve team strategies. Highly recommended!',
+                'author' => 'Elena Rodriguez',
+                'role' => 'Team Manager',
+                'organization' => 'Regional Volleyball League'
+            ]
+        ]
+    ],
+
+    // Footer Section
+    'footer' => [
+        'description' => 'The ultimate platform for managing sports teams and leagues with powerful analytics and seamless organization.',
+        'links' => [
+            'features' => 'Features',
+            'pricing' => 'Pricing',
+            'about' => 'About',
+            'contact' => 'Contact',
+            'support' => 'Support',
+            'privacy' => 'Privacy Policy',
+            'terms' => 'Terms of Service'
+        ],
+        'social' => [
+            'title' => 'Follow Us',
+            'twitter' => 'Twitter',
+            'facebook' => 'Facebook',
+            'instagram' => 'Instagram',
+            'linkedin' => 'LinkedIn'
+        ],
+        'copyright' => '© 2024 Team Sphere. All rights reserved.'
     ],
 
     // Dashboard
@@ -181,6 +230,9 @@ return [
         'update_your_organization_details' => 'Update your organization details',
         'current_information' => 'Current Information',
         'organization_updated_successfully' => 'Organization updated successfully!',
+    ],
+    // Auth Interface
+    'auth' => [
         'login' => [
             'title' => 'Welcome Back',
             'subtitle' => 'Sign in to your Team Sphere account',
@@ -209,5 +261,132 @@ return [
             'sign_in' => 'Sign in',
             'register_button' => 'Create Account',
         ],
+        'forgot_password' => [
+            'title' => 'Forgot Password',
+            'subtitle' => 'Forgot your password? No problem. Just let us know your email address and we will email you a password reset link that will allow you to choose a new one.',
+            'email' => 'Email',
+            'email_password_reset_link' => 'Email Password Reset Link',
+        ],
+        'reset_password' => [
+            'title' => 'Reset Password',
+            'email' => 'Email',
+            'password' => 'Password',
+            'confirm_password' => 'Confirm Password',
+            'reset_password' => 'Reset Password',
+        ],
+        'verify_email' => [
+            'title' => 'Email Verification',
+            'subtitle' => 'Thanks for signing up! Before getting started, could you verify your email address by clicking on the link we just emailed to you? If you didn\'t receive the email, we will gladly send you another.',
+            'verification_link_sent' => 'A new verification link has been sent to the email address you provided during registration.',
+            'resend_verification_email' => 'Resend Verification Email',
+            'log_out' => 'Log Out',
+        ],
+        'confirm_password' => [
+            'title' => 'Confirm Password',
+            'subtitle' => 'This is a secure area of the application. Please confirm your password before continuing.',
+            'password' => 'Password',
+            'confirm' => 'Confirm',
+        ],
+    ],
+    // App Interface
+    'app' => [
+        'dashboard' => 'Dashboard',
+        'organizations' => 'Organizations',
+        'leagues' => 'Leagues',
+        'players' => 'Players',
+        'matches' => 'Matches',
+        'teams' => 'Teams',
+        'settings' => 'Settings',
+        'profile' => 'Profile',
+        'logout' => 'Logout',
+        'language' => 'Language',
+        'english' => 'English',
+        'bosnian' => 'Bosnian',
+        'select_language' => 'Select Language',
+
+        // Player related
+        'edit_player' => 'Edit Player',
+        'delete_player' => 'Delete Player',
+        'are_you_sure_delete_player' => 'Are you sure you want to delete this player?',
+        'registered_user' => 'Registered User',
+        'named_player' => 'Named Player',
+        'email' => 'Email',
+        'date_of_birth' => 'Date of Birth',
+        'years_old' => 'years old',
+        'position' => 'Position',
+        'jersey_number' => 'Jersey Number',
+        'status' => 'Status',
+        'active' => 'Active',
+        'inactive' => 'Inactive',
+        'created' => 'Created',
+        'quick_stats' => 'Quick Stats',
+        'games_played' => 'Games Played',
+        'wins' => 'Wins',
+        'points_scored' => 'Points Scored',
+        'statistics_available_games' => 'Statistics will be available once games are played.',
+        'organization' => 'Organization',
+        'name' => 'Name',
+        'sport' => 'Sport',
+        'view_organization' => 'View Organization',
+
+        // Match related
+        'league_matches' => 'League Matches',
+        'friendly_matches' => 'Friendly Matches',
+        'all_matches_played' => 'All Matches Played',
+        'no_matches_played' => 'No matches played yet.',
+        'no_league_matches' => 'No league matches played yet.',
+        'no_friendly_matches' => 'No friendly matches played yet.',
+        'view_match' => 'View Match',
+        'table_tennis' => 'Table Tennis',
+        'not_played_yet' => 'Not played yet',
+        'not_completed_yet' => 'Not completed yet',
+
+        // Organization related
+        'no_description_provided' => 'No description provided',
+        'edit' => 'Edit',
+        'back_to_dashboard' => 'Back to Dashboard',
+        'total_leagues' => 'total leagues',
+        'total_players' => 'total players',
+        'from_last_month' => 'from last month',
+        'create_league' => 'Create League',
+        'players_label' => 'Players',
+        'teams_label' => 'Teams',
+        'type' => 'Type',
+        'team' => 'Team',
+        'individual' => 'Individual',
+        'no_leagues_yet' => 'No leagues yet',
+        'create_first_league' => 'Create your first league to start organizing competitions',
+        'create_your_first_league' => 'Create Your First League',
+        'max_leagues_reached' => 'You have reached the maximum number of leagues for this organization',
+
+        // Players section
+        'manage_players' => 'Manage Players',
+        'no_position' => 'No position',
+        'registered' => 'Registered',
+        'named' => 'Named',
+        'view_all' => 'View all',
+        'no_players_yet' => 'No players yet',
+        'add_players_description' => 'Add players to start building your teams and tracking statistics',
+        'add_your_first_player' => 'Add Your First Player',
+
+        // Matches section
+        'recent_friendly_matches' => 'Recent Friendly Matches',
+        'start_new_match' => 'Start New Match',
+        'view_all_caps' => 'View All',
+
+        // Organization details
+        'organization_details' => 'Organization Details',
+        'url_slug' => 'URL Slug',
+        'owner' => 'Owner',
+        'plan_limits' => 'Plan & Limits',
+        'your_plan' => 'Your Plan',
+        'leagues_used' => 'Leagues Used',
+        'remaining_leagues' => 'Remaining leagues',
+
+        // Danger zone
+        'danger_zone' => 'Danger Zone',
+        'delete_warning' => 'Once you delete this organization, there is no going back. Please be certain.',
+        'delete_confirmation' => 'Are you sure you want to delete this organization? This action cannot be undone.',
+        'delete_organization' => 'Delete Organization',
     ],
 ];
