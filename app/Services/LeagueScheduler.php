@@ -14,10 +14,12 @@ class LeagueScheduler
      */
     public static function generateRoundRobinSchedule(League $league): void
     {
-        $participants = $league->is_team_based ? $league->teams()->pluck('id')->toArray() : $league->players()->pluck('id')->toArray();
+        $participants = $league->is_team_based 
+            ? $league->teams()->pluck('teams.id')->toArray() 
+            : $league->players()->pluck('players.id')->toArray();
         $numParticipants = count($participants);
 
-        if ($numPlayers < 2) {
+        if ($numParticipants < 2) {
             return;
         }
 
