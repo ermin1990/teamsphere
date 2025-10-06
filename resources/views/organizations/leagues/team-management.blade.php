@@ -222,7 +222,7 @@
     <div class="flex items-center justify-center min-h-screen p-4">
         <div class="bg-gray-800 rounded-2xl p-6 w-full max-w-md border border-gray-700">
             <h3 class="text-xl font-semibold text-white mb-4">{{ __('Create New Team') }}</h3>
-            <form id="createTeamForm" action="{{ route('organizations.leagues.addTeam', [$organization, $league]) }}" method="POST">
+            <form id="createTeamForm" action="{{ route('organizations.leagues.teams.store', [$organization, $league]) }}" method="POST">
                 @csrf
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-300 mb-2">{{ __('Team Name') }}</label>
@@ -298,6 +298,57 @@ function openAddPlayerModal(teamId, teamName) {
     document.getElementById('addPlayerModal').classList.remove('hidden');
 }
 
+function editTeam(teamId, teamName) {
+    // For now, just show an alert. In a real implementation, you'd open an edit modal
+    alert('Edit team functionality not yet implemented. Team: ' + teamName);
+}
+
+function deleteTeam(teamId) {
+    if (confirm('Are you sure you want to delete this team?')) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '{{ route("organizations.leagues.teams.destroy", [$organization, $league, ":teamId"]) }}'.replace(':teamId', teamId);
+
+        const csrf = document.createElement('input');
+        csrf.type = 'hidden';
+        csrf.name = '_token';
+        csrf.value = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        form.appendChild(csrf);
+
+        const method = document.createElement('input');
+        method.type = 'hidden';
+        method.name = '_method';
+        method.value = 'DELETE';
+        form.appendChild(method);
+
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+
+function removePlayerFromTeam(teamId, playerId) {
+    if (confirm('Are you sure you want to remove this player from the team?')) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '{{ route("organizations.leagues.teams.remove-player", [$organization, $league, ":teamId", ":playerId"]) }}'.replace(':teamId', teamId).replace(':playerId', playerId);
+
+        const csrf = document.createElement('input');
+        csrf.type = 'hidden';
+        csrf.name = '_token';
+        csrf.value = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        form.appendChild(csrf);
+
+        const method = document.createElement('input');
+        method.type = 'hidden';
+        method.name = '_method';
+        method.value = 'DELETE';
+        form.appendChild(method);
+
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+
 function closeAddPlayerModal() {
     document.getElementById('addPlayerModal').classList.add('hidden');
     document.getElementById('addPlayerForm').reset();
@@ -315,7 +366,7 @@ document.getElementById('addPlayerForm').addEventListener('submit', function(e) 
     // For now, we'll just reload the page
     const form = document.createElement('form');
     form.method = 'POST';
-    form.action = `/organizations/${{{ $organization->id }}}/leagues/${{{ $league->id }}}/teams/${teamId}/add-player`;
+    form.action = '{{ route("organizations.leagues.teams.add-player", [$organization, $league, ":teamId"]) }}'.replace(':teamId', teamId);
 
     const csrf = document.createElement('input');
     csrf.type = 'hidden';
