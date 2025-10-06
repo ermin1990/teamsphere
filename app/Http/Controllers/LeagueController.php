@@ -9,10 +9,7 @@ use App\Models\Player;
 use App\Models\Sport;
 use App\Models\Standing;
 use App\Models\Team;
-use App\Models\User;
-use Illuminate\Http\Request;
-use Illuminate\Support\Str;
-use Illuminate\Validation\Rule;
+use App\Services\LeagueScheduler;
 
 class LeagueController extends Controller
 {
@@ -322,42 +319,19 @@ class LeagueController extends Controller
      */
     private function generateMatches(League $league)
     {
-        $participants = $league->is_team_based ? $league->teams : $league->players;
-        $participantIds = $participants->pluck('id')->toArray();
-
         $format = $league->settings['format'] ?? 'round_robin';
-        $matches = [];
 
         switch ($format) {
             case 'round_robin':
-                $matches = $this->generateRoundRobinMatches($participantIds, false);
-                break;
             case 'dual_robin':
-                $matches = $this->generateRoundRobinMatches($participantIds, true);
-                break;
             case 'dual_robin_knockout':
-                // First round-robin, then knockout - for now just round-robin
-                $matches = $this->generateRoundRobinMatches($participantIds, true);
+                // Use the LeagueScheduler service for round-robin formats
+                LeagueScheduler::generateRoundRobinSchedule($league);
                 break;
             case 'knockout':
                 // Generate knockout bracket
-                $matches = $this->generateKnockoutMatches($participantIds);
+                $this->generateKnockoutMatches($league);
                 break;
-        }
-
-        // Create matches in database
-        foreach ($matches as $round => $roundMatches) {
-            foreach ($roundMatches as $match) {
-                LeagueMatch::create([
-                    'league_id' => $league->id,
-                    'home_team_id' => $league->is_team_based ? $match['home'] : null,
-                    'away_team_id' => $league->is_team_based ? $match['away'] : null,
-                    'home_player_id' => !$league->is_team_based ? $match['home'] : null,
-                    'away_player_id' => !$league->is_team_based ? $match['away'] : null,
-                    'round' => $round + 1,
-                    'status' => 'scheduled',
-                ]);
-            }
         }
     }
 
@@ -430,8 +404,11 @@ class LeagueController extends Controller
     /**
      * Generate knockout matches.
      */
-    private function generateKnockoutMatches(array $participantIds): array
+    private function generateKnockoutMatches(League $league)
     {
+        $participants = $league->is_team_based ? $league->teams : $league->players;
+        $participantIds = $participants->pluck('id')->toArray();
+
         shuffle($participantIds); // Randomize bracket
         $matches = [];
 
@@ -439,18 +416,17 @@ class LeagueController extends Controller
         $firstRoundMatches = [];
         for ($i = 0; $i < count($participantIds); $i += 2) {
             if (isset($participantIds[$i + 1])) {
-                $firstRoundMatches[] = [
-                    'home' => $participantIds[$i],
-                    'away' => $participantIds[$i + 1]
-                ];
+                LeagueMatch::create([
+                    'league_id' => $league->id,
+                    'home_team_id' => $league->is_team_based ? $participantIds[$i] : null,
+                    'away_team_id' => $league->is_team_based ? $participantIds[$i + 1] : null,
+                    'home_player_id' => !$league->is_team_based ? $participantIds[$i] : null,
+                    'away_player_id' => !$league->is_team_based ? $participantIds[$i + 1] : null,
+                    'round' => 1,
+                    'status' => 'scheduled',
+                ]);
             }
         }
-        $matches[] = $firstRoundMatches;
-
-        // For now, just return first round. Full knockout would need multiple rounds
-        // based on number of participants
-
-        return $matches;
     }
 
     /**
