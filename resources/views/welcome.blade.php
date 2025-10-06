@@ -23,7 +23,6 @@
         @endif
 
         <!-- Test style -->
-        <style>body { border: 5px solid red !important; }</style>
     </head>
     <body class="bg-gray-900 text-white">
         <!-- Navigation -->

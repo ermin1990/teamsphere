@@ -87,7 +87,7 @@
     <!-- Responsive Navigation Menu -->
     <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden bg-gray-800/95 backdrop-blur-xl border-t border-gray-700/50 relative z-50">
         <div class="pt-2 pb-3 space-y-1">
-            <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')" class="text-white hover:bg-gray-700/50">
+            <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')" class="text-white hover:bg-gray-700/50" @click="open = false">
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
         </div>
@@ -100,7 +100,7 @@
             </div>
 
             <div class="mt-3 space-y-1">
-                <x-responsive-nav-link :href="route('profile.edit')" class="text-white hover:bg-gray-700/50">
+                <x-responsive-nav-link :href="route('profile.edit')" class="text-white hover:bg-gray-700/50" @click="open = false">
                     {{ __('Profile') }}
                 </x-responsive-nav-link>
 
@@ -124,7 +124,8 @@
 
                     <x-responsive-nav-link :href="route('logout')"
                             onclick="event.preventDefault();
-                                        this.closest('form').submit();"
+                                        this.closest('form').submit();
+                                        open = false;"
                             class="text-red-400 hover:text-red-300 hover:bg-red-900/20">
                         {{ __('Log Out') }}
                     </x-responsive-nav-link>
