@@ -611,7 +611,14 @@
                     <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl">
                         <h3 class="text-lg font-semibold text-white mb-4">{{ __('Quick Actions') }}</h3>
                         <div class="space-y-3">
-                            @if($league->status === 'draft' && $league->players->count() >= 2)
+                            @if($league->is_team_based && $league->status === 'draft')
+                            <a href="{{ route('organizations.leagues.team-management', [$organization, $league]) }}"
+                               class="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-4 py-3 rounded-lg font-medium transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-blue-500/25 text-center block mb-3">
+                                {{ __('Manage Teams & Players') }}
+                            </a>
+                            @endif
+
+                            @if($league->status === 'draft' && (($league->is_team_based && $league->teams->count() >= 2) || (!$league->is_team_based && $league->players->count() >= 2)))
                             <form method="POST" action="{{ route('organizations.leagues.start', [$organization, $league]) }}"
                                   onsubmit="return confirm('{{ __('Are you sure you want to start this league? This will generate matches and standings.') }}')"
                                   class="w-full">

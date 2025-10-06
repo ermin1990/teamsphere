@@ -53,6 +53,223 @@ class LeagueController extends Controller
     }
 
     /**
+     * Update team information.
+     */
+    public function updateTeam(Request $request, Organization $organization, League $league, Team $team)
+    {
+        // Ensure user owns this organization
+        if ($organization->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        // Ensure league belongs to organization
+        if ($league->organization_id !== $organization->id) {
+            abort(404);
+        }
+
+        // Ensure team belongs to league
+        if ($team->league_id !== $league->id) {
+            abort(404);
+        }
+
+        $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'description' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        $team->update($request->only(['name', 'description']));
+
+        return back()->with('success', __('Team updated successfully!'));
+    }
+
+    /**
+     * Delete a team from the league.
+     */
+    public function deleteTeam(Request $request, Organization $organization, League $league, Team $team)
+    {
+        // Ensure user owns this organization
+        if ($organization->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        // Ensure league belongs to organization
+        if ($league->organization_id !== $organization->id) {
+            abort(404);
+        }
+
+        // Ensure team belongs to league
+        if ($team->league_id !== $league->id) {
+            abort(404);
+        }
+
+        // Ensure league is in draft status
+        if ($league->status !== 'draft') {
+            return back()->withErrors(['general' => __('Cannot delete teams from a league that has already started.')]);
+        }
+
+        $team->delete();
+
+        return back()->with('success', __('Team deleted successfully!'));
+    }
+
+    /**
+     * Add a player to a specific team.
+     */
+    public function addPlayerToTeam(Request $request, Organization $organization, League $league, Team $team)
+    {
+        // Ensure user owns this organization
+        if ($organization->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        // Ensure league belongs to organization
+        if ($league->organization_id !== $organization->id) {
+            abort(404);
+        }
+
+        // Ensure team belongs to league
+        if ($team->league_id !== $league->id) {
+            abort(404);
+        }
+
+        // Ensure league is in draft status
+        if ($league->status !== 'draft') {
+            return back()->withErrors(['general' => __('Cannot modify teams in a league that has already started.')]);
+        }
+
+        $request->validate([
+            'player_id' => ['required', 'exists:players,id'],
+        ]);
+
+        $player = Player::findOrFail($request->player_id);
+
+        // Ensure player belongs to the organization
+        if ($player->organization_id !== $organization->id) {
+            return back()->withErrors(['general' => __('Player does not belong to this organization.')]);
+        }
+
+        // Ensure player is in the league
+        if (!$league->players()->where('player_id', $player->id)->exists()) {
+            return back()->withErrors(['general' => __('Player must be added to the league first.')]);
+        }
+
+        // Remove player from any existing team in this league
+        $league->players()->updateExistingPivot($player->id, ['team_id' => $team->id]);
+
+        return back()->with('success', __('Player added to team successfully!'));
+    }
+
+    /**
+     * Remove a player from a team.
+     */
+    public function removePlayerFromTeam(Request $request, Organization $organization, League $league, Team $team, Player $player)
+    {
+        // Ensure user owns this organization
+        if ($organization->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        // Ensure league belongs to organization
+        if ($league->organization_id !== $organization->id) {
+            abort(404);
+        }
+
+        // Ensure team belongs to league
+        if ($team->league_id !== $league->id) {
+            abort(404);
+        }
+
+        // Ensure league is in draft status
+        if ($league->status !== 'draft') {
+            return back()->withErrors(['general' => __('Cannot modify teams in a league that has already started.')]);
+        }
+
+        // Ensure player belongs to the organization
+        if ($player->organization_id !== $organization->id) {
+            return back()->withErrors(['general' => __('Player does not belong to this organization.')]);
+        }
+
+        // Remove player from team (set team_id to null)
+        $league->players()->updateExistingPivot($player->id, ['team_id' => null]);
+
+        return back()->with('success', __('Player removed from team successfully!'));
+    }
+
+    /**
+     * Add a single player to the league (for individual leagues).
+     */
+    public function addPlayer(Request $request, Organization $organization, League $league)
+    {
+        // Ensure user owns this organization
+        if ($organization->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        // Ensure league belongs to organization
+        if ($league->organization_id !== $organization->id) {
+            abort(404);
+        }
+
+        // Ensure league is individual-based
+        if ($league->is_team_based) {
+            return back()->withErrors(['general' => __('This league is team-based. Use team management instead.')]);
+        }
+
+        // Ensure league is in draft status
+        if ($league->status !== 'draft') {
+            return back()->withErrors(['general' => __('Cannot add players to a league that has already started.')]);
+        }
+
+        $request->validate([
+            'player_id' => ['required', 'exists:players,id'],
+        ]);
+
+        $player = Player::findOrFail($request->player_id);
+
+        // Ensure player belongs to the organization
+        if ($player->organization_id !== $organization->id) {
+            return back()->withErrors(['general' => __('Player does not belong to this organization.')]);
+        }
+
+        // Check if player is already in the league
+        if ($league->players()->where('player_id', $player->id)->exists()) {
+            return back()->withErrors(['general' => __('Player is already in this league.')]);
+        }
+
+        // Add player to the league
+        $league->players()->attach($player->id, ['joined_at' => now()]);
+
+        return back()->with('success', __('Player added to league successfully!'));
+    }
+
+    /**
+     * Show team management interface for team-based leagues.
+     */
+    public function teamManagement(Organization $organization, League $league)
+    {
+        // Ensure user owns this organization
+        if ($organization->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        // Ensure league belongs to organization
+        if ($league->organization_id !== $organization->id) {
+            abort(404);
+        }
+
+        // Ensure league is team-based
+        if (!$league->is_team_based) {
+            return redirect()->route('organizations.leagues.show', [$organization, $league])
+                           ->withErrors(['general' => __('This league is not team-based.')]);
+        }
+
+        $league->load('sport', 'teams.players', 'players');
+        $organization->load('players');
+
+        return view('organizations.leagues.team-management', compact('organization', 'league'));
+    }
+
+    /**
      * Store a newly created league.
      */
     public function store(Request $request, Organization $organization)

@@ -43,6 +43,7 @@ Route::middleware('auth')->group(function () {
     // League routes (nested under organizations)
     Route::get('organizations/{organization}/leagues/create', [LeagueController::class, 'create'])->name('organizations.leagues.create');
     Route::get('organizations/{organization}/leagues/{league}', [LeagueController::class, 'show'])->name('organizations.leagues.show');
+    Route::get('organizations/{organization}/leagues/{league}/team-management', [LeagueController::class, 'teamManagement'])->name('organizations.leagues.team-management');
     Route::post('organizations/{organization}/leagues', [LeagueController::class, 'store'])->name('organizations.leagues.store');
     Route::put('organizations/{organization}/leagues/{league}', [LeagueController::class, 'update'])->name('organizations.leagues.update');
     Route::delete('organizations/{organization}/leagues/{league}', [LeagueController::class, 'destroy'])->name('organizations.leagues.destroy');
@@ -50,6 +51,10 @@ Route::middleware('auth')->group(function () {
 
     // League teams and players routes
     Route::post('organizations/{organization}/leagues/{league}/teams', [LeagueController::class, 'addTeam'])->name('organizations.leagues.teams.store');
+    Route::put('organizations/{organization}/leagues/{league}/teams/{team}', [LeagueController::class, 'updateTeam'])->name('organizations.leagues.teams.update');
+    Route::delete('organizations/{organization}/leagues/{league}/teams/{team}', [LeagueController::class, 'deleteTeam'])->name('organizations.leagues.teams.destroy');
+    Route::post('organizations/{organization}/leagues/{league}/teams/{team}/add-player', [LeagueController::class, 'addPlayerToTeam'])->name('organizations.leagues.teams.add-player');
+    Route::delete('organizations/{organization}/leagues/{league}/teams/{team}/remove-player/{player}', [LeagueController::class, 'removePlayerFromTeam'])->name('organizations.leagues.teams.remove-player');
     Route::post('organizations/{organization}/leagues/{league}/players', [LeagueController::class, 'addPlayer'])->name('organizations.leagues.players.store');
     Route::post('organizations/{organization}/leagues/{league}/add-players', [LeagueController::class, 'addPlayers'])->name('organizations.leagues.addPlayers');
     Route::patch('organizations/{organization}/leagues/{league}/start', [LeagueController::class, 'startLeague'])->name('organizations.leagues.start');
