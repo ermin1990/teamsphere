@@ -24,20 +24,20 @@
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
+            @php
+                // Get players that are not already in the league
+                $currentPlayerIds = $league->players->pluck('id')->toArray();
+                $availablePlayers = $organization->players
+                    ->filter(function($player) use ($currentPlayerIds) {
+                        return !in_array($player->id, $currentPlayerIds);
+                    });
+            @endphp
+
+            @if($availablePlayers->count() > 0)
             <!-- Add Players to League Section -->
             <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl">
                 <h3 class="text-xl font-semibold text-white mb-6">{{ __('Add Players to League') }}</h3>
 
-                @php
-                    // Get players that are not already in the league
-                    $currentPlayerIds = $league->players->pluck('id')->toArray();
-                    $availablePlayers = $organization->players
-                        ->filter(function($player) use ($currentPlayerIds) {
-                            return !in_array($player->id, $currentPlayerIds);
-                        });
-                @endphp
-
-                @if($availablePlayers->count() > 0)
                 <form id="addPlayersForm" action="{{ route('organizations.leagues.addPlayers', [$organization, $league]) }}" method="POST">
                     @csrf
                     @method('POST')
@@ -67,28 +67,8 @@
                         </button>
                     </div>
                 </form>
-                @elseif($organization->players->count() > 0)
-                <div class="text-center py-8">
-                    <div class="w-16 h-16 bg-gray-700/50 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <svg class="w-8 h-8 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                        </svg>
-                    </div>
-                    <h4 class="text-white font-semibold mb-2">{{ __('All players already added') }}</h4>
-                    <p class="text-gray-400">{{ __('All players from this organization have been added to the league.') }}</p>
-                </div>
-                @else
-                <div class="text-center py-8">
-                    <div class="w-16 h-16 bg-gray-700/50 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                    </div>
-                    <h4 class="text-white font-semibold mb-2">{{ __('No players available') }}</h4>
-                    <p class="text-gray-400">{{ __('Add players to your organization first.') }}</p>
-                </div>
-                @endif
             </div>
+            @endif
 
             <!-- Current League Players Section -->
             <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl">
@@ -392,5 +372,5 @@ document.querySelectorAll('input[name="player_ids[]"]').forEach(checkbox => {
     });
 });
 </script>
-@endsection</content>
+@endsection
 <parameter name="filePath">c:\Users\ermin\Projekti\teamsphere\resources\views\organizations\leagues\team-management.blade.php

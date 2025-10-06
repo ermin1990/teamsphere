@@ -182,6 +182,130 @@
                 </div>
             </div>
         </div>
+
+        <!-- Tabovi za mečeve -->
+        <div class="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20 mt-8">
+            <div class="mb-6">
+                <div class="flex space-x-1 bg-gray-800/50 p-1 rounded-lg">
+                    <button id="league-tab" class="flex-1 py-2 px-4 text-sm font-medium rounded-md transition-all duration-200 bg-purple-600 text-white">
+                        {{ __('League Matches') }}
+                    </button>
+                    <button id="friendly-tab" class="flex-1 py-2 px-4 text-sm font-medium rounded-md transition-all duration-200 text-gray-400 hover:text-white">
+                        {{ __('Friendly Matches') }}
+                    </button>
+                </div>
+            </div>
+
+            <!-- Ligaški mečevi -->
+            <div id="league-matches" class="tab-content">
+                <h3 class="text-lg font-semibold text-white mb-4">{{ __('League Matches') }}</h3>
+                @if($matches['league']->count())
+                    <div class="space-y-3">
+                        @foreach($matches['league'] as $match)
+                            <div class="p-4 rounded-lg bg-gray-800/50 border border-gray-700/30 flex flex-col md:flex-row md:items-center md:justify-between">
+                                <div>
+                                    <div class="font-bold text-white text-lg">
+                                        {{ $match->league->name ?? __('League Match') }}
+                                    </div>
+                                    <div class="text-gray-400 text-sm">
+                                        {{ $match->league->sport->name ?? '' }} • {{ $match->played_at ? $match->played_at->format('d.m.Y H:i') : __('Not played yet') }}
+                                    </div>
+                                    <div class="text-gray-300 text-sm mt-1">
+                                        @if($match->homeTeam)
+                                            {{ $match->homeTeam->name }}
+                                        @elseif($match->homePlayer)
+                                            {{ $match->homePlayer->name }}
+                                        @endif
+                                        <span class="font-bold text-white">vs</span>
+                                        @if($match->awayTeam)
+                                            {{ $match->awayTeam->name }}
+                                        @elseif($match->awayPlayer)
+                                            {{ $match->awayPlayer->name }}
+                                        @endif
+                                    </div>
+                                </div>
+                                <div class="mt-2 md:mt-0 text-right">
+                                    <div class="text-2xl font-bold text-blue-400">{{ $match->home_score }} : {{ $match->away_score }}</div>
+                                    <a href="{{ route('organizations.leagues.matches.show', [$organization->slug, $match->league->slug, $match->id]) }}" class="text-purple-400 hover:text-purple-300 text-sm font-medium transition-colors mt-2 inline-block">{{ __('View Match') }} →</a>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                @else
+                    <div class="text-gray-400 text-center py-6">{{ __('No league matches played yet.') }}</div>
+                @endif
+            </div>
+
+            <!-- Prijateljski mečevi -->
+            <div id="friendly-matches" class="tab-content hidden">
+                <h3 class="text-lg font-semibold text-white mb-4">{{ __('Friendly Matches') }}</h3>
+                @if($matches['friendly']->count())
+                    <div class="space-y-3">
+                        @foreach($matches['friendly'] as $match)
+                            <div class="p-4 rounded-lg bg-gray-800/50 border border-gray-700/30 flex flex-col md:flex-row md:items-center md:justify-between">
+                                <div>
+                                    <div class="font-bold text-white text-lg">
+                                        {{ __('Friendly Match') }}
+                                    </div>
+                                    <div class="text-gray-400 text-sm">
+                                        {{ __('Table Tennis') }} • {{ $match->completed_at ? $match->completed_at->format('d.m.Y H:i') : __('Not completed yet') }}
+                                    </div>
+                                    <div class="text-gray-300 text-sm mt-1">
+                                        {{ $match->home_player_name ?? $match->homePlayer->name ?? __('Unknown') }}
+                                        <span class="font-bold text-white">vs</span>
+                                        {{ $match->away_player_name ?? $match->awayPlayer->name ?? __('Unknown') }}
+                                    </div>
+                                </div>
+                                <div class="mt-2 md:mt-0 text-right">
+                                    <div class="text-2xl font-bold text-blue-400">
+                                        @php
+                                            $homeSetsWon = 0;
+                                            $awaySetsWon = 0;
+                                            if($match->sets && is_array($match->sets)) {
+                                                foreach($match->sets as $set) {
+                                                    if(($set['home_score'] ?? 0) > ($set['away_score'] ?? 0)) {
+                                                        $homeSetsWon++;
+                                                    } elseif(($set['away_score'] ?? 0) > ($set['home_score'] ?? 0)) {
+                                                        $awaySetsWon++;
+                                                    }
+                                                }
+                                            }
+                                        @endphp
+                                        {{ $homeSetsWon }} : {{ $awaySetsWon }}
+                                    </div>
+                                    <a href="{{ route('organizations.friendly-matches.show', [$organization, $match->id]) }}" class="text-purple-400 hover:text-purple-300 text-sm font-medium transition-colors mt-2 inline-block">{{ __('View Match') }} →</a>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                @else
+                    <div class="text-gray-400 text-center py-6">{{ __('No friendly matches played yet.') }}</div>
+                @endif
+            </div>
+        </div>
+
+        <script>
+            document.getElementById('league-tab').addEventListener('click', function() {
+                showTab('league');
+            });
+            document.getElementById('friendly-tab').addEventListener('click', function() {
+                showTab('friendly');
+            });
+
+            function showTab(type) {
+                // Hide all tabs
+                document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
+                document.getElementById('league-tab').classList.remove('bg-purple-600', 'text-white');
+                document.getElementById('league-tab').classList.add('text-gray-400', 'hover:text-white');
+                document.getElementById('friendly-tab').classList.remove('bg-purple-600', 'text-white');
+                document.getElementById('friendly-tab').classList.add('text-gray-400', 'hover:text-white');
+
+                // Show selected tab
+                document.getElementById(type + '-matches').classList.remove('hidden');
+                document.getElementById(type + '-tab').classList.add('bg-purple-600', 'text-white');
+                document.getElementById(type + '-tab').classList.remove('text-gray-400', 'hover:text-white');
+            }
+        </script>
     </div>
 </div>
 </x-app-layout>

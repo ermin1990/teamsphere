@@ -38,7 +38,13 @@
                 <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl animate-pulse" style="animation-delay: -6s;"></div>
 
                 <div class="relative z-10">
-                    {{ $slot }}
+                    @hasSection('content')
+                        @yield('content')
+                    @else
+                        @if(isset($slot))
+                            {{ $slot }}
+                        @endif
+                    @endif
                 </div>
             </main>
         </div>

@@ -89,6 +89,13 @@
                                 @endif
                             </span>
                         </h3>
+                        @if($match->league->is_team_based && $match->homeTeam)
+                            <div class="text-sm text-gray-400 mb-4">
+                                @foreach($match->homeTeam->players as $player)
+                                    <div>{{ $player->name }}</div>
+                                @endforeach
+                            </div>
+                        @endif
                     </div>
 
                     <div class="relative mb-6">
@@ -122,6 +129,13 @@
                             </div>
                             @endif
                         </h3>
+                        @if($match->league->is_team_based && $match->awayTeam)
+                            <div class="text-sm text-gray-400 mb-4">
+                                @foreach($match->awayTeam->players as $player)
+                                    <div>{{ $player->name }}</div>
+                                @endforeach
+                            </div>
+                        @endif
                     </div>
 
                     <div class="relative mb-6">

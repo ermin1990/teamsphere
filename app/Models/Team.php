@@ -44,9 +44,8 @@ class Team extends Model
      */
     public function players(): BelongsToMany
     {
-        return $this->belongsToMany(User::class, 'team_user', 'team_id', 'user_id')
-                    ->withPivot('joined_at')
-                    ->withTimestamps();
+        return $this->belongsToMany(Player::class, 'league_player', 'team_id', 'player_id')
+                    ->withPivot('joined_at', 'league_id');
     }
 
     /**

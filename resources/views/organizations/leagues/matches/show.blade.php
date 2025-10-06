@@ -64,6 +64,13 @@
                                         {{ $match->homePlayer->name ?? 'TBD' }}
                                     @endif
                                 </h3>
+                                @if($league->is_team_based && $match->homeTeam)
+                                    <div class="mt-2 text-sm text-gray-400">
+                                        @foreach($match->homeTeam->players as $player)
+                                            <div>{{ $player->name }}</div>
+                                        @endforeach
+                                    </div>
+                                @endif
                                 @if($match->status === 'forfeited')
                                     @if($match->forfeited_by === 'home')
                                         <div class="text-red-400 mt-2 text-center">
@@ -124,6 +131,13 @@
                                         {{ $match->awayPlayer->name ?? 'TBD' }}
                                     @endif
                                 </h3>
+                                @if($league->is_team_based && $match->awayTeam)
+                                    <div class="mt-2 text-sm text-gray-400">
+                                        @foreach($match->awayTeam->players as $player)
+                                            <div>{{ $player->name }}</div>
+                                        @endforeach
+                                    </div>
+                                @endif
                                 @if($match->status === 'forfeited')
                                     @if($match->forfeited_by === 'away')
                                         <div class="text-red-400 mt-2 text-center">

@@ -797,6 +797,11 @@ class LeagueController extends Controller
             abort(404);
         }
 
+        // Load teams with players for team-based leagues
+        if ($league->is_team_based) {
+            $match->load(['homeTeam.players', 'awayTeam.players']);
+        }
+
         return view('organizations.leagues.matches.show', compact('organization', 'league', 'match'));
     }
 
@@ -909,6 +914,11 @@ class LeagueController extends Controller
         // Ensure match belongs to league
         if ($match->league_id !== $league->id) {
             abort(404);
+        }
+
+        // Load teams with players for team-based leagues
+        if ($league->is_team_based) {
+            $match->load(['homeTeam.players', 'awayTeam.players']);
         }
 
         // Start the match if not already started

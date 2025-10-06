@@ -101,7 +101,10 @@ class PlayerController extends Controller
             abort(403);
         }
 
-        return view('organizations.players.show', compact('organization', 'player'));
+        // Učitaj sve odigrane mečeve u kojima je igrač učestvovao u ovoj organizaciji
+        $matches = $player->matchesInOrganization($organization->id);
+
+        return view('organizations.players.show', compact('organization', 'player', 'matches'));
     }
 
     /**

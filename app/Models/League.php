@@ -118,7 +118,7 @@ class League extends Model
      */
     public function canAcceptMoreTeams()
     {
-        return $this->teams()->count() < $this->max_teams;
+        return $this->max_teams === null || $this->teams()->count() < $this->max_teams;
     }
 
     /**

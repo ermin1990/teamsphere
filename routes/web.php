@@ -35,10 +35,7 @@ Route::middleware('auth')->group(function () {
     Route::get('organizations/{organization}/friendly-matches/table-tennis', [OrganizationController::class, 'tableTennisFriendly'])->name('organizations.friendly-matches.table-tennis');
 
     // Player details route
-    Route::get('organizations/{organization}/players/{player}', function ($organizationSlug, $playerId) {
-        $organization = \App\Models\Organization::where('slug', $organizationSlug)->firstOrFail();
-        return view('player-details', compact('organization', 'playerId'));
-    })->name('organizations.players.show');
+    Route::get('organizations/{organization}/players/{player}', [PlayerController::class, 'show'])->name('organizations.players.show');
 
     // League routes (nested under organizations)
     Route::get('organizations/{organization}/leagues/create', [LeagueController::class, 'create'])->name('organizations.leagues.create');
