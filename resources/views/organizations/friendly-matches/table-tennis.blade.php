@@ -1,4 +1,7 @@
 <x-app-layout>
+    <!-- DEBUG: Table tennis view is loading successfully -->
+    <script>console.log('Table tennis view loaded successfully');</script>
+    
     <x-slot name="header">
         <div class="flex items-center justify-between">
             <div>

@@ -468,4 +468,9 @@ class TableTennisFriendly extends Component
         $this->firstServer = $this->currentServer; // Update first server for next set
         $this->setStartTime = now();
     }
+
+    public function render()
+    {
+        return view('livewire.table-tennis-friendly');
+    }
 }

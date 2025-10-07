@@ -110,8 +110,20 @@ class OrganizationController extends Controller
     {
         // Ensure user owns this organization
         if ($organization->user_id !== auth()->id()) {
+            \Log::info('Friendly matches access denied', [
+                'organization_id' => $organization->id,
+                'organization_user_id' => $organization->user_id,
+                'auth_user_id' => auth()->id(),
+                'organization_slug' => $organization->slug
+            ]);
             abort(403);
         }
+
+        \Log::info('Friendly matches accessed', [
+            'organization_id' => $organization->id,
+            'organization_slug' => $organization->slug,
+            'auth_user_id' => auth()->id()
+        ]);
 
         return view('organizations.friendly-matches.index', compact('organization'));
     }

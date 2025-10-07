@@ -1,4 +1,7 @@
 <x-app-layout>
+    <!-- DEBUG: This view is loading successfully -->
+    <script>console.log('Friendly matches index view loaded successfully');</script>
+    
     <x-slot name="header">
         <div class="flex items-center justify-between">
             <div>
