@@ -140,4 +140,50 @@ class OrganizationController extends Controller
 
         return view('organizations.friendly-matches.table-tennis', compact('organization'));
     }
+
+    /**
+     * Display a listing of organizations.
+     */
+    public function index()
+    {
+        $organizations = auth()->user()->organizations;
+
+        return view('organizations.index', compact('organizations'));
+    }
+
+    /**
+     * Show the form for creating a new organization.
+     */
+    public function create()
+    {
+        return view('organizations.create');
+    }
+
+    /**
+     * Store a newly created organization.
+     */
+    public function store(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string|max:1000',
+            'url_slug' => [
+                'required',
+                'string',
+                'max:255',
+                'unique:organizations,url_slug',
+                'regex:/^[a-z0-9-]+$/'
+            ],
+        ]);
+
+        $organization = Organization::create([
+            'name' => $request->name,
+            'description' => $request->description,
+            'url_slug' => $request->url_slug,
+            'user_id' => auth()->id(),
+        ]);
+
+        return redirect()->route('organizations.show', $organization)
+            ->with('success', 'Organization created successfully!');
+    }
 }
