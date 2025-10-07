@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\LeagueController;
 use App\Http\Controllers\OrganizationController;
 use App\Http\Controllers\PlayerController;
@@ -20,6 +21,17 @@ Route::get('/', function () {
 Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
+
+// Feedback routes
+Route::get('/feedback', [FeedbackController::class, 'create'])->name('feedback.create');
+Route::post('/feedback', [FeedbackController::class, 'store'])->name('feedback.store');
+
+// Admin routes
+Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/bug-reports', [FeedbackController::class, 'index'])->name('bug-reports.index');
+    Route::get('/bug-reports/{bugReport}', [FeedbackController::class, 'show'])->name('bug-reports.show');
+    Route::put('/bug-reports/{bugReport}', [FeedbackController::class, 'update'])->name('bug-reports.update');
+});
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
