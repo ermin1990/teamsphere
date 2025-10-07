@@ -388,5 +388,17 @@ return [
         'delete_warning' => 'Jednom kada obrišete ovu organizaciju, nema povratka. Budite sigurni.',
         'delete_confirmation' => 'Da li ste sigurni da želite obrisati ovu organizaciju? Ova akcija se ne može poništiti.',
         'delete_organization' => 'Obriši Organizaciju',
+
+        // Additional translations
+        'manage_teams_description' => 'Upravljajte svojim timovima i organizujte takmičenja',
+        'total_organizations' => 'Ukupno Organizacija',
+        'my_organizations' => 'Moje Organizacije',
+        'points' => 'Poeni',
+        'game' => 'Meč',
+        'games_to_win' => 'Mečeva za Pobjedu',
+        'games' => 'Mečevi',
+        'set' => 'Set',
+        'sets_to_win' => 'Setova za Pobjedu',
+        'available_sports' => 'Dostupni Sportovi',
     ],
 ];

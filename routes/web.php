@@ -34,7 +34,10 @@ Route::middleware('auth')->group(function () {
     Route::get('organizations/{organization}/friendly-matches/table-tennis', [OrganizationController::class, 'tableTennisFriendly'])->name('organizations.friendly-matches.table-tennis');
     Route::get('organizations/{organization}/friendly-matches/{match}', [OrganizationController::class, 'showFriendlyMatch'])->name('organizations.friendly-matches.show');
 
-    // Player details route
+    // Player routes (nested under organizations)
+    Route::resource('organizations.players', PlayerController::class)->shallow();
+
+    // Player details route (override the resource show route)
     Route::get('organizations/{organization}/players/{player}', [PlayerController::class, 'show'])->name('organizations.players.show');
 
     // League routes (nested under organizations)
@@ -62,9 +65,6 @@ Route::middleware('auth')->group(function () {
     Route::get('organizations/{organization}/leagues/{league}/matches/{match}/live', [LeagueController::class, 'liveScore'])->name('organizations.leagues.matches.live');
     Route::post('organizations/{organization}/leagues/{league}/matches/{match}/live-score', [LeagueController::class, 'updateLiveScore'])->name('organizations.leagues.matches.live-score');
     Route::post('organizations/{organization}/leagues/{league}/matches/{match}/reset', [LeagueController::class, 'resetMatch'])->name('organizations.leagues.matches.reset');
-
-    // Player routes (nested under organizations)
-    Route::resource('organizations.players', PlayerController::class)->shallow();
 });
 
 require __DIR__.'/auth.php';

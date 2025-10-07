@@ -388,5 +388,17 @@ return [
         'delete_warning' => 'Once you delete this organization, there is no going back. Please be certain.',
         'delete_confirmation' => 'Are you sure you want to delete this organization? This action cannot be undone.',
         'delete_organization' => 'Delete Organization',
+
+        // Additional translations
+        'manage_teams_description' => 'Manage your teams and organize competitions',
+        'total_organizations' => 'Total Organizations',
+        'my_organizations' => 'My Organizations',
+        'points' => 'Points',
+        'game' => 'Game',
+        'games_to_win' => 'Games to Win',
+        'games' => 'Games',
+        'set' => 'Set',
+        'sets_to_win' => 'Sets to Win',
+        'available_sports' => 'Available Sports',
     ],
 ];
