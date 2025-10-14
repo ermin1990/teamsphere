@@ -889,7 +889,7 @@ class LeagueController extends Controller
         // Update standings if needed
         if (in_array($validated['status'], ['completed', 'forfeited']) ||
             ($validated['status'] === 'cancelled' && ($validated['home_score'] > 0 || $validated['away_score'] > 0))) {
-            $this->updateStandings($league);
+            $league->updateStandings();
         }
 
         return redirect()->route('organizations.leagues.matches.show', [$organization, $league, $match])
@@ -981,7 +981,7 @@ class LeagueController extends Controller
             ]);
 
             // Update standings
-            $this->updateStandings($league);
+            $league->updateStandings();
 
             return response()->json(['status' => 'completed', 'message' => 'Match completed successfully.']);
         } elseif ($validated['action'] === 'forfeit_match') {
@@ -994,7 +994,7 @@ class LeagueController extends Controller
             ]);
 
             // Update standings
-            $this->updateStandings($league);
+            $league->updateStandings();
 
             return response()->json(['status' => 'forfeited', 'message' => 'Match forfeited successfully.']);
         } elseif ($validated['action'] === 'pause_match') {
@@ -1047,7 +1047,7 @@ class LeagueController extends Controller
 
         // Update standings if match was previously completed/forfeited
         if ($wasCompleted) {
-            $this->updateStandings($league);
+            $league->updateStandings();
         }
 
         return redirect()->route('organizations.leagues.matches.show', [$organization, $league, $match])

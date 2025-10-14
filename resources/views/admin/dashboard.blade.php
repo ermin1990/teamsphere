@@ -12,8 +12,51 @@
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <!-- Statistics Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+            <div class="flex gap-8">
+                <!-- Sidebar Navigation -->
+                <div class="w-64 flex-shrink-0">
+                    <div class="bg-gray-800/50 backdrop-blur-xl rounded-3xl p-6 border border-gray-700/50 sticky top-8">
+                        <h3 class="text-lg font-bold text-white mb-6">Admin Panel</h3>
+                        <nav class="space-y-2">
+                            <a href="{{ route('admin.dashboard') }}" class="flex items-center px-4 py-3 text-white bg-blue-600/20 rounded-xl border border-blue-500/30">
+                                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5a2 2 0 012-2h4a2 2 0 012 2v2H8V5z"></path>
+                                </svg>
+                                Dashboard
+                            </a>
+                            <a href="{{ route('admin.users') }}" class="flex items-center px-4 py-3 text-gray-300 hover:text-white hover:bg-gray-700/30 rounded-xl transition-all duration-200">
+                                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
+                                </svg>
+                                Users
+                            </a>
+                            <a href="{{ route('admin.organizations') }}" class="flex items-center px-4 py-3 text-gray-300 hover:text-white hover:bg-gray-700/30 rounded-xl transition-all duration-200">
+                                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                                </svg>
+                                Organizations
+                            </a>
+                            <a href="{{ route('admin.leagues') }}" class="flex items-center px-4 py-3 text-gray-300 hover:text-white hover:bg-gray-700/30 rounded-xl transition-all duration-200">
+                                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
+                                </svg>
+                                Leagues
+                            </a>
+                            <a href="{{ route('admin.plans') }}" class="flex items-center px-4 py-3 text-gray-300 hover:text-white hover:bg-gray-700/30 rounded-xl transition-all duration-200">
+                                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"></path>
+                                </svg>
+                                Plans
+                            </a>
+                        </nav>
+                    </div>
+                </div>
+
+                <!-- Main Content -->
+                <div class="flex-1">
+                    <!-- Statistics Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                 <div class="bg-gray-800/50 backdrop-blur-xl rounded-3xl p-6 border border-gray-700/50">
                     <div class="flex items-center">
                         <div class="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center">
@@ -165,6 +208,8 @@
                     <a href="{{ route('admin.leagues') }}" class="text-blue-400 hover:text-blue-300 text-sm mt-4 inline-block">View all leagues →</a>
                 </div>
             </div>
+                </div> <!-- End Main Content -->
+            </div> <!-- End Flex Container -->
         </div>
     </div>
 </x-app-layout>

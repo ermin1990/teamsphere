@@ -50,6 +50,8 @@ class Organization extends Model
 
     /**
      * Get the leagues for this organization.
+     * Note: This relationship should be eager loaded when displaying organization lists
+     * to prevent N+1 queries. Use ->with('leagues') when loading organizations.
      */
     public function leagues(): HasMany
     {
@@ -58,6 +60,8 @@ class Organization extends Model
 
     /**
      * Get the players for this organization.
+     * Note: This relationship should be eager loaded when displaying organization details
+     * to prevent N+1 queries. Use ->with('players') when loading organizations.
      */
     public function players(): HasMany
     {

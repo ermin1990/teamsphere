@@ -42,6 +42,8 @@ class OrganizationController extends Controller
             abort(403);
         }
 
+        $organization->load(['leagues', 'players']);
+
         return view('organizations.show', compact('organization'));
     }
 
@@ -146,7 +148,9 @@ class OrganizationController extends Controller
      */
     public function index()
     {
-        $organizations = auth()->user()->organizations;
+        $organizations = auth()->user()->organizations()
+            ->with(['leagues', 'players'])
+            ->get();
 
         return view('organizations.index', compact('organizations'));
     }

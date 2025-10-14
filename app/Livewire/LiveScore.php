@@ -339,6 +339,9 @@ class LiveScore extends Component
             'status' => 'completed',
         ]);
 
+        // Update league standings
+        $this->match->league->updateStandings();
+
         // Stop timers and reset to 00:00
         $this->dispatch('stop-timers');
         $this->dispatch('reset-timer-display');

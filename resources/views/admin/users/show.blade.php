@@ -8,6 +8,9 @@
                 <p class="text-gray-400 mt-1">{{ $user->email }}</p>
             </div>
             <div class="flex space-x-3">
+                <a href="{{ route('admin.users.change-plan', $user) }}" class="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white px-4 py-2 rounded-xl transition-all duration-200 transform hover:scale-105">
+                    Change Plan
+                </a>
                 <a href="{{ route('admin.users') }}" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-xl transition-all duration-200">
                     ← Back to Users
                 </a>
@@ -76,15 +79,27 @@
                     <div class="space-y-3">
                         <div class="flex justify-between">
                             <span class="text-gray-400">Organizations:</span>
-                            <span class="text-white">{{ $user->organizations->count() }}</span>
+                            <span class="text-white font-medium">{{ $user->organizations->count() }}</span>
                         </div>
                         <div class="flex justify-between">
                             <span class="text-gray-400">Leagues:</span>
-                            <span class="text-white">{{ $user->leagues->count() }}</span>
+                            <span class="text-white font-medium">{{ $user->leagues->count() }}</span>
                         </div>
                         <div class="flex justify-between">
                             <span class="text-gray-400">Total Players:</span>
-                            <span class="text-white">{{ $user->organizations->sum(fn($org) => $org->leagues->sum(fn($league) => $league->players->count())) }}</span>
+                            <span class="text-white font-medium">{{ $user->organizations->sum(fn($org) => $org->players->count()) }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-400">Total Teams:</span>
+                            <span class="text-white font-medium">{{ $user->organizations->sum(fn($org) => $org->leagues->sum(fn($league) => $league->teams->count())) }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-400">Active Matches:</span>
+                            <span class="text-white font-medium">{{ $user->organizations->sum(fn($org) => $org->leagues->sum(fn($league) => $league->matches()->where('status', 'in_progress')->count())) }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-400">Completed Matches:</span>
+                            <span class="text-white font-medium">{{ $user->organizations->sum(fn($org) => $org->leagues->sum(fn($league) => $league->matches()->where('status', 'completed')->count())) }}</span>
                         </div>
                     </div>
                 </div>

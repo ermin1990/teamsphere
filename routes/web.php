@@ -73,7 +73,11 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', [AdminController::class, 'dashboard'])->name('dashboard');
     Route::get('/users', [AdminController::class, 'users'])->name('users');
     Route::get('/users/{user}', [AdminController::class, 'showUser'])->name('users.show');
+    Route::get('/users/{user}/change-plan', [AdminController::class, 'changeUserPlan'])->name('users.change-plan');
+    Route::put('/users/{user}/update-plan', [AdminController::class, 'updateUserPlan'])->name('users.update-plan');
     Route::get('/plans', [AdminController::class, 'plans'])->name('plans');
+    Route::get('/plans/{plan}/edit', [AdminController::class, 'editPlan'])->name('plans.edit');
+    Route::put('/plans/{plan}', [AdminController::class, 'updatePlan'])->name('plans.update');
     Route::get('/organizations', [AdminController::class, 'organizations'])->name('organizations');
     Route::get('/organizations/{organization}', [AdminController::class, 'showOrganization'])->name('organizations.show');
     Route::get('/leagues', [AdminController::class, 'leagues'])->name('leagues');

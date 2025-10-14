@@ -65,6 +65,16 @@ class User extends Authenticatable
     }
 
     /**
+     * Get the leagues for this user through organizations.
+     */
+    public function leagues()
+    {
+        return League::whereHas('organization', function ($query) {
+            $query->where('user_id', $this->id);
+        });
+    }
+
+    /**
      * Get the current active plan for this user.
      */
     public function currentPlan()

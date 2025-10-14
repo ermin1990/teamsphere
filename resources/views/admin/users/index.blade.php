@@ -29,9 +29,8 @@
                             <thead>
                                 <tr class="border-b border-gray-700">
                                     <th class="text-left py-3 px-4 text-gray-400 font-medium">User</th>
-                                    <th class="text-left py-3 px-4 text-gray-400 font-medium">Plan</th>
-                                    <th class="text-left py-3 px-4 text-gray-400 font-medium">Organizations</th>
-                                    <th class="text-left py-3 px-4 text-gray-400 font-medium">Leagues</th>
+                                    <th class="text-left py-3 px-4 text-gray-400 font-medium">Email</th>
+                                    <th class="text-left py-3 px-4 text-gray-400 font-medium">Admin</th>
                                     <th class="text-left py-3 px-4 text-gray-400 font-medium">Joined</th>
                                     <th class="text-left py-3 px-4 text-gray-400 font-medium">Actions</th>
                                 </tr>
@@ -51,32 +50,27 @@
                                             </div>
                                         </td>
                                         <td class="py-4 px-4">
-                                            <span class="px-3 py-1 rounded-full text-xs font-medium
-                                                {{ $user->currentPlan ?
-                                                    ($user->currentPlan->name === 'Premium' ? 'bg-purple-500/20 text-purple-400' :
-                                                     ($user->currentPlan->name === 'Pro' ? 'bg-blue-500/20 text-blue-400' : 'bg-green-500/20 text-green-400'))
-                                                    : 'bg-gray-500/20 text-gray-400' }}">
-                                                {{ $user->currentPlan ? $user->currentPlan->name : 'Free' }}
+                                            <span class="text-white">{{ $user->email }}</span>
+                                        </td>
+                                        <td class="py-4 px-4">
+                                            <span class="px-2 py-1 rounded text-xs {{ $user->is_admin ? 'bg-green-500/20 text-green-400' : 'bg-gray-500/20 text-gray-400' }}">
+                                                {{ $user->is_admin ? 'Yes' : 'No' }}
                                             </span>
-                                        </td>
-                                        <td class="py-4 px-4">
-                                            <span class="text-white">{{ $user->organizations->count() }}</span>
-                                        </td>
-                                        <td class="py-4 px-4">
-                                            <span class="text-white">{{ $user->leagues->count() }}</span>
                                         </td>
                                         <td class="py-4 px-4">
                                             <span class="text-gray-400 text-sm">{{ $user->created_at->format('M j, Y') }}</span>
                                         </td>
                                         <td class="py-4 px-4">
-                                            <a href="{{ route('admin.users.show', $user) }}" class="text-blue-400 hover:text-blue-300 text-sm font-medium">
-                                                View Details
-                                            </a>
+                                            <div class="flex items-center space-x-2">
+                                                <a href="{{ route('admin.users.show', $user) }}" class="text-blue-400 hover:text-blue-300 text-sm font-medium">
+                                                    View Details
+                                                </a>
+                                            </div>
                                         </td>
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="6" class="py-8 px-4 text-center text-gray-400">
+                                        <td colspan="5" class="py-8 px-4 text-center text-gray-400">
                                             No users found
                                         </td>
                                     </tr>
