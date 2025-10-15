@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Player extends Model
 {
@@ -54,6 +55,22 @@ class Player extends Model
                     ->withCasts([
                         'joined_at' => 'datetime'
                     ]);
+    }
+
+    /**
+     * Get matches where this player is the home player.
+     */
+    public function homeMatches(): HasMany
+    {
+        return $this->hasMany(\App\Models\LeagueMatch::class, 'home_player_id');
+    }
+
+    /**
+     * Get matches where this player is the away player.
+     */
+    public function awayMatches(): HasMany
+    {
+        return $this->hasMany(\App\Models\LeagueMatch::class, 'away_player_id');
     }
 
     /**

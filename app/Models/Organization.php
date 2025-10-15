@@ -49,6 +49,14 @@ class Organization extends Model
     }
 
     /**
+     * Get the organization users for this organization.
+     */
+    public function organizationUsers(): HasMany
+    {
+        return $this->hasMany(OrganizationUser::class);
+    }
+
+    /**
      * Get the players for this organization.
      */
     public function players(): HasMany

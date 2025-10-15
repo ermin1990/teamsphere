@@ -22,7 +22,7 @@
                 <div class="flex items-center justify-between">
                     <div>
                         <h3 class="text-2xl font-bold text-white mb-2">{{ __('Welcome to Team Sphere') }}</h3>
-                        <p class="text-gray-400">{{ __('messages.app.manage_teams_description') }}</p>
+                        <p class="text-gray-400">{{ __('View your organizations and upcoming matches') }}</p>
                     </div>
                     <div class="hidden md:block">
                         <div class="w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
@@ -35,13 +35,13 @@
             </div>
 
             <!-- Stats Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <!-- Organizations Card -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- My Organizations Card -->
                 <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02]">
                     <div class="flex items-center justify-between">
                         <div>
-                            <p class="text-gray-400 text-sm font-medium">{{ __('Organizations') }}</p>
-                            <p class="text-3xl font-bold text-white mt-1">{{ Auth::user()->organizations->count() }}</p>
+                            <p class="text-gray-400 text-sm font-medium">{{ __('My Organizations') }}</p>
+                            <p class="text-3xl font-bold text-white mt-1">{{ $organizations->count() }}</p>
                         </div>
                         <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
                             <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -51,20 +51,41 @@
                     </div>
                     <div class="mt-4">
                         <div class="flex items-center text-sm">
-                            <span class="text-green-400 font-medium">{{ Auth::user()->organizations->count() > 0 ? '+' . Auth::user()->organizations->count() : '0' }}%</span>
-                            <span class="text-gray-500 ml-2">{{ __('messages.app.total_organizations') }}</span>
+                            <span class="text-green-400 font-medium">{{ $organizations->count() > 0 ? '+' . $organizations->count() : '0' }}</span>
+                            <span class="text-gray-500 ml-2">{{ __('Organizations where you play') }}</span>
                         </div>
                     </div>
                 </div>
 
-                <!-- Leagues Card -->
+                <!-- Upcoming Matches Card -->
                 <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02]">
                     <div class="flex items-center justify-between">
                         <div>
-                            <p class="text-gray-400 text-sm font-medium">{{ __('Leagues') }}</p>
-                            <p class="text-3xl font-bold text-white mt-1">{{ Auth::user()->organizations->sum(function($org) { return $org->leagues->count(); }) }}</p>
+                            <p class="text-gray-400 text-sm font-medium">{{ __('Upcoming Matches') }}</p>
+                            <p class="text-3xl font-bold text-white mt-1">{{ $upcomingMatches->count() }}</p>
                         </div>
                         <div class="w-12 h-12 bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <div class="flex items-center text-sm">
+                            <span class="text-green-400 font-medium">{{ $upcomingMatches->count() > 0 ? '+' . $upcomingMatches->count() : '0' }}</span>
+                            <span class="text-gray-500 ml-2">{{ __('Scheduled matches') }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Total Matches Card -->
+                <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02]">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-400 text-sm font-medium">{{ __('Total Matches') }}</p>
+                            <p class="text-3xl font-bold text-white mt-1">{{ $players->sum(function($player) { return $player->homeMatches->count() + $player->awayMatches->count(); }) }}</p>
+                        </div>
+                        <div class="w-12 h-12 bg-gradient-to-r from-purple-500 to-purple-600 rounded-xl flex items-center justify-center">
                             <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
                             </svg>
@@ -72,8 +93,8 @@
                     </div>
                     <div class="mt-4">
                         <div class="flex items-center text-sm">
-                            <span class="text-green-400 font-medium">{{ Auth::user()->organizations->sum(function($org) { return $org->leagues->count(); }) > 0 ? '+' . Auth::user()->organizations->sum(function($org) { return $org->leagues->count(); }) : '0' }}%</span>
-                            <span class="text-gray-500 ml-2">{{ __('messages.app.total_leagues') }}</span>
+                            <span class="text-green-400 font-medium">{{ $players->sum(function($player) { return $player->homeMatches->count() + $player->awayMatches->count(); }) > 0 ? '+' . $players->sum(function($player) { return $player->homeMatches->count() + $player->awayMatches->count(); }) : '0' }}</span>
+                            <span class="text-gray-500 ml-2">{{ __('All time matches') }}</span>
                         </div>
                     </div>
                 </div>
@@ -82,22 +103,22 @@
             <!-- My Organizations -->
             <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl">
                 <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-xl font-bold text-white">{{ __('messages.app.my_organizations') }}</h3>
+                    <h3 class="text-xl font-bold text-white">{{ __('My Organizations') }}</h3>
                     @if(Auth::user()->canCreateMoreOrganizations())
                         <a href="{{ route('organizations.create') }}" class="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-4 py-2 rounded-xl transition-all duration-200 transform hover:scale-[1.02] hover:shadow-lg hover:shadow-blue-500/25">
                             <span class="flex items-center space-x-2">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                                 </svg>
-                                <span>{{ __('messages.app.create_organization') }}</span>
+                                <span>{{ __('Create Organization') }}</span>
                             </span>
                         </a>
                     @endif
                 </div>
 
-                @if(Auth::user()->organizations->count() > 0)
+                @if($organizations->count() > 0)
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        @foreach(Auth::user()->organizations as $organization)
+                        @foreach($organizations as $organization)
                             <a href="{{ route('organizations.show', $organization) }}" class="bg-gray-700/30 rounded-xl p-4 hover:bg-gray-600/30 transition-all duration-200 transform hover:scale-[1.02] cursor-pointer block">
                                 <div class="flex items-center space-x-3 mb-3">
                                     <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
@@ -105,16 +126,7 @@
                                     </div>
                                     <div>
                                         <h4 class="text-white font-semibold">{{ $organization->name }}</h4>
-                                        <p class="text-gray-400 text-sm">{{ $organization->user->currentPlan() ? $organization->user->currentPlan()->name : 'Free' }} Plan</p>
-                                    </div>
-                                </div>
-                                <div class="space-y-2">
-                                    <div class="flex justify-between text-sm">
-                                        <span class="text-gray-400">{{ __('messages.app.leagues') }}:</span>
-                                        <span class="text-white">{{ $organization->leagues->count() }}/{{ $organization->user->currentPlan() ? $organization->user->currentPlan()->max_leagues_per_organization : '∞' }}</span>
-                                    </div>
-                                    <div class="w-full bg-gray-600 rounded-full h-2">
-                                        <div class="bg-blue-500 h-2 rounded-full" style="width: {{ $organization->user->currentPlan() ? (($organization->leagues->count() / $organization->user->currentPlan()->max_leagues_per_organization) * 100) : 0 }}%"></div>
+                                        <p class="text-gray-400 text-sm">{{ $players->where('organization_id', $organization->id)->count() }} player profile(s)</p>
                                     </div>
                                 </div>
                             </a>
@@ -127,42 +139,65 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
                             </svg>
                         </div>
-                        <h4 class="text-white font-semibold mb-2">{{ __('messages.app.no_organizations_yet') }}</h4>
-                        <p class="text-gray-400 mb-4">{{ __('messages.app.create_first_org_description') }}</p>
+                        <h4 class="text-white font-semibold mb-2">{{ __('No organizations yet') }}</h4>
+                        <p class="text-gray-400 mb-4">{{ __('You haven\'t been added as a player to any organizations yet.') }}</p>
+                        @if(Auth::user()->canCreateMoreOrganizations())
                         <a href="{{ route('organizations.create') }}" class="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-6 py-3 rounded-xl transition-all duration-200 transform hover:scale-[1.02] hover:shadow-lg hover:shadow-blue-500/25 inline-block">
-                            {{ __('messages.app.create_your_first_organization') }}
+                            {{ __('Create your first organization') }}
                         </a>
+                        @endif
                     </div>
                 @endif
             </div>
 
-            <!-- Available Sports -->
+            <!-- Upcoming Matches -->
+            @if($upcomingMatches->count() > 0)
             <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl">
-                <h3 class="text-xl font-bold text-white mb-4">{{ __('messages.app.available_sports') }}</h3>
-                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                    @foreach(\App\Models\Sport::active()->get() as $sport)
-                        <div class="bg-gray-700/30 rounded-xl p-4 text-center hover:bg-gray-600/30 transition-all duration-200 transform hover:scale-[1.02] cursor-pointer group">
-                            <div class="text-3xl mb-2">{{ $sport->icon }}</div>
-                            <h4 class="text-white font-semibold text-sm mb-1">{{ $sport->name }}</h4>
-                            <p class="text-gray-400 text-xs mb-2">{{ Str::limit($sport->description, 40) }}</p>
+                <h3 class="text-xl font-bold text-white mb-4">{{ __('Upcoming Matches') }}</h3>
+                <p class="text-gray-400 mb-6">{{ __('Your scheduled matches') }}</p>
 
-                            <!-- Sport Rules Preview -->
-                            <div class="text-xs text-gray-500 space-y-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                @if($sport->isPointsBased())
-                                    <div>{{ $sport->getMaxPointsPerGame() }} {{ __('messages.app.points') }}/{{ __('messages.app.game') }}</div>
-                                    <div>{{ $sport->getGamesToWin() }} {{ __('messages.app.games_to_win') }}</div>
-                                @elseif($sport->isSetsGamesBased())
-                                    <div>{{ $sport->getGamesPerSet() }} {{ __('messages.app.games') }}/{{ __('messages.app.set') }}</div>
-                                    <div>{{ $sport->getSetsToWin() }} {{ __('messages.app.sets_to_win') }}</div>
-                                @elseif($sport->isTimeBased())
-                                    <div>{{ $sport->getRule('periods') }}x {{ $sport->getRule('period_duration') / 60 }}min</div>
-                                    <div>{{ $sport->getPlayersPerTeam() }} {{ __('messages.app.players') }}</div>
-                                @endif
+                <div class="space-y-4">
+                    @foreach($upcomingMatches->sortBy('scheduled_at') as $match)
+                        <div class="bg-gray-700/30 rounded-xl p-4 hover:bg-gray-600/30 transition-all duration-200">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-4">
+                                    <div class="text-2xl">{{ $match->league->sport->icon }}</div>
+                                    <div>
+                                        <h4 class="text-white font-semibold">
+                                            {{ $match->homePlayer?->name ?? 'TBD' }} vs {{ $match->awayPlayer?->name ?? 'TBD' }}
+                                            @if($match->home_player_id == $players->first()->id || $match->away_player_id == $players->first()->id)
+                                                <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                                    You
+                                                </span>
+                                            @endif
+                                        </h4>
+                                        <p class="text-gray-400 text-sm">
+                                            {{ $match->league->name }} • {{ $match->scheduled_at ? $match->scheduled_at->format('M d, Y H:i') : 'Not scheduled' }}
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    @if($match->status === 'scheduled')
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                            Scheduled
+                                        </span>
+                                    @elseif($match->status === 'in_progress')
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 animate-pulse">
+                                            LIVE
+                                        </span>
+                                    @else
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                            {{ ucfirst($match->status) }}
+                                        </span>
+                                    @endif
+                                </div>
                             </div>
                         </div>
                     @endforeach
                 </div>
             </div>
+            @endif
+
         </div>
     </div>
 </x-app-layout>

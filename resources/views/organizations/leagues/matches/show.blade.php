@@ -21,6 +21,7 @@
                     @endif
                 </span>
                 <div class="flex space-x-2">
+                    @if(isset($isOwner) && $isOwner)
                     <a href="{{ request()->routeIs('referee.*') ? route('referee.match.edit', [$league, $match]) : route('organizations.leagues.matches.edit', [$organization, $league, $match]) }}"
                        class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition-colors">
                         ✏️ Edit Results
@@ -30,6 +31,7 @@
                        class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm rounded-lg transition-colors">
                         🎯 Live Score
                     </a>
+                    @endif
                     @endif
                 </div>
             </div>

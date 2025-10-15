@@ -44,7 +44,7 @@
                         </x-dropdown-link>
 
                         @if(auth()->user()->email === 'ermin1990@gmail.com')
-                            <x-dropdown-link :href="route('admin.bug-reports.index')" class="text-white hover:bg-gray-700/50">
+                            <x-dropdown-link :href="route('admin.dashboard')" class="text-white hover:bg-gray-700/50">
                                 {{ __('Admin Panel') }}
                             </x-dropdown-link>
                         @endif

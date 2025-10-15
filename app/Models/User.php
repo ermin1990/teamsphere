@@ -55,6 +55,14 @@ class User extends Authenticatable
     }
 
     /**
+     * Get the organization users for this user.
+     */
+    public function organizationUsers(): HasMany
+    {
+        return $this->hasMany(OrganizationUser::class);
+    }
+
+    /**
      * Get the user plans for this user.
      */
     public function userPlans(): HasMany

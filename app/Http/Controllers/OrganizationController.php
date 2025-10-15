@@ -37,12 +37,15 @@ class OrganizationController extends Controller
      */
     public function show(Organization $organization)
     {
-        // Ensure user owns this organization
-        if ($organization->user_id !== auth()->id()) {
+        // Allow access if user owns the organization OR is registered as a player in it
+        $isOwner = $organization->user_id === auth()->id();
+        $isPlayer = $organization->players()->where('user_id', auth()->id())->exists();
+
+        if (!$isOwner && !$isPlayer) {
             abort(403);
         }
 
-        return view('organizations.show', compact('organization'));
+        return view('organizations.show', compact('organization', 'isOwner', 'isPlayer'));
     }
 
     /**

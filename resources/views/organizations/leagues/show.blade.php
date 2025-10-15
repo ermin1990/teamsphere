@@ -550,6 +550,15 @@
                         @endif
                     </div>
                     @endif
+
+                    @if($league->status === 'draft')
+                    <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl">
+                        <h3 class="text-xl font-semibold text-white mb-4">{{ __('Add Player by Email') }}</h3>
+                        <p class="text-gray-400 text-sm mb-6">{{ __('Search for registered users by email and add them as players to this league.') }}</p>
+
+                        @livewire('add-player-by-email', ['organization' => $organization, 'league' => $league])
+                    </div>
+                    @endif
                 </div>
 
                 <div class="space-y-6">

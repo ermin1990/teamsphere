@@ -19,7 +19,38 @@ Route::get('/', function () {
 });
 
 Route::get('/dashboard', function () {
-    return view('dashboard');
+    $user = Auth::user();
+
+    // Get players where user is registered
+    $players = \App\Models\Player::where('user_id', $user->id)->with('organization', 'homeMatches', 'awayMatches')->get();
+
+    // Get organizations from players
+    $playerOrganizations = $players->pluck('organization')->unique();
+    
+    // Get organizations owned by user
+    $ownedOrganizations = $user->organizations;
+    
+    // Merge both collections and remove duplicates
+    $organizations = $playerOrganizations->merge($ownedOrganizations)->unique('id');
+
+    // Get upcoming matches for this player
+    $upcomingMatches = collect();
+    foreach ($players as $player) {
+        // Get matches where player is home or away player
+        $playerMatches = \App\Models\LeagueMatch::where(function($query) use ($player) {
+            $query->where('home_player_id', $player->id)
+                  ->orWhere('away_player_id', $player->id);
+        })
+        ->with(['league', 'homePlayer', 'awayPlayer'])
+        ->where('scheduled_at', '>=', now())
+        ->orderBy('scheduled_at', 'asc')
+        ->limit(10)
+        ->get();
+
+        $upcomingMatches = $upcomingMatches->merge($playerMatches);
+    }
+
+    return view('dashboard', compact('organizations', 'players', 'upcomingMatches'));
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 // Feedback routes
@@ -125,4 +156,6 @@ Route::middleware(['auth'])->prefix('referee')->name('referee.')->group(function
     Route::post('/leagues/{league}/matches/{match}/reset', [App\Http\Controllers\RefereeController::class, 'resetMatch'])->name('match.reset');
 });
 
-require __DIR__.'/auth.php';
+// Referee routes
+Route::middleware(['auth'])->prefix('referee')->name('referee.')->group(function () {
+});

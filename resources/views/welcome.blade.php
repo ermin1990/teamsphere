@@ -39,6 +39,13 @@
                         <span class="text-xl font-bold text-gradient bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">Team Sphere</span>
                     </div>
 
+                    <!-- Hamburger Button (Mobile) -->
+                    <button id="mobile-menu-btn" class="md:hidden flex items-center justify-center p-2 rounded-lg text-gray-300 hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-500" aria-label="Open menu">
+                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
+
                     <!-- Desktop Navigation -->
                     <div class="hidden md:flex items-center space-x-8">
                         <a href="#features" class="text-gray-300 hover:text-white font-medium transition-colors">{{ __('messages.nav.features') }}</a>
@@ -47,7 +54,7 @@
                     </div>
 
                     <!-- Auth Links -->
-                    <div class="flex items-center space-x-4">
+                    <div class="hidden md:flex items-center space-x-4">
                         <!-- Language Switcher -->
                         <div class="flex items-center space-x-2 mr-4">
                             <a href="{{ route('locale', ['locale' => 'en']) }}" class="text-gray-300 hover:text-white font-medium transition-colors {{ app()->getLocale() === 'en' ? 'text-blue-400' : '' }}">EN</a>
@@ -67,6 +74,49 @@
                         @endif
                     </div>
                 </div>
+                <!-- Mobile Menu -->
+                <div id="mobile-menu" class="md:hidden fixed top-20 left-0 w-full bg-gray-900/95 border-b border-gray-700/50 z-40 hidden transition-all duration-300">
+                    <div class="flex flex-col items-center py-6 space-y-4">
+                        <a href="#features" class="text-gray-300 hover:text-white font-medium transition-colors w-full text-center">{{ __('messages.nav.features') }}</a>
+                        <a href="#how-it-works" class="text-gray-300 hover:text-white font-medium transition-colors w-full text-center">{{ __('messages.nav.how_it_works') }}</a>
+                        <a href="#demo" class="text-gray-300 hover:text-white font-medium transition-colors w-full text-center">{{ __('messages.nav.demo') }}</a>
+                        <div class="flex items-center space-x-2">
+                            <a href="{{ route('locale', ['locale' => 'en']) }}" class="text-gray-300 hover:text-white font-medium transition-colors {{ app()->getLocale() === 'en' ? 'text-blue-400' : '' }}">EN</a>
+                            <span class="text-gray-600">|</span>
+                            <a href="{{ route('locale', ['locale' => 'bs']) }}" class="text-gray-300 hover:text-white font-medium transition-colors {{ app()->getLocale() === 'bs' ? 'text-blue-400' : '' }}">BS</a>
+                        </div>
+                        @if (Route::has('login'))
+                            <a href="{{ route('login') }}" class="text-gray-300 hover:text-white font-medium transition-colors px-4 py-2 w-full text-center">
+                                {{ __('messages.nav.sign_in') }}
+                            </a>
+                        @endif
+                        @if (Route::has('register'))
+                            <a href="{{ route('register') }}" class="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 px-6 py-2.5 rounded-lg text-white font-medium transition-all w-full text-center">
+                                {{ __('messages.nav.get_started') }}
+                            </a>
+                        @endif
+                    </div>
+                </div>
+                <script>
+                    const menuBtn = document.getElementById('mobile-menu-btn');
+                    const mobileMenu = document.getElementById('mobile-menu');
+                    let menuOpen = false;
+                    menuBtn.addEventListener('click', () => {
+                        menuOpen = !menuOpen;
+                        if (menuOpen) {
+                            mobileMenu.classList.remove('hidden');
+                        } else {
+                            mobileMenu.classList.add('hidden');
+                        }
+                    });
+                    // Optional: Close menu on navigation
+                    mobileMenu.querySelectorAll('a').forEach(link => {
+                        link.addEventListener('click', () => {
+                            mobileMenu.classList.add('hidden');
+                            menuOpen = false;
+                        });
+                    });
+                </script>
             </div>
         </nav>
 

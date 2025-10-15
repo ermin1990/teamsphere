@@ -50,8 +50,12 @@ class Plan extends Model
     }
 
     /**
-     * Check if plan is free.
+     * Get the user plans for this plan.
      */
+    public function userPlans()
+    {
+        return $this->hasMany(UserPlan::class);
+    }
     public function isFree()
     {
         return $this->price == 0;

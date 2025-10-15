@@ -24,6 +24,7 @@ class DatabaseSeeder extends Seeder
             SportSeeder::class,
             PlanSeeder::class,
             UserPlanSeeder::class,
+            OrganizationUserSeeder::class,
         ]);
     }
 }

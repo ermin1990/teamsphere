@@ -15,11 +15,11 @@ class Sport extends Model
         'description',
         'icon',
         'rules',
-        'is_active',
+        'active',
     ];
 
     protected $casts = [
-        'is_active' => 'boolean',
+        'active' => 'boolean',
         'rules' => 'array',
     ];
 
@@ -36,7 +36,7 @@ class Sport extends Model
      */
     public function scopeActive($query)
     {
-        return $query->where('is_active', true);
+        return $query->where('active', true);
     }
 
     /**

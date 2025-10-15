@@ -1,14 +1,16 @@
-<x-app-layout>
-    <x-slot name="header">
-        <div class="flex items-center justify-between">
-            <div>
-                <h2 class="font-bold text-3xl bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                    {{ __('Bug Reports & Feature Requests') }}
-                </h2>
-                <p class="text-gray-400 mt-1">{{ __('Manage user feedback and reports') }}</p>
-            </div>
+@extends('layouts.admin')
+
+@section('admin-content')
+<div class="space-y-8">
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
+        <div>
+            <h2 class="text-3xl font-black bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                Bug Reports & Feature Requests
+            </h2>
+            <p class="text-gray-400 mt-2">Manage user feedback and reports</p>
         </div>
-    </x-slot>
+    </div>
 
     <!-- Content -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -170,4 +172,5 @@
             @endif
         </div>
     </div>
-</x-app-layout>
+</div>
+@endsection
