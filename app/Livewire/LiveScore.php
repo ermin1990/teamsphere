@@ -337,6 +337,7 @@ class LiveScore extends Component
             'sets' => $this->sets,
             'set_durations' => $this->setDurations,
             'status' => 'completed',
+            'played_at' => now(),
         ]);
 
         // Stop timers and reset to 00:00

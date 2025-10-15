@@ -28,9 +28,37 @@ Route::post('/feedback', [FeedbackController::class, 'store'])->name('feedback.s
 
 // Admin routes
 Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/', function () {
+        return redirect()->route('admin.dashboard');
+    });
+    Route::get('/dashboard', [\App\Http\Controllers\AdminController::class, 'dashboard'])->name('dashboard');
+
     Route::get('/bug-reports', [FeedbackController::class, 'index'])->name('bug-reports.index');
     Route::get('/bug-reports/{bugReport}', [FeedbackController::class, 'show'])->name('bug-reports.show');
     Route::put('/bug-reports/{bugReport}', [FeedbackController::class, 'update'])->name('bug-reports.update');
+
+    // Sports admin
+    Route::get('/sports', [\App\Http\Controllers\AdminSportController::class, 'index'])->name('sports.index');
+    Route::post('/sports/{sport}/toggle', [\App\Http\Controllers\AdminSportController::class, 'toggle'])->name('sports.toggle');
+
+    // Users admin
+    Route::get('/users', [\App\Http\Controllers\AdminUserController::class, 'index'])->name('users.index');
+    Route::get('/users/{user}', [\App\Http\Controllers\AdminUserController::class, 'show'])->name('users.show');
+
+    // Organizations admin
+    Route::get('/organizations', [\App\Http\Controllers\AdminOrganizationController::class, 'index'])->name('organizations.index');
+    Route::get('/organizations/{organization}', [\App\Http\Controllers\AdminOrganizationController::class, 'show'])->name('organizations.show');
+
+    // Leagues admin
+    Route::get('/leagues', [\App\Http\Controllers\AdminLeagueController::class, 'index'])->name('leagues.index');
+    Route::get('/leagues/{league}', [\App\Http\Controllers\AdminLeagueController::class, 'show'])->name('leagues.show');
+
+    // Plans admin
+    Route::get('/plans', [\App\Http\Controllers\AdminPlanController::class, 'index'])->name('plans.index');
+    Route::get('/plans/{plan}', [\App\Http\Controllers\AdminPlanController::class, 'show'])->name('plans.show');
+
+    // Settings admin
+    Route::get('/settings', [\App\Http\Controllers\AdminSettingsController::class, 'index'])->name('settings.index');
 });
 
 Route::middleware('auth')->group(function () {
@@ -40,6 +68,12 @@ Route::middleware('auth')->group(function () {
 
     // Organization routes
     Route::resource('organizations', OrganizationController::class);
+
+    // Organization users routes
+    Route::get('organizations/{organization}/users', [\App\Http\Controllers\OrganizationUserController::class, 'index'])->name('organizations.users.index');
+    Route::get('organizations/{organization}/users/create', [\App\Http\Controllers\OrganizationUserController::class, 'create'])->name('organizations.users.create');
+    Route::post('organizations/{organization}/users', [\App\Http\Controllers\OrganizationUserController::class, 'store'])->name('organizations.users.store');
+    Route::delete('organizations/{organization}/users/{organizationUser}', [\App\Http\Controllers\OrganizationUserController::class, 'destroy'])->name('organizations.users.destroy');
 
     // Friendly matches routes (nested under organizations)
     Route::get('organizations/{organization}/friendly-matches', [OrganizationController::class, 'friendlyMatches'])->name('organizations.friendly-matches.index');
@@ -77,6 +111,18 @@ Route::middleware('auth')->group(function () {
     Route::get('organizations/{organization}/leagues/{league}/matches/{match}/live', [LeagueController::class, 'liveScore'])->name('organizations.leagues.matches.live');
     Route::post('organizations/{organization}/leagues/{league}/matches/{match}/live-score', [LeagueController::class, 'updateLiveScore'])->name('organizations.leagues.matches.live-score');
     Route::post('organizations/{organization}/leagues/{league}/matches/{match}/reset', [LeagueController::class, 'resetMatch'])->name('organizations.leagues.matches.reset');
+});
+
+// Referee routes
+Route::middleware(['auth'])->prefix('referee')->name('referee.')->group(function () {
+    Route::get('/', [App\Http\Controllers\RefereeController::class, 'dashboard'])->name('dashboard');
+    Route::get('/leagues', [App\Http\Controllers\RefereeController::class, 'leagues'])->name('leagues');
+    Route::get('/leagues/{league}/matches', [App\Http\Controllers\RefereeController::class, 'leagueMatches'])->name('league.matches');
+    Route::get('/leagues/{league}/matches/{match}', [App\Http\Controllers\RefereeController::class, 'showMatch'])->name('match.show');
+    Route::get('/leagues/{league}/matches/{match}/edit', [App\Http\Controllers\RefereeController::class, 'editMatch'])->name('match.edit');
+    Route::get('/leagues/{league}/matches/{match}/live', [App\Http\Controllers\RefereeController::class, 'liveScore'])->name('match.live');
+    Route::put('/leagues/{league}/matches/{match}', [App\Http\Controllers\RefereeController::class, 'updateMatch'])->name('match.update');
+    Route::post('/leagues/{league}/matches/{match}/reset', [App\Http\Controllers\RefereeController::class, 'resetMatch'])->name('match.reset');
 });
 
 require __DIR__.'/auth.php';

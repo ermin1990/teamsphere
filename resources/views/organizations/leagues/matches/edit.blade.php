@@ -8,7 +8,7 @@
                 <p class="text-gray-400 mt-1">{{ $league->name }} • Round {{ $match->round }}</p>
             </div>
             <div class="flex items-center space-x-4">
-                <a href="{{ route('organizations.leagues.matches.show', [$organization, $league, $match]) }}"
+                <a href="{{ request()->routeIs('referee.*') ? route('referee.match.show', [$league, $match]) : route('organizations.leagues.matches.show', [$organization, $league, $match]) }}"
                    class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors">
                     ← Back to Match
                 </a>
@@ -19,7 +19,7 @@
     <div class="py-12">
         <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-8 border border-gray-700/50 shadow-xl">
-                <form method="POST" action="{{ route('organizations.leagues.matches.update', [$organization, $league, $match]) }}" class="space-y-6">
+                <form method="POST" action="{{ request()->routeIs('referee.*') ? route('referee.match.update', [$league, $match]) : route('organizations.leagues.matches.update', [$organization, $league, $match]) }}" class="space-y-6">
                     @csrf
                     @method('PUT')
 
