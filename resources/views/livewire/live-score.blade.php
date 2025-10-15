@@ -256,5 +256,12 @@
 @push('scripts')
 <script>
     // Timer functionality removed - no longer needed
+    
+    // Listen for clear-local-storage event
+    Livewire.on('clear-local-storage', (data) => {
+        // Clear all localStorage data when match is reset
+        localStorage.clear();
+        console.log('Cleared all localStorage data for match reset');
+    });
 </script>
 @endpush

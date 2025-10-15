@@ -159,3 +159,5 @@ Route::middleware(['auth'])->prefix('referee')->name('referee.')->group(function
 // Referee routes
 Route::middleware(['auth'])->prefix('referee')->name('referee.')->group(function () {
 });
+
+require __DIR__.'/auth.php';

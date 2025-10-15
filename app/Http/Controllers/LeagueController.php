@@ -927,13 +927,8 @@ class LeagueController extends Controller
             $match->load(['homeTeam.players', 'awayTeam.players']);
         }
 
-        // Start the match if not already started
-        if ($match->status === 'scheduled') {
-            $match->update([
-                'status' => 'in_progress',
-                'played_at' => now(),
-            ]);
-        }
+        // Don't auto-start the match here - let the user choose server first
+        // Match will be started when first server is selected in LiveScore component
 
         return view('organizations.leagues.matches.live', compact('organization', 'league', 'match'));
     }

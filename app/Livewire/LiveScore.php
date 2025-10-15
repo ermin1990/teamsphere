@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Models\LeagueMatch;
+use App\Models\Standing;
 use Livewire\Component;
 
 class LiveScore extends Component 
@@ -22,6 +23,49 @@ class LiveScore extends Component
     public $matchPaused = false;
     public $currentSet = 1;
 
+    public function mount($match)
+    {
+        // Refresh match data to get latest status from database
+        $match->refresh();
+        
+        $this->match = $match;
+        
+        // If match is scheduled (not started), always reset to initial state
+        if ($match && $match->status === 'scheduled') {
+            $this->firstServer = null;
+            $this->currentServer = null;
+            $this->homeScore = 0;
+            $this->awayScore = 0;
+            $this->sets = [];
+            $this->setDurations = [];
+            $this->currentSet = 1;
+            $this->matchStartTime = null;
+            $this->setStartTime = null;
+            $this->matchPaused = false;
+        } else {
+            // Load existing match data for in-progress or completed matches
+            if ($match && $match->first_server) {
+                $this->firstServer = $match->first_server;
+                $this->currentServer = $match->current_server ?? $match->first_server;
+            }
+            
+            // Load scores and sets data
+            $this->homeScore = $match->home_score ?? 0;
+            $this->awayScore = $match->away_score ?? 0;
+            $this->sets = $match->sets ?? [];
+            $this->setDurations = $match->set_durations ?? [];
+            $this->currentSet = count($this->sets) + 1;
+            
+            // Load timing data
+            if ($match->played_at) {
+                $this->matchStartTime = $match->played_at;
+            }
+            if ($match->current_set_started_at) {
+                $this->setStartTime = $match->current_set_started_at;
+            }
+        }
+    }
+
     public function recordSetDuration($seconds)
     {
         // Add the duration to the setDurations array
@@ -37,6 +81,7 @@ class LiveScore extends Component
     {
         $this->firstServer = $player;
         $this->currentServer = $player;
+        
         $this->match->update([
             'first_server' => $player,
             'current_server' => $player,
@@ -307,6 +352,9 @@ class LiveScore extends Component
 
         // Stop any running timers and reset UI
         $this->dispatch('stop-timers');
+        
+        // Clear localStorage data for this match
+        $this->dispatch('clear-local-storage', ['matchId' => $this->match->id]);
     }
 
     public function endMatch()
@@ -339,6 +387,9 @@ class LiveScore extends Component
             'status' => 'completed',
             'played_at' => now(),
         ]);
+
+        // Update league standings
+        $this->updateStandings($this->match->league);
 
         // Stop timers and reset to 00:00
         $this->dispatch('stop-timers');
@@ -445,6 +496,118 @@ class LiveScore extends Component
             playedAt: optional($this->matchStartTime)->toIso8601String(),
             setStartedAt: optional($this->setStartTime)->toIso8601String()
         );
+    }
+
+    private function updateStandings($league)
+    {
+        // Reset all standings for this league
+        Standing::where('league_id', $league->id)->update([
+            'played' => 0,
+            'won' => 0,
+            'drawn' => 0,
+            'lost' => 0,
+            'points' => 0,
+            'goals_for' => 0,
+            'goals_against' => 0,
+            'goal_difference' => 0,
+        ]);
+
+        // Get all completed, forfeited matches and cancelled matches with scores
+        $completedMatches = LeagueMatch::where('league_id', $league->id)
+            ->where(function($query) {
+                $query->whereIn('status', ['completed', 'forfeited'])
+                      ->orWhere(function($q) {
+                          $q->where('status', 'cancelled')
+                            ->where(function($sq) {
+                                $sq->where('home_score', '>', 0)
+                                   ->orWhere('away_score', '>', 0);
+                            });
+                      });
+            })
+            ->get();
+
+        foreach ($completedMatches as $match) {
+            $homeParticipantId = $league->is_team_based ? $match->home_team_id : $match->home_player_id;
+            $awayParticipantId = $league->is_team_based ? $match->away_team_id : $match->away_player_id;
+
+            $homeStanding = Standing::where('league_id', $league->id)
+                ->where($league->is_team_based ? 'team_id' : 'player_id', $homeParticipantId)
+                ->first();
+
+            $awayStanding = Standing::where('league_id', $league->id)
+                ->where($league->is_team_based ? 'team_id' : 'player_id', $awayParticipantId)
+                ->first();
+
+            if ($homeStanding && $awayStanding) {
+                // Update played games
+                $homeStanding->increment('played');
+                $awayStanding->increment('played');
+
+                // Handle forfeited matches
+                if ($match->status === 'forfeited') {
+                    if ($match->forfeited_by === 'home') {
+                        // Away wins by forfeit
+                        $awayStanding->increment('won');
+                        $awayStanding->increment('points', $league->settings['points_win'] ?? 3);
+                        $homeStanding->increment('lost');
+                        $homeStanding->increment('points', $league->settings['points_loss'] ?? 1);
+                    } elseif ($match->forfeited_by === 'away') {
+                        // Home wins by forfeit
+                        $homeStanding->increment('won');
+                        $homeStanding->increment('points', $league->settings['points_win'] ?? 3);
+                        $awayStanding->increment('lost');
+                        $awayStanding->increment('points', $league->settings['points_loss'] ?? 1);
+                    }
+                } else {
+                    // Regular match results based on sets won
+                    $homeSets = $match->home_score ?? 0;
+                    $awaySets = $match->away_score ?? 0;
+
+                    if ($homeSets > $awaySets) {
+                        // Home wins
+                        $homeStanding->increment('won');
+                        $awayStanding->increment('lost');
+                        $homeStanding->increment('points', $league->settings['points_win'] ?? 3);
+                        $awayStanding->increment('points', $league->settings['points_loss'] ?? 1);
+                    } elseif ($awaySets > $homeSets) {
+                        // Away wins
+                        $awayStanding->increment('won');
+                        $homeStanding->increment('lost');
+                        $awayStanding->increment('points', $league->settings['points_win'] ?? 3);
+                        $homeStanding->increment('points', $league->settings['points_loss'] ?? 1);
+                    } else {
+                        // Draw (shouldn't happen in table tennis, but just in case)
+                        $homeStanding->increment('drawn');
+                        $awayStanding->increment('drawn');
+                        $homeStanding->increment('points', $league->settings['points_draw'] ?? 1);
+                        $awayStanding->increment('points', $league->settings['points_draw'] ?? 1);
+                    }
+
+                    // Update goals (sets) for and against
+                    $homeStanding->increment('goals_for', $homeSets);
+                    $homeStanding->increment('goals_against', $awaySets);
+                    $awayStanding->increment('goals_for', $awaySets);
+                    $awayStanding->increment('goals_against', $homeSets);
+
+                    // Update goal difference
+                    $homeStanding->increment('goal_difference', $homeSets - $awaySets);
+                    $awayStanding->increment('goal_difference', $awaySets - $homeSets);
+                }
+            }
+        }
+
+        // Update positions based on points, then goal difference, then goals for
+        $standings = Standing::where('league_id', $league->id)
+            ->orderBy('points', 'desc')
+            ->orderBy('goal_difference', 'desc')
+            ->orderBy('goals_for', 'desc')
+            ->get();
+
+        $position = 1;
+        foreach ($standings as $standing) {
+            $standing->update(['position' => $position]);
+            $position++;
+        }
     }
 
     public function render()
