@@ -8,7 +8,7 @@
             <div class="py-6">
                 <div class="flex items-center justify-between">
                     <div>
-                        <h1 class="text-3xl font-bold text-gray-900">Match Details</h1>
+                        <h1 class="text-3xl font-bold text-gray-900">Detalji Meča</h1>
                         <p class="mt-1 text-sm text-gray-500">{{ $league->name }} • {{ $league->sport->name }}</p>
                     </div>
                     <div class="flex items-center space-x-4">
@@ -16,14 +16,14 @@
                             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
                             </svg>
-                            Back to Matches
+                            Nazad na Mečeve
                         </a>
                         @if($match->status !== 'completed')
                             <a href="{{ route('referee.match.edit', [$league, $match]) }}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
                                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                                 </svg>
-                                Edit Result
+                                Uredi Rezultat
                             </a>
                         @endif
                     </div>
@@ -55,15 +55,15 @@
                             <div class="text-sm text-gray-500 uppercase tracking-wide">
                                 @if($match->status === 'in_progress')
                                     <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800 animate-pulse">
-                                        LIVE
+                                        Uživo
                                     </span>
                                 @elseif($match->status === 'completed')
                                     <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-                                        FINISHED
+                                        Završeno
                                     </span>
                                 @elseif($match->status === 'cancelled')
                                     <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
-                                        CANCELLED
+                                        Otkazano
                                     </span>
                                 @else
                                     <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
@@ -83,19 +83,19 @@
                     <div class="border-t border-gray-200 pt-6">
                         <dl class="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2 lg:grid-cols-4">
                             <div>
-                                <dt class="text-sm font-medium text-gray-500">Scheduled Time</dt>
+                                <dt class="text-sm font-medium text-gray-500">Zakazano Vrijeme</dt>
                                 <dd class="mt-1 text-sm text-gray-900">
                                     @if($match->scheduled_at)
                                         {{ $match->scheduled_at->format('l, F d, Y') }}<br>
                                         {{ $match->scheduled_at->format('H:i') }}
                                     @else
-                                        Not scheduled
+                                        Nije zakazano
                                     @endif
                                 </dd>
                             </div>
 
                             <div>
-                                <dt class="text-sm font-medium text-gray-500">League</dt>
+                                <dt class="text-sm font-medium text-gray-500">Lige</dt>
                                 <dd class="mt-1 text-sm text-gray-900">{{ $league->name }}</dd>
                             </div>
 
@@ -105,7 +105,7 @@
                             </div>
 
                             <div>
-                                <dt class="text-sm font-medium text-gray-500">Organization</dt>
+                                <dt class="text-sm font-medium text-gray-500">Organizacija</dt>
                                 <dd class="mt-1 text-sm text-gray-900">{{ $league->organization->name }}</dd>
                             </div>
                         </dl>
@@ -120,9 +120,9 @@
                                     </svg>
                                 </div>
                                 <div class="ml-3">
-                                    <h3 class="text-sm font-medium text-yellow-800">Match Forfeited</h3>
+                                    <h3 class="text-sm font-medium text-yellow-800">Meč Otkazan</h3>
                                     <div class="mt-2 text-sm text-yellow-700">
-                                        <p>This match was forfeited by the {{ $match->forfeited_by }} team.</p>
+                                        <p>Ovaj meč je otkazao tim :team.</p>
                                     </div>
                                 </div>
                             </div>
@@ -136,7 +136,7 @@
         @if($match->status !== 'completed')
             <div class="bg-white shadow rounded-lg">
                 <div class="px-4 py-5 sm:p-6">
-                    <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Quick Actions</h3>
+                    <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Brze Akcije</h3>
                     <div class="flex flex-wrap gap-3">
                         @if($match->status !== 'in_progress')
                             <form method="POST" action="{{ route('referee.match.update', [$league, $match]) }}" class="inline">
@@ -147,7 +147,7 @@
                                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1.586a1 1 0 01.707.293l.707.707A1 1 0 0012.414 11H13m-4 4h1.586a1 1 0 01.707.293l.707.707A1 1 0 0012.414 15H13m-4-4v4"></path>
                                     </svg>
-                                    Start Live Match
+                                    Započni Uživo Meč
                                 </button>
                             </form>
                         @endif
@@ -161,7 +161,7 @@
                                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                     </svg>
-                                    End Match
+                                    Završi Meč
                                 </button>
                             </form>
                         @endif
@@ -174,7 +174,7 @@
                                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                                 </svg>
-                                Cancel Match
+                                Otkaži Meč
                             </button>
                         </form>
                     </div>

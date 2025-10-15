@@ -36,11 +36,15 @@ class LeagueController extends Controller
      */
     public function show(Organization $organization, League $league)
     {
-        // Allow access if user owns the organization OR is registered as a player in it
+        // Allow access if user owns the organization OR is registered as a player in it OR is a referee
         $isOwner = $organization->user_id === auth()->id();
         $isPlayer = $organization->players()->where('user_id', auth()->id())->exists();
+        $isReferee = auth()->user()->organizationUsers()
+            ->where('organization_id', $organization->id)
+            ->where('role', 'referee')
+            ->exists();
 
-        if (!$isOwner && !$isPlayer) {
+        if (!$isOwner && !$isPlayer && !$isReferee) {
             abort(403);
         }
 
@@ -52,7 +56,7 @@ class LeagueController extends Controller
         $league->load('sport', 'teams.players', 'matches.homeTeam', 'matches.awayTeam', 'matches.homePlayer', 'matches.awayPlayer', 'players', 'standings');
         $organization->load('players');
 
-        return view('organizations.leagues.show', compact('organization', 'league', 'isOwner', 'isPlayer'));
+        return view('organizations.leagues.show', compact('organization', 'league', 'isOwner', 'isPlayer', 'isReferee'));
     }
 
     /**
@@ -785,11 +789,15 @@ class LeagueController extends Controller
      */
     public function showMatch(Request $request, Organization $organization, League $league, LeagueMatch $match)
     {
-        // Allow access if user owns the organization OR is registered as a player in it
+        // Allow access if user owns the organization OR is registered as a player in it OR is a referee
         $isOwner = $organization->user_id === auth()->id();
         $isPlayer = $organization->players()->where('user_id', auth()->id())->exists();
+        $isReferee = auth()->user()->organizationUsers()
+            ->where('organization_id', $organization->id)
+            ->where('role', 'referee')
+            ->exists();
 
-        if (!$isOwner && !$isPlayer) {
+        if (!$isOwner && !$isPlayer && !$isReferee) {
             abort(403);
         }
 
@@ -808,7 +816,7 @@ class LeagueController extends Controller
             $match->load(['homeTeam.players', 'awayTeam.players']);
         }
 
-        return view('organizations.leagues.matches.show', compact('organization', 'league', 'match', 'isOwner', 'isPlayer'));
+        return view('organizations.leagues.matches.show', compact('organization', 'league', 'match', 'isOwner', 'isPlayer', 'isReferee'));
     }
 
     /**
@@ -816,8 +824,8 @@ class LeagueController extends Controller
      */
     public function editMatch(Request $request, Organization $organization, League $league, LeagueMatch $match)
     {
-        // Ensure user owns this organization
-        if ($organization->user_id !== auth()->id()) {
+        // Ensure user can manage matches for this organization (owner or referee)
+        if (!$this->canManageMatches($organization)) {
             abort(403);
         }
 
@@ -907,8 +915,8 @@ class LeagueController extends Controller
      */
     public function liveScore(Request $request, Organization $organization, League $league, LeagueMatch $match)
     {
-        // Ensure user owns this organization
-        if ($organization->user_id !== auth()->id()) {
+        // Ensure user can manage matches for this organization (owner or referee)
+        if (!$this->canManageMatches($organization)) {
             abort(403);
         }
 

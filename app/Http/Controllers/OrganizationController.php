@@ -14,6 +14,14 @@ class OrganizationController extends Controller
 
     public function showFriendlyMatch(Organization $organization, FriendlyMatch $match)
     {
+        // Ensure user is a member of this organization
+        $isMember = $organization->user_id === auth()->id() || 
+                   auth()->user()->organizationUsers()->where('organization_id', $organization->id)->exists();
+        
+        if (!$isMember) {
+            abort(403);
+        }
+
         // For doubles, split names if needed
         if (str_contains($match->home_player_name, ' / ')) {
             [$match->home_player_name, $match->home_player2_name] = explode(' / ', $match->home_player_name);
@@ -37,15 +45,19 @@ class OrganizationController extends Controller
      */
     public function show(Organization $organization)
     {
-        // Allow access if user owns the organization OR is registered as a player in it
+        // Allow access if user owns the organization OR is registered as a player in it OR is a referee
         $isOwner = $organization->user_id === auth()->id();
         $isPlayer = $organization->players()->where('user_id', auth()->id())->exists();
+        $isReferee = auth()->user()->organizationUsers()
+            ->where('organization_id', $organization->id)
+            ->where('role', 'referee')
+            ->exists();
 
-        if (!$isOwner && !$isPlayer) {
+        if (!$isOwner && !$isPlayer && !$isReferee) {
             abort(403);
         }
 
-        return view('organizations.show', compact('organization', 'isOwner', 'isPlayer'));
+        return view('organizations.show', compact('organization', 'isOwner', 'isPlayer', 'isReferee'));
     }
 
     /**
@@ -111,8 +123,11 @@ class OrganizationController extends Controller
      */
     public function friendlyMatches(Organization $organization)
     {
-        // Ensure user owns this organization
-        if ($organization->user_id !== auth()->id()) {
+        // Ensure user is a member of this organization
+        $isMember = $organization->user_id === auth()->id() || 
+                   auth()->user()->organizationUsers()->where('organization_id', $organization->id)->exists();
+        
+        if (!$isMember) {
             \Log::info('Friendly matches access denied', [
                 'organization_id' => $organization->id,
                 'organization_user_id' => $organization->user_id,
@@ -136,8 +151,11 @@ class OrganizationController extends Controller
      */
     public function tableTennisFriendly(Organization $organization)
     {
-        // Ensure user owns this organization
-        if ($organization->user_id !== auth()->id()) {
+        // Ensure user is a member of this organization
+        $isMember = $organization->user_id === auth()->id() || 
+                   auth()->user()->organizationUsers()->where('organization_id', $organization->id)->exists();
+        
+        if (!$isMember) {
             abort(403);
         }
 

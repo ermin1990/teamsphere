@@ -1,12 +1,12 @@
 <div>
     <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl">
-        <h3 class="text-xl font-semibold text-white mb-4">{{ __('Add Player by Email') }}</h3>
+        <h3 class="text-xl font-semibold text-white mb-4">Dodaj Igrača po Email-u</h3>
 
         <div class="space-y-4">
             <!-- Email Input -->
             <div>
                 <label for="email" class="block text-sm font-medium text-gray-300 mb-2">
-                    {{ __('Player Email') }}
+                    Email Igrača
                 </label>
                 <div class="relative">
                     <input
@@ -14,7 +14,7 @@
                         wire:model.live.debounce.300ms="email"
                         id="email"
                         class="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                        placeholder="{{ __('Enter player email address...') }}"
+                        placeholder="Unesite email adresu igrača..."
                     >
                     @if($isSearching)
                     <div class="absolute right-3 top-3">
@@ -71,13 +71,13 @@
                     wire:click="createAndAddPlayer"
                     class="flex-1 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white px-4 py-3 rounded-lg font-medium transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-green-500/25"
                 >
-                    {{ __('Create Player & Add to League') }}
+                    Kreiraj Igrača i Dodaj u Ligu
                 </button>
                 <button
                     wire:click="clearSearch"
                     class="px-4 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-medium transition-colors"
                 >
-                    {{ __('Clear') }}
+                    Očisti
                 </button>
             </div>
             @elseif($foundPlayer && !str_contains($searchMessage, 'already'))
@@ -86,13 +86,13 @@
                     wire:click="addExistingPlayer"
                     class="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-4 py-3 rounded-lg font-medium transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-blue-500/25"
                 >
-                    {{ __('Add to League') }}
+                    Dodaj u Ligu
                 </button>
                 <button
                     wire:click="clearSearch"
                     class="px-4 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-medium transition-colors"
                 >
-                    {{ __('Clear') }}
+                    Očisti
                 </button>
             </div>
             @elseif($email && $searchMessage)
@@ -101,7 +101,7 @@
                     wire:click="clearSearch"
                     class="px-4 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-medium transition-colors"
                 >
-                    {{ __('Clear') }}
+                    Očisti
                 </button>
             </div>
             @endif

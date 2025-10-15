@@ -4,7 +4,7 @@
         <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl hover:shadow-2xl transition-all duration-200">
             <div class="flex items-center justify-between mb-4">
                 <div class="text-sm text-gray-400">{{ Carbon::parse($match->completed_at)->format('d.m.Y H:i') }}</div>
-                <div class="text-xs bg-green-600/20 text-green-400 px-2 py-1 rounded-full">{{ __('Table Tennis') }}</div>
+                <div class="text-xs bg-green-600/20 text-green-400 px-2 py-1 rounded-full">Stoni Tenis</div>
             </div>
 
             <div class="text-center mb-4">
@@ -70,7 +70,7 @@
 
             <div class="space-y-2 mb-4">
                 <div class="flex justify-between text-sm">
-                    <span class="text-gray-400">{{ __('Sets:') }}</span>
+                    <span class="text-gray-400">Setovi:</span>
                     <span class="text-white">{{ count($match->sets) }}</span>
                 </div>
                 <div class="flex justify-between text-sm">

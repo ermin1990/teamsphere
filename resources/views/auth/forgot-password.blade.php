@@ -1,9 +1,9 @@
 <x-guest-layout>
     <div class="text-center mb-8">
         <h2 class="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent mb-2">
-            {{ __('messages.auth.forgot_password.title') }}
+            Zaboravili ste Lozinku?
         </h2>
-        <p class="text-gray-400">{{ __('messages.auth.forgot_password.subtitle') }}</p>
+        <p class="text-gray-400">Nema problema. Samo nam recite vašu email adresu i poslat ćemo vam link za resetovanje lozinke.</p>
     </div>
 
     <!-- Session Status -->
@@ -15,7 +15,7 @@
         <!-- Email Address -->
         <div class="space-y-2">
             <label for="email" class="block text-sm font-medium text-gray-300">
-                {{ __('messages.auth.forgot_password.email') }}
+                Email Adresa
             </label>
             <div class="relative">
                 <input id="email"
@@ -26,7 +26,7 @@
                        required
                        autofocus
                        autocomplete="email"
-                       placeholder="{{ __('messages.auth.login.email_placeholder') }}" />
+                       placeholder="Unesite vaš email" />
                 <div class="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-500/20 to-purple-500/20 opacity-0 hover:opacity-100 transition-opacity duration-200 pointer-events-none"></div>
             </div>
             <x-input-error :messages="$errors->get('email')" class="mt-2 text-red-400 text-sm" />
@@ -34,7 +34,7 @@
 
         <div class="flex items-center justify-center mt-6">
             <button type="submit" class="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-6 py-3 rounded-xl transition-all duration-200 transform hover:scale-[1.02] hover:shadow-lg hover:shadow-blue-500/25 font-medium">
-                {{ __('messages.auth.forgot_password.email_password_reset_link') }}
+                Pošalji Link za Resetovanje Lozinke
             </button>
         </div>
     </form>

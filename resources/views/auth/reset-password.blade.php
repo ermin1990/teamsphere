@@ -1,7 +1,7 @@
 <x-guest-layout>
     <div class="text-center mb-8">
         <h2 class="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent mb-2">
-            {{ __('messages.auth.reset_password.title') }}
+            Resetujte Lozinku
         </h2>
     </div>
 
@@ -14,7 +14,7 @@
         <!-- Email Address -->
         <div class="space-y-2">
             <label for="email" class="block text-sm font-medium text-gray-300">
-                {{ __('messages.auth.reset_password.email') }}
+                Email Adresa
             </label>
             <div class="relative">
                 <input id="email"
@@ -25,7 +25,7 @@
                        required
                        autofocus
                        autocomplete="username"
-                       placeholder="{{ __('messages.auth.login.email_placeholder') }}" />
+                       placeholder="Unesite vaš email" />
                 <div class="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-500/20 to-purple-500/20 opacity-0 hover:opacity-100 transition-opacity duration-200 pointer-events-none"></div>
             </div>
             <x-input-error :messages="$errors->get('email')" class="mt-2 text-red-400 text-sm" />
@@ -34,7 +34,7 @@
         <!-- Password -->
         <div class="space-y-2">
             <label for="password" class="block text-sm font-medium text-gray-300">
-                {{ __('messages.auth.reset_password.password') }}
+                Lozinka
             </label>
             <div class="relative">
                 <input id="password"
@@ -43,7 +43,7 @@
                        name="password"
                        required
                        autocomplete="new-password"
-                       placeholder="{{ __('messages.auth.register.password_placeholder') }}" />
+                       placeholder="Unesite vašu lozinku" />
                 <div class="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-500/20 to-purple-500/20 opacity-0 hover:opacity-100 transition-opacity duration-200 pointer-events-none"></div>
             </div>
             <x-input-error :messages="$errors->get('password')" class="mt-2 text-red-400 text-sm" />
@@ -52,7 +52,7 @@
         <!-- Confirm Password -->
         <div class="space-y-2">
             <label for="password_confirmation" class="block text-sm font-medium text-gray-300">
-                {{ __('messages.auth.reset_password.confirm_password') }}
+                Potvrdite Lozinku
             </label>
             <div class="relative">
                 <input id="password_confirmation"
@@ -61,7 +61,7 @@
                        name="password_confirmation"
                        required
                        autocomplete="new-password"
-                       placeholder="{{ __('messages.auth.register.confirm_password_placeholder') }}" />
+                       placeholder="Potvrdite vašu lozinku" />
                 <div class="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-500/20 to-purple-500/20 opacity-0 hover:opacity-100 transition-opacity duration-200 pointer-events-none"></div>
             </div>
             <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2 text-red-400 text-sm" />
@@ -69,7 +69,7 @@
 
         <div class="flex items-center justify-center mt-6">
             <button type="submit" class="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-6 py-3 rounded-xl transition-all duration-200 transform hover:scale-[1.02] hover:shadow-lg hover:shadow-blue-500/25 font-medium">
-                {{ __('messages.auth.reset_password.reset_password') }}
+                Resetujte Lozinku
             </button>
         </div>
     </form>

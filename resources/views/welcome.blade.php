@@ -48,28 +48,23 @@
 
                     <!-- Desktop Navigation -->
                     <div class="hidden md:flex items-center space-x-8">
-                        <a href="#features" class="text-gray-300 hover:text-white font-medium transition-colors">{{ __('messages.nav.features') }}</a>
-                        <a href="#how-it-works" class="text-gray-300 hover:text-white font-medium transition-colors">{{ __('messages.nav.how_it_works') }}</a>
-                        <a href="#demo" class="text-gray-300 hover:text-white font-medium transition-colors">{{ __('messages.nav.demo') }}</a>
+                        <a href="#features" class="text-gray-300 hover:text-white font-medium transition-colors">Funkcionalnosti</a>
+                        <a href="#how-it-works" class="text-gray-300 hover:text-white font-medium transition-colors">Kako Radi</a>
+                        <a href="#demo" class="text-gray-300 hover:text-white font-medium transition-colors">Demo</a>
                     </div>
 
                     <!-- Auth Links -->
                     <div class="hidden md:flex items-center space-x-4">
-                        <!-- Language Switcher -->
-                        <div class="flex items-center space-x-2 mr-4">
-                            <a href="{{ route('locale', ['locale' => 'en']) }}" class="text-gray-300 hover:text-white font-medium transition-colors {{ app()->getLocale() === 'en' ? 'text-blue-400' : '' }}">EN</a>
-                            <span class="text-gray-600">|</span>
-                            <a href="{{ route('locale', ['locale' => 'bs']) }}" class="text-gray-300 hover:text-white font-medium transition-colors {{ app()->getLocale() === 'bs' ? 'text-blue-400' : '' }}">BS</a>
-                        </div>
+                       
 
                         @if (Route::has('login'))
                             <a href="{{ route('login') }}" class="text-gray-300 hover:text-white font-medium transition-colors px-4 py-2">
-                                {{ __('messages.nav.sign_in') }}
+                                Prijavi se
                             </a>
                         @endif
                         @if (Route::has('register'))
                             <a href="{{ route('register') }}" class="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 px-6 py-2.5 rounded-lg text-white font-medium transition-all">
-                                {{ __('messages.nav.get_started') }}
+                                Započni
                             </a>
                         @endif
                     </div>
@@ -77,22 +72,18 @@
                 <!-- Mobile Menu -->
                 <div id="mobile-menu" class="md:hidden fixed top-20 left-0 w-full bg-gray-900/95 border-b border-gray-700/50 z-40 hidden transition-all duration-300">
                     <div class="flex flex-col items-center py-6 space-y-4">
-                        <a href="#features" class="text-gray-300 hover:text-white font-medium transition-colors w-full text-center">{{ __('messages.nav.features') }}</a>
-                        <a href="#how-it-works" class="text-gray-300 hover:text-white font-medium transition-colors w-full text-center">{{ __('messages.nav.how_it_works') }}</a>
-                        <a href="#demo" class="text-gray-300 hover:text-white font-medium transition-colors w-full text-center">{{ __('messages.nav.demo') }}</a>
-                        <div class="flex items-center space-x-2">
-                            <a href="{{ route('locale', ['locale' => 'en']) }}" class="text-gray-300 hover:text-white font-medium transition-colors {{ app()->getLocale() === 'en' ? 'text-blue-400' : '' }}">EN</a>
-                            <span class="text-gray-600">|</span>
-                            <a href="{{ route('locale', ['locale' => 'bs']) }}" class="text-gray-300 hover:text-white font-medium transition-colors {{ app()->getLocale() === 'bs' ? 'text-blue-400' : '' }}">BS</a>
-                        </div>
+                        <a href="#features" class="text-gray-300 hover:text-white font-medium transition-colors w-full text-center">Funkcionalnosti</a>
+                        <a href="#how-it-works" class="text-gray-300 hover:text-white font-medium transition-colors w-full text-center">Kako Radi</a>
+                        <a href="#demo" class="text-gray-300 hover:text-white font-medium transition-colors w-full text-center">Demo</a>
+                        
                         @if (Route::has('login'))
                             <a href="{{ route('login') }}" class="text-gray-300 hover:text-white font-medium transition-colors px-4 py-2 w-full text-center">
-                                {{ __('messages.nav.sign_in') }}
+                                Prijavi se
                             </a>
                         @endif
                         @if (Route::has('register'))
                             <a href="{{ route('register') }}" class="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 px-6 py-2.5 rounded-lg text-white font-medium transition-all w-full text-center">
-                                {{ __('messages.nav.get_started') }}
+                                Započni
                             </a>
                         @endif
                     </div>
@@ -134,19 +125,19 @@
                 <!-- Badge -->
                 <div class="inline-flex items-center space-x-2 bg-blue-500/10 border border-blue-500/20 rounded-full px-6 py-3 mb-8">
                     <div class="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
-                    <span class="text-blue-300 text-sm font-medium">{{ __('messages.hero.badge') }}</span>
+                    <span class="text-blue-300 text-sm font-medium">Revolucionarno Upravljanje Sportom</span>
                 </div>
 
                 <!-- Main Headline -->
                 <h1 class="text-5xl sm:text-6xl lg:text-7xl font-black leading-tight mb-8">
-                    <span class="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">{{ __('messages.hero.title.transform') }}</span><br>
-                    <span class="text-white">{{ __('messages.hero.title.your_teams') }}</span><br>
-                    <span class="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">{{ __('messages.hero.title.performance') }}</span>
+                    <span class="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">Transformiši</span><br>
+                    <span class="text-white">Performanse</span><br>
+                    <span class="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">Tvojeg Tima</span>
                 </h1>
 
                 <!-- Subtitle -->
                 <p class="text-xl sm:text-2xl text-gray-300 max-w-3xl mx-auto mb-12 leading-relaxed">
-                    {{ __('messages.hero.subtitle') }}
+                    Najnaprednija platforma za upravljanje sportom koja osnažuje timove, lige i organizacije da dostignu svoj puni potencijal.
                 </p>
 
                 <!-- CTA Buttons -->
@@ -154,7 +145,7 @@
                     @if (Route::has('register'))
                         <a href="{{ route('register') }}" class="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 px-8 py-4 rounded-xl text-white font-semibold text-lg transition-all group">
                             <span class="flex items-center space-x-2">
-                                <span>{{ __('messages.hero.start_journey') }}</span>
+                                <span>Započni Putovanje</span>
                                 <svg class="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                                 </svg>
@@ -166,7 +157,7 @@
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1.586a1 1 0 01.707.293l.707.707A1 1 0 0012.414 11H13m-3 3a1 1 0 100 2 1 1 0 000-2z"></path>
                             </svg>
-                            <span>{{ __('messages.hero.watch_demo') }}</span>
+                            <span>Pogledaj Demo</span>
                         </span>
                     </a>
                 </div>
@@ -175,15 +166,15 @@
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-8 max-w-2xl mx-auto">
                     <div class="text-center">
                         <div class="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent mb-2">10K+</div>
-                        <div class="text-gray-400 text-sm">{{ __('messages.hero.stats.teams') }}</div>
+                        <div class="text-gray-400 text-sm">Aktivnih Timova</div>
                     </div>
                     <div class="text-center">
                         <div class="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent mb-2">500K+</div>
-                        <div class="text-gray-400 text-sm">{{ __('messages.hero.stats.players') }}</div>
+                        <div class="text-gray-400 text-sm">Upravljanih Igrača</div>
                     </div>
                     <div class="text-center">
                         <div class="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent mb-2">99.9%</div>
-                        <div class="text-gray-400 text-sm">{{ __('messages.hero.stats.uptime') }}</div>
+                        <div class="text-gray-400 text-sm">Dostupnost</div>
                     </div>
                 </div>
             </div>
@@ -206,13 +197,13 @@
                         <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path>
                         </svg>
-                        <span class="text-purple-300 text-sm font-medium">{{ __('messages.features.badge') }}</span>
+                        <span class="text-purple-300 text-sm font-medium">Moćne Funkcionalnosti</span>
                     </div>
                     <h2 class="text-4xl sm:text-5xl font-black text-white mb-6">
-                        {{ __('messages.features.title') }}
+                        Sve što vam treba da Uspijete
                     </h2>
                     <p class="text-xl text-gray-400 max-w-2xl mx-auto">
-                        {{ __('messages.features.subtitle') }}
+                        Sveobuhvatni alati dizajnirani za moderno upravljanje sportom
                     </p>
                 </div>
 
@@ -225,9 +216,9 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
                             </svg>
                         </div>
-                        <h3 class="text-xl font-bold text-white mb-4">{{ __('messages.features.items.team_management.title') }}</h3>
+                        <h3 class="text-xl font-bold text-white mb-4">Upravljanje Timom</h3>
                         <p class="text-gray-400 leading-relaxed">
-                            {{ __('messages.features.items.team_management.description') }}
+                            Organizujte igrače, pratite performanse i upravljajte rosterima sa intuitivnim alatima dizajniranim za trenere i menadžere.
                         </p>
                     </div>
 
@@ -238,9 +229,9 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
                             </svg>
                         </div>
-                        <h3 class="text-xl font-bold text-white mb-4">{{ __('messages.features.items.league_organization.title') }}</h3>
+                        <h3 class="text-xl font-bold text-white mb-4">Organizacija Lige</h3>
                         <p class="text-gray-400 leading-relaxed">
-                            {{ __('messages.features.items.league_organization.description') }}
+                            Kreirajte i upravljajte turnirima, rasporedite utakmice i pratite tabele sa automatizovanim kalkulacijama.
                         </p>
                     </div>
 
@@ -251,9 +242,9 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
                             </svg>
                         </div>
-                        <h3 class="text-xl font-bold text-white mb-4">{{ __('messages.features.items.analytics.title') }}</h3>
+                        <h3 class="text-xl font-bold text-white mb-4">Real-time Analitika</h3>
                         <p class="text-gray-400 leading-relaxed">
-                            {{ __('messages.features.items.analytics.description') }}
+                            Dobijte detaljne uvide u performanse tima, statistike igrača i analitiku utakmica u realnom vremenu.
                         </p>
                     </div>
 
@@ -308,10 +299,10 @@
                         <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
                         </svg>
-                        <span class="text-emerald-300 text-sm font-medium">{{ __('messages.how_it_works.badge') }}</span>
+                        <span class="text-emerald-300 text-sm font-medium">Jednostavan Proces</span>
                     </div>
                     <h2 class="text-4xl sm:text-5xl font-black text-white mb-6">
-                        {{ __('messages.how_it_works.title') }}
+                        Započnite za 3 Jednostavna Koraka
                     </h2>
                 </div>
 
@@ -321,9 +312,9 @@
                         <div class="w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
                             <span class="text-2xl font-bold text-white">1</span>
                         </div>
-                        <h3 class="text-2xl font-bold text-white mb-4">{{ __('messages.how_it_works.steps.create_org.title') }}</h3>
+                        <h3 class="text-2xl font-bold text-white mb-4">Kreirajte Svoju Organizaciju</h3>
                         <p class="text-gray-400 leading-relaxed">
-                            {{ __('messages.how_it_works.steps.create_org.description') }}
+                            Postavite svoju sportsku organizaciju za minute. Dodajte svoje timove, igrače i osnovne informacije.
                         </p>
                     </div>
 
@@ -332,9 +323,9 @@
                         <div class="w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
                             <span class="text-2xl font-bold text-white">2</span>
                         </div>
-                        <h3 class="text-2xl font-bold text-white mb-4">{{ __('messages.how_it_works.steps.organize_competitions.title') }}</h3>
+                        <h3 class="text-2xl font-bold text-white mb-4">Organizujte Takmičenja</h3>
                         <p class="text-gray-400 leading-relaxed">
-                            {{ __('messages.how_it_works.steps.organize_competitions.description') }}
+                            Kreirajte lige, rasporedite utakmice i pozovite učesnike. Naš sistem automatski obavi ostalo.
                         </p>
                     </div>
 
@@ -343,9 +334,9 @@
                         <div class="w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
                             <span class="text-2xl font-bold text-white">3</span>
                         </div>
-                        <h3 class="text-2xl font-bold text-white mb-4">{{ __('messages.how_it_works.steps.track_analyze.title') }}</h3>
+                        <h3 class="text-2xl font-bold text-white mb-4">Pratite i Analizirajte</h3>
                         <p class="text-gray-400 leading-relaxed">
-                            {{ __('messages.how_it_works.steps.track_analyze.description') }}
+                            Nadgledajte performanse, pratite statistike i steknite uvide za poboljšanje rezultata vašeg tima.
                         </p>
                     </div>
                 </div>
@@ -360,13 +351,13 @@
                     <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1.586a1 1 0 01.707.293l.707.707A1 1 0 0012.414 11H13m-3 3a1 1 0 100 2 1 1 0 000-2z"></path>
                     </svg>
-                    <span class="text-cyan-300 text-sm font-medium">{{ __('messages.demo.badge') }}</span>
+                    <span class="text-cyan-300 text-sm font-medium">Živi Demo</span>
                 </div>
                 <h2 class="text-4xl sm:text-5xl font-black text-white mb-6">
-                    {{ __('messages.demo.title') }}
+                    Pogledajte Team Sphere u Akciji
                 </h2>
                 <p class="text-xl text-gray-400 max-w-2xl mx-auto mb-12">
-                    {{ __('messages.demo.subtitle') }}
+                    Pogledajte koliko je lako upravljati vašom sportskom organizacijom sa našom moćnom platformom
                 </p>
 
                 <!-- Demo Placeholder -->
@@ -378,7 +369,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1.586a1 1 0 01.707.293l.707.707A1 1 0 12.414 11H13m-3 3a1 1 0 100 2 1 1 0 000-2z"></path>
                                 </svg>
                             </div>
-                            <p class="text-gray-400">{{ __('messages.demo.coming_soon') }}</p>
+                            <p class="text-gray-400">Interaktivni Demo Dolazi Uskoro</p>
                         </div>
                     </div>
                 </div>
@@ -394,37 +385,99 @@
                         <svg class="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
                         </svg>
-                        <span class="text-green-300 text-sm font-medium">{{ __('messages.testimonials.badge') }}</span>
+                        <span class="text-green-300 text-sm font-medium">Svjedočanstva</span>
                     </div>
                     <h2 class="text-4xl sm:text-5xl font-black text-white mb-6">
-                        {{ __('messages.testimonials.title') }}
+                        Pouzdan od strane timova širom svijeta
                     </h2>
-                    <p class="text-xl text-gray-400 max-w-2xl mx-auto">
-                        {{ __('messages.testimonials.subtitle') }}
+                    <p class="text-xl text-gray-400 max-w-2xl mx-auto mb-12">
+                        Pogledajte šta naši korisnici kažu o Team Sphere-u
                     </p>
                 </div>
 
                 <!-- Testimonials Grid -->
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    @foreach(__('messages.testimonials.items') as $testimonial)
                     <div class="bg-gray-800/50 backdrop-blur-sm p-8 rounded-2xl border border-gray-700/50 hover:border-green-500/50 transition-all duration-300 group">
                         <div class="flex items-center space-x-1 mb-6">
-                            @for($i = 0; $i < 5; $i++)
                             <svg class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
                                 <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
                             </svg>
-                            @endfor
+                            <svg class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                            </svg>
+                            <svg class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                            </svg>
+                            <svg class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                            </svg>
+                            <svg class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                            </svg>
                         </div>
                         <blockquote class="text-gray-300 text-lg leading-relaxed mb-6 italic">
-                            "{{ $testimonial['quote'] }}"
+                            "Team Sphere je revolucionirao način na koji upravljamo našom fudbalskom ligom. Analitičke i funkcije raspoređivanja uštedjele su nam bezbroj sati."
                         </blockquote>
                         <div class="border-t border-gray-700/50 pt-6">
-                            <div class="font-semibold text-white">{{ $testimonial['author'] }}</div>
-                            <div class="text-sm text-gray-400">{{ $testimonial['role'] }}</div>
-                            <div class="text-sm text-green-400 font-medium">{{ $testimonial['organization'] }}</div>
+                            <div class="font-semibold text-white">Sarah Johnson</div>
+                            <div class="text-sm text-gray-400">Koordinator lige</div>
+                            <div class="text-sm text-green-400 font-medium">Gradska fudbalska asocijacija</div>
                         </div>
                     </div>
-                    @endforeach
+                    <div class="bg-gray-800/50 backdrop-blur-sm p-8 rounded-2xl border border-gray-700/50 hover:border-green-500/50 transition-all duration-300 group">
+                        <div class="flex items-center space-x-1 mb-6">
+                            <svg class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                            </svg>
+                            <svg class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                            </svg>
+                            <svg class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                            </svg>
+                            <svg class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                            </svg>
+                            <svg class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                            </svg>
+                        </div>
+                        <blockquote class="text-gray-300 text-lg leading-relaxed mb-6 italic">
+                            "Podrška za više sportova i ažuriranja u realnom vremenu drže naše košarkaške timove angažirane i informisane tokom cijele sezone."
+                        </blockquote>
+                        <div class="border-t border-gray-700/50 pt-6">
+                            <div class="font-semibold text-white">Marcus Chen</div>
+                            <div class="text-sm text-gray-400">Sportski direktor</div>
+                            <div class="text-sm text-green-400 font-medium">Metro košarkaška liga</div>
+                        </div>
+                    </div>
+                    <div class="bg-gray-800/50 backdrop-blur-sm p-8 rounded-2xl border border-gray-700/50 hover:border-green-500/50 transition-all duration-300 group">
+                        <div class="flex items-center space-x-1 mb-6">
+                            <svg class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                            </svg>
+                            <svg class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                            </svg>
+                            <svg class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                            </svg>
+                            <svg class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                            </svg>
+                            <svg class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                            </svg>
+                        </div>
+                        <blockquote class="text-gray-300 text-lg leading-relaxed mb-6 italic">
+                            "Praćenje performansi igrača pomoglo nam je da identificiramo talente i poboljšamo timske strategije. Toplo preporučujem!"
+                        </blockquote>
+                        <div class="border-t border-gray-700/50 pt-6">
+                            <div class="font-semibold text-white">Elena Rodriguez</div>
+                            <div class="text-sm text-gray-400">Menadžer tima</div>
+                            <div class="text-sm text-green-400 font-medium">Regionalna odbojkaška liga</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
@@ -434,17 +487,17 @@
             <div class="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900"></div>
             <div class="relative z-10 max-w-4xl mx-auto px-6 sm:px-8 text-center">
                 <h2 class="text-4xl sm:text-5xl font-black text-white mb-6">
-                    {{ __('messages.cta.title') }}
+                    Spremni da Revolucionirate Upravljanje Sportom?
                 </h2>
                 <p class="text-xl text-gray-400 mb-12 max-w-2xl mx-auto">
-                    {{ __('messages.cta.subtitle') }}
+                    Pridružite se hiljadama timova koji već koriste Team Sphere za pojednostavljenje upravljanja sportom.
                 </p>
 
                 <div class="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-6">
                     @if (Route::has('register'))
                         <a href="{{ route('register') }}" class="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 px-8 py-4 rounded-xl text-white font-semibold text-lg transition-all group">
                             <span class="flex items-center space-x-2">
-                                <span>{{ __('messages.cta.start_free') }}</span>
+                                <span>Započni Besplatnu Probnu Verziju</span>
                                 <svg class="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                                 </svg>
@@ -453,7 +506,7 @@
                     @endif
                     @if (Route::has('login'))
                         <a href="{{ route('login') }}" class="border border-gray-600 hover:border-gray-500 px-8 py-4 rounded-xl text-gray-300 hover:text-white font-semibold text-lg transition-all">
-                            {{ __('messages.cta.already_have_account') }}
+                            Već imate račun? Prijavi se
                         </a>
                     @endif
                 </div>
@@ -473,7 +526,7 @@
                             <span class="text-white font-bold text-xl">Team Sphere</span>
                         </div>
                         <p class="text-gray-400 mb-6 max-w-md">
-                            {{ __('messages.footer.description') }}
+                            Najbolja platforma za upravljanje sportskim timovima i ligama sa moćnom analitikom i besprijekornom organizacijom.
                         </p>
                         <div class="flex space-x-4">
                             <a href="#" class="w-10 h-10 bg-gray-800 hover:bg-gray-700 rounded-lg flex items-center justify-center text-gray-400 hover:text-white transition-colors">
@@ -501,23 +554,23 @@
 
                     <!-- Quick Links -->
                     <div>
-                        <h3 class="text-white font-semibold text-lg mb-6">{{ __('messages.footer.links.features') }}</h3>
+                        <h3 class="text-white font-semibold text-lg mb-6">Funkcije</h3>
                         <ul class="space-y-3">
-                            <li><a href="#features" class="text-gray-400 hover:text-white transition-colors">{{ __('messages.nav.features') }}</a></li>
-                            <li><a href="#demo" class="text-gray-400 hover:text-white transition-colors">{{ __('messages.nav.demo') }}</a></li>
-                            <li><a href="#" class="text-gray-400 hover:text-white transition-colors">{{ __('messages.footer.links.pricing') }}</a></li>
-                            <li><a href="#" class="text-gray-400 hover:text-white transition-colors">{{ __('messages.footer.links.support') }}</a></li>
+                            <li><a href="#features" class="text-gray-400 hover:text-white transition-colors">Funkcionalnosti</a></li>
+                            <li><a href="#demo" class="text-gray-400 hover:text-white transition-colors">Demo</a></li>
+                            <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Cijene</a></li>
+                            <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Podrška</a></li>
                         </ul>
                     </div>
 
                     <!-- Company -->
                     <div>
-                        <h3 class="text-white font-semibold text-lg mb-6">{{ __('messages.footer.links.about') }}</h3>
+                        <h3 class="text-white font-semibold text-lg mb-6">O nama</h3>
                         <ul class="space-y-3">
-                            <li><a href="#" class="text-gray-400 hover:text-white transition-colors">{{ __('messages.footer.links.about') }}</a></li>
-                            <li><a href="#" class="text-gray-400 hover:text-white transition-colors">{{ __('messages.footer.links.contact') }}</a></li>
-                            <li><a href="#" class="text-gray-400 hover:text-white transition-colors">{{ __('messages.footer.links.privacy') }}</a></li>
-                            <li><a href="#" class="text-gray-400 hover:text-white transition-colors">{{ __('messages.footer.links.terms') }}</a></li>
+                            <li><a href="#" class="text-gray-400 hover:text-white transition-colors">O nama</a></li>
+                            <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Kontakt</a></li>
+                            <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Politika privatnosti</a></li>
+                            <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Uslovi korištenja</a></li>
                         </ul>
                     </div>
                 </div>
@@ -525,12 +578,12 @@
                 <!-- Bottom Bar -->
                 <div class="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center">
                     <p class="text-gray-400 text-sm">
-                        {{ __('messages.footer.copyright') }}
+                        © 2024 Team Sphere. Sva prava zadržana.
                     </p>
                     <div class="flex items-center space-x-6 mt-4 md:mt-0">
-                        <a href="#" class="text-gray-400 hover:text-white text-sm transition-colors">{{ __('messages.footer.links.privacy') }}</a>
-                        <a href="#" class="text-gray-400 hover:text-white text-sm transition-colors">{{ __('messages.footer.links.terms') }}</a>
-                        <a href="#" class="text-gray-400 hover:text-white text-sm transition-colors">{{ __('messages.footer.links.contact') }}</a>
+                        <a href="#" class="text-gray-400 hover:text-white text-sm transition-colors">Politika privatnosti</a>
+                        <a href="#" class="text-gray-400 hover:text-white text-sm transition-colors">Uslovi korištenja</a>
+                        <a href="#" class="text-gray-400 hover:text-white text-sm transition-colors">Kontakt</a>
                     </div>
                 </div>
             </div>

@@ -50,7 +50,10 @@ Route::get('/dashboard', function () {
         $upcomingMatches = $upcomingMatches->merge($playerMatches);
     }
 
-    return view('dashboard', compact('organizations', 'players', 'upcomingMatches'));
+    // Check if user is a referee in any organization
+    $isReferee = $user->organizationUsers()->where('role', 'referee')->exists();
+
+    return view('dashboard', compact('organizations', 'players', 'upcomingMatches', 'isReferee'));
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 // Feedback routes

@@ -99,15 +99,15 @@
                     </div>
 
                     <div class="relative mb-6">
-                        <div class="text-8xl md:text-9xl font-bold transition-all duration-300 mb-2 {{ $match->status === 'completed' ? '' : 'cursor-pointer hover:text-blue-300 active:scale-95 select-none' }} {{ $currentServer === 'home' ? 'text-blue-400 animate-pulse drop-shadow-lg' : 'text-blue-400' }}"
-                             @if($match->status !== 'completed') wire:click="addPoint('home')" @endif>
+                        <div class="text-8xl md:text-9xl font-bold transition-all duration-300 mb-2 {{ $match->status === 'completed' || !$isOrganizationOwner ? '' : 'cursor-pointer hover:text-blue-300 active:scale-95 select-none' }} {{ $currentServer === 'home' ? 'text-blue-400 animate-pulse drop-shadow-lg' : 'text-blue-400' }}"
+                             @if($match->status !== 'completed' && $isOrganizationOwner) wire:click="addPoint('home')" @endif>
                             {{ $homeScore }}
                         </div>
                     </div>
 
                     <div class="flex justify-center">
-                        <button type="button" @if($match->status !== 'completed') wire:click="subtractPoint('home')" @endif
-                                class="px-4 py-2 bg-gray-600 {{ $match->status === 'completed' ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-700' }} text-white rounded-lg transition-all duration-200 font-semibold text-sm">
+                        <button type="button" @if($match->status !== 'completed' && $isOrganizationOwner) wire:click="subtractPoint('home')" @endif
+                                class="px-4 py-2 bg-gray-600 {{ $match->status === 'completed' || !$isOrganizationOwner ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-700' }} text-white rounded-lg transition-all duration-200 font-semibold text-sm">
                             -1
                         </button>
                     </div>
@@ -180,7 +180,7 @@
 
             <div class="border-t border-gray-700 pt-6 mt-6">
                 <div class="flex justify-center space-x-4 mb-4">
-                    @if($match->status !== 'completed')
+                    @if($match->status !== 'completed' && $isOrganizationOwner)
                     <button type="button" wire:click="undoPoint"
                             class="px-6 py-3 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg transition-colors font-semibold"
                             wire:loading.attr="disabled"
@@ -195,9 +195,13 @@
                             class="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors font-semibold">
                         🏁 End Match
                     </button>
-                    @else
+                    @elseif($match->status === 'completed')
                     <div class="text-center text-green-400 font-semibold">
                         ✅ Match Completed
+                    </div>
+                    @else
+                    <div class="text-center text-gray-400 font-semibold">
+                        👁️ View Only Mode
                     </div>
                     @endif
                 </div>

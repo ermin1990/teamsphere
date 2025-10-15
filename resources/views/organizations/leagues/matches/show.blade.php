@@ -21,7 +21,7 @@
                     @endif
                 </span>
                 <div class="flex space-x-2">
-                    @if(isset($isOwner) && $isOwner)
+                    @if((isset($isOwner) && $isOwner) || (isset($isReferee) && $isReferee))
                     <a href="{{ request()->routeIs('referee.*') ? route('referee.match.edit', [$league, $match]) : route('organizations.leagues.matches.edit', [$organization, $league, $match]) }}"
                        class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition-colors">
                         ✏️ Edit Results
@@ -379,6 +379,7 @@
 
                 <!-- Navigation -->
                 <div class="flex justify-center space-x-4">
+                    @if($organization->user_id === auth()->id())
                     <form method="POST" action="{{ request()->routeIs('referee.*') ? route('referee.match.reset', [$league, $match]) : route('organizations.leagues.matches.reset', [$organization, $league, $match]) }}"
                           onsubmit="return confirm('Are you sure you want to reset this match? All current data will be lost.')"
                           class="inline">
@@ -387,6 +388,7 @@
                             🔄 Reset Match
                         </button>
                     </form>
+                    @endif
                     <a href="{{ request()->routeIs('referee.*') ? route('referee.league.matches', $league) : route('organizations.leagues.show', [$organization, $league]) }}"
                        class="bg-gray-700/50 hover:bg-gray-600/50 text-white px-6 py-3 rounded-lg font-medium transition-all duration-200">
                         ← Back to League

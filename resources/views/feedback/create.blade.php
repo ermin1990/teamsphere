@@ -3,9 +3,9 @@
         <div class="flex items-center justify-between">
             <div>
                 <h2 class="font-bold text-3xl bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                    {{ __('Report Bug / Suggest Feature') }}
+                    Prijavi Bag / Predloži Funkciju
                 </h2>
-                <p class="text-gray-400 mt-1">{{ __('Help us improve TeamSphere') }}</p>
+                <p class="text-gray-400 mt-1">Pomozite nam da poboljšamo TeamSphere</p>
             </div>
         </div>
     </x-slot>
@@ -30,7 +30,7 @@
                 <!-- Feedback Type -->
                 <div>
                     <label class="block text-sm font-medium text-white mb-3">
-                        {{ __('Feedback Type') }} <span class="text-red-400">*</span>
+                        Tip Povratne Informacije <span class="text-red-400">*</span>
                     </label>
                     <div class="space-y-3">
                         <label class="flex items-center">
@@ -41,8 +41,8 @@
                                    required
                                    class="text-purple-600 bg-white/10 border-white/20 focus:ring-purple-500 focus:border-purple-500">
                             <span class="ml-3 text-white">
-                                <span class="font-medium">🐛 {{ __('Report a Bug') }}</span>
-                                <span class="text-gray-400 block text-sm">{{ __('Something is not working as expected') }}</span>
+                                <span class="font-medium">🐛 Prijavi Bag</span>
+                                <span class="text-gray-400 block text-sm">Nešto ne radi kako se očekuje</span>
                             </span>
                         </label>
                         <label class="flex items-center">
@@ -53,8 +53,8 @@
                                    required
                                    class="text-purple-600 bg-white/10 border-white/20 focus:ring-purple-500 focus:border-purple-500">
                             <span class="ml-3 text-white">
-                                <span class="font-medium">💡 {{ __('Suggest a Feature') }}</span>
-                                <span class="text-gray-400 block text-sm">{{ __('I have an idea for a new feature') }}</span>
+                                <span class="font-medium">💡 Predloži Funkciju</span>
+                                <span class="text-gray-400 block text-sm">Imam ideju za novu funkciju</span>
                             </span>
                         </label>
                     </div>
@@ -66,7 +66,7 @@
                 <!-- Subject -->
                 <div>
                     <label for="subject" class="block text-sm font-medium text-white mb-2">
-                        {{ __('Subject') }} <span class="text-red-400">*</span>
+                        Predmet <span class="text-red-400">*</span>
                     </label>
                     <input type="text"
                            id="subject"
@@ -75,7 +75,7 @@
                            required
                            maxlength="255"
                            class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
-                           placeholder="{{ __('Brief description of the issue or feature') }}">
+                           placeholder="Kratak opis problema ili funkcije">
                     @error('subject')
                         <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
                     @enderror
@@ -84,7 +84,7 @@
                 <!-- Description -->
                 <div>
                     <label for="description" class="block text-sm font-medium text-white mb-2">
-                        {{ __('Description') }} <span class="text-red-400">*</span>
+                        Opis <span class="text-red-400">*</span>
                     </label>
                     <textarea id="description"
                               name="description"
@@ -92,8 +92,8 @@
                               required
                               maxlength="2000"
                               class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
-                              placeholder="{{ __('Please provide detailed information about the bug or feature suggestion...') }}">{{ old('description') }}</textarea>
-                    <p class="mt-1 text-sm text-gray-400">{{ __('Maximum 2000 characters') }}</p>
+                              placeholder="Molimo vas da navedete detaljne informacije o bagu ili prijedlogu funkcije...">{{ old('description') }}</textarea>
+                    <p class="mt-1 text-sm text-gray-400">Maksimalno 2000 karaktera</p>
                     @error('description')
                         <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
                     @enderror
@@ -103,7 +103,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <label for="name" class="block text-sm font-medium text-white mb-2">
-                            {{ __('Your Name') }} <span class="text-white/50">({{ __('Optional') }})</span>
+                            Vaše Ime <span class="text-white/50">(Opcionalno)</span>
                         </label>
                         <input type="text"
                                id="name"
@@ -111,7 +111,7 @@
                                value="{{ old('name') }}"
                                maxlength="255"
                                class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
-                               placeholder="{{ __('Your name') }}">
+                               placeholder="Vaše ime">
                         @error('name')
                             <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
                         @enderror
@@ -119,7 +119,7 @@
 
                     <div>
                         <label for="email" class="block text-sm font-medium text-white mb-2">
-                            {{ __('Your Email') }} <span class="text-white/50">({{ __('Optional') }})</span>
+                            Vaš Email <span class="text-white/50">(Opcionalno)</span>
                         </label>
                         <input type="email"
                                id="email"
@@ -127,8 +127,8 @@
                                value="{{ old('email') }}"
                                maxlength="255"
                                class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
-                               placeholder="{{ __('your.email@example.com') }}">
-                        <p class="mt-1 text-sm text-gray-400">{{ __('We will only contact you if we need clarification') }}</p>
+                               placeholder="vas.email@primjer.com">
+                        <p class="mt-1 text-sm text-gray-400">Kontaktirat ćemo vas samo ako nam treba pojašnjenje</p>
                         @error('email')
                             <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
                         @enderror
@@ -139,7 +139,7 @@
                 <div class="flex justify-end pt-6">
                     <button type="submit"
                             class="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-8 py-3 rounded-lg font-medium transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl">
-                        {{ __('Submit Feedback') }}
+                        Pošalji Povratnu Informaciju
                     </button>
                 </div>
             </form>

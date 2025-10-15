@@ -8,7 +8,7 @@
             <div class="py-6">
                 <div class="flex items-center justify-between">
                     <div>
-                        <h1 class="text-3xl font-bold text-gray-900">Edit Match Result</h1>
+                        <h1 class="text-3xl font-bold text-gray-900">Uredi Rezultat Meča</h1>
                         <p class="mt-1 text-sm text-gray-500">{{ $league->name }} • {{ $league->sport->name }}</p>
                     </div>
                     <div class="flex items-center space-x-4">
@@ -16,7 +16,7 @@
                             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
                             </svg>
-                            Back to Match
+                            Nazad na Meč
                         </a>
                     </div>
                 </div>
@@ -58,11 +58,11 @@
 
                     <!-- Score Input -->
                     <div class="mb-8">
-                        <h3 class="text-lg font-medium text-gray-900 mb-4">Match Score</h3>
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">Rezultat Meča</h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <label for="home_score" class="block text-sm font-medium text-gray-700 mb-2">
-                                    {{ $match->homeTeam?->name ?? 'Home Team' }} Score
+                                    {{ $match->homeTeam?->name ?? 'Domaći Tim' }} Rezultat
                                 </label>
                                 <input type="number" name="home_score" id="home_score" min="0"
                                        value="{{ old('home_score', $match->home_score) }}"
@@ -75,7 +75,7 @@
 
                             <div>
                                 <label for="away_score" name="away_score" class="block text-sm font-medium text-gray-700 mb-2">
-                                    {{ $match->awayTeam?->name ?? 'Away Team' }} Score
+                                    {{ $match->awayTeam?->name ?? 'Gostujući Tim' }} Rezultat
                                 </label>
                                 <input type="number" name="away_score" id="away_score" min="0"
                                        value="{{ old('away_score', $match->away_score) }}"
@@ -90,16 +90,16 @@
 
                     <!-- Match Status -->
                     <div class="mb-8">
-                        <h3 class="text-lg font-medium text-gray-900 mb-4">Match Status</h3>
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">Status Meča</h3>
                         <div class="space-y-4">
                             <div>
                                 <label for="status" class="block text-sm font-medium text-gray-700 mb-2">Status</label>
                                 <select name="status" id="status"
                                         class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                                    <option value="scheduled" {{ old('status', $match->status) === 'scheduled' ? 'selected' : '' }}>Scheduled</option>
-                                    <option value="in_progress" {{ old('status', $match->status) === 'in_progress' ? 'selected' : '' }}>Live</option>
-                                    <option value="completed" {{ old('status', $match->status) === 'completed' ? 'selected' : '' }}>Finished</option>
-                                    <option value="cancelled" {{ old('status', $match->status) === 'cancelled' ? 'selected' : '' }}>Cancelled</option>
+                                    <option value="scheduled" {{ old('status', $match->status) === 'scheduled' ? 'selected' : '' }}>Zakazani</option>
+                                    <option value="in_progress" {{ old('status', $match->status) === 'in_progress' ? 'selected' : '' }}>Uživo</option>
+                                    <option value="completed" {{ old('status', $match->status) === 'completed' ? 'selected' : '' }}>Završeno</option>
+                                    <option value="cancelled" {{ old('status', $match->status) === 'cancelled' ? 'selected' : '' }}>Otkazano</option>
                                 </select>
                                 @error('status')
                                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
@@ -112,20 +112,20 @@
                                        {{ old('forfeited', $match->forfeited_by ? true : false) ? 'checked' : '' }}
                                        class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
                                 <label for="forfeited" class="ml-2 block text-sm text-gray-900">
-                                    Match was forfeited
+                                    Meč je bio otkazan
                                 </label>
                             </div>
 
                             <div id="forfeit-details" class="{{ old('forfeited', $match->forfeited_by ? true : false) ? '' : 'hidden' }}">
-                                <label for="forfeited_by" class="block text-sm font-medium text-gray-700 mb-2">Forfeited by</label>
+                                <label for="forfeited_by" class="block text-sm font-medium text-gray-700 mb-2">Otkazao</label>
                                 <select name="forfeited_by" id="forfeited_by"
                                         class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                                    <option value="">Select team</option>
+                                    <option value="">Odaberi tim</option>
                                     <option value="home" {{ old('forfeited_by', $match->forfeited_by) === 'home' ? 'selected' : '' }}>
-                                        {{ $match->homeTeam?->name ?? 'Home Team' }}
+                                        {{ $match->homeTeam?->name ?? 'Domaći Tim' }}
                                     </option>
                                     <option value="away" {{ old('forfeited_by', $match->forfeited_by) === 'away' ? 'selected' : '' }}>
-                                        {{ $match->awayTeam?->name ?? 'Away Team' }}
+                                        {{ $match->awayTeam?->name ?? 'Gostujući Tim' }}
                                     </option>
                                 </select>
                                 @error('forfeited_by')
@@ -137,9 +137,9 @@
 
                     <!-- Scheduled Time -->
                     <div class="mb-8">
-                        <h3 class="text-lg font-medium text-gray-900 mb-4">Schedule</h3>
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">Raspored</h3>
                         <div>
-                            <label for="scheduled_at" class="block text-sm font-medium text-gray-700 mb-2">Scheduled Date & Time</label>
+                            <label for="scheduled_at" class="block text-sm font-medium text-gray-700 mb-2">Zakazani Datum i Vrijeme</label>
                             <input type="datetime-local" name="scheduled_at" id="scheduled_at"
                                    value="{{ old('scheduled_at', $match->scheduled_at ? $match->scheduled_at->format('Y-m-d\TH:i') : '') }}"
                                    class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
@@ -153,14 +153,14 @@
                     <div class="flex justify-end space-x-3">
                         <a href="{{ route('referee.match.show', [$league, $match]) }}"
                            class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
-                            Cancel
+                            Otkaži
                         </a>
                         <button type="submit"
                                 class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            Update Match
+                            Ažuriraj Meč
                         </button>
                     </div>
                 </form>

@@ -6,9 +6,9 @@
 
     <div class="text-center mb-8">
         <h2 class="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent mb-2">
-            {{ __('messages.auth.login.title') }}
+            Dobrodošli Nazad
         </h2>
-        <p class="text-gray-400">{{ __('messages.auth.login.subtitle') }}</p>
+        <p class="text-gray-400">Prijavite se na vaš Team Sphere nalog</p>
     </div>
 
     <form method="POST" action="{{ route('login') }}" class="space-y-6">
@@ -17,7 +17,7 @@
         <!-- Email Address -->
         <div class="space-y-2">
             <label for="email" class="block text-sm font-medium text-gray-300">
-                {{ __('messages.auth.login.email') }}
+                Email Adresa
             </label>
             <div class="relative">
                 <input id="email"
@@ -28,7 +28,7 @@
                        required
                        autofocus
                        autocomplete="username"
-                       placeholder="{{ __('messages.auth.login.email_placeholder') }}" />
+                       placeholder="Unesite vaš email" />
                 <div class="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-500/20 to-purple-500/20 opacity-0 hover:opacity-100 transition-opacity duration-200 pointer-events-none"></div>
             </div>
             <x-input-error :messages="$errors->get('email')" class="mt-2 text-red-400 text-sm" />
@@ -37,7 +37,7 @@
         <!-- Password -->
         <div class="space-y-2">
             <label for="password" class="block text-sm font-medium text-gray-300">
-                {{ __('messages.auth.login.password') }}
+                Lozinka
             </label>
             <div class="relative">
                 <input id="password"
@@ -46,7 +46,7 @@
                        name="password"
                        required
                        autocomplete="current-password"
-                       placeholder="{{ __('messages.auth.login.password_placeholder') }}" />
+                       placeholder="Unesite vašu lozinku" />
                 <div class="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-500/20 to-purple-500/20 opacity-0 hover:opacity-100 transition-opacity duration-200 pointer-events-none"></div>
             </div>
             <x-input-error :messages="$errors->get('password')" class="mt-2 text-red-400 text-sm" />
@@ -60,14 +60,14 @@
                        class="w-4 h-4 bg-gray-700 border-gray-600 rounded focus:ring-blue-500 focus:ring-2 text-blue-500"
                        name="remember" />
                 <span class="ml-2 text-sm text-gray-300 group-hover:text-white transition-colors">
-                    {{ __('messages.auth.login.remember_me') }}
+                    Zapamti me
                 </span>
             </label>
 
             @if (Route::has('password.request'))
                 <a class="text-sm text-blue-400 hover:text-blue-300 transition-colors hover:underline"
                    href="{{ route('password.request') }}">
-                    {{ __('messages.auth.login.forgot_password') }}
+                    Zaboravili ste lozinku?
                 </a>
             @endif
         </div>
@@ -80,7 +80,7 @@
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
                     </svg>
-                    <span>{{ __('messages.auth.login.log_in_button') }}</span>
+                    <span>Prijavi se</span>
                 </span>
             </button>
         </div>
@@ -88,9 +88,9 @@
         <!-- Register Link -->
         <div class="text-center pt-4">
             <p class="text-gray-400 text-sm">
-                {{ __('messages.auth.login.no_account') }}
+                Nemate nalog?
                 <a href="{{ route('register') }}" class="text-blue-400 hover:text-blue-300 font-medium transition-colors hover:underline">
-                    {{ __('messages.auth.login.create_account') }}
+                    Kreirajte jedan
                 </a>
             </p>
         </div>

@@ -3,16 +3,16 @@
         <div class="flex items-center justify-between">
             <div>
                 <h2 class="font-bold text-3xl bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                    {{ __('Edit Organization') }}
+                    Uredi Organizaciju
                 </h2>
-                <p class="text-gray-400 mt-1">{{ __('Update your organization details') }}</p>
+                <p class="text-gray-400 mt-1">Ažurirajte detalje vaše organizacije</p>
             </div>
             <div class="flex items-center space-x-3">
                 <a href="{{ route('organizations.show', $organization) }}" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-xl transition-all duration-200">
-                    {{ __('Cancel') }}
+                    Otkaži
                 </a>
                 <a href="{{ route('dashboard') }}" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-xl transition-all duration-200">
-                    ← {{ __('Back to Dashboard') }}
+                    ← Nazad na Kontrolnu Tablu
                 </a>
             </div>
         </div>
@@ -28,14 +28,14 @@
                     <!-- Name -->
                     <div>
                         <label for="name" class="block text-sm font-medium text-white mb-2">
-                            {{ __('Organization Name') }}
+                            Naziv Organizacije
                         </label>
                         <input type="text"
                                id="name"
                                name="name"
                                value="{{ old('name', $organization->name) }}"
                                class="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                               placeholder="{{ __('Enter organization name') }}"
+                               placeholder="Unesite naziv organizacije"
                                required>
                         @error('name')
                             <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
@@ -45,17 +45,17 @@
                     <!-- Slug -->
                     <div>
                         <label for="slug" class="block text-sm font-medium text-white mb-2">
-                            {{ __('URL Slug') }}
+                            URL Slug
                         </label>
                         <input type="text"
                                id="slug"
                                name="slug"
                                value="{{ old('slug', $organization->slug) }}"
                                class="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                               placeholder="{{ __('organization-url-slug') }}"
+                               placeholder="organization-url-slug"
                                required>
                         <p class="mt-1 text-xs text-gray-400">
-                            {{ __('This will be used in the URL:') }} {{ url('/organizations/') }}/<span id="slug-preview">{{ old('slug', $organization->slug) }}</span>
+                            Ovo će biti korišteno u URL-u: {{ url('/organizations/') }}/<span id="slug-preview">{{ old('slug', $organization->slug) }}</span>
                         </p>
                         @error('slug')
                             <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
@@ -65,14 +65,14 @@
                     <!-- Description -->
                     <div>
                         <label for="description" class="block text-sm font-medium text-white mb-2">
-                            {{ __('Description') }}
-                            <span class="text-gray-400 text-xs">({{ __('optional') }})</span>
+                            Opis
+                            <span class="text-gray-400 text-xs">(opcionalno)</span>
                         </label>
                         <textarea id="description"
                                   name="description"
                                   rows="4"
                                   class="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 resize-none"
-                                  placeholder="{{ __('Describe your organization...') }}">{{ old('description', $organization->description) }}</textarea>
+                                  placeholder="Opišite svoju organizaciju...">{{ old('description', $organization->description) }}</textarea>
                         @error('description')
                             <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
                         @enderror
@@ -80,19 +80,19 @@
 
                     <!-- Current Info -->
                     <div class="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4">
-                        <h4 class="text-white font-medium mb-2">{{ __('Current Information') }}</h4>
+                        <h4 class="text-white font-medium mb-2">Trenutne Informacije</h4>
                         <div class="space-y-2 text-sm">
                             <div class="flex justify-between">
-                                <span class="text-gray-400">{{ __('Created') }}:</span>
+                                <span class="text-gray-400">Kreirano:</span>
                                 <span class="text-white">{{ $organization->created_at->format('M j, Y \a\t H:i') }}</span>
                             </div>
                             <div class="flex justify-between">
-                                <span class="text-gray-400">{{ __('Leagues') }}:</span>
+                                <span class="text-gray-400">Lige:</span>
                                 <span class="text-white">{{ $organization->leagues->count() }}</span>
                             </div>
                             <div class="flex justify-between">
-                                <span class="text-gray-400">{{ __('Status') }}:</span>
-                                <span class="text-{{ $organization->is_active ? 'green' : 'red' }}-400">{{ $organization->is_active ? __('Active') : __('Inactive') }}</span>
+                                <span class="text-gray-400">Status:</span>
+                                <span class="text-{{ $organization->is_active ? 'green' : 'red' }}-400">{{ $organization->is_active ? 'Aktivno' : 'Neaktivno' }}</span>
                             </div>
                         </div>
                     </div>
@@ -126,10 +126,10 @@
                     <!-- Submit Button -->
                     <div class="flex items-center justify-end space-x-4 pt-6 border-t border-gray-700/50">
                         <a href="{{ route('organizations.show', $organization) }}" class="px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-xl transition-all duration-200">
-                            {{ __('Cancel') }}
+                            Otkaži
                         </a>
                         <button type="submit" class="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-6 py-3 rounded-xl transition-all duration-200 transform hover:scale-[1.02] hover:shadow-lg hover:shadow-blue-500/25">
-                            {{ __('Update Organization') }}
+                            Ažuriraj Organizaciju
                         </button>
                     </div>
                 </form>

@@ -27,7 +27,7 @@
                 <div class="lg:col-span-2 space-y-6">
 
                     <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl">
-                        <h3 class="text-xl font-semibold text-white mb-4">{{ __('League Details') }}</h3>
+                        <h3 class="text-xl font-semibold text-white mb-4">{{ __('Detalji lige') }}</h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <label class="block text-sm font-medium text-gray-400 mb-1">{{ __('Sport') }}</label>
@@ -56,13 +56,13 @@
                             </div>
                             @endif
                             <div>
-                                <label class="block text-sm font-medium text-gray-400 mb-1">{{ __('Created') }}</label>
+                                <label class="block text-sm font-medium text-gray-400 mb-1">{{ __('Kreirano') }}</label>
                                 <p class="text-white">{{ $league->created_at->format('M d, Y') }}</p>
                             </div>
                         </div>
                         @if($league->description)
                         <div class="mt-6">
-                            <label class="block text-sm font-medium text-gray-400 mb-2">{{ __('Description') }}</label>
+                            <label class="block text-sm font-medium text-gray-400 mb-2">{{ __('Opis') }}</label>
                             <p class="text-white">{{ $league->description }}</p>
                         </div>
                         @endif
@@ -70,7 +70,7 @@
 
                     @if($league->status === 'active')
                     <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl">
-                        <h3 class="text-xl font-semibold text-white mb-4">{{ __('Standings') }}</h3>
+                        <h3 class="text-xl font-semibold text-white mb-4">{{ __('Tabela') }}</h3>
                         <div class="overflow-x-auto">
                             <table class="w-full text-sm">
                                 <thead>
@@ -110,19 +110,19 @@
 
                         @if(true)
                         <div class="mt-6 pt-6 border-t border-gray-600/50">
-                            <h4 class="text-lg font-semibold text-white mb-4">{{ __('Points Rules') }}</h4>
+                            <h4 class="text-lg font-semibold text-white mb-4">{{ __('Pravila bodovanja') }}</h4>
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div class="text-center">
                                     <div class="text-2xl font-bold text-green-400">{{ $league->settings['points_win'] ?? 3 }}</div>
-                                    <div class="text-sm text-gray-400">{{ __('Points for Win') }}</div>
+                                    <div class="text-sm text-gray-400">{{ __('Bodovi za pobjedu') }}</div>
                                 </div>
                                 <div class="text-center">
                                     <div class="text-2xl font-bold text-yellow-400">{{ $league->settings['points_draw'] ?? 1 }}</div>
-                                    <div class="text-sm text-gray-400">{{ __('Points for Draw') }}</div>
+                                    <div class="text-sm text-gray-400">{{ __('Bodovi za neriješeno') }}</div>
                                 </div>
                                 <div class="text-center">
                                     <div class="text-2xl font-bold text-red-400">{{ $league->settings['points_loss'] ?? 0 }}</div>
-                                    <div class="text-sm text-gray-400">{{ __('Points for Loss') }}</div>
+                                    <div class="text-sm text-gray-400">{{ __('Bodovi za poraz') }}</div>
                                 </div>
                             </div>
                         </div>
@@ -130,10 +130,10 @@
 
                         @if($league->sport->slug === 'stoni-tenis')
                         <div class="mt-6 pt-6 border-t border-gray-600/50">
-                            <h4 class="text-lg font-semibold text-white mb-4">{{ __('Match Rules') }}</h4>
+                            <h4 class="text-lg font-semibold text-white mb-4">{{ __('Pravila meča') }}</h4>
                             <div class="text-center">
-                                <div class="text-lg font-semibold text-white">{{ __('Best of :sets sets (:wins sets to win)', ['sets' => ($league->settings['sets_to_win'] ?? 2) * 2 - 1, 'wins' => $league->settings['sets_to_win'] ?? 2]) }}</div>
-                                <div class="text-sm text-gray-400">{{ __('Sets to win match') }}</div>
+                                <div class="text-lg font-semibold text-white">{{ __('Najbolje od :sets setova (:wins setova za pobjedu)', ['sets' => ($league->settings['sets_to_win'] ?? 2) * 2 - 1, 'wins' => $league->settings['sets_to_win'] ?? 2]) }}</div>
+                                <div class="text-sm text-gray-400">{{ __('Setovi za pobjedu u meču') }}</div>
                             </div>
                         </div>
                         @endif
@@ -142,7 +142,7 @@
 
                     @if($league->status === 'active')
                     <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl">
-                        <h3 class="text-xl font-semibold text-white mb-4">{{ __('Match Schedule') }}</h3>
+                        <h3 class="text-xl font-semibold text-white mb-4">{{ __('Raspored mečeva') }}</h3>
 
                         @if($league->matches->count() > 0)
                         <div class="space-y-6">
@@ -218,8 +218,8 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3a2 2 0 012-2h4a2 2 0 012 2v4m-6 4v10a2 2 0 002 2h4a2 2 0 002-2V11M9 11h6"></path>
                                 </svg>
                             </div>
-                            <h4 class="text-white font-semibold mb-2">{{ __('No matches scheduled') }}</h4>
-                            <p class="text-gray-400">{{ __('Matches will be scheduled when the league starts.') }}</p>
+                            <h4 class="text-white font-semibold mb-2">{{ __('Nema zakazanih mečeva') }}</h4>
+                            <p class="text-gray-400">{{ __('Mečevi će biti zakazani kada liga počne.') }}</p>
                         </div>
                         @endif
                     </div>
@@ -227,22 +227,22 @@
 
                     @if($league->status === 'draft')
                     <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl">
-                        <h3 class="text-xl font-semibold text-white mb-6">{{ __('League Configuration') }}</h3>
+                        <h3 class="text-xl font-semibold text-white mb-6">{{ __('Konfiguracija Lige') }}</h3>
                         
                         <form action="{{ route('organizations.leagues.update', [$organization, $league]) }}" method="POST" class="space-y-8">
                             @csrf
                             @method('PUT')
 
                             <div>
-                                <label class="block text-lg font-medium text-white mb-4">{{ __('Competition Format') }}</label>
+                                <label class="block text-lg font-medium text-white mb-4">{{ __('Format takmičenja') }}</label>
                                 <div class="space-y-3">
                                     <div class="flex items-center p-3 bg-gray-700/30 rounded-lg hover:bg-gray-700/50 transition-colors">
                                         <input type="radio" id="format_round_robin" name="format" value="round_robin" 
                                                {{ old('format', $league->settings['format'] ?? '') === 'round_robin' ? 'checked' : '' }}
                                                class="w-4 h-4 text-purple-600 bg-gray-700 border-gray-600 focus:ring-purple-500 focus:ring-2">
                                         <label for="format_round_robin" class="ml-3 text-white cursor-pointer flex-1">
-                                            <div class="font-medium">{{ __('Single Round Robin') }}</div>
-                                            <div class="text-sm text-gray-400">{{ __('Each player/team plays every other once') }}</div>
+                                            <div class="font-medium">{{ __('Jednostruki Round Robin') }}</div>
+                                            <div class="text-sm text-gray-400">{{ __('Svaki igrač/tim igra protiv svakog drugog jednom') }}</div>
                                         </label>
                                     </div>
                                     
@@ -251,8 +251,8 @@
                                                {{ old('format', $league->settings['format'] ?? '') === 'dual_robin' ? 'checked' : '' }}
                                                class="w-4 h-4 text-purple-600 bg-gray-700 border-gray-600 focus:ring-purple-500 focus:ring-2">
                                         <label for="format_dual_robin" class="ml-3 text-white cursor-pointer flex-1">
-                                            <div class="font-medium">{{ __('Double Round Robin') }}</div>
-                                            <div class="text-sm text-gray-400">{{ __('Each player/team plays every other twice') }}</div>
+                                            <div class="font-medium">{{ __('Duple Round Robin') }}</div>
+                                            <div class="text-sm text-gray-400">{{ __('Svaki igrač/tim igra protiv svakog drugog dva puta') }}</div>
                                         </label>
                                     </div>
                                     
@@ -261,8 +261,8 @@
                                                {{ old('format', $league->settings['format'] ?? '') === 'knockout' ? 'checked' : '' }}
                                                class="w-4 h-4 text-purple-600 bg-gray-700 border-gray-600 focus:ring-purple-500 focus:ring-2">
                                         <label for="format_knockout" class="ml-3 text-white cursor-pointer flex-1">
-                                            <div class="font-medium">{{ __('Knockout Only') }}</div>
-                                            <div class="text-sm text-gray-400">{{ __('Single elimination tournament') }}</div>
+                                            <div class="font-medium">{{ __('Eliminacioni turnir') }}</div>
+                                            <div class="text-sm text-gray-400">{{ __('Jednokratni eliminacioni turnir') }}</div>
                                         </label>
                                     </div>
                                 </div>
@@ -278,7 +278,7 @@
                                                class="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 focus:ring-blue-500 focus:ring-2">
                                         <label for="sets_2" class="ml-3 text-white cursor-pointer flex-1">
                                             <div class="font-medium">{{ __('Best of 3 (2 sets to win)') }}</div>
-                                            <div class="text-sm text-gray-400">{{ __('Quick matches') }}</div>
+                                            <div class="text-sm text-gray-400">{{ __('Brzi mečevi') }}</div>
                                         </label>
                                     </div>
                                     
@@ -288,7 +288,7 @@
                                                class="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 focus:ring-blue-500 focus:ring-2">
                                         <label for="sets_3" class="ml-3 text-white cursor-pointer flex-1">
                                             <div class="font-medium">{{ __('Best of 5 (3 sets to win)') }}</div>
-                                            <div class="text-sm text-gray-400">{{ __('Standard matches') }}</div>
+                                            <div class="text-sm text-gray-400">{{ __('Standardni mečevi') }}</div>
                                         </label>
                                     </div>
                                     
@@ -298,7 +298,7 @@
                                                class="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 focus:ring-blue-500 focus:ring-2">
                                         <label for="sets_4" class="ml-3 text-white cursor-pointer flex-1">
                                             <div class="font-medium">{{ __('Best of 7 (4 sets to win)') }}</div>
-                                            <div class="text-sm text-gray-400">{{ __('Long matches') }}</div>
+                                            <div class="text-sm text-gray-400">{{ __('Dugi mečevi') }}</div>
                                         </label>
                                     </div>
                                 </div>
@@ -306,10 +306,10 @@
                             @endif
 
                             <div>
-                                <label class="block text-lg font-medium text-white mb-4">{{ __('Points System') }}</label>
+                                <label class="block text-lg font-medium text-white mb-4">{{ __('Sistem bodovanja') }}</label>
                                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-400 mb-3">{{ __('Points for Win') }}</label>
+                                        <label class="block text-sm font-medium text-gray-400 mb-3">{{ __('Bodovi za pobjedu') }}</label>
                                         <div class="space-y-2">
                                             @for($i = 1; $i <= 5; $i++)
                                             <div class="flex items-center">
@@ -323,7 +323,7 @@
                                     </div>
                                     
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-400 mb-3">{{ __('Points for Draw') }}</label>
+                                        <label class="block text-sm font-medium text-gray-400 mb-3">{{ __('Bodovi za neriješeno') }}</label>
                                         <div class="space-y-2">
                                             @for($i = 0; $i <= 3; $i++)
                                             <div class="flex items-center">
@@ -337,7 +337,7 @@
                                     </div>
                                     
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-400 mb-3">{{ __('Points for Loss') }}</label>
+                                        <label class="block text-sm font-medium text-gray-400 mb-3">{{ __('Bodovi za gubitak') }}</label>
                                         <div class="space-y-2">
                                             @for($i = 0; $i <= 2; $i++)
                                             <div class="flex items-center">
@@ -355,17 +355,17 @@
                             <div class="pt-6 border-t border-gray-600/50">
                                 <button type="submit"
                                         class="w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white px-8 py-4 rounded-lg font-medium transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-purple-500/25">
-                                    {{ __('Save League Settings') }}
+                                    {{ __('Spremi postavke lige') }}
                                 </button>
                             </div>
                         </form>
                     </div>
                     @else
                     <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl">
-                        <h3 class="text-xl font-semibold text-white mb-4">{{ __('League Settings') }}</h3>
+                        <h3 class="text-xl font-semibold text-white mb-4">{{ __('Postavke lige') }}</h3>
                         <div class="space-y-4">
                             <div>
-                                <label class="block text-sm font-medium text-gray-400 mb-1">{{ __('Competition Format') }}</label>
+                                <label class="block text-sm font-medium text-gray-400 mb-1">{{ __('Format natjecanja') }}</label>
                                 <p class="text-white">
                                     @php
                                         $format = $league->settings['format'] ?? 'round_robin';
@@ -389,15 +389,15 @@
                             @if(true)
                                 <div class="grid grid-cols-3 gap-4">
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-400 mb-1">{{ __('Points for Win') }}</label>
+                                        <label class="block text-sm font-medium text-gray-400 mb-1">{{ __('Bodovi za pobjedu') }}</label>
                                         <p class="text-white">{{ $league->settings['points_win'] ?? 3 }}</p>
                                     </div>
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-400 mb-1">{{ __('Points for Draw') }}</label>
+                                        <label class="block text-sm font-medium text-gray-400 mb-1">{{ __('Bodovi za neriješeno') }}</label>
                                         <p class="text-white">{{ $league->settings['points_draw'] ?? 1 }}</p>
                                     </div>
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-400 mb-1">{{ __('Points for Loss') }}</label>
+                                        <label class="block text-sm font-medium text-gray-400 mb-1">{{ __('Bodovi za gubitak') }}</label>
                                         <p class="text-white">{{ $league->settings['points_loss'] ?? 0 }}</p>
                                     </div>
                                 </div>
@@ -405,8 +405,8 @@
 
                             @if($league->sport->slug === 'stoni-tenis')
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-400 mb-1">{{ __('Sets to Win Match') }}</label>
-                                    <p class="text-white">{{ __('Best of :sets sets (:wins sets to win)', ['sets' => ($league->settings['sets_to_win'] ?? 2) * 2 - 1, 'wins' => $league->settings['sets_to_win'] ?? 2]) }}</p>
+                                    <label class="block text-sm font-medium text-gray-400 mb-1">{{ __('Setovi za pobjedu u meču') }}</label>
+                                    <p class="text-white">{{ __('Najbolje od :sets setova (:wins setova za pobjedu)', ['sets' => ($league->settings['sets_to_win'] ?? 2) * 2 - 1, 'wins' => $league->settings['sets_to_win'] ?? 2]) }}</p>
                                 </div>
                             @endif
                         </div>
@@ -427,11 +427,11 @@
                                 <div class="flex items-center justify-between p-4 bg-gray-700/30 rounded-lg">
                                     <div>
                                         <h4 class="text-white font-medium">{{ $team->name }}</h4>
-                                        <p class="text-gray-400 text-sm">{{ $team->players->count() }} players</p>
+                                        <p class="text-gray-400 text-sm">{{ $team->players->count() }} igrača</p>
                                     </div>
                                     <div class="flex items-center space-x-2">
                                         <span class="px-2 py-1 text-xs rounded-full bg-blue-500/20 text-blue-400">
-                                            Active
+                                            Aktivno
                                         </span>
                                     </div>
                                 </div>
@@ -444,8 +444,8 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
                                     </svg>
                                 </div>
-                                <h4 class="text-white font-semibold mb-2">{{ __('No teams yet') }}</h4>
-                                <p class="text-gray-400">{{ __('Get started by adding your first team.') }}</p>
+                                <h4 class="text-white font-semibold mb-2">{{ __('Nema timova još') }}</h4>
+                                <p class="text-gray-400">{{ __('Započnite dodavanjem svog prvog tima.') }}</p>
                             </div>
                             @endif
                         @else
@@ -477,8 +477,8 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                                     </svg>
                                 </div>
-                                <h4 class="text-white font-semibold mb-2">{{ __('No players yet') }}</h4>
-                                <p class="text-gray-400">{{ __('Get started by adding players to the league.') }}</p>
+                                <h4 class="text-white font-semibold mb-2">{{ __('Nema igrača u ligi') }}</h4>
+                                <p class="text-gray-400">{{ __('Počnite dodavanjem igrača u ligu.') }}</p>
                             </div>
                             @endif
                         @endif
@@ -486,7 +486,7 @@
 
                     @if($league->status === 'draft')
                     <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl">
-                        <h3 class="text-xl font-semibold text-white mb-4">{{ __('Select Players to Start League') }}</h3>
+                        <h3 class="text-xl font-semibold text-white mb-4">{{ __('Izaberite igrače za početak lige') }}</h3>
 
                         @php
                             // Get players that are not already in the league
@@ -519,11 +519,11 @@
 
                             <div class="flex items-center justify-between">
                                 <div class="text-sm text-gray-400">
-                                    {{ __('Selected:') }} <span id="selectedCount">0</span> {{ __('players') }}
+                                    {{ __('Izabrano:') }} <span id="selectedCount">0</span> {{ __('igrača') }}
                                 </div>
                                 <button type="submit"
                                         class="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white px-6 py-3 rounded-lg font-medium transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-green-500/25">
-                                    {{ __('Add Selected Players to League') }}
+                                    {{ __('Dodaj izabrane igrače u ligu') }}
                                 </button>
                             </div>
                         </form>
@@ -534,8 +534,8 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                 </svg>
                             </div>
-                            <h4 class="text-white font-semibold mb-2">{{ __('All players already added') }}</h4>
-                            <p class="text-gray-400">{{ __('All players from this organization have been added to the league.') }}</p>
+                            <h4 class="text-white font-semibold mb-2">{{ __('Svi igrači su već dodati') }}</h4>
+                            <p class="text-gray-400">{{ __('Svi igrači iz ove organizacije su dodati u ligu.') }}</p>
                         </div>
                         @else
                         <div class="text-center py-8">
@@ -544,8 +544,8 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                 </svg>
                             </div>
-                            <h4 class="text-white font-semibold mb-2">{{ __('No players available') }}</h4>
-                            <p class="text-gray-400">{{ __('Add players to your organization first.') }}</p>
+                            <h4 class="text-white font-semibold mb-2">{{ __('Nema dostupnih igrača') }}</h4>
+                            <p class="text-gray-400">{{ __('Prvo dodajte igrače u vašu organizaciju.') }}</p>
                         </div>
                         @endif
                     </div>
@@ -553,8 +553,8 @@
 
                     @if($league->status === 'draft')
                     <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl">
-                        <h3 class="text-xl font-semibold text-white mb-4">{{ __('Add Player by Email') }}</h3>
-                        <p class="text-gray-400 text-sm mb-6">{{ __('Search for registered users by email and add them as players to this league.') }}</p>
+                        <h3 class="text-xl font-semibold text-white mb-4">{{ __('Dodaj igrača po email-u') }}</h3>
+                        <p class="text-gray-400 text-sm mb-6">{{ __('Pretraži registrovane korisnike po email-u i dodaj ih kao igrače u ovu ligu.') }}</p>
 
                         @livewire('add-player-by-email', ['organization' => $organization, 'league' => $league])
                     </div>
@@ -564,12 +564,12 @@
                 <div class="space-y-6">
 
                     <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl">
-                        <h3 class="text-lg font-semibold text-white mb-4">{{ __('Quick Actions') }}</h3>
+                        <h3 class="text-lg font-semibold text-white mb-4">{{ __('Brze radnje') }}</h3>
                         <div class="space-y-3">
                             @if($league->is_team_based && $league->status === 'draft')
                             <a href="{{ route('organizations.leagues.team-management', [$organization, $league]) }}"
                                class="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-4 py-3 rounded-lg font-medium transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-blue-500/25 text-center block mb-3">
-                                {{ __('Manage Teams & Players') }}
+                                {{ __('Upravljaj timovima i igračima') }}
                             </a>
                             @endif
 
@@ -586,25 +586,26 @@
                             </form>
                             @endif
 
-                            @if($league->status !== 'draft')
+                            @if($league->status !== 'draft' && $organization->user_id === auth()->id())
                             <form method="POST" action="{{ route('organizations.leagues.reset', [$organization, $league]) }}"
                                   onsubmit="return confirm('{{ __('Are you sure you want to reset this league? All matches and standings will be deleted and the league will return to draft status.') }}')"
                                   class="w-full">
                                 @csrf
                                 <button type="submit"
                                         class="w-full bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white px-4 py-3 rounded-lg font-medium transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-orange-500/25 mb-3">
-                                    {{ __('Reset League') }}
+                                    {{ __('Restartuj ligu') }}
                                 </button>
                             </form>
                             @endif
 
                             <a href="{{ route('organizations.show', $organization) }}"
                                class="w-full bg-gray-700/50 hover:bg-gray-600/50 text-white px-4 py-3 rounded-lg font-medium transition-all duration-200 text-center block">
-                                {{ __('Back to Organization') }}
+                                {{ __('Vrati se na organizaciju') }}
                             </a>
 
                             <hr class="border-gray-600/50">
 
+                            @if($organization->user_id === auth()->id())
                             <form method="POST" action="{{ route('organizations.leagues.destroy', [$organization, $league]) }}"
                                   onsubmit="return confirm('{{ __('Are you sure you want to delete this league? This action cannot be undone.') }}')"
                                   class="w-full">
@@ -612,37 +613,38 @@
                                 @method('DELETE')
                                 <button type="submit"
                                         class="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white px-4 py-3 rounded-lg font-medium transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-red-500/25">
-                                    {{ __('Delete League') }}
+                                    {{ __('Obriši ligu') }}
                                 </button>
                             </form>
+                            @endif
                         </div>
                     </div>
 
                     <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl">
-                        <h3 class="text-lg font-semibold text-white mb-4">{{ __('Statistics') }}</h3>
+                        <h3 class="text-lg font-semibold text-white mb-4">{{ __('Statistika') }}</h3>
                         <div class="space-y-4">
                             <div class="flex justify-between">
-                                <span class="text-gray-400">{{ $league->is_team_based ? __('Teams') : __('Players') }}</span>
+                                <span class="text-gray-400">{{ $league->is_team_based ? __('Timovi') : __('Igrači') }}</span>
                                 <span class="text-white font-medium">{{ $league->is_team_based ? $league->teams->count() : $league->players->count() }}</span>
                             </div>
                             @if($league->status === 'active')
                             <div class="flex justify-between">
-                                <span class="text-gray-400">{{ __('Total Matches') }}</span>
+                                <span class="text-gray-400">{{ __('Ukupno mečeva') }}</span>
                                 <span class="text-white font-medium">{{ $league->matches->count() }}</span>
                             </div>
                             <div class="flex justify-between">
-                                <span class="text-gray-400">{{ __('Completed') }}</span>
+                                <span class="text-gray-400">{{ __('Završeni') }}</span>
                                 <span class="text-white font-medium">{{ $league->matches->where('status', 'completed')->count() }}</span>
                             </div>
                             @if($league->standings->count() > 0)
                             <div class="flex justify-between">
-                                <span class="text-gray-400">{{ __('Leader') }}</span>
+                                <span class="text-gray-400">{{ __('Lider') }}</span>
                                 <span class="text-white font-medium">{{ $league->standings->sortBy('position')->first()->participant_name }}</span>
                             </div>
                             @endif
                             @if($league->is_team_based && $league->max_teams)
                             <div class="flex justify-between">
-                                <span class="text-gray-400">{{ __('Max Teams') }}</span>
+                                <span class="text-gray-400">{{ __('Maksimalno timova') }}</span>
                                 <span class="text-white font-medium">{{ $league->max_teams }}</span>
                             </div>
                             @endif

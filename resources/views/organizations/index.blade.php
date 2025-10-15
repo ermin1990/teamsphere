@@ -3,13 +3,13 @@
         <div class="flex items-center justify-between">
             <div>
                 <h2 class="font-bold text-3xl bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                    {{ __('My Organizations') }}
+                    Moje Organizacije
                 </h2>
-                <p class="text-gray-400 mt-1">{{ __('Manage your sports organizations') }}</p>
+                <p class="text-gray-400 mt-1">Upravljajte svojim sportskim organizacijama</p>
             </div>
             <a href="{{ route('organizations.create') }}"
                class="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl">
-                {{ __('Create Organization') }}
+                Kreiraj Organizaciju
             </a>
         </div>
     </x-slot>
@@ -34,13 +34,13 @@
 
                         <div class="flex items-center justify-between">
                             <div class="text-sm text-gray-400">
-                                <span>{{ $organization->leagues->count() }} {{ __('Leagues') }}</span>
+                                <span>{{ $organization->leagues->count() }} Lige</span>
                                 <span class="mx-2">•</span>
-                                <span>{{ $organization->players->count() }} {{ __('Players') }}</span>
+                                <span>{{ $organization->players->count() }} Igrači</span>
                             </div>
                             <a href="{{ route('organizations.show', $organization) }}"
                                class="text-blue-400 hover:text-blue-300 text-sm font-medium transition-colors">
-                                {{ __('View') }} →
+                                Pogledaj →
                             </a>
                         </div>
                     </div>
@@ -53,11 +53,11 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
                     </svg>
                 </div>
-                <h3 class="text-xl font-semibold text-white mb-2">{{ __('No organizations yet') }}</h3>
-                <p class="text-gray-400 mb-6">{{ __('Create your first organization to start managing your sports teams and leagues.') }}</p>
+                <h3 class="text-xl font-semibold text-white mb-2">Još nema organizacija</h3>
+                <p class="text-gray-400 mb-6">Kreirajte svoju prvu organizaciju da počnete upravljati svojim sportskim timovima i ligama.</p>
                 <a href="{{ route('organizations.create') }}"
                    class="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-8 py-3 rounded-lg font-medium transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl inline-block">
-                    {{ __('Create Your First Organization') }}
+                    Kreirajte Svoju Prvu Organizaciju
                 </a>
             </div>
         @endif

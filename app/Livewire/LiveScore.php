@@ -612,6 +612,8 @@ class LiveScore extends Component
 
     public function render()
     {
+        $isOrganizationOwner = $this->match->league->organization->user_id === auth()->id();
+        
         return view('livewire.live-score', [
             'match' => $this->match,
             'firstServer' => $this->firstServer,
@@ -624,6 +626,7 @@ class LiveScore extends Component
             'setsVersion' => $this->setsVersion,
             'setStartTime' => $this->setStartTime,
             'matchPaused' => $this->matchPaused,
+            'isOrganizationOwner' => $isOrganizationOwner,
         ]);
     }
 }
