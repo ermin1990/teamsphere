@@ -29,7 +29,7 @@ Route::get('/dashboard', function () {
     $playerOrganizations = $players->pluck('organization')->unique();
     
     // Get organizations owned by user
-    $ownedOrganizations = $user->organizations;
+    $ownedOrganizations = $user->organizations()->with(['leagues', 'competitions'])->get();
     
     // Merge both collections and remove duplicates
     $organizations = $playerOrganizations->merge($ownedOrganizations)->unique('id');
@@ -125,10 +125,23 @@ Route::middleware('auth')->group(function () {
     Route::get('organizations/{organization}/competitions/create', [CompetitionController::class, 'create'])->name('organizations.competitions.create');
     Route::post('organizations/{organization}/competitions', [CompetitionController::class, 'store'])->name('organizations.competitions.store');
     Route::get('organizations/{organization}/competitions/{competition}', [CompetitionController::class, 'show'])->name('organizations.competitions.show');
+    Route::post('organizations/{organization}/competitions/{competition}/add-player', [CompetitionController::class, 'addPlayer'])->name('organizations.competitions.add-player');
+    Route::delete('organizations/{organization}/competitions/{competition}/players/{player}', [CompetitionController::class, 'removePlayer'])->name('organizations.competitions.remove-player');
+    Route::get('organizations/{organization}/competitions/{competition}/setup-groups', [CompetitionController::class, 'setupGroups'])->name('organizations.competitions.setup-groups');
+    Route::post('organizations/{organization}/competitions/{competition}/save-groups', [CompetitionController::class, 'saveGroups'])->name('organizations.competitions.save-groups');
+    Route::get('organizations/{organization}/competitions/{competition}/settings', [CompetitionController::class, 'showSettings'])->name('organizations.competitions.settings');
+    Route::post('organizations/{organization}/competitions/{competition}/settings', [CompetitionController::class, 'updateSettings'])->name('organizations.competitions.update-settings');
+    Route::post('organizations/{organization}/competitions/{competition}/start', [CompetitionController::class, 'startCompetition'])->name('organizations.competitions.start');
     Route::post('organizations/{organization}/competitions/{competition}/generate-groups', [CompetitionController::class, 'generateGroups'])->name('organizations.competitions.generate-groups');
     Route::post('organizations/{organization}/competitions/{competition}/advance-groups', [CompetitionController::class, 'advanceFromGroups'])->name('organizations.competitions.advance-groups');
     Route::post('organizations/{organization}/competitions/{competition}/groups/{group}/advance', [CompetitionController::class, 'advanceGroupPlayers'])->name('organizations.competitions.groups.advance');
     Route::post('organizations/{organization}/competitions/{competition}/complete', [CompetitionController::class, 'completeTournament'])->name('organizations.competitions.complete');
+    Route::post('organizations/{organization}/competitions/{competition}/reset', [CompetitionController::class, 'reset'])->name('organizations.competitions.reset');
+    Route::post('organizations/{organization}/competitions/{competition}/update-match-players', [CompetitionController::class, 'updateMatchPlayers'])->name('organizations.competitions.update-match-players');
+    Route::post('organizations/{organization}/competitions/{competition}/auto-generate-bracket', [CompetitionController::class, 'autoGenerateBracket'])->name('organizations.competitions.auto-generate-bracket');
+    Route::post('organizations/{organization}/competitions/{competition}/generate-next-round', [CompetitionController::class, 'generateNextRound'])->name('organizations.competitions.generate-next-round');
+    Route::get('organizations/{organization}/competitions/{competition}/available-players', [CompetitionController::class, 'getAvailablePlayers'])->name('organizations.competitions.available-players');
+    Route::delete('organizations/{organization}/competitions/{competition}', [CompetitionController::class, 'destroy'])->name('organizations.competitions.destroy');
 
     // League routes (nested under organizations)
     Route::get('organizations/{organization}/leagues/create', [LeagueController::class, 'create'])->name('organizations.leagues.create');
@@ -155,6 +168,21 @@ Route::middleware('auth')->group(function () {
     Route::get('organizations/{organization}/leagues/{league}/matches/{match}/live', [LeagueController::class, 'liveScore'])->name('organizations.leagues.matches.live');
     Route::post('organizations/{organization}/leagues/{league}/matches/{match}/live-score', [LeagueController::class, 'updateLiveScore'])->name('organizations.leagues.matches.live-score');
     Route::post('organizations/{organization}/leagues/{league}/matches/{match}/reset', [LeagueController::class, 'resetMatch'])->name('organizations.leagues.matches.reset');
+    
+    // Direct match access routes (for live scoring from competition view)
+    Route::get('leagues/matches/{match}/live-score', function($matchId) {
+        $match = \App\Models\LeagueMatch::findOrFail($matchId);
+        return view('livewire.live-score', ['match' => $match]);
+    })->name('leagues.live-score');
+    
+    Route::get('competitions/matches/{match}/live-score', function($matchId) {
+        $match = \App\Models\CompetitionMatch::findOrFail($matchId);
+        return view('livewire.live-score', ['match' => $match]);
+    })->name('competitions.live-score');
+    
+    // Quick result entry routes
+    Route::post('leagues/matches/{match}/quick-result', [LeagueController::class, 'quickResult'])->name('leagues.matches.quick-result');
+    Route::post('competitions/matches/{match}/quick-result', [CompetitionController::class, 'quickResult'])->name('competitions.matches.quick-result');
 });
 
 // Referee routes

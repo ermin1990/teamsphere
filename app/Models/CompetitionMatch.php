@@ -10,7 +10,7 @@ class CompetitionMatch extends Model
 {
     use HasFactory;
 
-    protected $table = 'competition_matches';
+    protected $table = 'matches';
 
     protected $fillable = [
         'competition_id',
@@ -57,7 +57,15 @@ class CompetitionMatch extends Model
     ];
 
     /**
-     * Get the competition this match belongs to.
+     * Get the league this match belongs to (for league matches).
+     */
+    public function league(): BelongsTo
+    {
+        return $this->belongsTo(League::class);
+    }
+
+    /**
+     * Get the competition this match belongs to (for tournament matches).
      */
     public function competition(): BelongsTo
     {

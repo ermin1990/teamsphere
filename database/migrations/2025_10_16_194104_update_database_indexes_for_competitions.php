@@ -11,25 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Drop old indexes that reference league_id
-        Schema::table('matches', function (Blueprint $table) {
-            $table->dropIndex('matches_league_status_critical');
-        });
-
-        Schema::table('standings', function (Blueprint $table) {
-            $table->dropIndex('standings_league_points_critical');
-            $table->dropIndex('standings_league_played_critical');
-        });
-
-        // Create new indexes with competition_id
-        Schema::table('matches', function (Blueprint $table) {
-            $table->index(['competition_id', 'status'], 'matches_competition_status_critical');
-        });
-
-        Schema::table('standings', function (Blueprint $table) {
-            $table->index(['competition_id', 'points'], 'standings_competition_points_critical');
-            $table->index(['competition_id', 'played'], 'standings_competition_played_critical');
-        });
+        // This migration is handled by the comprehensive competition migration
+        return;
     }
 
     /**

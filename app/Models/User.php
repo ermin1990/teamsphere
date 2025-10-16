@@ -89,4 +89,16 @@ class User extends Authenticatable
 
         return $this->organizations()->count() < $plan->max_organizations;
     }
+
+    /**
+     * Check if user can create more competitions in an organization.
+     */
+    public function canCreateMoreCompetitions($organizationId)
+    {
+        $plan = $this->currentPlan();
+        if (!$plan) return true; // Free plan allows unlimited competitions
+
+        $competitionCount = \App\Models\Competition::where('organization_id', $organizationId)->count();
+        return $competitionCount < $plan->max_competitions_per_organization;
+    }
 }

@@ -49,7 +49,7 @@ class Player extends Model
      */
     public function leagues(): BelongsToMany
     {
-        return $this->belongsToMany(League::class, 'league_player', 'player_id', 'league_id')
+        return $this->belongsToMany(League::class, 'competition_player', 'player_id', 'competition_id')
                     ->withPivot('joined_at')
                     ->withTimestamps()
                     ->withCasts([

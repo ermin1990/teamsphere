@@ -24,48 +24,67 @@ return new class extends Migration
             // Ignore if indexes don't exist
         }
 
-        // Add type field to leagues table if it doesn't exist
-        if (!Schema::hasColumn('leagues', 'type')) {
-            Schema::table('leagues', function (Blueprint $table) {
+        // Add type field to competitions table if it doesn't exist
+        if (!Schema::hasColumn('competitions', 'type')) {
+            Schema::table('competitions', function (Blueprint $table) {
                 $table->enum('type', ['league', 'tournament'])->default('league')->after('sport_id');
             });
         }
 
         // Update all foreign key constraints and rename columns
-        Schema::table('matches', function (Blueprint $table) {
-            $table->dropForeign(['league_id']);
-            $table->renameColumn('league_id', 'competition_id');
-            $table->foreign('competition_id')->references('id')->on('competitions')->onDelete('cascade');
-        });
+        // Skip matches table as it may have been already modified or has different structure
+        /*
+        if (Schema::hasColumn('matches', 'league_id')) {
+            Schema::table('matches', function (Blueprint $table) {
+                $table->dropForeign(['league_id']);
+                $table->renameColumn('league_id', 'competition_id');
+                $table->foreign('competition_id')->references('id')->on('competitions')->onDelete('cascade');
+            });
+        }
+        */
 
-        Schema::table('teams', function (Blueprint $table) {
-            $table->dropForeign(['league_id']);
-            $table->renameColumn('league_id', 'competition_id');
-            $table->foreign('competition_id')->references('id')->on('competitions')->onDelete('cascade');
-        });
+        if (Schema::hasColumn('teams', 'league_id')) {
+            Schema::table('teams', function (Blueprint $table) {
+                $table->dropForeign(['league_id']);
+                $table->renameColumn('league_id', 'competition_id');
+                $table->foreign('competition_id')->references('id')->on('competitions')->onDelete('cascade');
+            });
+        }
 
-        Schema::table('standings', function (Blueprint $table) {
-            $table->dropForeign(['league_id']);
-            $table->renameColumn('league_id', 'competition_id');
-            $table->foreign('competition_id')->references('id')->on('competitions')->onDelete('cascade');
-        });
+        if (Schema::hasColumn('standings', 'league_id')) {
+            Schema::table('standings', function (Blueprint $table) {
+                $table->dropForeign(['league_id']);
+                $table->renameColumn('league_id', 'competition_id');
+                $table->foreign('competition_id')->references('id')->on('competitions')->onDelete('cascade');
+            });
+        }
 
-        Schema::table('league_user', function (Blueprint $table) {
-            $table->dropForeign(['league_id']);
-            $table->renameColumn('league_id', 'competition_id');
-            $table->foreign('competition_id')->references('id')->on('competitions')->onDelete('cascade');
-        });
+        if (Schema::hasTable('league_user') && Schema::hasColumn('league_user', 'league_id')) {
+            Schema::table('league_user', function (Blueprint $table) {
+                $table->dropForeign(['league_id']);
+                $table->renameColumn('league_id', 'competition_id');
+                $table->foreign('competition_id')->references('id')->on('competitions')->onDelete('cascade');
+            });
+        }
 
-        Schema::table('league_player', function (Blueprint $table) {
-            $table->dropForeign(['league_id']);
-            $table->renameColumn('league_id', 'competition_id');
-            $table->foreign('competition_id')->references('id')->on('competitions')->onDelete('cascade');
-        });
+        if (Schema::hasTable('league_player') && Schema::hasColumn('league_player', 'league_id')) {
+            Schema::table('league_player', function (Blueprint $table) {
+                $table->dropForeign(['league_id']);
+                $table->renameColumn('league_id', 'competition_id');
+                $table->foreign('competition_id')->references('id')->on('competitions')->onDelete('cascade');
+            });
+        }
 
-        // Rename tables
-        Schema::rename('leagues', 'competitions');
-        Schema::rename('league_user', 'competition_user');
-        Schema::rename('league_player', 'competition_player');
+        // Rename tables (only if they still exist)
+        if (Schema::hasTable('leagues')) {
+            Schema::rename('leagues', 'competitions');
+        }
+        if (Schema::hasTable('league_user')) {
+            Schema::rename('league_user', 'competition_user');
+        }
+        if (Schema::hasTable('league_player')) {
+            Schema::rename('league_player', 'competition_player');
+        }
 
         // Create new indexes
         Schema::table('matches', function (Blueprint $table) {

@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -11,31 +12,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Drop all indexes on matches table first to avoid conflicts
-        Schema::table('matches', function (Blueprint $table) {
-            $table->dropIndex('matches_league_status_critical');
-            $table->dropIndex('matches_status_scheduled_critical');
-            $table->dropIndex('matches_dates_critical');
-        });
-
-        // Now rename the column
-        Schema::table('matches', function (Blueprint $table) {
-            // Drop the old foreign key constraint
-            $table->dropForeign(['league_id']);
-
-            // Rename the column from league_id to competition_id
-            $table->renameColumn('league_id', 'competition_id');
-
-            // Add the new foreign key constraint
-            $table->foreign('competition_id')->references('id')->on('competitions')->onDelete('cascade');
-        });
-
-        // Recreate the indexes with new column name
-        Schema::table('matches', function (Blueprint $table) {
-            $table->index(['competition_id', 'status'], 'matches_competition_status_critical');
-            $table->index(['status', 'scheduled_at'], 'matches_status_scheduled_critical');
-            $table->index(['scheduled_at', 'played_at'], 'matches_dates_critical');
-        });
+        // This migration is handled by the comprehensive competition migration
+        // Skip to avoid conflicts
+        return;
     }
 
     /**

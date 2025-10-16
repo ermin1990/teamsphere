@@ -41,22 +41,37 @@ class CompetitionController extends Controller
             abort(403);
         }
 
-        $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'description' => ['nullable', 'string', 'max:1000'],
-            'sport_id' => ['required', 'exists:sports,id'],
-            'type' => ['required', 'in:league,tournament'],
-            'start_date' => ['required', 'date', 'after:today'],
-            'end_date' => ['nullable', 'date', 'after:start_date'],
-            'max_teams' => ['nullable', 'integer', 'min:2', 'max:100'],
-            'is_team_based' => ['boolean'],
-            // Tournament specific validation
-            'max_participants' => ['required_if:type,tournament', 'integer', 'min:4', 'max:128'],
-            'group_count' => ['required_if:type,tournament', 'integer', 'min:2', 'max:16'],
-            'players_per_group' => ['required_if:type,tournament', 'integer', 'min:3', 'max:8'],
-            'players_advancing_per_group' => ['required_if:type,tournament', 'integer', 'min:1', 'max:4'],
-            'advancement_method' => ['required_if:type,tournament', 'in:automatic,manual'],
-        ]);
+        // Check if user can create more competitions
+        if (!auth()->user()->canCreateMoreCompetitions($organization->id)) {
+            return back()->withErrors(['limit' => __('You have reached the maximum number of competitions allowed for this organization.')]);
+        }
+
+        try {
+            $request->validate([
+                'name' => ['required', 'string', 'max:255'],
+                'sport_id' => ['required', 'exists:sports,id'],
+                'type' => ['required', 'in:league,tournament'],
+                'start_date' => ['required', 'date'],
+                // Temporarily simplified validation
+                // 'description' => ['nullable', 'string', 'max:1000'],
+                // 'end_date' => ['nullable', 'date', 'after:start_date'],
+                // 'max_teams' => ['nullable', 'integer', 'min:2', 'max:100'],
+                // 'is_team_based' => ['nullable', 'in:0,1'],
+                // Tournament specific validation
+                // 'max_participants' => ['required_if:type,tournament', 'integer', 'min:4', 'max:128'],
+                // 'group_count' => ['required_if:type,tournament', 'integer', 'min:2', 'max:16'],
+                // 'players_per_group' => ['required_if:type,tournament', 'integer', 'min:3', 'max:8'],
+                // 'players_advancing_per_group' => ['required_if:type,tournament', 'integer', 'min:1', 'max:4'],
+                // 'advancement_method' => ['required_if:type,tournament', 'in:automatic,manual'],
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            // Log validation errors for debugging
+            \Log::error('Competition validation failed', [
+                'errors' => $e->errors(),
+                'input' => $request->all()
+            ]);
+            throw $e;
+        }
 
         $competition = Competition::create([
             'name' => $request->name,
@@ -67,16 +82,16 @@ class CompetitionController extends Controller
             'type' => $request->type,
             'start_date' => $request->start_date,
             'end_date' => $request->end_date,
-            'max_teams' => $request->max_teams,
-            'is_team_based' => $request->boolean('is_team_based'),
+            'max_teams' => $request->max_teams ?: 8,
+            'is_team_based' => (bool) ($request->input('is_team_based', 0)),
             'status' => 'draft',
             'is_active' => true,
-            // Tournament fields
-            'max_participants' => $request->max_participants,
-            'group_count' => $request->group_count,
-            'players_per_group' => $request->players_per_group,
-            'players_advancing_per_group' => $request->players_advancing_per_group,
-            'advancement_method' => $request->advancement_method,
+            // Tournament fields - use defaults if not provided
+            'max_participants' => $request->max_participants ?: 16,
+            'group_count' => $request->group_count ?: 4,
+            'players_per_group' => $request->players_per_group ?: 4,
+            'players_advancing_per_group' => $request->players_advancing_per_group ?: 2,
+            'advancement_method' => $request->advancement_method ?: 'automatic',
             'current_phase' => 'groups',
         ]);
 
@@ -110,10 +125,10 @@ class CompetitionController extends Controller
         $competition->load([
             'sport',
             'teams.players',
-            'matches.homeTeam',
-            'matches.awayTeam',
-            'matches.homePlayer',
-            'matches.awayPlayer',
+            // 'matches.homeTeam',
+            // 'matches.awayTeam',
+            // 'matches.homePlayer',
+            // 'matches.awayPlayer',
             'players',
             'standings',
             'tournamentGroups'
@@ -122,6 +137,275 @@ class CompetitionController extends Controller
         $organization->load('players');
 
         return view('organizations.competitions.show', compact('organization', 'competition', 'isOwner', 'isPlayer', 'isReferee'));
+    }
+
+    /**
+     * Add a player to the competition.
+     */
+    public function addPlayer(Request $request, Organization $organization, Competition $competition)
+    {
+        // Ensure user owns this organization
+        if ($organization->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        // Ensure competition belongs to organization
+        if ($competition->organization_id !== $organization->id) {
+            abort(404);
+        }
+
+        $request->validate([
+            'player_id' => ['required', 'exists:players,id'],
+        ]);
+
+        $player = Player::findOrFail($request->player_id);
+
+        // Check if player belongs to the organization
+        if ($player->organization_id !== $organization->id) {
+            return back()->with('error', 'Player does not belong to this organization.');
+        }
+
+        // Check if player is already registered
+        if ($competition->players->contains($player->id)) {
+            return back()->with('error', 'Player is already registered for this competition.');
+        }
+
+        // Check max participants limit for tournaments
+        if ($competition->isTournament() && $competition->max_participants) {
+            $currentCount = $competition->players()->count();
+            if ($currentCount >= $competition->max_participants) {
+                return back()->with('error', 'Maximum number of participants reached.');
+            }
+        }
+
+        // Add player to competition
+        $competition->players()->attach($player->id);
+
+        return back()->with('success', 'Player added successfully!');
+    }
+
+    /**
+     * Remove a player from the competition.
+     */
+    public function removePlayer(Request $request, Organization $organization, Competition $competition, Player $player)
+    {
+        // Ensure user owns this organization
+        if ($organization->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        // Ensure competition belongs to organization
+        if ($competition->organization_id !== $organization->id) {
+            abort(404);
+        }
+
+        // Check if player belongs to the organization
+        if ($player->organization_id !== $organization->id) {
+            return back()->with('error', 'Player does not belong to this organization.');
+        }
+
+        // Check if player is registered
+        if (!$competition->players->contains($player->id)) {
+            return back()->with('error', 'Player is not registered for this competition.');
+        }
+
+        // Remove player from competition
+        $competition->players()->detach($player->id);
+
+        return back()->with('success', 'Player removed successfully!');
+    }
+
+    /**
+     * Show the manual group setup page.
+     */
+    public function setupGroups(Request $request, Organization $organization, Competition $competition)
+    {
+        // Ensure user owns this organization
+        if ($organization->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        // Ensure competition belongs to organization
+        if ($competition->organization_id !== $organization->id) {
+            abort(404);
+        }
+
+        if (!$competition->isTournament()) {
+            return back()->with('error', 'This is not a tournament.');
+        }
+
+        if ($competition->status !== 'draft') {
+            return back()->with('error', 'Competition has already started.');
+        }
+
+        if ($competition->players->count() < 4) {
+            return back()->with('error', 'You need at least 4 players to setup groups.');
+        }
+
+        // Load players and any existing groups
+        $competition->load(['players', 'tournamentGroups']);
+        
+        // Prepare empty groups structure
+        $groups = [];
+        for ($i = 0; $i < $competition->group_count; $i++) {
+            $groups[] = [
+                'name' => chr(65 + $i), // A, B, C, etc.
+                'number' => $i + 1,
+                'players' => []
+            ];
+        }
+
+        // If groups already exist, populate them
+        if ($competition->tournamentGroups->count() > 0) {
+            foreach ($competition->tournamentGroups as $group) {
+                $groupIndex = $group->group_number - 1;
+                if (isset($groups[$groupIndex])) {
+                    $groups[$groupIndex]['players'] = $competition->players
+                        ->whereIn('id', $group->player_ids)
+                        ->values()
+                        ->toArray();
+                }
+            }
+        }
+
+        return view('organizations.competitions.setup-groups', compact('organization', 'competition', 'groups'));
+    }
+
+    /**
+     * Save manually configured groups.
+     */
+    public function saveGroups(Request $request, Organization $organization, Competition $competition)
+    {
+        // Ensure user owns this organization
+        if ($organization->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        if (!$competition->isTournament()) {
+            return back()->with('error', 'This is not a tournament.');
+        }
+
+        $request->validate([
+            'groups' => ['required', 'array'],
+            'groups.*' => ['required', 'array'],
+            'groups.*.players' => ['required', 'array', 'min:' . $competition->players_per_group, 'max:' . $competition->players_per_group],
+            'groups.*.players.*' => ['exists:players,id'],
+        ]);
+
+        // Delete existing groups
+        $competition->tournamentGroups()->delete();
+
+        // Create new groups
+        foreach ($request->groups as $index => $groupData) {
+            TournamentGroup::create([
+                'competition_id' => $competition->id,
+                'name' => chr(65 + $index),
+                'group_number' => $index + 1,
+                'player_ids' => $groupData['players'],
+                'standings' => $competition->initializeGroupStandings($groupData['players']),
+            ]);
+        }
+
+        return redirect()
+            ->route('organizations.competitions.show', [$organization, $competition])
+            ->with('success', 'Groups saved successfully! You can now start the competition.');
+    }
+
+    /**
+     * Show competition settings page.
+     */
+    public function showSettings(Request $request, Organization $organization, Competition $competition)
+    {
+        // Ensure user owns this organization
+        if ($organization->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        // Ensure competition belongs to organization
+        if ($competition->organization_id !== $organization->id) {
+            abort(404);
+        }
+
+        if ($competition->status !== 'draft') {
+            return back()->with('error', 'Cannot change settings after competition has started.');
+        }
+
+        return view('organizations.competitions.settings', compact('organization', 'competition'));
+    }
+
+    /**
+     * Update competition settings.
+     */
+    public function updateSettings(Request $request, Organization $organization, Competition $competition)
+    {
+        // Ensure user owns this organization
+        if ($organization->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        if ($competition->status !== 'draft') {
+            return back()->with('error', 'Cannot change settings after competition has started.');
+        }
+
+        $request->validate([
+            'sets_to_win' => ['required', 'integer', 'min:1', 'max:7'],
+            'points_per_set' => ['required', 'integer', 'min:7', 'max:21'],
+            'deuce_at' => ['nullable', 'integer', 'min:5'],
+            'must_win_by_two' => ['boolean'],
+            'points_for_win' => ['required', 'integer', 'min:0', 'max:10'],
+            'points_for_draw' => ['required', 'integer', 'min:0', 'max:10'],
+            'points_for_loss' => ['required', 'integer', 'min:0', 'max:10'],
+            'has_tiebreak' => ['boolean'],
+            'tiebreak_points' => ['nullable', 'integer', 'min:5', 'max:15'],
+        ]);
+
+        $competition->update([
+            'sets_to_win' => $request->sets_to_win,
+            'points_per_set' => $request->points_per_set,
+            'deuce_at' => $request->deuce_at,
+            'must_win_by_two' => $request->boolean('must_win_by_two'),
+            'points_for_win' => $request->points_for_win,
+            'points_for_draw' => $request->points_for_draw,
+            'points_for_loss' => $request->points_for_loss,
+            'has_tiebreak' => $request->boolean('has_tiebreak'),
+            'tiebreak_points' => $request->tiebreak_points,
+        ]);
+
+        return redirect()
+            ->route('organizations.competitions.show', [$organization, $competition])
+            ->with('success', 'Competition settings updated successfully!');
+    }
+
+    /**
+     * Start the competition.
+     */
+    public function startCompetition(Request $request, Organization $organization, Competition $competition)
+    {
+        // Ensure user owns this organization
+        if ($organization->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        if ($competition->status !== 'draft') {
+            return back()->with('error', 'Competition has already started.');
+        }
+
+        if ($competition->isTournament() && $competition->tournamentGroups()->count() === 0) {
+            return back()->with('error', 'Please setup groups before starting the tournament.');
+        }
+
+        // Update competition status
+        $competition->update([
+            'status' => 'active',
+            'current_phase' => $competition->isTournament() ? 'groups' : null,
+        ]);
+
+        // Generate matches for tournament groups
+        if ($competition->isTournament()) {
+            $competition->generateGroupMatches();
+        }
+
+        return back()->with('success', 'Competition started successfully! Matches have been generated.');
     }
 
     /**
@@ -144,7 +428,9 @@ class CompetitionController extends Controller
 
         $competition->generateGroups();
 
-        return back()->with('success', 'Tournament groups generated successfully!');
+        return redirect()
+            ->route('organizations.competitions.show', [$organization, $competition])
+            ->with('success', 'Tournament groups generated successfully!');
     }
 
     /**
@@ -219,5 +505,427 @@ class CompetitionController extends Controller
         $competition->completeTournament();
 
         return back()->with('success', 'Tournament completed successfully!');
+    }
+
+    /**
+     * Reset competition back to draft status.
+     */
+    public function reset(Request $request, Organization $organization, Competition $competition)
+    {
+        // Ensure user owns this organization
+        if ($organization->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        // Ensure competition belongs to organization
+        if ($competition->organization_id !== $organization->id) {
+            abort(404);
+        }
+
+        // Delete all matches
+        $competition->matches()->delete();
+
+        // Delete all groups
+        $competition->tournamentGroups()->delete();
+
+        // Delete all standings
+        $competition->standings()->delete();
+
+        // Reset competition status
+        $competition->update([
+            'status' => 'draft',
+            'current_phase' => null,
+            'groups_completed_at' => null,
+            'knockout_completed_at' => null,
+        ]);
+
+        return back()->with('success', 'Competition has been reset to draft status!');
+    }
+
+    /**
+     * Quick result entry for a match.
+     */
+    public function quickResult(Request $request, $matchId)
+    {
+        $match = CompetitionMatch::findOrFail($matchId);
+        
+        // Get the competition through the match
+        $competition = $match->competition;
+        
+        // Ensure user owns the organization
+        if ($competition->organization->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        $request->validate([
+            'home_score' => 'required|integer|min:0|max:5',
+            'away_score' => 'required|integer|min:0|max:5',
+            'sets' => 'nullable|array',
+            'sets.*.home' => 'required_with:sets|integer|min:0',
+            'sets.*.away' => 'required_with:sets|integer|min:0',
+        ]);
+
+        // Update match with results
+        $match->update([
+            'home_score' => $request->home_score,
+            'away_score' => $request->away_score,
+            'sets' => $request->sets ?? [],
+            'status' => 'completed',
+            'played_at' => now(),
+        ]);
+
+        // Update standings if tournament
+        if ($competition->type === 'tournament' && $match->tournamentGroup) {
+            $this->updateGroupStandings($match);
+        }
+
+        // Check if we need to advance knockout rounds
+        if ($competition->type === 'tournament' && $match->phase === 'knockout') {
+            $this->advanceKnockoutRound($competition, $match);
+        }
+
+        return back()->with('success', 'Match result saved successfully!');
+    }
+
+    /**
+     * Update group standings after a match.
+     */
+    private function updateGroupStandings($match)
+    {
+        $competition = $match->competition;
+        $group = $match->tournamentGroup;
+
+        // Get or create standings for both players
+        $homeStanding = Standing::firstOrCreate([
+            'competition_id' => $competition->id,
+            'tournament_group_id' => $group->id,
+            'player_id' => $match->home_player_id,
+        ], [
+            'played' => 0,
+            'won' => 0,
+            'lost' => 0,
+            'points' => 0,
+            'sets_won' => 0,
+            'sets_lost' => 0,
+            'points_won' => 0,
+            'points_lost' => 0,
+        ]);
+
+        $awayStanding = Standing::firstOrCreate([
+            'competition_id' => $competition->id,
+            'tournament_group_id' => $group->id,
+            'player_id' => $match->away_player_id,
+        ], [
+            'played' => 0,
+            'won' => 0,
+            'lost' => 0,
+            'points' => 0,
+            'sets_won' => 0,
+            'sets_lost' => 0,
+            'points_won' => 0,
+            'points_lost' => 0,
+        ]);
+
+        // Update played matches
+        $homeStanding->increment('played');
+        $awayStanding->increment('played');
+
+        // Determine winner and update standings
+        if ($match->home_score > $match->away_score) {
+            $homeStanding->increment('won');
+            $homeStanding->increment('points', $competition->points_for_win ?? 2);
+            $awayStanding->increment('lost');
+        } elseif ($match->away_score > $match->home_score) {
+            $awayStanding->increment('won');
+            $awayStanding->increment('points', $competition->points_for_win ?? 2);
+            $homeStanding->increment('lost');
+        } else {
+            // Draw
+            $homeStanding->increment('points', $competition->points_for_draw ?? 1);
+            $awayStanding->increment('points', $competition->points_for_draw ?? 1);
+        }
+
+        // Update set scores
+        $homeStanding->increment('sets_won', $match->home_score);
+        $homeStanding->increment('sets_lost', $match->away_score);
+        $awayStanding->increment('sets_won', $match->away_score);
+        $awayStanding->increment('sets_lost', $match->home_score);
+
+        // Update point scores if sets data is available
+        if ($match->sets && is_array($match->sets)) {
+            foreach ($match->sets as $set) {
+                $homeStanding->increment('points_won', $set['home'] ?? 0);
+                $homeStanding->increment('points_lost', $set['away'] ?? 0);
+                $awayStanding->increment('points_won', $set['away'] ?? 0);
+                $awayStanding->increment('points_lost', $set['home'] ?? 0);
+            }
+        }
+
+        // Update TournamentGroup standings
+        $group->updateStandings($match);
+    }
+
+    /**
+     * Advance to next knockout round after match completion.
+     */
+    private function advanceKnockoutRound($competition, $completedMatch)
+    {
+        $currentRound = $completedMatch->round_number;
+        
+        // Check if all matches in current round are completed
+        $roundMatches = CompetitionMatch::where('competition_id', $competition->id)
+            ->where('phase', 'knockout')
+            ->where('round_number', $currentRound)
+            ->get();
+        
+        $allCompleted = $roundMatches->every(function($match) {
+            return $match->status === 'completed';
+        });
+        
+        if (!$allCompleted) {
+            return; // Not all matches in round are done
+        }
+        
+        // Check if next round already exists
+        $nextRoundExists = CompetitionMatch::where('competition_id', $competition->id)
+            ->where('phase', 'knockout')
+            ->where('round_number', $currentRound + 1)
+            ->exists();
+        
+        if ($nextRoundExists) {
+            return; // Next round already created
+        }
+        
+        // Get winners from current round
+        $winners = [];
+        foreach ($roundMatches as $match) {
+            if ($match->home_score > $match->away_score) {
+                $winners[] = $match->home_player_id;
+            } else {
+                $winners[] = $match->away_player_id;
+            }
+        }
+        
+        // If only 1 winner, tournament is complete
+        if (count($winners) <= 1) {
+            $competition->update([
+                'status' => 'completed',
+                'current_phase' => 'completed',
+                'knockout_completed_at' => now(),
+            ]);
+            return;
+        }
+        
+        // Create next round matches
+        for ($i = 0; $i < count($winners); $i += 2) {
+            CompetitionMatch::create([
+                'competition_id' => $competition->id,
+                'home_player_id' => $winners[$i],
+                'away_player_id' => $winners[$i + 1] ?? null,
+                'phase' => 'knockout',
+                'round_number' => $currentRound + 1,
+                'status' => 'scheduled',
+                'scheduled_at' => now(),
+            ]);
+        }
+    }
+
+    /**
+     * Manually generate next knockout round.
+     */
+    public function generateNextRound(Request $request, Organization $organization, Competition $competition)
+    {
+        // Ensure user owns this organization
+        if ($organization->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        // Ensure competition belongs to organization
+        if ($competition->organization_id !== $organization->id) {
+            abort(404);
+        }
+
+        // Get the last completed round
+        $lastRound = CompetitionMatch::where('competition_id', $competition->id)
+            ->where('phase', 'knockout')
+            ->orderBy('round_number', 'desc')
+            ->first();
+
+        if (!$lastRound) {
+            return back()->with('error', 'No knockout rounds found.');
+        }
+
+        // Create a dummy match to trigger advancement logic
+        $this->advanceKnockoutRound($competition, $lastRound);
+
+        return back()->with('success', 'Next round generated successfully!');
+    }
+
+    /**
+     * Delete the competition.
+     */
+    public function destroy(Request $request, Organization $organization, Competition $competition)
+    {
+        // Ensure user owns this organization
+        if ($organization->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        // Ensure competition belongs to organization
+        if ($competition->organization_id !== $organization->id) {
+            abort(404);
+        }
+
+        $competitionName = $competition->name;
+
+        // Delete all related data (cascade will handle most of it)
+        $competition->delete();
+
+        return redirect()
+            ->route('organizations.show', $organization)
+            ->with('success', "Competition '{$competitionName}' has been deleted successfully!");
+    }
+
+    /**
+     * Update match players via AJAX (for drag and drop).
+     */
+    public function updateMatchPlayers(Request $request, Organization $organization, Competition $competition)
+    {
+        // Ensure user owns this organization
+        if ($organization->user_id !== auth()->id()) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized']);
+        }
+
+        $request->validate([
+            'match_id' => 'required|exists:matches,id',
+            'player_type' => 'required|in:home,away',
+            'player_id' => 'required|exists:players,id',
+        ]);
+
+        $match = CompetitionMatch::findOrFail($request->match_id);
+
+        // Ensure match belongs to competition
+        if ($match->competition_id !== $competition->id) {
+            return response()->json(['success' => false, 'message' => 'Match not found']);
+        }
+
+        // Update the player
+        if ($request->player_type === 'home') {
+            $match->update(['home_player_id' => $request->player_id]);
+        } else {
+            $match->update(['away_player_id' => $request->player_id]);
+        }
+
+        return response()->json(['success' => true]);
+    }
+
+    /**
+     * Auto generate knockout bracket from group standings.
+     */
+    public function autoGenerateBracket(Request $request, Organization $organization, Competition $competition)
+    {
+        // Ensure user owns this organization
+        if ($organization->user_id !== auth()->id()) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized']);
+        }
+
+        if (!$competition->isTournament()) {
+            return response()->json(['success' => false, 'message' => 'Not a tournament']);
+        }
+
+        // Get advancing players from all groups
+        $advancingPlayers = [];
+        foreach ($competition->tournamentGroups as $group) {
+            $groupStandings = collect($group->standings)->sortByDesc(function ($player) {
+                return [$player['points'], $player['sets_won'], $player['points_scored']];
+            })->take($competition->players_advancing_per_group);
+
+            $advancingPlayers = array_merge($advancingPlayers, $groupStandings->pluck('player_id')->toArray());
+        }
+
+        // Delete existing knockout matches
+        CompetitionMatch::where('competition_id', $competition->id)
+            ->where('phase', 'knockout')
+            ->delete();
+
+        // Generate new bracket
+        $this->generateKnockoutBracketFromPlayers($competition, $advancingPlayers);
+
+        return response()->json(['success' => true]);
+    }
+
+    /**
+     * Generate knockout bracket from player IDs.
+     */
+    private function generateKnockoutBracketFromPlayers($competition, array $playerIds)
+    {
+        // Handle odd number of players by adding byes
+        $totalPlayers = count($playerIds);
+        $bracketSize = $this->getNextPowerOfTwo($totalPlayers);
+
+        // Add byes if necessary
+        $byesNeeded = $bracketSize - $totalPlayers;
+        for ($i = 0; $i < $byesNeeded; $i++) {
+            $playerIds[] = null; // null represents a bye
+        }
+
+        // Shuffle players for bracket
+        shuffle($playerIds);
+
+        // Create first round matches
+        $matchesCreated = 0;
+        for ($i = 0; $i < count($playerIds); $i += 2) {
+            CompetitionMatch::create([
+                'competition_id' => $competition->id,
+                'home_player_id' => $playerIds[$i],
+                'away_player_id' => $playerIds[$i + 1] ?? null,
+                'phase' => 'knockout',
+                'round_number' => 1,
+                'status' => 'scheduled',
+                'scheduled_at' => now(),
+                'is_bye' => $playerIds[$i + 1] === null,
+            ]);
+            $matchesCreated++;
+        }
+
+        return $matchesCreated;
+    }
+
+    /**
+     * Get the next power of 2 for bracket size.
+     */
+    private function getNextPowerOfTwo(int $number): int
+    {
+        if ($number <= 1) return 1;
+        $power = 1;
+        while ($power < $number) {
+            $power *= 2;
+        }
+        return $power;
+    }
+
+    /**
+     * Get available players for bracket editing.
+     */
+    public function getAvailablePlayers(Request $request, Organization $organization, Competition $competition)
+    {
+        // Ensure user owns this organization
+        if ($organization->user_id !== auth()->id()) {
+            return response()->json(['players' => []]);
+        }
+
+        // Get all players from groups
+        $players = [];
+        foreach ($competition->tournamentGroups as $group) {
+            $groupPlayers = collect($group->standings)->map(function ($standing) {
+                return [
+                    'id' => $standing['player_id'],
+                    'name' => Player::find($standing['player_id'])->name ?? 'Unknown'
+                ];
+            });
+            $players = array_merge($players, $groupPlayers->toArray());
+        }
+
+        return response()->json(['players' => array_unique($players, SORT_REGULAR)]);
     }
 }

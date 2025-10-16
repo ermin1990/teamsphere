@@ -11,17 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Rename matches table to competition_matches
-        Schema::rename('matches', 'competition_matches');
-
-        // Add tournament-specific fields
-        Schema::table('competition_matches', function (Blueprint $table) {
-            $table->enum('phase', ['group', 'round_of_16', 'quarter_final', 'semi_final', 'final', 'third_place'])->nullable()->after('status');
-            $table->foreignId('tournament_group_id')->nullable()->constrained('tournament_groups')->onDelete('set null')->after('phase');
-            $table->integer('round_number')->nullable()->after('tournament_group_id'); // For knockout rounds
-            $table->integer('bracket_position')->nullable()->after('round_number'); // Position in bracket
-            $table->boolean('is_bye')->default(false)->after('bracket_position'); // For odd number of players
-        });
+        // This migration is handled by the comprehensive competition migration
+        return;
     }
 
     /**

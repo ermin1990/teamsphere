@@ -148,17 +148,36 @@
                 @if($organizations->count() > 0)
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         @foreach($organizations as $organization)
-                            <a href="{{ route('organizations.show', $organization) }}" class="bg-gray-700/30 rounded-xl p-4 hover:bg-gray-600/30 transition-all duration-200 transform hover:scale-[1.02] cursor-pointer block">
+                            <div class="bg-gray-700/30 rounded-xl p-4 hover:bg-gray-600/30 transition-all duration-200">
                                 <div class="flex items-center space-x-3 mb-3">
                                     <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
                                         <span class="text-white font-bold text-sm">{{ substr($organization->name, 0, 2) }}</span>
                                     </div>
-                                    <div>
+                                    <div class="flex-1">
                                         <h4 class="text-white font-semibold">{{ $organization->name }}</h4>
                                         <p class="text-gray-400 text-sm">{{ $players->where('organization_id', $organization->id)->count() }} player profile(s)</p>
                                     </div>
                                 </div>
-                            </a>
+                                <div class="flex flex-col space-y-2">
+                                    <a href="{{ route('organizations.show', $organization) }}" class="bg-gray-600/50 hover:bg-gray-500/50 text-white px-3 py-2 rounded-lg transition-all duration-200 text-center text-sm">
+                                        Pogledaj Organizaciju
+                                    </a>
+                                    @if($organization->user_id === Auth::id())
+                                        <div class="grid grid-cols-2 gap-2">
+                                            @if($organization->canCreateMoreLeagues())
+                                                <a href="{{ route('organizations.leagues.create', $organization) }}" class="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-2 py-2 rounded-lg transition-all duration-200 text-center text-xs">
+                                                    + Liga
+                                                </a>
+                                            @endif
+                                            @if($organization->canCreateMoreCompetitions())
+                                                <a href="{{ route('organizations.competitions.create', $organization) }}" class="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white px-2 py-2 rounded-lg transition-all duration-200 text-center text-xs">
+                                                    + Turnir
+                                                </a>
+                                            @endif
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
                         @endforeach
                     </div>
                 @else

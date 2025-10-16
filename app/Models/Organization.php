@@ -50,6 +50,14 @@ class Organization extends Model
     }
 
     /**
+     * Get the competitions for this organization.
+     */
+    public function competitions(): HasMany
+    {
+        return $this->hasMany(Competition::class);
+    }
+
+    /**
      * Get the organization users for this organization.
      */
     public function organizationUsers(): HasMany
@@ -121,6 +129,17 @@ class Organization extends Model
     }
 
     /**
+     * Check if organization can create more competitions.
+     */
+    public function canCreateMoreCompetitions()
+    {
+        $plan = $this->user->currentPlan();
+        if (!$plan) return true; // Free plan allows unlimited competitions per organization
+
+        return $this->competitions()->count() < $plan->max_competitions_per_organization;
+    }
+
+    /**
      * Get remaining leagues that can be created.
      */
     public function getRemainingLeaguesCount()
@@ -129,5 +148,16 @@ class Organization extends Model
         if (!$plan) return PHP_INT_MAX; // Free plan allows unlimited
 
         return max(0, $plan->max_leagues_per_organization - $this->leagues()->count());
+    }
+
+    /**
+     * Get remaining competitions that can be created.
+     */
+    public function getRemainingCompetitionsCount()
+    {
+        $plan = $this->user->currentPlan();
+        if (!$plan) return PHP_INT_MAX; // Free plan allows unlimited
+
+        return max(0, $plan->max_competitions_per_organization - $this->competitions()->count());
     }
 }

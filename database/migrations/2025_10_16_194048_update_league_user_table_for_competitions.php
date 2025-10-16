@@ -11,22 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('league_user', function (Blueprint $table) {
-            // Drop the old foreign key constraint
-            $table->dropForeign(['league_id']);
-
-            // Rename the column from league_id to competition_id
-            $table->renameColumn('league_id', 'competition_id');
-
-            // Add the new foreign key constraint
-            $table->foreign('competition_id')->references('id')->on('competitions')->onDelete('cascade');
-
-            // Rename the table from league_user to competition_user
-            // Note: We'll rename the table in a separate migration to avoid conflicts
-        });
-
-        // Rename the table
-        Schema::rename('league_user', 'competition_user');
+        // This migration is handled by the comprehensive competition migration
+        return;
     }
 
     /**

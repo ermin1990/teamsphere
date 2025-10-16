@@ -22,6 +22,7 @@ class PlanSeeder extends Seeder
                 'currency' => 'EUR',
                 'max_organizations' => 1,
                 'max_leagues_per_organization' => 2,
+                'max_competitions_per_organization' => 5,
                 'max_teams_per_league' => 8,
                 'max_players_per_team' => 15,
                 'features' => [
@@ -40,6 +41,7 @@ class PlanSeeder extends Seeder
                 'currency' => 'EUR',
                 'max_organizations' => 3,
                 'max_leagues_per_organization' => 10,
+                'max_competitions_per_organization' => 20,
                 'max_teams_per_league' => 20,
                 'max_players_per_team' => 30,
                 'features' => [
@@ -59,6 +61,7 @@ class PlanSeeder extends Seeder
                 'currency' => 'EUR',
                 'max_organizations' => 10,
                 'max_leagues_per_organization' => 50,
+                'max_competitions_per_organization' => 100,
                 'max_teams_per_league' => 50,
                 'max_players_per_team' => 50,
                 'features' => [

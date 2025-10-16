@@ -14,7 +14,7 @@ class Team extends Model
     protected $fillable = [
         'name',
         'description',
-        'league_id',
+        'competition_id',
         'captain_id',
         'status',
     ];
@@ -28,7 +28,7 @@ class Team extends Model
      */
     public function league(): BelongsTo
     {
-        return $this->belongsTo(League::class);
+        return $this->belongsTo(League::class, 'competition_id');
     }
 
     /**
@@ -44,8 +44,8 @@ class Team extends Model
      */
     public function players(): BelongsToMany
     {
-        return $this->belongsToMany(Player::class, 'league_player', 'team_id', 'player_id')
-                    ->withPivot('joined_at', 'league_id');
+        return $this->belongsToMany(Player::class, 'competition_player', 'team_id', 'player_id')
+                    ->withPivot('joined_at', 'competition_id');
     }
 
     /**

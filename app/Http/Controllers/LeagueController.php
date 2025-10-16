@@ -1097,6 +1097,44 @@ class LeagueController extends Controller
     }
 
     /**
+     * Quick result entry for a match.
+     */
+    public function quickResult(Request $request, $matchId)
+    {
+        $match = LeagueMatch::findOrFail($matchId);
+        
+        // Get the league through the match
+        $league = $match->league;
+        
+        // Ensure user can manage matches for this organization
+        if (!$this->canManageMatches($league->organization)) {
+            abort(403);
+        }
+
+        $request->validate([
+            'home_score' => 'required|integer|min:0|max:5',
+            'away_score' => 'required|integer|min:0|max:5',
+            'sets' => 'nullable|array',
+            'sets.*.home' => 'required_with:sets|integer|min:0',
+            'sets.*.away' => 'required_with:sets|integer|min:0',
+        ]);
+
+        // Update match with results
+        $match->update([
+            'home_score' => $request->home_score,
+            'away_score' => $request->away_score,
+            'sets' => $request->sets ?? [],
+            'status' => 'completed',
+            'played_at' => now(),
+        ]);
+
+        // Update league standings
+        $this->updateStandings($league);
+
+        return back()->with('success', 'Match result saved successfully!');
+    }
+
+    /**
      * Check if the current user can manage matches for the organization.
      */
     private function canManageMatches(Organization $organization): bool

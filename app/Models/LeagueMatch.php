@@ -13,7 +13,7 @@ class LeagueMatch extends Model
     protected $table = 'matches';
 
     protected $fillable = [
-        'league_id',
+        'competition_id',
         'home_team_id',
         'away_team_id',
         'home_player_id',
@@ -51,7 +51,7 @@ class LeagueMatch extends Model
      */
     public function league(): BelongsTo
     {
-        return $this->belongsTo(League::class);
+        return $this->belongsTo(League::class, 'competition_id');
     }
 
     /**

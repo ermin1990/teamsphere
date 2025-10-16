@@ -37,6 +37,16 @@ class Competition extends Model
         'knockout_bracket',
         'groups_completed_at',
         'knockout_completed_at',
+        // Match settings
+        'sets_to_win',
+        'points_per_set',
+        'deuce_at',
+        'must_win_by_two',
+        'points_for_win',
+        'points_for_draw',
+        'points_for_loss',
+        'has_tiebreak',
+        'tiebreak_points',
     ];
 
     protected $casts = [
@@ -54,7 +64,27 @@ class Competition extends Model
         'knockout_bracket' => 'array',
         'groups_completed_at' => 'datetime',
         'knockout_completed_at' => 'datetime',
+        // Match settings casts
+        'sets_to_win' => 'integer',
+        'points_per_set' => 'integer',
+        'deuce_at' => 'integer',
+        'must_win_by_two' => 'boolean',
+        'points_for_win' => 'integer',
+        'points_for_draw' => 'integer',
+        'points_for_loss' => 'integer',
+        'has_tiebreak' => 'boolean',
+        'tiebreak_points' => 'integer',
     ];
+
+    /**
+     * Boot the model.
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        // No global scope - competitions can be both leagues and tournaments
+    }
 
     /**
      * Get the route key for the model.
@@ -85,7 +115,7 @@ class Competition extends Model
      */
     public function teams(): HasMany
     {
-        return $this->hasMany(Team::class);
+        return $this->hasMany(Team::class, 'competition_id');
     }
 
     /**
@@ -106,7 +136,7 @@ class Competition extends Model
      */
     public function matches(): HasMany
     {
-        return $this->hasMany(CompetitionMatch::class);
+        return $this->hasMany(CompetitionMatch::class, 'competition_id');
     }
 
     /**
@@ -114,7 +144,7 @@ class Competition extends Model
      */
     public function standings(): HasMany
     {
-        return $this->hasMany(Standing::class)->orderBy('position');
+        return $this->hasMany(Standing::class, 'competition_id')->orderBy('position');
     }
 
     /**
@@ -190,13 +220,36 @@ class Competition extends Model
         for ($i = 0; $i < $this->group_count; $i++) {
             $groupPlayers = array_slice($playerIds, $i * $playersPerGroup, $playersPerGroup);
 
-            $groups[] = TournamentGroup::create([
+            $group = TournamentGroup::create([
                 'competition_id' => $this->id,
                 'name' => chr(65 + $i), // A, B, C, etc.
                 'group_number' => $i + 1,
                 'player_ids' => $groupPlayers,
                 'standings' => $this->initializeGroupStandings($groupPlayers),
             ]);
+
+            // Create Standing records for each player in the group
+            foreach ($groupPlayers as $playerId) {
+                Standing::create([
+                    'competition_id' => $this->id,
+                    'tournament_group_id' => $group->id,
+                    'player_id' => $playerId,
+                    'played' => 0,
+                    'won' => 0,
+                    'drawn' => 0,
+                    'lost' => 0,
+                    'points' => 0,
+                    'sets_won' => 0,
+                    'sets_lost' => 0,
+                    'points_won' => 0,
+                    'points_lost' => 0,
+                    'goals_for' => 0,
+                    'goals_against' => 0,
+                    'goal_difference' => 0,
+                ]);
+            }
+
+            $groups[] = $group;
         }
 
         return $groups;
@@ -205,7 +258,7 @@ class Competition extends Model
     /**
      * Initialize standings for a group.
      */
-    private function initializeGroupStandings(array $playerIds): array
+    public function initializeGroupStandings(array $playerIds): array
     {
         $standings = [];
         foreach ($playerIds as $playerId) {
@@ -222,6 +275,41 @@ class Competition extends Model
             ];
         }
         return $standings;
+    }
+
+    /**
+     * Generate matches for all tournament groups.
+     */
+    public function generateGroupMatches()
+    {
+        if (!$this->isTournament()) {
+            return;
+        }
+
+        $groups = $this->tournamentGroups;
+
+        foreach ($groups as $group) {
+            $playerIds = $group->player_ids;
+            
+            // Generate round-robin matches for this group
+            $matches = [];
+            $playerCount = count($playerIds);
+            
+            for ($i = 0; $i < $playerCount; $i++) {
+                for ($j = $i + 1; $j < $playerCount; $j++) {
+                    $matches[] = CompetitionMatch::create([
+                        'competition_id' => $this->id,
+                        'tournament_group_id' => $group->id,
+                        'home_player_id' => $playerIds[$i],
+                        'away_player_id' => $playerIds[$j],
+                        'status' => 'scheduled',
+                        'scheduled_at' => now(),
+                    ]);
+                }
+            }
+        }
+
+        return true;
     }
 
     /**
@@ -274,6 +362,40 @@ class Competition extends Model
         $bracket = $this->generateBracketRounds($playerIds, 1);
 
         $this->update(['knockout_bracket' => $bracket]);
+
+        // Generate actual matches from bracket
+        $this->generateMatchesFromBracket($bracket, 1);
+    }
+
+    /**
+     * Generate matches from bracket structure.
+     */
+    private function generateMatchesFromBracket(array $bracket, int $roundNumber)
+    {
+        if (isset($bracket['matches'])) {
+            // This is a round with matches
+            foreach ($bracket['matches'] as $matchData) {
+                if (!$matchData['is_bye']) {
+                    CompetitionMatch::create([
+                        'competition_id' => $this->id,
+                        'home_player_id' => $matchData['player1_id'],
+                        'away_player_id' => $matchData['player2_id'],
+                        'phase' => 'knockout',
+                        'round_number' => $roundNumber,
+                        'status' => 'scheduled',
+                        'scheduled_at' => now(),
+                    ]);
+                }
+            }
+        } else {
+            // This is a bracket with sub-brackets
+            if (isset($bracket['left'])) {
+                $this->generateMatchesFromBracket($bracket['left'], $roundNumber);
+            }
+            if (isset($bracket['right'])) {
+                $this->generateMatchesFromBracket($bracket['right'], $roundNumber);
+            }
+        }
     }
 
     /**

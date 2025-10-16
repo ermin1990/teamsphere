@@ -226,15 +226,7 @@
 
                     <!-- Competition Duration -->
                     <div class="space-y-4">
-                        <div class="flex items-center">
-                            <input type="checkbox" id="set_duration" name="set_duration" value="1" {{ old('set_duration') ? 'checked' : '' }}
-                                   class="border-gray-600/50 bg-gray-700/50 text-blue-600 focus:ring-blue-500 focus:ring-2" onchange="toggleDurationFields()">
-                            <label for="set_duration" class="ml-3 text-sm font-medium text-white">
-                                {{ __('Set competition duration') }}
-                            </label>
-                        </div>
-
-                        <div id="durationFields" class="grid grid-cols-1 md:grid-cols-2 gap-4" style="display: none;">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label for="start_date" class="block text-sm font-medium text-white mb-2">
                                     {{ __('Start Date') }} <span class="text-red-400">*</span>
@@ -242,7 +234,8 @@
                                 <input type="date"
                                        id="start_date"
                                        name="start_date"
-                                       value="{{ old('start_date') }}"
+                                       value="{{ old('start_date', now()->format('Y-m-d')) }}"
+                                       required
                                        class="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200">
                                 @error('start_date')
                                     <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
@@ -305,23 +298,9 @@
             }
         }
 
-        function toggleDurationFields() {
-            const durationCheckbox = document.getElementById('set_duration');
-            const durationFields = document.getElementById('durationFields');
-
-            if (durationCheckbox.checked) {
-                durationFields.style.display = 'grid';
-                document.getElementById('start_date').required = true;
-            } else {
-                durationFields.style.display = 'none';
-                document.getElementById('start_date').required = false;
-            }
-        }
-
         // Initialize on page load
         document.addEventListener('DOMContentLoaded', function() {
             toggleCompetitionType();
-            toggleDurationFields();
         });
     </script>
 </x-app-layout>

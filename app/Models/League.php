@@ -13,6 +13,8 @@ class League extends Model
 {
     use HasFactory;
 
+    protected $table = 'competitions';
+
     protected $fillable = [
         'name',
         'slug',
@@ -26,6 +28,7 @@ class League extends Model
         'is_team_based',
         'settings',
         'is_active',
+        'type',
     ];
 
     protected $casts = [
@@ -36,6 +39,19 @@ class League extends Model
         'settings' => 'array',
         'is_active' => 'boolean',
     ];
+
+    /**
+     * Boot the model.
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        // Add global scope to only include league type competitions
+        static::addGlobalScope('league_type', function ($builder) {
+            $builder->where('type', 'league');
+        });
+    }
 
     /**
      * Get the route key for the model.
@@ -66,7 +82,7 @@ class League extends Model
      */
     public function teams(): HasMany
     {
-        return $this->hasMany(Team::class);
+        return $this->hasMany(Team::class, 'competition_id');
     }
 
     /**
@@ -74,7 +90,7 @@ class League extends Model
      */
     public function players(): BelongsToMany
     {
-        return $this->belongsToMany(Player::class, 'league_player', 'league_id', 'player_id')
+        return $this->belongsToMany(Player::class, 'competition_player', 'competition_id', 'player_id')
                     ->withPivot('joined_at')
                     ->withTimestamps()
                     ->withCasts([
@@ -87,7 +103,7 @@ class League extends Model
      */
     public function matches(): HasMany
     {
-        return $this->hasMany(LeagueMatch::class);
+        return $this->hasMany(LeagueMatch::class, 'league_id');
     }
 
     /**
@@ -95,7 +111,7 @@ class League extends Model
      */
     public function standings(): HasMany
     {
-        return $this->hasMany(Standing::class)->orderBy('position');
+        return $this->hasMany(Standing::class, 'competition_id')->orderBy('position');
     }
 
     /**

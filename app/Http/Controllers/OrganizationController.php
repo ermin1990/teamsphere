@@ -57,6 +57,8 @@ class OrganizationController extends Controller
             abort(403);
         }
 
+        $organization->load(['leagues', 'competitions.sport', 'players', 'user']);
+
         return view('organizations.show', compact('organization', 'isOwner', 'isPlayer', 'isReferee'));
     }
 
