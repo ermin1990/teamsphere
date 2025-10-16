@@ -76,7 +76,6 @@
         <div class="pt-2">
             <button type="submit"
                     id="login-button"
-                    onclick="showLoginLoader()"
                     class="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-xl transition-all duration-200 transform hover:scale-[1.02] hover:shadow-lg hover:shadow-blue-500/25 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
                 <span id="login-text" class="flex items-center justify-center space-x-2">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -105,18 +104,23 @@
     </form>
 
     <script>
-        function showLoginLoader() {
+        document.addEventListener('DOMContentLoaded', function() {
+            const loginForm = document.querySelector('form[action*="login"]');
             const loginText = document.getElementById('login-text');
             const loginLoader = document.getElementById('login-loader');
             const loginButton = document.getElementById('login-button');
 
-            // Sakrij originalni tekst i prikaži loader
-            loginText.classList.add('hidden');
-            loginLoader.classList.remove('hidden');
+            loginForm.addEventListener('submit', function(e) {
+                // Sakrij originalni tekst i prikaži loader
+                loginText.classList.add('hidden');
+                loginLoader.classList.remove('hidden');
 
-            // Onemogući dugme da se ne može kliknuti više puta
-            loginButton.disabled = true;
-            loginButton.classList.add('opacity-75', 'cursor-not-allowed');
-        }
+                // Onemogući dugme da se ne može kliknuti više puta
+                loginButton.disabled = true;
+                loginButton.classList.add('opacity-75', 'cursor-not-allowed');
+
+                // Forma će se normalno submit-ovati
+            });
+        });
     </script>
 </x-guest-layout>
