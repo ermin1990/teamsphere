@@ -17,15 +17,17 @@
     <!-- Content -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <!-- Loading Overlay -->
-        <div id="loading-overlay" class="fixed inset-0 bg-gray-900/90 backdrop-blur-sm z-50 flex items-center justify-center">
+        <div id="loading-overlay" class="fixed inset-0 bg-gray-900/95 backdrop-blur-md z-50 flex items-center justify-center opacity-100 transition-opacity duration-300">
             <div class="text-center">
-                <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent mb-4"></div>
-                <p class="text-white text-lg font-medium">Učitavanje organizacija...</p>
+                <div class="inline-block animate-spin rounded-full h-16 w-16 border-4 border-blue-500 border-t-transparent mb-6"></div>
+                <h3 class="text-white text-xl font-semibold mb-2">Učitavanje organizacija...</h3>
+                <p class="text-gray-300">Molimo sačekajte</p>
             </div>
         </div>
 
         @if($organizations->count() > 0)
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Organizations Grid -->
+            <div id="organizations-content" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 @foreach($organizations as $organization)
                     <div class="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-200 group">
                         <div class="flex items-start justify-between mb-4">
@@ -54,6 +56,25 @@
                     </div>
                 @endforeach
             </div>
+
+            <!-- Skeleton Loader (prikazuje se dok se učitava) -->
+            <div id="skeleton-loader" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                @for($i = 0; $i < 6; $i++)
+                    <div class="bg-white/5 backdrop-blur-lg rounded-xl p-6 border border-white/10 animate-pulse">
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="flex-1">
+                                <div class="h-6 bg-gray-600/50 rounded mb-2"></div>
+                                <div class="h-4 bg-gray-600/30 rounded mb-3"></div>
+                                <div class="h-5 bg-gray-600/40 rounded w-20"></div>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <div class="h-4 bg-gray-600/30 rounded w-24"></div>
+                            <div class="h-4 bg-gray-600/40 rounded w-16"></div>
+                        </div>
+                    </div>
+                @endfor
+            </div>
         @else
             <div class="text-center py-12">
                 <div class="w-24 h-24 bg-gradient-to-r from-gray-600 to-gray-700 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -73,7 +94,19 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Sakrij loading overlay kada se stranica učita
+            // Sakrij skeleton loader kada se učita sadržaj
+            const skeletonLoader = document.getElementById('skeleton-loader');
+            const organizationsContent = document.getElementById('organizations-content');
+
+            if (skeletonLoader && organizationsContent) {
+                // Sakrij skeleton loader kada se učita DOM
+                skeletonLoader.style.display = 'none';
+                organizationsContent.style.display = 'grid';
+            }
+        });
+
+        // Sakrij loader kada se sve učita (uključujući slike)
+        window.addEventListener('load', function() {
             const loadingOverlay = document.getElementById('loading-overlay');
             if (loadingOverlay) {
                 // Dodaj malo kašnjenja za bolji UX
@@ -82,12 +115,12 @@
                     setTimeout(function() {
                         loadingOverlay.style.display = 'none';
                     }, 300);
-                }, 500);
+                }, 200);
             }
         });
 
-        // Sakrij loader ako se stranica već učitala (fallback)
-        window.addEventListener('load', function() {
+        // Fallback - sakrij loader nakon 5 sekundi ako se nešto zaglavi
+        setTimeout(function() {
             const loadingOverlay = document.getElementById('loading-overlay');
             if (loadingOverlay && loadingOverlay.style.display !== 'none') {
                 loadingOverlay.style.opacity = '0';
@@ -95,6 +128,6 @@
                     loadingOverlay.style.display = 'none';
                 }, 300);
             }
-        });
+        }, 5000);
     </script>
 </x-app-layout>
