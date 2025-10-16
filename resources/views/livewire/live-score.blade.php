@@ -19,8 +19,8 @@
             <div class="max-w-md mx-auto">
                 <label class="block text-sm font-medium text-gray-300 mb-3">Who serves first?</label>
                 <div class="space-y-3">
-                    <button type="button" wire:click="selectFirstServer('home')"
-                            class="w-full p-4 bg-blue-600/20 hover:bg-blue-600/30 border-2 border-blue-500/30 hover:border-blue-500/50 rounded-lg transition-all">
+                    <button type="button" wire:click="selectFirstServer('home')" wire:loading.attr="disabled"
+                            class="w-full p-4 bg-blue-600/20 hover:bg-blue-600/30 border-2 border-blue-500/30 hover:border-blue-500/50 rounded-lg transition-all disabled:opacity-50">
                         <div class="text-center">
                             <div class="text-lg font-bold text-blue-400 mb-1">
                                 @if($match->league->is_team_based)
@@ -30,10 +30,11 @@
                                 @endif
                             </div>
                             <div class="text-sm text-gray-400">Serves First</div>
+                            <div class="text-xs text-blue-300 mt-1">wire:click="selectFirstServer('home')"</div>
                         </div>
                     </button>
-                    <button type="button" wire:click="selectFirstServer('away')"
-                            class="w-full p-4 bg-red-600/20 hover:bg-red-600/30 border-2 border-red-500/30 hover:border-red-500/50 rounded-lg transition-all">
+                    <button type="button" wire:click="selectFirstServer('away')" wire:loading.attr="disabled"
+                            class="w-full p-4 bg-red-600/20 hover:bg-red-600/30 border-2 border-red-500/30 hover:border-red-500/50 rounded-lg transition-all disabled:opacity-50">
                         <div class="text-center">
                             <div class="text-lg font-bold text-red-400 mb-1">
                                 @if($match->league->is_team_based)
@@ -43,15 +44,15 @@
                                 @endif
                             </div>
                             <div class="text-sm text-gray-400">Serves First</div>
+                            <div class="text-xs text-red-300 mt-1">wire:click="selectFirstServer('away')"</div>
                         </div>
                     </button>
-                    <button type="button" wire:click="selectRandomServer"
-                            class="w-full p-4 bg-purple-600/20 hover:bg-purple-600/30 border-2 border-purple-500/30 hover:border-purple-500/50 rounded-lg transition-all">
+                                        <button type="button" wire:click="selectFirstServer('random')" wire:loading.attr="disabled"
+                            class="w-full p-4 bg-purple-600/20 hover:bg-purple-600/30 border-2 border-purple-500/30 hover:border-purple-500/50 rounded-lg transition-all disabled:opacity-50">
                         <div class="text-center">
-                            <div class="text-lg font-bold text-purple-400 mb-1">
-                                🎲 Random
-                            </div>
-                            <div class="text-sm text-gray-400">Random Server</div>
+                            <div class="text-lg font-bold text-purple-400 mb-1">🎲 Random</div>
+                            <div class="text-sm text-gray-400">Random Selection</div>
+                            <div class="text-xs text-purple-300 mt-1">wire:click="selectFirstServer('random')"</div>
                         </div>
                     </button>
                 </div>
@@ -80,6 +81,7 @@
                             class="px-3 py-1 bg-orange-600/20 hover:bg-orange-600/30 border border-orange-500/30 hover:border-orange-500/50 rounded text-orange-400 text-sm font-medium transition-all">
                         🔄 Change Server
                     </button>
+                    <div class="text-xs text-orange-300 mt-1">wire:click="resetServerSelection"</div>
                 </div>
             </div>
         </div>
@@ -122,6 +124,7 @@
                             <div class="text-xs text-yellow-400 mt-1">⚠️ Samo vlasnik organizacije može mijenjati rezultat</div>
                         @endif
                         <div class="text-xs text-gray-500 mt-1">Status: {{ $match->status }} | Owner: {{ $isOrganizationOwner ? 'Yes' : 'No' }}</div>
+                        <div class="text-xs text-blue-300 mt-1">wire:click="addPoint('home')"</div>
                     </div>
 
                     <div class="flex justify-center">
@@ -167,6 +170,7 @@
                             <div class="text-xs text-yellow-400 mt-1">⚠️ Samo vlasnik organizacije može mijenjati rezultat</div>
                         @endif
                         <div class="text-xs text-gray-500 mt-1">Status: {{ $match->status }} | Owner: {{ $isOrganizationOwner ? 'Yes' : 'No' }}</div>
+                        <div class="text-xs text-red-300 mt-1">wire:click="addPoint('away')"</div>
                     </div>
 
                     <div class="flex justify-center">
@@ -211,14 +215,17 @@
                             @if(empty($pointHistory)) disabled @endif>
                         ↩️ Undo
                     </button>
+                    <div class="text-xs text-yellow-300 mt-1">wire:click="undoPoint"</div>
                     <button type="button" wire:click="togglePause"
                             class="px-6 py-3 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg transition-colors font-semibold">
                         {{ $matchPaused ? '▶️ Resume Timer' : '⏸️ Pause Timer' }}
                     </button>
+                    <div class="text-xs text-yellow-300 mt-1">wire:click="togglePause"</div>
                     <button type="button" wire:click="endMatch"
                             class="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors font-semibold">
                         🏁 End Match
                     </button>
+                    <div class="text-xs text-green-300 mt-1">wire:click="endMatch"</div>
                     @elseif($match->status === 'completed')
                     <div class="text-center text-green-400 font-semibold">
                         ✅ Match Completed
@@ -271,6 +278,7 @@
                             class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-green-600 text-base font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:ml-3 sm:w-auto sm:text-sm">
                         End Match & Save Results
                     </button>
+                    <div class="text-xs text-green-300 mt-1">wire:click="confirmMatchEnd"</div>
                     <button type="button" x-on:click="showModal = false"
                             class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-600 shadow-sm px-4 py-2 bg-gray-600 text-base font-medium text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
                         Continue Playing

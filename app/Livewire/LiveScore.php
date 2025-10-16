@@ -79,6 +79,13 @@ class LiveScore extends Component
 
     public function selectFirstServer($player)
     {
+        \Log::info('selectFirstServer called', [
+            'match_id' => $this->match->id,
+            'player' => $player,
+            'current_status' => $this->match->status,
+            'is_owner' => $this->isOrganizationOwner ?? 'unknown'
+        ]);
+
         $this->firstServer = $player;
         $this->currentServer = $player;
         
@@ -145,6 +152,12 @@ class LiveScore extends Component
 
     public function startMatch()
     {
+        \Log::info('startMatch called', [
+            'match_id' => $this->match->id,
+            'first_server' => $this->firstServer,
+            'current_server' => $this->currentServer
+        ]);
+
         $now = now();
         $this->matchStartTime = $now;
         $this->setStartTime = $now;
