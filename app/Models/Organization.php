@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Cache;
 
 class Organization extends Model
 {
@@ -70,6 +71,42 @@ class Organization extends Model
     public function scopeActive($query)
     {
         return $query->where('is_active', true);
+    }
+
+    /**
+     * Get active organizations with caching.
+     */
+    public static function getActiveOrganizations()
+    {
+        return Cache::remember('active_organizations', 3600, function () {
+            return self::active()->with(['user', 'leagues'])->get();
+        });
+    }
+
+    /**
+     * Get organizations for user with caching.
+     */
+    public static function getOrganizationsForUser($userId)
+    {
+        return Cache::remember("user_{$userId}_organizations", 1800, function () use ($userId) {
+            return self::where('user_id', $userId)
+                      ->with(['leagues', 'players'])
+                      ->orderBy('created_at', 'desc')
+                      ->get();
+        });
+    }
+
+    /**
+     * Clear organization cache.
+     */
+    public static function clearOrganizationCache()
+    {
+        Cache::forget('active_organizations');
+        // Clear user-specific caches
+        $users = User::pluck('id');
+        foreach ($users as $userId) {
+            Cache::forget("user_{$userId}_organizations");
+        }
     }
 
     /**

@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Cache;
 
 class League extends Model
 {
@@ -111,6 +112,42 @@ class League extends Model
     public function scopeStatus($query, $status)
     {
         return $query->where('status', $status);
+    }
+
+    /**
+     * Get active leagues with caching.
+     */
+    public static function getActiveLeagues()
+    {
+        return Cache::remember('active_leagues', 3600, function () {
+            return self::active()->with(['organization', 'sport'])->get();
+        });
+    }
+
+    /**
+     * Get leagues for organization with caching.
+     */
+    public static function getLeaguesForOrganization($organizationId)
+    {
+        return Cache::remember("organization_{$organizationId}_leagues", 1800, function () use ($organizationId) {
+            return self::where('organization_id', $organizationId)
+                      ->with(['sport', 'teams'])
+                      ->orderBy('created_at', 'desc')
+                      ->get();
+        });
+    }
+
+    /**
+     * Clear league cache.
+     */
+    public static function clearLeagueCache()
+    {
+        Cache::forget('active_leagues');
+        // Clear organization-specific caches
+        $organizations = Organization::pluck('id');
+        foreach ($organizations as $orgId) {
+            Cache::forget("organization_{$orgId}_leagues");
+        }
     }
 
     /**
