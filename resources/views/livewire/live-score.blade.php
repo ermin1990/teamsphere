@@ -67,6 +67,13 @@
                     <div class="text-sm text-gray-400">To Win</div>
                     <div class="text-2xl font-bold text-green-400">11</div>
                 </div>
+                <div class="w-px h-8 bg-gray-600"></div>
+                <div>
+                    <button type="button" wire:click="resetServerSelection"
+                            class="px-3 py-1 bg-orange-600/20 hover:bg-orange-600/30 border border-orange-500/30 hover:border-orange-500/50 rounded text-orange-400 text-sm font-medium transition-all">
+                        🔄 Change Server
+                    </button>
+                </div>
             </div>
         </div>
         @endif
@@ -99,10 +106,15 @@
                     </div>
 
                     <div class="relative mb-6">
-                        <div class="text-8xl md:text-9xl font-bold transition-all duration-300 mb-2 {{ $match->status === 'completed' || !$isOrganizationOwner ? '' : 'cursor-pointer hover:text-blue-300 active:scale-95 select-none' }} {{ $currentServer === 'home' ? 'text-blue-400 animate-pulse drop-shadow-lg' : 'text-blue-400' }}"
-                             @if($match->status !== 'completed' && $isOrganizationOwner) wire:click="addPoint('home')" @endif>
+                        <div class="text-8xl md:text-9xl font-bold transition-all duration-300 mb-2 {{ $match->status === 'completed' ? '' : 'cursor-pointer hover:text-blue-300 active:scale-95 select-none' }} {{ $currentServer === 'home' ? 'text-blue-400 animate-pulse drop-shadow-lg' : 'text-blue-400' }}"
+                             @if($match->status !== 'completed') wire:click="addPoint('home')" @endif
+                             style="position: relative; z-index: 10;">
                             {{ $homeScore }}
                         </div>
+                        @if(!$isOrganizationOwner)
+                            <div class="text-xs text-yellow-400 mt-1">⚠️ Samo vlasnik organizacije može mijenjati rezultat</div>
+                        @endif
+                        <div class="text-xs text-gray-500 mt-1">Status: {{ $match->status }} | Owner: {{ $isOrganizationOwner ? 'Yes' : 'No' }}</div>
                     </div>
 
                     <div class="flex justify-center">
@@ -140,14 +152,19 @@
 
                     <div class="relative mb-6">
                         <div class="text-8xl md:text-9xl font-bold transition-all duration-300 mb-2 {{ $match->status === 'completed' ? '' : 'cursor-pointer hover:text-red-300 active:scale-95 select-none' }} {{ $currentServer === 'away' ? 'text-red-400 animate-pulse drop-shadow-lg' : 'text-red-400' }}"
-                             @if($match->status !== 'completed') wire:click="addPoint('away')" @endif>
+                             @if($match->status !== 'completed') wire:click="addPoint('away')" @endif
+                             style="position: relative; z-index: 10;">
                             {{ $awayScore }}
                         </div>
+                        @if(!$isOrganizationOwner)
+                            <div class="text-xs text-yellow-400 mt-1">⚠️ Samo vlasnik organizacije može mijenjati rezultat</div>
+                        @endif
+                        <div class="text-xs text-gray-500 mt-1">Status: {{ $match->status }} | Owner: {{ $isOrganizationOwner ? 'Yes' : 'No' }}</div>
                     </div>
 
                     <div class="flex justify-center">
-                        <button type="button" @if($match->status !== 'completed') wire:click="subtractPoint('away')" @endif
-                                class="px-4 py-2 bg-gray-600 {{ $match->status === 'completed' ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-700' }} text-white rounded-lg transition-all duration-200 font-semibold text-sm">
+                        <button type="button" @if($match->status !== 'completed' && $isOrganizationOwner) wire:click="subtractPoint('away')" @endif
+                                class="px-4 py-2 bg-gray-600 {{ $match->status === 'completed' || !$isOrganizationOwner ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-700' }} text-white rounded-lg transition-all duration-200 font-semibold text-sm">
                             -1
                         </button>
                     </div>

@@ -97,6 +97,41 @@ class LiveScore extends Component
         $this->selectFirstServer($randomPlayer);
     }
 
+    public function resetServerSelection()
+    {
+        // Reset server selection
+        $this->firstServer = null;
+        $this->currentServer = null;
+        $this->matchStartTime = null;
+        $this->setStartTime = null;
+        $this->matchPaused = false;
+
+        // Reset scores
+        $this->homeScore = 0;
+        $this->awayScore = 0;
+        $this->sets = [];
+        $this->setDurations = [];
+        $this->currentSet = 1;
+        $this->serveCount = 0;
+        $this->pointHistory = [];
+
+        // Update match in database
+        $this->match->update([
+            'status' => 'scheduled',
+            'first_server' => null,
+            'current_server' => null,
+            'home_score' => 0,
+            'away_score' => 0,
+            'sets' => null,
+            'set_durations' => null,
+            'played_at' => null,
+            'current_set_started_at' => null,
+        ]);
+
+        // Clear local storage
+        $this->dispatch('clear-local-storage');
+    }
+
     public function startMatch()
     {
         $now = now();
@@ -131,6 +166,16 @@ class LiveScore extends Component
 
     public function addPoint($player)
     {
+        // Debug logging
+        \Log::info('addPoint called', [
+            'player' => $player,
+            'match_id' => $this->match->id,
+            'match_status' => $this->match->status,
+            'is_org_owner' => $this->match->league->organization->user_id === auth()->id(),
+            'user_id' => auth()->id(),
+            'org_user_id' => $this->match->league->organization->user_id
+        ]);
+
         // Save current state for undo functionality
         $this->pointHistory[] = [
             'homeScore' => $this->homeScore,
