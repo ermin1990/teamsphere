@@ -25,6 +25,12 @@ class LiveScore extends Component
 
     public function mount($match)
     {
+        \Log::info('LiveScore mount called', [
+            'match_id' => $match->id,
+            'initial_status' => $match->status,
+            'initial_first_server' => $match->first_server
+        ]);
+
         // Refresh match data to get latest status from database
         $match->refresh();
         
@@ -32,6 +38,8 @@ class LiveScore extends Component
         
         // If match is scheduled (not started), always reset to initial state
         if ($match && $match->status === 'scheduled') {
+            \Log::info('Match is scheduled, resetting to initial state', ['match_id' => $match->id]);
+            
             $this->firstServer = null;
             $this->currentServer = null;
             $this->homeScore = 0;
@@ -42,7 +50,31 @@ class LiveScore extends Component
             $this->matchStartTime = null;
             $this->setStartTime = null;
             $this->matchPaused = false;
+            
+            // Also reset in database to ensure consistency
+            $match->update([
+                'first_server' => null,
+                'current_server' => null,
+                'home_score' => 0,
+                'away_score' => 0,
+                'sets' => null,
+                'set_durations' => null,
+                'played_at' => null,
+                'current_set_started_at' => null,
+            ]);
+            
+            \Log::info('Match reset complete', [
+                'match_id' => $match->id,
+                'firstServer' => $this->firstServer,
+                'status' => $match->fresh()->status
+            ]);
         } else {
+            \Log::info('Match is not scheduled, loading existing data', [
+                'match_id' => $match->id,
+                'status' => $match->status,
+                'first_server' => $match->first_server
+            ]);
+            
             // Load existing match data for in-progress or completed matches
             if ($match && $match->first_server) {
                 $this->firstServer = $match->first_server;
@@ -63,6 +95,13 @@ class LiveScore extends Component
             if ($match->current_set_started_at) {
                 $this->setStartTime = $match->current_set_started_at;
             }
+            
+            \Log::info('Existing data loaded', [
+                'match_id' => $match->id,
+                'firstServer' => $this->firstServer,
+                'homeScore' => $this->homeScore,
+                'awayScore' => $this->awayScore
+            ]);
         }
     }
 
@@ -77,28 +116,38 @@ class LiveScore extends Component
         $this->setsVersion++;
     }
 
+    public function selectHomeServer()
+    {
+        $this->selectFirstServer('home');
+    }
+
+    public function selectAwayServer()
+    {
+        $this->selectFirstServer('away');
+    }
+
     public function selectFirstServer($player)
     {
-        \Log::info('selectFirstServer called', [
-            'match_id' => $this->match->id,
-            'player' => $player,
-            'current_status' => $this->match->status,
-            'is_owner' => $this->isOrganizationOwner ?? 'unknown'
-        ]);
-
         $this->firstServer = $player;
         $this->currentServer = $player;
-        
+
+        $now = now();
+        $this->matchStartTime = $now;
+        $this->setStartTime = $now;
+
         $this->match->update([
             'first_server' => $player,
             'current_server' => $player,
+            'status' => 'in_progress',
+            'played_at' => $now,
+            'current_set_started_at' => $now,
         ]);
 
-        // Auto-start the match when first server is selected
-        $this->startMatch();
-    }
+        // Refresh match to get latest data
+        $this->match->refresh();
 
-    public function selectRandomServer()
+        $this->startTimers();
+    }    public function selectRandomServer()
     {
         $randomPlayer = rand(0, 1) ? 'home' : 'away';
         $this->selectFirstServer($randomPlayer);
@@ -233,6 +282,47 @@ class LiveScore extends Component
 
         $this->updateScore();
         $this->checkSetWin();
+    }
+
+    public function subtractPoint($player)
+    {
+        // Prevent subtracting if score is already 0
+        if (($player === 'home' && $this->homeScore <= 0) || ($player === 'away' && $this->awayScore <= 0)) {
+            return;
+        }
+
+        // Save current state for undo functionality
+        $this->pointHistory[] = [
+            'homeScore' => $this->homeScore,
+            'awayScore' => $this->awayScore,
+            'serveCount' => $this->serveCount,
+            'currentServer' => $this->currentServer,
+            'sets' => $this->sets,
+            'setDurations' => $this->setDurations,
+            'currentSet' => $this->currentSet
+        ];
+
+        if ($player === 'home') {
+            $this->homeScore = max(0, $this->homeScore - 1);
+        } else {
+            $this->awayScore = max(0, $this->awayScore - 1);
+        }
+
+        // Reverse server change logic
+        if ($this->homeScore >= 10 && $this->awayScore >= 10) {
+            // When both players are at 10+, change server every point (reverse)
+            $this->currentServer = $this->currentServer === 'home' ? 'away' : 'home';
+        } else {
+            // Normal rotation: change server every 2 serves (reverse)
+            $this->serveCount = max(0, $this->serveCount - 1);
+            if ($this->serveCount % 2 === 0) {
+                $this->currentServer = $this->currentServer === 'home' ? 'away' : 'home';
+            }
+        }
+
+        $this->match->update(['current_server' => $this->currentServer]);
+
+        $this->updateScore();
     }
 
     public function undoPoint()
@@ -426,6 +516,28 @@ class LiveScore extends Component
         $this->dispatch('clear-local-storage', ['matchId' => $this->match->id]);
     }
 
+    public function canEndMatch()
+    {
+        if ($this->match->status === 'completed') {
+            return false;
+        }
+
+        $setsToWin = $this->match->league->settings['sets_to_win'] ?? 3;
+
+        $homeSetsWon = 0;
+        $awaySetsWon = 0;
+
+        foreach ($this->sets as $set) {
+            if ($set['home_score'] > $set['away_score']) {
+                $homeSetsWon++;
+            } elseif ($set['away_score'] > $set['home_score']) {
+                $awaySetsWon++;
+            }
+        }
+
+        return $homeSetsWon >= $setsToWin || $awaySetsWon >= $setsToWin;
+    }
+
     public function endMatch()
     {
         // Record final set duration if not already recorded
@@ -446,6 +558,21 @@ class LiveScore extends Component
             } elseif ($set['away_score'] > $set['home_score']) {
                 $awaySetsWon++;
             }
+        }
+
+        // Check if match is actually completed before allowing end
+        $setsToWin = $this->match->league->settings['sets_to_win'] ?? 3;
+
+        // Only allow end match if someone has won enough sets
+        if ($homeSetsWon < $setsToWin && $awaySetsWon < $setsToWin) {
+            // Match not completed yet - show error message
+            $this->dispatch('match-not-finished', [
+                'message' => 'Match cannot be ended yet. A player must win ' . $setsToWin . ' sets first.',
+                'homeSets' => $homeSetsWon,
+                'awaySets' => $awaySetsWon,
+                'setsToWin' => $setsToWin
+            ]);
+            return;
         }
 
         $this->match->update([

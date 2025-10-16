@@ -184,10 +184,12 @@
                             class="px-6 py-3 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg transition-colors font-semibold">
                         {{ $matchPaused ? '▶️ Resume Timer' : '⏸️ Pause Timer' }}
                     </button>
+                    @if($this->canEndMatch())
                     <button type="button" wire:click="endMatch"
                             class="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors font-semibold">
                         🏁 End Match
                     </button>
+                    @endif
                     @elseif($match->status === 'completed')
                     <div class="text-center text-green-400 font-semibold">
                         ✅ Match Completed
