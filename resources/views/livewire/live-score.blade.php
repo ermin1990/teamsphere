@@ -4,9 +4,16 @@
 @endphp
 
 <div>
-    <div class="contents">
-        
-        @if(!$firstServer)
+        <div class="contents">
+            
+            <!-- Debug Info -->
+            <div class="bg-red-900/50 p-4 mb-4 rounded-lg text-sm">
+                <strong>DEBUG:</strong> firstServer={{ $firstServer ? 'true' : 'false' }} | 
+                match_status={{ $match->status }} | 
+                is_owner={{ $isOrganizationOwner ? 'true' : 'false' }}
+            </div>
+            
+            @if(!$firstServer)
         <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-8 border border-gray-700/50 shadow-xl mb-8">
             <h3 class="text-xl font-bold mb-6 text-center">Match Setup</h3>
             <div class="max-w-md mx-auto">

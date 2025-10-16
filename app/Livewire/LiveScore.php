@@ -99,6 +99,12 @@ class LiveScore extends Component
 
     public function resetServerSelection()
     {
+        \Log::info('resetServerSelection called', [
+            'match_id' => $this->match->id,
+            'current_first_server' => $this->firstServer,
+            'current_status' => $this->match->status
+        ]);
+
         // Reset server selection
         $this->firstServer = null;
         $this->currentServer = null;
@@ -130,6 +136,11 @@ class LiveScore extends Component
 
         // Clear local storage
         $this->dispatch('clear-local-storage');
+
+        \Log::info('resetServerSelection completed', [
+            'new_first_server' => $this->firstServer,
+            'new_status' => $this->match->fresh()->status
+        ]);
     }
 
     public function startMatch()
