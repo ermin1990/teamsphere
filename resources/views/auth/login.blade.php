@@ -75,12 +75,20 @@
         <!-- Login Button -->
         <div class="pt-2">
             <button type="submit"
+                    id="login-button"
+                    onclick="showLoginLoader()"
                     class="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-xl transition-all duration-200 transform hover:scale-[1.02] hover:shadow-lg hover:shadow-blue-500/25 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
-                <span class="flex items-center justify-center space-x-2">
+                <span id="login-text" class="flex items-center justify-center space-x-2">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
                     </svg>
                     <span>Prijavi se</span>
+                </span>
+                <span id="login-loader" class="hidden flex items-center justify-center space-x-2">
+                    <svg class="animate-spin w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                    </svg>
+                    <span>Prijava u toku...</span>
                 </span>
             </button>
         </div>
@@ -95,4 +103,20 @@
             </p>
         </div>
     </form>
+
+    <script>
+        function showLoginLoader() {
+            const loginText = document.getElementById('login-text');
+            const loginLoader = document.getElementById('login-loader');
+            const loginButton = document.getElementById('login-button');
+
+            // Sakrij originalni tekst i prikaži loader
+            loginText.classList.add('hidden');
+            loginLoader.classList.remove('hidden');
+
+            // Onemogući dugme da se ne može kliknuti više puta
+            loginButton.disabled = true;
+            loginButton.classList.add('opacity-75', 'cursor-not-allowed');
+        }
+    </script>
 </x-guest-layout>
