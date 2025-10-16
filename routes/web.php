@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\LeagueController;
+use App\Http\Controllers\CompetitionController;
 use App\Http\Controllers\OrganizationController;
 use App\Http\Controllers\PlayerController;
 use App\Http\Controllers\ProfileController;
@@ -119,6 +120,15 @@ Route::middleware('auth')->group(function () {
 
     // Player details route (override the resource show route)
     Route::get('organizations/{organization}/players/{player}', [PlayerController::class, 'show'])->name('organizations.players.show');
+
+    // Competition routes (nested under organizations)
+    Route::get('organizations/{organization}/competitions/create', [CompetitionController::class, 'create'])->name('organizations.competitions.create');
+    Route::post('organizations/{organization}/competitions', [CompetitionController::class, 'store'])->name('organizations.competitions.store');
+    Route::get('organizations/{organization}/competitions/{competition}', [CompetitionController::class, 'show'])->name('organizations.competitions.show');
+    Route::post('organizations/{organization}/competitions/{competition}/generate-groups', [CompetitionController::class, 'generateGroups'])->name('organizations.competitions.generate-groups');
+    Route::post('organizations/{organization}/competitions/{competition}/advance-groups', [CompetitionController::class, 'advanceFromGroups'])->name('organizations.competitions.advance-groups');
+    Route::post('organizations/{organization}/competitions/{competition}/groups/{group}/advance', [CompetitionController::class, 'advanceGroupPlayers'])->name('organizations.competitions.groups.advance');
+    Route::post('organizations/{organization}/competitions/{competition}/complete', [CompetitionController::class, 'completeTournament'])->name('organizations.competitions.complete');
 
     // League routes (nested under organizations)
     Route::get('organizations/{organization}/leagues/create', [LeagueController::class, 'create'])->name('organizations.leagues.create');
