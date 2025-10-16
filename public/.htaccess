@@ -1,3 +1,7 @@
+# ========================================
+# ⚡ ULTIMATE PERFORMANCE OPTIMIZATION
+# ========================================
+
 # Enable compression
 <IfModule mod_deflate.c>
     AddOutputFilterByType DEFLATE text/plain
@@ -41,6 +45,28 @@
 
     RewriteEngine On
 
+    # ========================================
+    # 🧠 OPcache & PHP optimizacija (ako hosting podržava)
+    # ========================================
+    <IfModule mod_php.c>
+        php_value opcache.enable 1
+        php_value opcache.memory_consumption 256
+        php_value opcache.interned_strings_buffer 8
+        php_value opcache.max_accelerated_files 10000
+        php_value opcache.revalidate_freq 2
+        php_value opcache.validate_timestamps 1
+        php_value opcache.fast_shutdown 1
+        php_value opcache.enable_cli 1
+        php_value opcache.optimization_level -1
+        php_value opcache.max_wasted_percentage 5
+        php_value opcache.consistency_checks 0
+        php_value opcache.huge_code_pages 1
+    </IfModule>
+
+    # ========================================
+    # 🧭 Laravel redirekcije i osnovni rewrite
+    # ========================================
+
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
@@ -49,13 +75,14 @@
     RewriteCond %{HTTP:x-xsrf-token} .
     RewriteRule .* - [E=HTTP_X_XSRF_TOKEN:%{HTTP:X-XSRF-Token}]
 
-    # Redirect Trailing Slashes If Not A Folder...
+    # Redirect Trailing Slashes If Not A Folder
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_URI} (.+)/$
     RewriteRule ^ %1 [L,R=301]
 
-    # Send Requests To Front Controller...
+    # Send Requests To Front Controller (Laravel)
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^ index.php [L]
+
 </IfModule>
