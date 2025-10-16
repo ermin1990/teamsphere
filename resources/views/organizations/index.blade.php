@@ -16,6 +16,14 @@
 
     <!-- Content -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Loading Overlay -->
+        <div id="loading-overlay" class="fixed inset-0 bg-gray-900/90 backdrop-blur-sm z-50 flex items-center justify-center">
+            <div class="text-center">
+                <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent mb-4"></div>
+                <p class="text-white text-lg font-medium">Učitavanje organizacija...</p>
+            </div>
+        </div>
+
         @if($organizations->count() > 0)
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 @foreach($organizations as $organization)
@@ -62,4 +70,31 @@
             </div>
         @endif
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Sakrij loading overlay kada se stranica učita
+            const loadingOverlay = document.getElementById('loading-overlay');
+            if (loadingOverlay) {
+                // Dodaj malo kašnjenja za bolji UX
+                setTimeout(function() {
+                    loadingOverlay.style.opacity = '0';
+                    setTimeout(function() {
+                        loadingOverlay.style.display = 'none';
+                    }, 300);
+                }, 500);
+            }
+        });
+
+        // Sakrij loader ako se stranica već učitala (fallback)
+        window.addEventListener('load', function() {
+            const loadingOverlay = document.getElementById('loading-overlay');
+            if (loadingOverlay && loadingOverlay.style.display !== 'none') {
+                loadingOverlay.style.opacity = '0';
+                setTimeout(function() {
+                    loadingOverlay.style.display = 'none';
+                }, 300);
+            }
+        });
+    </script>
 </x-app-layout>
