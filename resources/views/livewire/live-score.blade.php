@@ -19,7 +19,10 @@
             <div class="max-w-md mx-auto">
                 <label class="block text-sm font-medium text-gray-300 mb-3">Who serves first?</label>
                 <div class="space-y-3">
-                    <button type="button" wire:click="selectFirstServer('home')" wire:loading.attr="disabled"
+                    <button type="button" 
+                            wire:click="selectFirstServer('home')" 
+                            wire:loading.attr="disabled"
+                            onclick="console.log('Home button clicked'); window.Livewire.find('{{ $_instance->id }}').call('selectFirstServer', 'home')"
                             class="w-full p-4 bg-blue-600/20 hover:bg-blue-600/30 border-2 border-blue-500/30 hover:border-blue-500/50 rounded-lg transition-all disabled:opacity-50">
                         <div class="text-center">
                             <div class="text-lg font-bold text-blue-400 mb-1">
@@ -33,7 +36,10 @@
                             <div class="text-xs text-blue-300 mt-1">wire:click="selectFirstServer('home')"</div>
                         </div>
                     </button>
-                    <button type="button" wire:click="selectFirstServer('away')" wire:loading.attr="disabled"
+                    <button type="button" 
+                            wire:click="selectFirstServer('away')" 
+                            wire:loading.attr="disabled"
+                            onclick="console.log('Away button clicked'); window.Livewire.find('{{ $_instance->id }}').call('selectFirstServer', 'away')"
                             class="w-full p-4 bg-red-600/20 hover:bg-red-600/30 border-2 border-red-500/30 hover:border-red-500/50 rounded-lg transition-all disabled:opacity-50">
                         <div class="text-center">
                             <div class="text-lg font-bold text-red-400 mb-1">
@@ -47,7 +53,10 @@
                             <div class="text-xs text-red-300 mt-1">wire:click="selectFirstServer('away')"</div>
                         </div>
                     </button>
-                                        <button type="button" wire:click="selectFirstServer('random')" wire:loading.attr="disabled"
+                                        <button type="button" 
+                            wire:click="selectFirstServer('random')" 
+                            wire:loading.attr="disabled"
+                            onclick="console.log('Random button clicked'); window.Livewire.find('{{ $_instance->id }}').call('selectFirstServer', 'random')"
                             class="w-full p-4 bg-purple-600/20 hover:bg-purple-600/30 border-2 border-purple-500/30 hover:border-purple-500/50 rounded-lg transition-all disabled:opacity-50">
                         <div class="text-center">
                             <div class="text-lg font-bold text-purple-400 mb-1">🎲 Random</div>
@@ -291,13 +300,39 @@
 
 @push('scripts')
 <script>
+    // Debug: Check if Livewire is loaded
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('Livewire loaded:', typeof window.Livewire !== 'undefined');
+        console.log('Livewire object:', window.Livewire);
+        
+        // Log all Livewire components
+        if (window.Livewire && window.Livewire.all) {
+            console.log('Livewire components:', window.Livewire.all());
+        }
+    });
+    
+    // Listen for Livewire errors
+    document.addEventListener('livewire:load', function() {
+        console.log('Livewire loaded event fired');
+        
+        Livewire.hook('message.failed', (message, component) => {
+            console.error('Livewire message failed:', message, component);
+        });
+        
+        Livewire.hook('element.updating', (fromEl, toEl, component) => {
+            console.log('Livewire updating element:', fromEl, toEl);
+        });
+    });
+    
     // Timer functionality removed - no longer needed
     
     // Listen for clear-local-storage event
-    Livewire.on('clear-local-storage', (data) => {
-        // Clear all localStorage data when match is reset
-        localStorage.clear();
-        console.log('Cleared all localStorage data for match reset');
-    });
+    if (window.Livewire) {
+        Livewire.on('clear-local-storage', (data) => {
+            // Clear all localStorage data when match is reset
+            localStorage.clear();
+            console.log('Cleared all localStorage data for match reset');
+        });
+    }
 </script>
 @endpush
