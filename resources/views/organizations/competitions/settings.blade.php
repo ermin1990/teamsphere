@@ -215,6 +215,69 @@
                 </div>
                 @endif
 
+                <!-- League Scoring -->
+                @if($competition->type === 'league')
+                <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl mb-6">
+                    <h3 class="text-xl font-semibold text-white mb-4">{{ __('League Scoring') }}</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <!-- Points for Win -->
+                        <div>
+                            <label for="points_for_win" class="block text-sm font-medium text-white mb-2">
+                                {{ __('Points for Win') }} <span class="text-red-400">*</span>
+                            </label>
+                            <input type="number" id="points_for_win" name="points_for_win" 
+                                   value="{{ old('points_for_win', $competition->points_for_win ?? 2) }}"
+                                   min="0" max="10" required
+                                   class="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <p class="text-gray-400 text-xs mt-1">{{ __('Points awarded for winning a match') }}</p>
+                        </div>
+
+                        <!-- Points for Draw -->
+                        <div>
+                            <label for="points_for_draw" class="block text-sm font-medium text-white mb-2">
+                                {{ __('Points for Draw') }} <span class="text-red-400">*</span>
+                            </label>
+                            <input type="number" id="points_for_draw" name="points_for_draw" 
+                                   value="{{ old('points_for_draw', $competition->points_for_draw ?? 1) }}"
+                                   min="0" max="10" required
+                                   class="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <p class="text-gray-400 text-xs mt-1">{{ __('Points awarded for a draw') }}</p>
+                        </div>
+
+                        <!-- Points for Loss -->
+                        <div>
+                            <label for="points_for_loss" class="block text-sm font-medium text-white mb-2">
+                                {{ __('Points for Loss') }} <span class="text-red-400">*</span>
+                            </label>
+                            <input type="number" id="points_for_loss" name="points_for_loss" 
+                                   value="{{ old('points_for_loss', $competition->points_for_loss ?? 0) }}"
+                                   min="0" max="10" required
+                                   class="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <p class="text-gray-400 text-xs mt-1">{{ __('Points awarded for losing a match') }}</p>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 p-4 bg-green-500/10 border border-green-500/20 rounded-lg">
+                        <div class="flex items-start space-x-3">
+                            <svg class="w-5 h-5 text-green-400 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <div>
+                                <p class="text-green-400 text-sm">
+                                    {{ __('These points determine league standings. Common setups:') }}
+                                </p>
+                                <ul class="text-green-300 text-xs mt-2 space-y-1">
+                                    <li>• {{ __('Standard: 2 for win, 1 for draw, 0 for loss') }}</li>
+                                    <li>• {{ __('Win-only: 3 for win, 0 for draw, 0 for loss') }}</li>
+                                    <li>• {{ __('All-points: 2 for win, 1 for draw, 0 for loss') }}</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                @endif
+
                 <!-- Save Button -->
                 <div class="flex space-x-4">
                     <button type="submit" 

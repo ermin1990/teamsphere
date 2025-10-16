@@ -445,6 +445,11 @@ class LeagueController extends Controller
             'status' => 'active',
         ]);
 
+        // Check if league should auto-start (minimum 2 teams for team-based leagues)
+        if ($league->is_team_based && $league->teams()->count() >= 2) {
+            $this->autoStartLeague($league);
+        }
+
         return back()->with('success', __('Team added successfully!'));
     }
 
@@ -493,6 +498,11 @@ class LeagueController extends Controller
         // Add players to the league (syncWithoutDetaching won't remove existing ones)
         $league->players()->syncWithoutDetaching($syncData);
 
+        // Check if league should auto-start (minimum 2 players for individual leagues)
+        if (!$league->is_team_based && $league->players()->count() >= 2) {
+            $this->autoStartLeague($league);
+        }
+
         $addedCount = count($playerIds);
         return back()->with('success', __('Players added to league successfully! :count players added.', ['count' => $addedCount]));
     }
@@ -538,6 +548,45 @@ class LeagueController extends Controller
         } catch (\Exception $e) {
             \Log::error('Error starting league: ' . $e->getMessage());
             return back()->withErrors(['general' => 'Error starting league: ' . $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Auto-start league when minimum participants are reached.
+     */
+    private function autoStartLeague(League $league)
+    {
+        try {
+            // Set default settings if not set
+            $settings = $league->settings ?? [];
+            if (!isset($settings['format'])) {
+                $settings['format'] = 'round_robin';
+            }
+            if (!isset($settings['points_win'])) {
+                $settings['points_win'] = 3;
+            }
+            if (!isset($settings['points_draw'])) {
+                $settings['points_draw'] = 1;
+            }
+            if (!isset($settings['points_loss'])) {
+                $settings['points_loss'] = 0;
+            }
+            if (!isset($settings['sets_to_win'])) {
+                $settings['sets_to_win'] = 2;
+            }
+            $league->update(['settings' => $settings]);
+
+            // Generate matches based on format
+            $this->generateMatches($league);
+
+            // Generate standings table
+            $this->generateStandings($league);
+
+            // Start the league
+            $league->update(['status' => 'active']);
+
+        } catch (\Exception $e) {
+            \Log::error('Error auto-starting league: ' . $e->getMessage());
         }
     }
 

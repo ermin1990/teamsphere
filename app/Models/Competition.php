@@ -453,4 +453,69 @@ class Competition extends Model
             'status' => 'completed',
         ]);
     }
+
+    /**
+     * Generate matches for league competitions.
+     */
+    public function generateLeagueMatches()
+    {
+        if (!$this->isLeague()) {
+            return;
+        }
+
+        $participants = $this->is_team_based ? $this->teams : $this->players;
+        $participantIds = $participants->pluck('id')->toArray();
+
+        if (count($participantIds) < 2) {
+            return; // Not enough participants
+        }
+
+        // Generate round-robin matches (each participant plays every other participant once)
+        $round = 1;
+        for ($i = 0; $i < count($participantIds); $i++) {
+            for ($j = $i + 1; $j < count($participantIds); $j++) {
+                CompetitionMatch::create([
+                    'competition_id' => $this->id,
+                    'home_team_id' => $this->is_team_based ? $participantIds[$i] : null,
+                    'away_team_id' => $this->is_team_based ? $participantIds[$j] : null,
+                    'home_player_id' => !$this->is_team_based ? $participantIds[$i] : null,
+                    'away_player_id' => !$this->is_team_based ? $participantIds[$j] : null,
+                    'round' => $round,
+                    'status' => 'scheduled',
+                    'scheduled_at' => $this->start_date?->addDays($round - 1),
+                ]);
+                $round++;
+            }
+        }
+    }
+
+    /**
+     * Generate standings table for league competitions.
+     */
+    public function generateLeagueStandings()
+    {
+        if (!$this->isLeague()) {
+            return;
+        }
+
+        $participants = $this->is_team_based ? $this->teams : $this->players;
+
+        $position = 1;
+        foreach ($participants as $participant) {
+            Standing::create([
+                'competition_id' => $this->id,
+                'team_id' => $this->is_team_based ? $participant->id : null,
+                'player_id' => !$this->is_team_based ? $participant->id : null,
+                'position' => $position++,
+                'played' => 0,
+                'won' => 0,
+                'drawn' => 0,
+                'lost' => 0,
+                'points' => 0,
+                'goals_for' => 0,
+                'goals_against' => 0,
+                'goal_difference' => 0,
+            ]);
+        }
+    }
 }

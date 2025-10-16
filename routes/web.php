@@ -195,6 +195,7 @@ Route::middleware(['auth'])->prefix('referee')->name('referee.')->group(function
     Route::get('/leagues/{league}/matches/{match}/live', [App\Http\Controllers\RefereeController::class, 'liveScore'])->name('match.live');
     Route::put('/leagues/{league}/matches/{match}', [App\Http\Controllers\RefereeController::class, 'updateMatch'])->name('match.update');
     Route::post('/leagues/{league}/matches/{match}/reset', [App\Http\Controllers\RefereeController::class, 'resetMatch'])->name('match.reset');
+    Route::post('/leagues/{league}/start', [App\Http\Controllers\RefereeController::class, 'startLeague'])->name('leagues.start');
 });
 
 // Referee routes

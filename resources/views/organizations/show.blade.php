@@ -212,7 +212,8 @@
                 @if($organization->competitions->count() > 0)
                     @php
                         $tournaments = $organization->competitions->where('type', 'tournament');
-                        $leagues = $organization->competitions->where('type', 'league');
+                        // Remove leagues from competitions section to avoid duplication with leagues section
+                        // $leagues = $organization->competitions->where('type', 'league');
                     @endphp
 
                     <!-- Tournaments Section -->
@@ -275,8 +276,8 @@
                     </div>
                     @endif
 
-                    <!-- Leagues Section -->
-                    @if($leagues->count() > 0)
+                    <!-- Leagues Section - Removed to avoid duplication with main Leagues section -->
+                    {{-- @if($leagues->count() > 0)
                     <div class="mb-8">
                         <h3 class="text-xl font-bold text-white mb-4 flex items-center">
                             <span class="mr-2">⚽</span> Lige
@@ -333,7 +334,7 @@
                             @endforeach
                         </div>
                     </div>
-                    @endif
+                    @endif --}}
                 @else
                     <div class="text-center py-8">
                         <div class="w-16 h-16 bg-gray-700/50 rounded-full flex items-center justify-center mx-auto mb-4">

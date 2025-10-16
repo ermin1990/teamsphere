@@ -400,9 +400,12 @@ class CompetitionController extends Controller
             'current_phase' => $competition->isTournament() ? 'groups' : null,
         ]);
 
-        // Generate matches for tournament groups
+        // Generate matches and standings based on competition type
         if ($competition->isTournament()) {
             $competition->generateGroupMatches();
+        } elseif ($competition->isLeague()) {
+            $competition->generateLeagueMatches();
+            $competition->generateLeagueStandings();
         }
 
         return back()->with('success', 'Competition started successfully! Matches have been generated.');
