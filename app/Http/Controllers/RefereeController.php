@@ -187,6 +187,7 @@ class RefereeController extends Controller
         }
 
         $organization = $league->organization;
+        $isOwner = $organization->user_id === $user->id;
 
         // Load teams with players for team-based leagues
         if ($league->is_team_based) {
@@ -196,7 +197,7 @@ class RefereeController extends Controller
         // Load audit relationships
         $match->load(['moderator', 'editedBy', 'completedBy']);
 
-        return view('organizations.leagues.matches.show', compact('organization', 'league', 'match'));
+        return view('organizations.leagues.matches.show', compact('organization', 'league', 'match', 'isOwner', 'isReferee'));
     }
 
     /**
@@ -224,7 +225,7 @@ class RefereeController extends Controller
         $organization = $league->organization;
         $isOwner = $organization->user_id === $user->id;
 
-        return view('organizations.leagues.matches.edit', compact('organization', 'league', 'match', 'isOwner'));
+        return view('organizations.leagues.matches.edit', compact('organization', 'league', 'match', 'isOwner', 'isReferee'));
     }
 
     /**
@@ -250,6 +251,7 @@ class RefereeController extends Controller
         }
 
         $organization = $league->organization;
+        $isOwner = $organization->user_id === $user->id;
 
         // Load teams with players for team-based leagues
         if ($league->is_team_based) {
@@ -259,7 +261,7 @@ class RefereeController extends Controller
         // Don't auto-start the match here - let the user choose server first
         // Match will be started when first server is selected in LiveScore component
 
-        return view('organizations.leagues.matches.live', compact('organization', 'league', 'match'));
+        return view('organizations.leagues.matches.live', compact('organization', 'league', 'match', 'isOwner', 'isReferee'));
     }
 
     /**

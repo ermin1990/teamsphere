@@ -823,10 +823,21 @@ class LiveScore extends Component
     {
         // Check if match belongs to league or competition and get organization accordingly
         if ($this->match->league) {
-            $isOrganizationOwner = $this->match->league->organization->user_id === auth()->id();
+            $organization = $this->match->league->organization;
+            $isOrganizationOwner = $organization->user_id === auth()->id();
         } else {
-            $isOrganizationOwner = $this->match->competition->organization->user_id === auth()->id();
+            $organization = $this->match->competition->organization;
+            $isOrganizationOwner = $organization->user_id === auth()->id();
         }
+
+        // Check if user is a referee for this organization
+        $isReferee = auth()->user()->organizationUsers()
+            ->where('organization_id', $organization->id)
+            ->where('role', 'referee')
+            ->exists();
+
+        // User can manage live scoring if they are owner or referee
+        $canManageLiveScore = $isOrganizationOwner || $isReferee;
         
         return view('livewire.live-score', [
             'match' => $this->match,
@@ -840,7 +851,7 @@ class LiveScore extends Component
             'setsVersion' => $this->setsVersion,
             'setStartTime' => $this->setStartTime,
             'matchPaused' => $this->matchPaused,
-            'isOrganizationOwner' => $isOrganizationOwner,
+            'isOrganizationOwner' => $canManageLiveScore,
         ]);
     }
 }
