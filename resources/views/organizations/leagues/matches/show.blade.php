@@ -33,6 +33,10 @@
                     </a>
                     @endif
                     @endif
+                    <button onclick="shareMatch()"
+                       class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm rounded-lg transition-colors">
+                        📤 Share
+                    </button>
                 </div>
             </div>
         </div>
@@ -431,4 +435,33 @@
             </div>
         </div>
     </div>
+
+    <script>
+        function shareMatch() {
+            const publicUrl = '{{ route("public.matches.show", [$league, $match]) }}';
+            const liveUrl = '{{ $match->status === "in_progress" ? route("public.matches.live", [$league, $match]) : "" }}';
+
+            const shareText = `Check out this match: {{ $match->homeTeam?->name ?? $match->homePlayer?->name ?? "Home" }} vs {{ $match->awayTeam?->name ?? $match->awayPlayer?->name ?? "Away" }}\n\n${publicUrl}`;
+
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Match Results',
+                    text: shareText,
+                    url: publicUrl
+                });
+            } else {
+                // Fallback: copy to clipboard
+                navigator.clipboard.writeText(shareText).then(() => {
+                    alert('Match link copied to clipboard!');
+                }).catch(() => {
+                    // Final fallback: show URLs
+                    const message = `Share this match:\n\n${shareText}`;
+                    if (liveUrl) {
+                        message += `\n\nLive score: ${liveUrl}`;
+                    }
+                    alert(message);
+                });
+            }
+        }
+    </script>
 </x-app-layout>

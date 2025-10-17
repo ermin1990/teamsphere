@@ -183,4 +183,17 @@ Route::middleware(['auth'])->prefix('referee')->name('referee.')->group(function
 Route::middleware(['auth'])->prefix('referee')->name('referee.')->group(function () {
 });
 
+// Public routes (no authentication required)
+Route::prefix('public')->name('public.')->group(function () {
+    // Public league routes
+    Route::get('/leagues/{league}', [App\Http\Controllers\PublicMatchController::class, 'showLeague'])->name('leagues.show');
+
+    // Public match routes
+    Route::get('/leagues/{league}/matches/{match}', [App\Http\Controllers\PublicMatchController::class, 'showMatch'])->name('matches.show');
+    Route::get('/leagues/{league}/matches/{match}/live', [App\Http\Controllers\PublicMatchController::class, 'liveScore'])->name('matches.live');
+
+    // Embed widget
+    Route::get('/embed/matches/{match}', [App\Http\Controllers\PublicMatchController::class, 'embedMatch'])->name('matches.embed');
+});
+
 require __DIR__.'/auth.php';
