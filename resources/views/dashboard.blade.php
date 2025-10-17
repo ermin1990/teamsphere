@@ -107,13 +107,13 @@
                         <div class="flex items-center justify-between mb-2">
                             <span class="text-gray-400 text-sm">Organizacije</span>
                             @if($currentPlan)
-                                <span class="text-xs text-gray-500">{{ Auth::user()->organizations()->count() }}/{{ $currentPlan->max_organizations }}</span>
+                                <span class="text-xs text-gray-500">{{ $usageStats['organizations_used'] }}/{{ $usageStats['max_organizations'] }}</span>
                             @endif
                         </div>
-                        <div class="text-2xl font-bold text-white">{{ Auth::user()->organizations()->count() }}</div>
+                        <div class="text-2xl font-bold text-white">{{ $usageStats['organizations_used'] }}</div>
                         <div class="text-xs text-gray-400">
                             @if($currentPlan)
-                                {{ $currentPlan->max_organizations - Auth::user()->organizations()->count() }} preostalo
+                                {{ $usageStats['max_organizations'] - $usageStats['organizations_used'] }} preostalo
                             @else
                                 Neograničeno
                             @endif
@@ -125,13 +125,13 @@
                         <div class="flex items-center justify-between mb-2">
                             <span class="text-gray-400 text-sm">Turniri</span>
                             @if($currentPlan)
-                                <span class="text-xs text-gray-500">{{ \App\Models\Competition::whereIn('organization_id', Auth::user()->organizations()->pluck('id'))->count() }}/{{ Auth::user()->organizations()->count() * $currentPlan->max_competitions_per_organization }}</span>
+                                <span class="text-xs text-gray-500">{{ $usageStats['competitions_used'] }}/{{ $organizations->count() * $usageStats['max_competitions_per_organization'] }}</span>
                             @endif
                         </div>
-                        <div class="text-2xl font-bold text-white">{{ \App\Models\Competition::whereIn('organization_id', Auth::user()->organizations()->pluck('id'))->count() }}</div>
+                        <div class="text-2xl font-bold text-white">{{ $usageStats['competitions_used'] }}</div>
                         <div class="text-xs text-gray-400">
                             @if($currentPlan)
-                                {{ (Auth::user()->organizations()->count() * $currentPlan->max_competitions_per_organization) - \App\Models\Competition::whereIn('organization_id', Auth::user()->organizations()->pluck('id'))->count() }} preostalo
+                                {{ ($organizations->count() * $usageStats['max_competitions_per_organization']) - $usageStats['competitions_used'] }} preostalo
                             @else
                                 Neograničeno
                             @endif
@@ -143,13 +143,13 @@
                         <div class="flex items-center justify-between mb-2">
                             <span class="text-gray-400 text-sm">Lige</span>
                             @if($currentPlan)
-                                <span class="text-xs text-gray-500">{{ \App\Models\League::whereIn('organization_id', Auth::user()->organizations()->pluck('id'))->count() }}/{{ Auth::user()->organizations()->count() * $currentPlan->max_leagues_per_organization }}</span>
+                                <span class="text-xs text-gray-500">{{ $usageStats['leagues_used'] }}/{{ $organizations->count() * $usageStats['max_leagues_per_organization'] }}</span>
                             @endif
                         </div>
-                        <div class="text-2xl font-bold text-white">{{ \App\Models\League::whereIn('organization_id', Auth::user()->organizations()->pluck('id'))->count() }}</div>
+                        <div class="text-2xl font-bold text-white">{{ $usageStats['leagues_used'] }}</div>
                         <div class="text-xs text-gray-400">
                             @if($currentPlan)
-                                {{ (Auth::user()->organizations()->count() * $currentPlan->max_leagues_per_organization) - \App\Models\League::whereIn('organization_id', Auth::user()->organizations()->pluck('id'))->count() }} preostalo
+                                {{ ($organizations->count() * $usageStats['max_leagues_per_organization']) - $usageStats['leagues_used'] }} preostalo
                             @else
                                 Neograničeno
                             @endif
@@ -157,7 +157,7 @@
                     </div>
                 </div>
 
-                @if(!$currentPlan || Auth::user()->organizations()->count() >= $currentPlan->max_organizations)
+                                        @if(!$currentPlan || $usageStats['organizations_used'] >= $usageStats['max_organizations'])
                 <div class="text-center">
                     <a href="#" class="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-6 py-3 rounded-xl transition-all duration-200 transform hover:scale-[1.02] hover:shadow-lg hover:shadow-purple-500/25 inline-block">
                         <span class="flex items-center space-x-2">
@@ -204,27 +204,6 @@
                                     </div>
                                     <div class="flex-1">
                                         <h4 class="text-white font-bold text-lg">{{ $organization->name }}</h4>
-                                        <p class="text-gray-400 text-sm">
-                                            {{ $players->where('organization_id', $organization->id)->count() }} igrača •
-                                            {{ $organization->competitions->where('type', 'tournament')->count() }} turnira •
-                                            {{ $organization->leagues->count() }} liga
-                                        </p>
-                                    </div>
-                                </div>
-
-                                <!-- Organization Stats -->
-                                <div class="grid grid-cols-3 gap-3 mb-4">
-                                    <div class="text-center">
-                                        <div class="text-lg font-bold text-blue-400">{{ $organization->competitions->where('type', 'tournament')->where('status', 'active')->count() }}</div>
-                                        <div class="text-xs text-gray-400">Aktivnih Turnira</div>
-                                    </div>
-                                    <div class="text-center">
-                                        <div class="text-lg font-bold text-green-400">{{ $organization->leagues->where('status', 'active')->count() }}</div>
-                                        <div class="text-xs text-gray-400">Aktivnih Liga</div>
-                                    </div>
-                                    <div class="text-center">
-                                        <div class="text-lg font-bold text-purple-400">{{ $players->where('organization_id', $organization->id)->count() }}</div>
-                                        <div class="text-xs text-gray-400">Igrača</div>
                                     </div>
                                 </div>
 
@@ -241,6 +220,11 @@
                                     </a>
 
                                     @if($organization->user_id === Auth::id())
+                                        <div class="text-center mb-3">
+                                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                                Liga
+                                            </span>
+                                        </div>
                                         <div class="grid grid-cols-2 gap-3">
                                             @if($organization->canCreateMoreLeagues())
                                                 <a href="{{ route('leagues.create', $organization) }}" class="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white px-3 py-2 rounded-lg transition-all duration-200 text-center text-sm font-semibold">
@@ -262,6 +246,12 @@
                                                     </span>
                                                 </a>
                                             @endif
+                                        </div>
+                                    @else
+                                        <div class="text-center">
+                                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                Vi ste u toj organizaciji
+                                            </span>
                                         </div>
                                     @endif
                                 </div>

@@ -59,7 +59,62 @@ class RefereeController extends Controller
             return $league->matches->where('status', 'scheduled')->count();
         });
 
-        return view('referee.dashboard', compact('organizations', 'leagues', 'recentMatches', 'totalMatches', 'completedMatches', 'inProgressMatches', 'scheduledMatches'));
+        // Get moderator matches - show all matches where user is moderator
+        $allModeratorMatches = LeagueMatch::where('moderator_id', $user->id)
+            ->with(['league.organization', 'homeTeam', 'awayTeam', 'homePlayer', 'awayPlayer'])
+            ->orderByRaw("CASE 
+                WHEN status = 'in_progress' THEN 1 
+                WHEN status = 'scheduled' THEN 2 
+                WHEN status = 'completed' THEN 3 
+                WHEN status = 'forfeited' THEN 4 
+                ELSE 5 END")
+            ->orderBy('scheduled_at', 'desc')
+            ->orderBy('updated_at', 'desc')
+            ->limit(10)
+            ->get();
+
+        // Split into recent (completed/forfeited) and upcoming (scheduled/in_progress)
+        $moderatorRecentMatches = $allModeratorMatches->filter(function($match) {
+            return in_array($match->status, ['completed', 'forfeited']);
+        })->take(5);
+
+        $moderatorUpcomingMatches = $allModeratorMatches->filter(function($match) {
+            return in_array($match->status, ['scheduled', 'in_progress']);
+        })->take(5);
+
+        return view('referee.dashboard', compact('organizations', 'leagues', 'recentMatches', 'totalMatches', 'completedMatches', 'inProgressMatches', 'scheduledMatches', 'moderatorRecentMatches', 'moderatorUpcomingMatches'));
+    }
+
+    /**
+     * Display moderator dashboard with assigned matches.
+     */
+    public function moderatorDashboard()
+    {
+        $user = Auth::user();
+
+        // Get all matches where user is assigned as moderator
+        $allModeratorMatches = LeagueMatch::where('moderator_id', $user->id)
+            ->with(['league.organization', 'homeTeam', 'awayTeam', 'homePlayer', 'awayPlayer'])
+            ->orderByRaw("CASE 
+                WHEN status = 'in_progress' THEN 1 
+                WHEN status = 'scheduled' THEN 2 
+                WHEN status = 'completed' THEN 3 
+                WHEN status = 'forfeited' THEN 4 
+                ELSE 5 END")
+            ->orderBy('scheduled_at', 'desc')
+            ->orderBy('updated_at', 'desc')
+            ->get();
+
+        // Separate into moderated (completed/forfeited) and assigned (scheduled/in_progress)
+        $moderatedMatches = $allModeratorMatches->filter(function($match) {
+            return in_array($match->status, ['completed', 'forfeited']);
+        });
+
+        $assignedMatches = $allModeratorMatches->filter(function($match) {
+            return in_array($match->status, ['scheduled', 'in_progress']);
+        });
+
+        return view('referee.moderator-dashboard', compact('moderatedMatches', 'assignedMatches'));
     }
 
     /**
@@ -138,6 +193,9 @@ class RefereeController extends Controller
             $match->load(['homeTeam.players', 'awayTeam.players']);
         }
 
+        // Load audit relationships
+        $match->load(['moderator', 'editedBy', 'completedBy']);
+
         return view('organizations.leagues.matches.show', compact('organization', 'league', 'match'));
     }
 
@@ -164,8 +222,9 @@ class RefereeController extends Controller
         }
 
         $organization = $league->organization;
+        $isOwner = $organization->user_id === $user->id;
 
-        return view('organizations.leagues.matches.edit', compact('organization', 'league', 'match'));
+        return view('organizations.leagues.matches.edit', compact('organization', 'league', 'match', 'isOwner'));
     }
 
     /**
@@ -225,18 +284,48 @@ class RefereeController extends Controller
             abort(404, 'Match not found in this league.');
         }
 
+        // Check if user is owner (for moderator assignment)
+        $isOwner = $league->organization->user_id === $user->id;
+
         $request->validate([
             'home_score' => 'nullable|integer|min:0',
             'away_score' => 'nullable|integer|min:0',
             'status' => 'required|in:scheduled,in_progress,completed,cancelled',
             'forfeited_by' => 'nullable|in:home,away',
+            'moderator_id' => 'nullable|exists:users,id',
         ]);
 
-        $updateData = $request->only(['home_score', 'away_score', 'status', 'forfeited_by']);
+        // Check moderator assignment permissions
+        if ($request->filled('moderator_id') && !$isOwner) {
+            abort(403, 'Only organization owners can assign moderators.');
+        }
+
+        // If moderator_id is provided, ensure they are a referee for this organization
+        if ($request->filled('moderator_id')) {
+            $isValidReferee = $league->organization->organizationUsers()
+                ->where('user_id', $request->moderator_id)
+                ->where('role', 'referee')
+                ->exists();
+            if (!$isValidReferee) {
+                return back()->withErrors(['moderator_id' => 'Selected user is not a referee for this organization.']);
+            }
+        }
+
+        $updateData = $request->only(['home_score', 'away_score', 'status', 'forfeited_by', 'moderator_id']);
 
         // Set played_at when match is completed or cancelled
         if (in_array($request->status, ['completed', 'cancelled']) && !$match->played_at) {
             $updateData['played_at'] = now();
+        }
+
+        // Set audit fields
+        $updateData['edited_by'] = $user->id;
+        $updateData['edited_at'] = now();
+
+        // Set completed_by and completed_at if status is being changed to completed
+        if ($request->status === 'completed' && $match->status !== 'completed') {
+            $updateData['completed_by'] = $user->id;
+            $updateData['completed_at'] = now();
         }
 
         $match->update($updateData);
@@ -278,6 +367,10 @@ class RefereeController extends Controller
             'sets' => [],
             'played_at' => null,
             'forfeited_by' => null,
+            'edited_by' => $user->id,
+            'edited_at' => now(),
+            'completed_by' => null,
+            'completed_at' => null,
         ]);
 
         // Update standings if match was previously completed/forfeited

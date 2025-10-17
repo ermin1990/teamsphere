@@ -123,7 +123,7 @@
             <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl">
                 <div class="flex items-center justify-between mb-6">
                     <h3 class="text-xl font-bold text-white">Lige</h3>
-                    @if($organization->canCreateMoreLeagues())
+                    @if($organization->user_id === Auth::id() && $organization->canCreateMoreLeagues())
                         <a href="{{ route('leagues.create', $organization) }}" class="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-4 py-2 rounded-xl transition-all duration-200 transform hover:scale-[1.02] hover:shadow-lg hover:shadow-blue-500/25 inline-block">
                             <span class="flex items-center space-x-2">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -180,15 +180,6 @@
                         </div>
                         <h4 class="text-white font-semibold mb-2">Još nema liga</h4>
                         <p class="text-gray-400 mb-4">Kreirajte svoju prvu ligu da počnete organizovati takmičenja</p>
-                        @if($organization->canCreateMoreLeagues())
-                            <button class="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-6 py-3 rounded-xl transition-all duration-200 transform hover:scale-[1.02] hover:shadow-lg hover:shadow-blue-500/25 inline-block">
-                                Kreirajte Svoju Prvu Ligu
-                            </button>
-                        @else
-                            <div class="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-4 inline-block">
-                                <p class="text-yellow-400 text-sm">Dostigli ste maksimalan broj liga za ovu organizaciju</p>
-                            </div>
-                        @endif
                     </div>
                 @endif
             </div>
@@ -197,7 +188,7 @@
             <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl">
                 <div class="flex items-center justify-between mb-6">
                     <h3 class="text-xl font-bold text-white">Turniri</h3>
-                    @if($organization->canCreateMoreCompetitions())
+                    @if($organization->user_id === Auth::id() && $organization->canCreateMoreCompetitions())
                         <a href="{{ route('organizations.competitions.create', $organization) }}" class="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white px-4 py-2 rounded-xl transition-all duration-200 transform hover:scale-[1.02] hover:shadow-lg hover:shadow-purple-500/25 inline-block">
                             <span class="flex items-center space-x-2">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -344,15 +335,6 @@
                         </div>
                         <h4 class="text-white font-semibold mb-2">Još nema takmičenja</h4>
                         <p class="text-gray-400 mb-4">Kreirajte svoju prvu ligu ili turnir da počnete organizovati takmičenja</p>
-                        @if($organization->canCreateMoreCompetitions())
-                            <a href="{{ route('organizations.competitions.create', $organization) }}" class="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white px-6 py-3 rounded-xl transition-all duration-200 transform hover:scale-[1.02] hover:shadow-lg hover:shadow-purple-500/25 inline-block">
-                                Kreirajte Svoj Prvi Turnir
-                            </a>
-                        @else
-                            <div class="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-4 inline-block">
-                                <p class="text-yellow-400 text-sm">Dostigli ste maksimalan broj turnira za ovu organizaciju</p>
-                            </div>
-                        @endif
                     </div>
                 @endif
             </div>
@@ -361,14 +343,16 @@
             <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl">
                 <div class="flex items-center justify-between mb-6">
                     <h3 class="text-xl font-bold text-white">Igrači</h3>
-                    <a href="{{ route('organizations.players.index', $organization) }}" class="bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white px-4 py-2 rounded-xl transition-all duration-200 transform hover:scale-[1.02] hover:shadow-lg hover:shadow-emerald-500/25">
-                        <span class="flex items-center space-x-2">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                            </svg>
-                            <span>Upravljaj Igračima</span>
-                        </span>
-                    </a>
+                    @if($organization->user_id === Auth::id())
+                        <a href="{{ route('organizations.players.index', $organization) }}" class="bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white px-4 py-2 rounded-xl transition-all duration-200 transform hover:scale-[1.02] hover:shadow-lg hover:shadow-emerald-500/25">
+                            <span class="flex items-center space-x-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                </svg>
+                                <span>Upravljaj Igračima</span>
+                            </span>
+                        </a>
+                    @endif
                 </div>
 
                 @if((optional($organization->players)->count() ?? 0) > 0)
@@ -420,9 +404,11 @@
                         </div>
                         <h4 class="text-white font-semibold mb-2">Još nema igrača</h4>
                         <p class="text-gray-400 mb-4">Dodajte igrače da počnete graditi svoje timove i pratiti statistiku</p>
-                        <a href="{{ route('organizations.players.index', $organization) }}" class="bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white px-6 py-3 rounded-xl transition-all duration-200 transform hover:scale-[1.02] hover:shadow-lg hover:shadow-emerald-500/25 inline-block">
-                            Dodajte Svojeg Prvog Igrača
-                        </a>
+                        @if($organization->user_id === Auth::id())
+                            <a href="{{ route('organizations.players.index', $organization) }}" class="bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white px-6 py-3 rounded-xl transition-all duration-200 transform hover:scale-[1.02] hover:shadow-lg hover:shadow-emerald-500/25 inline-block">
+                                Dodajte Svojeg Prvog Igrača
+                            </a>
+                        @endif
                     </div>
                 @endif
             </div>
@@ -432,6 +418,7 @@
                 <div class="flex items-center justify-between mb-6">
                     <h3 class="text-xl font-bold text-white">Nedavni Prijateljski Mečevi</h3>
                     <div class="flex items-center space-x-3">
+                        @if($organization->user_id === Auth::id())
                         <a href="{{ route('organizations.friendly-matches.index', $organization) }}" class="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white px-4 py-2 rounded-xl transition-all duration-200 transform hover:scale-[1.02] hover:shadow-lg hover:shadow-green-500/25">
                             <span class="flex items-center space-x-2">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -440,6 +427,7 @@
                                 <span>Započni Novi Meč</span>
                             </span>
                         </a>
+                        @endif
                         <a href="{{ route('organizations.friendly-matches.index', $organization) }}" class="text-green-400 hover:text-green-300 text-sm font-medium transition-colors">
                             Pogledaj Sve →
                         </a>

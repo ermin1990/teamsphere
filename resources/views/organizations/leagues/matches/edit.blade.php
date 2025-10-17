@@ -165,6 +165,29 @@
                         </div>
                     </div>
 
+                    <!-- Moderator Assignment (only for organization owners) -->
+                    @if(isset($isOwner) && $isOwner)
+                    <div>
+                        <label for="moderator_id" class="block text-sm font-medium text-gray-300 mb-2">Assign Moderator/Referee</label>
+                        <select name="moderator_id" id="moderator_id" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="">No moderator assigned</option>
+                            @php
+                                $referees = $organization->organizationUsers()
+                                    ->where('role', 'referee')
+                                    ->with('user')
+                                    ->get()
+                                    ->pluck('user');
+                            @endphp
+                            @foreach($referees as $referee)
+                            <option value="{{ $referee->id }}" {{ $match->moderator_id == $referee->id ? 'selected' : '' }}>
+                                {{ $referee->name }}
+                            </option>
+                            @endforeach
+                        </select>
+                        <p class="text-xs text-gray-400 mt-1">Assign a referee to oversee this match</p>
+                    </div>
+                    @endif
+
                     <!-- Submit Button -->
                     <div class="flex justify-end space-x-4 pt-6 border-t border-gray-700">
                         <a href="{{ route('leagues.matches.show', [$league, $match]) }}"

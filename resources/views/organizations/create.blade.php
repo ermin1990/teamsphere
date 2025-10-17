@@ -44,14 +44,14 @@
                         </label>
                         <input type="text"
                                id="slug"
-                               name="slug"
-                               value="{{ old('slug') }}"
+                               name="url_slug"
+                               value="{{ old('url_slug') }}"
                                class="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                                placeholder="organization-url-slug">
                         <p class="mt-1 text-xs text-gray-400">
-                            Ovo će biti korišteno u URL-u: {{ url('/organizations/') }}/<span id="slug-preview">{{ old('slug') ?: 'your-slug' }}</span>
+                            Ovo će biti korišteno u URL-u: {{ url('/organizations/') }}/<span id="slug-preview">{{ old('url_slug') ?: 'your-slug' }}</span>
                         </p>
-                        @error('slug')
+                        @error('url_slug')
                             <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
                         @enderror
                     </div>

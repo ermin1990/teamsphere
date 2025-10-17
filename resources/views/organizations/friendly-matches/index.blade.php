@@ -23,6 +23,7 @@
 
             <!-- Get Started & Recent Matches -->
             <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl border border-gray-700/50 shadow-xl overflow-hidden">
+                @if(isset($isOwner) && $isOwner)
                 <!-- Header -->
                 <div class="bg-gradient-to-r from-green-600/20 to-blue-600/20 border-b border-gray-700/50 px-8 py-6">
                     <div class="flex items-center justify-between">
@@ -35,9 +36,11 @@
                         </div>
                     </div>
                 </div>
+                @endif
 
                 <!-- Content -->
                 <div class="p-8">
+                    @if(isset($isOwner) && $isOwner)
                     <!-- Sports Selection -->
                     <div class="mb-8">
                         <h4 class="text-lg font-semibold text-white mb-4">{{ __('Choose Sport & Match Type') }}</h4>
@@ -95,6 +98,7 @@
 
                     <!-- Divider -->
                     <div class="border-t border-gray-700/50 my-8"></div>
+                    @endif
 
                     <!-- Recent Matches -->
                     <div>

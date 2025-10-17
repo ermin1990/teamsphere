@@ -125,19 +125,7 @@ class OrganizationController extends Controller
      */
     public function friendlyMatches(Organization $organization)
     {
-        // Ensure user is a member of this organization
-        $isMember = $organization->user_id === auth()->id() || 
-                   auth()->user()->organizationUsers()->where('organization_id', $organization->id)->exists();
-        
-        if (!$isMember) {
-            \Log::info('Friendly matches access denied', [
-                'organization_id' => $organization->id,
-                'organization_user_id' => $organization->user_id,
-                'auth_user_id' => auth()->id(),
-                'organization_slug' => $organization->slug
-            ]);
-            abort(403);
-        }
+        $isOwner = $organization->user_id === auth()->id();
 
         \Log::info('Friendly matches accessed', [
             'organization_id' => $organization->id,
@@ -145,7 +133,7 @@ class OrganizationController extends Controller
             'auth_user_id' => auth()->id()
         ]);
 
-        return view('organizations.friendly-matches.index', compact('organization'));
+        return view('organizations.friendly-matches.index', compact('organization', 'isOwner'));
     }
 
     /**
@@ -153,11 +141,8 @@ class OrganizationController extends Controller
      */
     public function tableTennisFriendly(Organization $organization)
     {
-        // Ensure user is a member of this organization
-        $isMember = $organization->user_id === auth()->id() || 
-                   auth()->user()->organizationUsers()->where('organization_id', $organization->id)->exists();
-        
-        if (!$isMember) {
+        // Ensure user owns this organization
+        if ($organization->user_id !== auth()->id()) {
             abort(403);
         }
 
@@ -194,17 +179,20 @@ class OrganizationController extends Controller
                 'required',
                 'string',
                 'max:255',
-                'unique:organizations,url_slug',
+                'unique:organizations,slug',
                 'regex:/^[a-z0-9-]+$/'
             ],
         ]);
 
         $organization = Organization::create([
             'name' => $request->name,
+            'slug' => $request->url_slug,
             'description' => $request->description,
-            'url_slug' => $request->url_slug,
             'user_id' => auth()->id(),
         ]);
+
+        // Clear organization cache
+        Organization::clearOrganizationCache();
 
         return redirect()->route('organizations.show', $organization)
             ->with('success', 'Organization created successfully!');

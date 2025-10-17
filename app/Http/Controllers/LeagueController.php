@@ -830,6 +830,9 @@ class LeagueController extends Controller
             $match->load(['homeTeam.players', 'awayTeam.players']);
         }
 
+        // Load audit relationships
+        $match->load(['moderator', 'editedBy', 'completedBy']);
+
         return view('organizations.leagues.matches.show', compact('organization', 'league', 'match', 'isOwner', 'isPlayer', 'isReferee'));
     }
 
@@ -850,7 +853,9 @@ class LeagueController extends Controller
             abort(404);
         }
 
-        return view('organizations.leagues.matches.edit', compact('organization', 'league', 'match'));
+        $isOwner = $organization->user_id === auth()->id();
+
+        return view('organizations.leagues.matches.edit', compact('organization', 'league', 'match', 'isOwner'));
     }
 
     /**
@@ -876,10 +881,33 @@ class LeagueController extends Controller
             'home_score' => 'nullable|numeric|min:0',
             'away_score' => 'nullable|numeric|min:0',
             'forfeited_by' => 'nullable|in:home,away',
+            'moderator_id' => 'nullable|exists:users,id',
         ]);
+
+        // Check if user is owner (only owners can assign moderators)
+        $isOwner = $organization->user_id === auth()->id();
+        if ($request->filled('moderator_id') && !$isOwner) {
+            abort(403, 'Only organization owners can assign moderators.');
+        }
+
+        // If moderator_id is provided, ensure they are a referee for this organization
+        if ($request->filled('moderator_id')) {
+            $isReferee = $organization->organizationUsers()
+                ->where('user_id', $request->moderator_id)
+                ->where('role', 'referee')
+                ->exists();
+            if (!$isReferee) {
+                return back()->withErrors(['moderator_id' => 'Selected user is not a referee for this organization.']);
+            }
+        }
 
         // Prepare update data
         $updateData = ['status' => $validated['status']];
+
+        // Add moderator if provided
+        if (isset($validated['moderator_id'])) {
+            $updateData['moderator_id'] = $validated['moderator_id'] ?: null;
+        }
 
         if ($validated['status'] === 'scheduled') {
             // Reset everything

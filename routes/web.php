@@ -1,10 +1,11 @@
 <?php
 
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FeedbackController;
-use App\Http\Controllers\LeagueController;
-use App\Http\Controllers\CompetitionController;
 use App\Http\Controllers\OrganizationController;
 use App\Http\Controllers\PlayerController;
+use App\Http\Controllers\CompetitionController;
+use App\Http\Controllers\LeagueController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
@@ -19,46 +20,7 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/dashboard', function () {
-    $user = Auth::user();
-
-    // Get players where user is registered
-    $players = \App\Models\Player::where('user_id', $user->id)->with('organization', 'homeMatches', 'awayMatches')->get();
-
-    // Get organizations from players
-    $playerOrganizationIds = $players->pluck('organization_id')->unique()->filter();
-    
-    // Get organizations owned by user
-    $ownedOrganizationIds = $user->organizations()->pluck('id');
-    
-    // Merge organization IDs and get unique ones
-    $allOrganizationIds = $playerOrganizationIds->merge($ownedOrganizationIds)->unique();
-    
-    // Load all organizations with relationships
-    $organizations = \App\Models\Organization::whereIn('id', $allOrganizationIds)->with(['leagues', 'competitions'])->get();
-
-    // Get upcoming matches for this player
-    $upcomingMatches = collect();
-    foreach ($players as $player) {
-        // Get matches where player is home or away player
-        $playerMatches = \App\Models\LeagueMatch::where(function($query) use ($player) {
-            $query->where('home_player_id', $player->id)
-                  ->orWhere('away_player_id', $player->id);
-        })
-        ->with(['league', 'homePlayer', 'awayPlayer'])
-        ->where('scheduled_at', '>=', now())
-        ->orderBy('scheduled_at', 'asc')
-        ->limit(10)
-        ->get();
-
-        $upcomingMatches = $upcomingMatches->merge($playerMatches);
-    }
-
-    // Check if user is a referee in any organization
-    $isReferee = $user->organizationUsers()->where('role', 'referee')->exists();
-
-    return view('dashboard', compact('organizations', 'players', 'upcomingMatches', 'isReferee'));
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard', [DashboardController::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
 
 // Feedback routes
 Route::get('/feedback', [FeedbackController::class, 'create'])->name('feedback.create');
@@ -206,6 +168,7 @@ Route::middleware('auth')->group(function () {
 // Referee routes
 Route::middleware(['auth'])->prefix('referee')->name('referee.')->group(function () {
     Route::get('/', [App\Http\Controllers\RefereeController::class, 'dashboard'])->name('dashboard');
+    Route::get('/moderator', [App\Http\Controllers\RefereeController::class, 'moderatorDashboard'])->name('moderator.dashboard');
     Route::get('/leagues', [App\Http\Controllers\RefereeController::class, 'leagues'])->name('leagues');
     Route::get('/leagues/{league}/matches', [App\Http\Controllers\RefereeController::class, 'leagueMatches'])->name('league.matches');
     Route::get('/leagues/{league}/matches/{match}', [App\Http\Controllers\RefereeController::class, 'showMatch'])->name('match.show');

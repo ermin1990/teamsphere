@@ -30,6 +30,11 @@ class LeagueMatch extends Model
         'first_server',
         'current_server',
         'set_durations',
+        'moderator_id',
+        'edited_by',
+        'completed_by',
+        'edited_at',
+        'completed_at',
     ];
 
     protected $casts = [
@@ -44,6 +49,8 @@ class LeagueMatch extends Model
         'forfeited_by' => 'string',
         'first_server' => 'string',
         'current_server' => 'string',
+        'edited_at' => 'datetime',
+        'completed_at' => 'datetime',
     ];
 
     /**
@@ -52,6 +59,30 @@ class LeagueMatch extends Model
     public function league(): BelongsTo
     {
         return $this->belongsTo(League::class, 'competition_id');
+    }
+
+    /**
+     * Get the moderator for this match.
+     */
+    public function moderator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'moderator_id');
+    }
+
+    /**
+     * Get the user who last edited this match.
+     */
+    public function editedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'edited_by');
+    }
+
+    /**
+     * Get the user who completed this match.
+     */
+    public function completedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'completed_by');
     }
 
     /**

@@ -377,6 +377,39 @@
 
                 </div>
 
+                <!-- Audit Information -->
+                @if($match->edited_by || $match->completed_by || $match->moderator)
+                <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl">
+                    <h3 class="text-lg font-semibold text-white mb-4">📋 Audit Information</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        @if($match->moderator)
+                        <div class="bg-gray-700/30 rounded-lg p-4">
+                            <div class="text-sm text-gray-400 mb-1">Moderator</div>
+                            <div class="text-white font-medium">{{ $match->moderator->name }}</div>
+                        </div>
+                        @endif
+                        @if($match->edited_by)
+                        <div class="bg-gray-700/30 rounded-lg p-4">
+                            <div class="text-sm text-gray-400 mb-1">Last Edited By</div>
+                            <div class="text-white font-medium">{{ $match->editedBy->name }}</div>
+                            @if($match->edited_at)
+                            <div class="text-xs text-gray-400 mt-1">{{ $match->edited_at->format('M j, Y g:i A') }}</div>
+                            @endif
+                        </div>
+                        @endif
+                        @if($match->completed_by)
+                        <div class="bg-gray-700/30 rounded-lg p-4">
+                            <div class="text-sm text-gray-400 mb-1">Completed By</div>
+                            <div class="text-white font-medium">{{ $match->completedBy->name }}</div>
+                            @if($match->completed_at)
+                            <div class="text-xs text-gray-400 mt-1">{{ $match->completed_at->format('M j, Y g:i A') }}</div>
+                            @endif
+                        </div>
+                        @endif
+                    </div>
+                </div>
+                @endif
+
                 <!-- Navigation -->
                 <div class="flex justify-center space-x-4">
                     @if($organization->user_id === auth()->id())

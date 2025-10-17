@@ -18,8 +18,9 @@ class OrganizationUserController extends Controller
         Gate::authorize('manage-organization-users', $organization);
 
         $organizationUsers = $organization->organizationUsers()->with('user')->get();
+        $isOwner = $organization->user_id === auth()->id();
 
-        return view('organizations.users.index', compact('organization', 'organizationUsers'));
+        return view('organizations.users.index', compact('organization', 'organizationUsers', 'isOwner'));
     }
 
     /**

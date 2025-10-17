@@ -452,10 +452,12 @@
                                             </div>
                                             @elseif($match->status === 'in_progress')
                                             <div class="px-3 pb-3">
+                                                @if($isOwner)
                                                 <a href="{{ route('competitions.live-score', [$match->id]) }}"
                                                    class="block bg-green-600/20 text-green-400 text-xs px-3 py-2 rounded-lg text-center font-semibold hover:bg-green-600/30 transition-colors">
                                                     👁️ {{ __('Watch Live') }}
                                                 </a>
+                                                @endif
                                             </div>
                                             @endif
                                         </div>
@@ -647,10 +649,12 @@
                                                     <span class="text-[10px] bg-green-600/20 text-green-400 px-2 py-1 rounded text-center whitespace-nowrap animate-pulse">
                                                         🔴 {{ __('Live') }}
                                                     </span>
+                                                    @if($isOwner)
                                                     <a href="{{ route('competitions.live-score', [$match->id]) }}" 
                                                        class="text-blue-400 hover:text-blue-300 text-[10px] text-center whitespace-nowrap">
                                                         👁️ {{ __('Watch') }}
                                                     </a>
+                                                    @endif
                                                 @elseif($match->status === 'completed')
                                                     <span class="text-[10px] bg-gray-600/20 text-gray-400 px-2 py-1 rounded text-center whitespace-nowrap">
                                                         ✓ {{ __('FT') }}
@@ -747,10 +751,12 @@
                                                 <span class="text-xs bg-green-600/20 text-green-400 px-3 py-1.5 rounded-full text-center whitespace-nowrap animate-pulse">
                                                     🔴 {{ __('Live') }}
                                                 </span>
+                                                @if($isOwner)
                                                 <a href="{{ route('leagues.live-score', [$match->id]) }}" 
                                                    class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1.5 rounded-lg transition-colors text-center whitespace-nowrap">
                                                     👁️ {{ __('Watch') }}
                                                 </a>
+                                                @endif
                                             @elseif($match->status === 'completed')
                                                 <span class="text-xs bg-gray-600/20 text-gray-400 px-3 py-1.5 rounded-full text-center whitespace-nowrap">
                                                     ✓ {{ __('Final') }}
