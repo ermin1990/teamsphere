@@ -51,6 +51,10 @@
                         <a href="#features" class="text-gray-300 hover:text-white font-medium transition-colors">Funkcionalnosti</a>
                         <a href="#how-it-works" class="text-gray-300 hover:text-white font-medium transition-colors">Kako Radi</a>
                         <a href="#demo" class="text-gray-300 hover:text-white font-medium transition-colors">Demo</a>
+                        <a href="{{ route('public.live-matches') }}" class="text-green-400 hover:text-green-300 font-medium transition-colors flex items-center space-x-1">
+                            <span>🔴</span>
+                            <span>Live Mečevi</span>
+                        </a>
                     </div>
 
                     <!-- Auth Links -->
@@ -75,6 +79,10 @@
                         <a href="#features" class="text-gray-300 hover:text-white font-medium transition-colors w-full text-center">Funkcionalnosti</a>
                         <a href="#how-it-works" class="text-gray-300 hover:text-white font-medium transition-colors w-full text-center">Kako Radi</a>
                         <a href="#demo" class="text-gray-300 hover:text-white font-medium transition-colors w-full text-center">Demo</a>
+                        <a href="{{ route('public.live-matches') }}" class="text-green-400 hover:text-green-300 font-medium transition-colors flex items-center justify-center space-x-1 w-full">
+                            <span>🔴</span>
+                            <span>Live Mečevi</span>
+                        </a>
                         
                         @if (Route::has('login'))
                             <a href="{{ route('login') }}" class="text-gray-300 hover:text-white font-medium transition-colors px-4 py-2 w-full text-center">

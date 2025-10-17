@@ -79,20 +79,16 @@ class PublicMatchController extends Controller
     }
 
     /**
-     * Embed widget for match results.
+     * Display all live matches across all leagues.
      */
-    public function embedMatch(LeagueMatch $match)
+    public function liveMatches()
     {
-        // Load necessary relationships
-        $match->load([
-            'homeTeam.players',
-            'awayTeam.players',
-            'homePlayer',
-            'awayPlayer',
-            'league.organization',
-            'moderator'
-        ]);
+        // Get all live matches from all leagues
+        $liveMatches = LeagueMatch::where('status', 'in_progress')
+            ->with(['league.organization', 'homeTeam', 'awayTeam', 'homePlayer', 'awayPlayer', 'moderator'])
+            ->orderBy('updated_at', 'desc')
+            ->get();
 
-        return view('public.matches.embed', compact('match'));
+        return view('public.live-matches', compact('liveMatches'));
     }
 }

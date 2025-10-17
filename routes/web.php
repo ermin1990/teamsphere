@@ -192,6 +192,9 @@ Route::prefix('public')->name('public.')->group(function () {
     Route::get('/leagues/{league}/matches/{match}', [App\Http\Controllers\PublicMatchController::class, 'showMatch'])->name('matches.show');
     Route::get('/leagues/{league}/matches/{match}/live', [App\Http\Controllers\PublicMatchController::class, 'liveScore'])->name('matches.live');
 
+    // Live matches overview
+    Route::get('/live-matches', [App\Http\Controllers\PublicMatchController::class, 'liveMatches'])->name('live-matches');
+
     // Embed widget
     Route::get('/embed/matches/{match}', [App\Http\Controllers\PublicMatchController::class, 'embedMatch'])->name('matches.embed');
 });
