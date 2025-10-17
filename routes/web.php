@@ -18,7 +18,7 @@ Route::get('/locale/{locale}', function ($locale) {
 
 Route::get('/', function () {
     return view('welcome');
-});
+})->name('home');
 
 Route::get('/dashboard', [DashboardController::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
 
@@ -56,6 +56,12 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     // Plans admin
     Route::get('/plans', [\App\Http\Controllers\AdminPlanController::class, 'index'])->name('plans.index');
     Route::get('/plans/{plan}', [\App\Http\Controllers\AdminPlanController::class, 'show'])->name('plans.show');
+    Route::get('/plans/{plan}/edit', [\App\Http\Controllers\AdminPlanController::class, 'edit'])->name('plans.edit');
+    Route::put('/plans/{plan}', [\App\Http\Controllers\AdminPlanController::class, 'update'])->name('plans.update');
+
+    // Plan assignment
+    Route::get('/users/{user}/assign-plan', [\App\Http\Controllers\AdminPlanController::class, 'assign'])->name('users.assign-plan');
+    Route::post('/users/{user}/assign-plan', [\App\Http\Controllers\AdminPlanController::class, 'assignStore'])->name('users.assign-plan.store');
 
     // Settings admin
     Route::get('/settings', [\App\Http\Controllers\AdminSettingsController::class, 'index'])->name('settings.index');
@@ -186,11 +192,12 @@ Route::middleware(['auth'])->prefix('referee')->name('referee.')->group(function
 // Public routes (no authentication required)
 Route::prefix('public')->name('public.')->group(function () {
     // Public league routes
-    Route::get('/leagues/{league}', [App\Http\Controllers\PublicMatchController::class, 'showLeague'])->name('leagues.show');
+    Route::get('/leagues', [App\Http\Controllers\PublicMatchController::class, 'indexLeagues'])->name('leagues.index');
+    Route::get('/leagues/{competition}', [App\Http\Controllers\PublicMatchController::class, 'showLeague'])->name('leagues.show');
 
     // Public match routes
-    Route::get('/leagues/{league}/matches/{match}', [App\Http\Controllers\PublicMatchController::class, 'showMatch'])->name('matches.show');
-    Route::get('/leagues/{league}/matches/{match}/live', [App\Http\Controllers\PublicMatchController::class, 'liveScore'])->name('matches.live');
+    Route::get('/leagues/{competition}/matches/{match}', [App\Http\Controllers\PublicMatchController::class, 'showMatch'])->name('matches.show');
+    Route::get('/leagues/{competition}/matches/{match}/live', [App\Http\Controllers\PublicMatchController::class, 'liveScore'])->name('matches.live');
 
     // Live matches overview
     Route::get('/live-matches', [App\Http\Controllers\PublicMatchController::class, 'liveMatches'])->name('live-matches');

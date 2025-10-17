@@ -18,7 +18,13 @@
             </div>
         </div>
         <div class="text-right">
-            <p class="text-sm text-gray-400">Kreiran</p>
+            <div class="flex items-center space-x-3">
+                <a href="{{ route('admin.plans.edit', $plan) }}"
+                   class="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white rounded-lg transition-colors text-sm font-medium">
+                    Edit Plan
+                </a>
+            </div>
+            <p class="text-sm text-gray-400 mt-2">Kreiran</p>
             <p class="text-lg font-semibold text-white">{{ $plan->created_at->format('d.m.Y') }}</p>
         </div>
     </div>

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Competition;
 use App\Models\League;
 use App\Models\LeagueMatch;
 use Illuminate\Http\Request;
@@ -9,12 +10,23 @@ use Illuminate\Http\Request;
 class PublicMatchController extends Controller
 {
     /**
+     * Display all public leagues with standings, results and upcoming matches.
+     */
+    public function indexLeagues()
+    {
+        // Get all competitions with basic info
+        $competitions = Competition::with(['organization', 'sport'])->get();
+
+        return view('public.leagues.index', compact('competitions'));
+    }
+
+    /**
      * Display public match details.
      */
-    public function showMatch(League $league, LeagueMatch $match)
+    public function showMatch(Competition $competition, LeagueMatch $match)
     {
-        // Ensure match belongs to league
-        if ($match->competition_id !== $league->id) {
+        // Ensure match belongs to competition
+        if ($match->competition_id !== $competition->id) {
             abort(404, 'Match not found.');
         }
 
@@ -24,22 +36,22 @@ class PublicMatchController extends Controller
             'awayTeam.players',
             'homePlayer',
             'awayPlayer',
-            'league.organization',
+            'competition.organization',
             'moderator'
         ]);
 
-        $organization = $league->organization;
+        $organization = $competition->organization;
 
-        return view('public.matches.show', compact('organization', 'league', 'match'));
+        return view('public.matches.show', compact('organization', 'competition', 'match'));
     }
 
     /**
      * Display public live score for a match.
      */
-    public function liveScore(League $league, LeagueMatch $match)
+    public function liveScore(Competition $competition, LeagueMatch $match)
     {
-        // Ensure match belongs to league
-        if ($match->competition_id !== $league->id) {
+        // Ensure match belongs to competition
+        if ($match->competition_id !== $competition->id) {
             abort(404, 'Match not found.');
         }
 
@@ -49,33 +61,36 @@ class PublicMatchController extends Controller
             'awayTeam.players',
             'homePlayer',
             'awayPlayer',
-            'league.organization',
+            'competition.organization',
             'moderator'
         ]);
 
-        $organization = $league->organization;
+        $organization = $competition->organization;
 
-        return view('public.matches.live', compact('organization', 'league', 'match'));
+        return view('public.matches.live', compact('organization', 'competition', 'match'));
     }
 
     /**
      * Display public league overview.
      */
-    public function showLeague(League $league)
+    public function showLeague(Competition $competition)
     {
-        $organization = $league->organization;
+        $organization = $competition->organization;
 
-        // Load league with matches and standings
-        $league->load([
+        // Load competition with matches and standings
+        $competition->load([
             'sport',
             'matches.homeTeam',
             'matches.awayTeam',
             'matches.homePlayer',
             'matches.awayPlayer',
-            'standings'
+            'standings' => function($query) {
+                $query->with(['team', 'player'])
+                      ->orderBy('position', 'asc');
+            }
         ]);
 
-        return view('public.leagues.show', compact('organization', 'league'));
+        return view('public.leagues.show', compact('organization', 'competition'));
     }
 
     /**
@@ -85,7 +100,7 @@ class PublicMatchController extends Controller
     {
         // Get all live matches from all leagues
         $liveMatches = LeagueMatch::where('status', 'in_progress')
-            ->with(['league.organization', 'homeTeam', 'awayTeam', 'homePlayer', 'awayPlayer', 'moderator'])
+            ->with(['competition.organization', 'homeTeam', 'awayTeam', 'homePlayer', 'awayPlayer', 'moderator'])
             ->orderBy('updated_at', 'desc')
             ->get();
 

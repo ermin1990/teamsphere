@@ -27,7 +27,7 @@ return new class extends Migration
             $table->foreignId('organization_id')->constrained()->onDelete('cascade');
             $table->foreignId('sport_id')->constrained()->onDelete('cascade');
             $table->enum('type', ['league', 'tournament', 'knockout'])->default('league');
-            $table->date('start_date');
+            $table->date('start_date')->default(now()->toDateString());
             $table->date('end_date')->nullable();
             $table->integer('max_teams')->default(8);
             $table->boolean('is_team_based')->default(false);
@@ -84,7 +84,7 @@ return new class extends Migration
             $table->foreignId('organization_id')->constrained()->onDelete('cascade');
             $table->foreignId('sport_id')->constrained()->onDelete('cascade');
             $table->enum('type', ['league', 'tournament'])->default('league'); // Back to original
-            $table->date('start_date');
+            $table->date('start_date')->default(now()->toDateString());
             $table->date('end_date')->nullable();
             $table->integer('max_teams')->default(8);
             $table->boolean('is_team_based')->default(false);

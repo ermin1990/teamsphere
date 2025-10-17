@@ -11,13 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('friendly_matches', function (Blueprint $table) {
-            $table->unsignedBigInteger('home_player_id')->nullable()->after('organization_id');
-            $table->unsignedBigInteger('away_player_id')->nullable()->after('home_player_id');
+        // This migration is redundant as the columns already exist in the create_friendly_matches_table migration
+        // Schema::table('friendly_matches', function (Blueprint $table) {
+        //     $table->unsignedBigInteger('home_player_id')->nullable()->after('organization_id');
+        //     $table->unsignedBigInteger('away_player_id')->nullable()->after('home_player_id');
 
-            $table->foreign('home_player_id')->references('id')->on('players')->onDelete('cascade');
-            $table->foreign('away_player_id')->references('id')->on('players')->onDelete('cascade');
-        });
+        //     $table->foreign('home_player_id')->references('id')->on('players')->onDelete('cascade');
+        //     $table->foreign('away_player_id')->references('id')->on('players')->onDelete('cascade');
+        // });
     }
 
     /**

@@ -20,6 +20,10 @@ return new class extends Migration
             DB::statement('DROP INDEX IF EXISTS matches_dates_critical');
             DB::statement('DROP INDEX IF EXISTS standings_league_points_critical');
             DB::statement('DROP INDEX IF EXISTS standings_league_played_critical');
+            // Drop friendly match indexes that reference non-existent columns
+            DB::statement('DROP INDEX IF EXISTS friendly_home_player_status');
+            DB::statement('DROP INDEX IF EXISTS friendly_away_player_status');
+            DB::statement('DROP INDEX IF EXISTS friendly_scheduled_at');
         } catch (\Exception $e) {
             // Ignore if indexes don't exist
         }

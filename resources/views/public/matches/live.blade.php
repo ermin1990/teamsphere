@@ -17,157 +17,44 @@
     <!-- Auto refresh every 30 seconds -->
     <meta http-equiv="refresh" content="30">
 </head>
-<body class="antialiased bg-gray-900 text-white min-h-screen">
+<body class="antialiased bg-gray-900 text-white min-h-screen pb-16 md:pb-8">
     <div class="py-8">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <!-- Navigation Menu (Desktop only) -->
+            <nav class="hidden md:block bg-gray-800/50 backdrop-blur-xl rounded-2xl p-4 border border-gray-700/50 shadow-xl mb-6">
+                <div class="flex items-center justify-center space-x-6 md:space-x-8">
+                    <a href="{{ route('home') }}" class="text-gray-300 hover:text-white transition-colors text-sm md:text-base font-medium">
+                        🏠 Home
+                    </a>
+                    <a href="{{ route('public.live-matches') }}" class="text-gray-300 hover:text-white transition-colors text-sm md:text-base font-medium">
+                        📺 Live Matches
+                    </a>
+                    <a href="{{ route('public.leagues.index') }}" class="text-gray-300 hover:text-white transition-colors text-sm md:text-base font-medium">
+                        🏆 Leagues
+                    </a>
+                </div>
+            </nav>
+
             <!-- Header -->
-            <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl mb-8">
+            <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-4 border border-gray-700/50 shadow-xl mb-4">
                 <div class="flex items-center justify-between">
                     <div>
-                        <h1 class="text-3xl font-bold bg-gradient-to-r from-green-400 to-blue-400 bg-clip-text text-transparent">
+                        <h1 class="text-2xl md:text-3xl font-bold bg-gradient-to-r from-green-400 to-blue-400 bg-clip-text text-transparent">
                             🏓 Live Table Tennis Score
                         </h1>
-                        <p class="text-gray-400 mt-1">{{ $league->name }} • Round {{ $match->round }}</p>
+                        <p class="text-gray-400 text-sm md:text-base mt-1">{{ $competition->name }} • Round {{ $match->round }}</p>
                     </div>
-                    <div class="flex items-center space-x-4">
-                        <span class="px-3 py-1 text-sm rounded-full
-                            @if($match->status === 'completed') bg-green-500/20 text-green-400
-                            @elseif($match->status === 'in_progress') bg-yellow-500/20 text-yellow-400
-                            @else bg-gray-500/20 text-gray-400 @endif"
-                        >
-                            {{ ucfirst(str_replace('_', ' ', $match->status)) }}
-                        </span>
-                        <a href="{{ route('public.matches.show', [$league, $match]) }}"
-                           class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors">
-                            ← Match Details
+                    <div class="flex items-center space-x-2 md:space-x-4">
+                        <a href="{{ route('public.matches.show', [$competition, $match]) }}"
+                           class="px-3 py-1 md:px-4 md:py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors text-sm">
+                            ← Details
                         </a>
                     </div>
                 </div>
             </div>
 
             <!-- Live Score Display -->
-            @if($match->status === 'in_progress' || $match->status === 'completed')
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <!-- Home Team/Player -->
-                <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-8 border border-gray-700/50 shadow-xl text-center">
-                    <div class="mb-6">
-                        <h3 class="text-2xl font-bold transition-all duration-300 mb-2">
-                            <span class="text-blue-400">
-                                @if($league->is_team_based)
-                                    {{ $match->homeTeam->name ?? 'Home Team' }}
-                                @else
-                                    {{ $match->homePlayer->name ?? 'Home Player' }}
-                                @endif
-                            </span>
-                        </h3>
-                        @if($league->is_team_based && $match->homeTeam)
-                            <div class="text-sm text-gray-400 mb-4">
-                                @foreach($match->homeTeam->players as $player)
-                                    <div>{{ $player->name }}</div>
-                                @endforeach
-                            </div>
-                        @endif
-                    </div>
-
-                    <div class="text-8xl md:text-9xl font-bold text-blue-400 mb-6">
-                        {{ $match->home_score ?? 0 }}
-                    </div>
-
-                    <!-- Sets display for home -->
-                    @if($match->sets && count($match->sets) > 0)
-                    <div class="text-sm text-gray-400">
-                        <div class="mb-2">Sets Won: {{ count(array_filter($match->sets, function($set) {
-                            $home = $set['home_score'] ?? $set['home'] ?? 0;
-                            $away = $set['away_score'] ?? $set['away'] ?? 0;
-                            return $home > $away;
-                        })) }}</div>
-                        <div>Sets: {{ implode(' | ', array_map(function($set) {
-                            return ($set['home_score'] ?? $set['home'] ?? 0) . '-' . ($set['away_score'] ?? $set['away'] ?? 0);
-                        }, $match->sets)) }}</div>
-                    </div>
-                    @endif
-                </div>
-
-                <!-- Center Info -->
-                <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-8 border border-gray-700/50 shadow-xl text-center flex flex-col justify-center">
-                    <div class="text-6xl font-bold text-gray-400 mb-4">VS</div>
-
-                    @if($match->status === 'in_progress')
-                    <div class="text-green-400 font-semibold mb-4">
-                        🔴 LIVE
-                    </div>
-                    @elseif($match->status === 'completed')
-                    <div class="text-green-400 font-semibold mb-4">
-                        ✅ COMPLETED
-                    </div>
-                    @endif
-
-                    @if($match->moderator)
-                    <div class="text-sm text-gray-400">
-                        Referee: {{ $match->moderator->name }}
-                    </div>
-                    @endif
-
-                    <div class="mt-6">
-                        <div class="text-sm text-gray-400 mb-2">Last Updated</div>
-                        <div class="text-white">{{ now()->format('g:i:s A') }}</div>
-                        <div class="text-xs text-gray-500">Auto-refreshes every 30s</div>
-                    </div>
-                </div>
-
-                <!-- Away Team/Player -->
-                <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-8 border border-gray-700/50 shadow-xl text-center">
-                    <div class="mb-6">
-                        <h3 class="text-2xl font-bold transition-all duration-300 mb-2">
-                            <span class="text-red-400">
-                                @if($league->is_team_based)
-                                    {{ $match->awayTeam->name ?? 'Away Team' }}
-                                @else
-                                    {{ $match->awayPlayer->name ?? 'Away Player' }}
-                                @endif
-                            </span>
-                        </h3>
-                        @if($league->is_team_based && $match->awayTeam)
-                            <div class="text-sm text-gray-400 mb-4">
-                                @foreach($match->awayTeam->players as $player)
-                                    <div>{{ $player->name }}</div>
-                                @endforeach
-                            </div>
-                        @endif
-                    </div>
-
-                    <div class="text-8xl md:text-9xl font-bold text-red-400 mb-6">
-                        {{ $match->away_score ?? 0 }}
-                    </div>
-
-                    <!-- Sets display for away -->
-                    @if($match->sets && count($match->sets) > 0)
-                    <div class="text-sm text-gray-400">
-                        <div class="mb-2">Sets Won: {{ count(array_filter($match->sets, function($set) {
-                            $home = $set['home_score'] ?? $set['home'] ?? 0;
-                            $away = $set['away_score'] ?? $set['away'] ?? 0;
-                            return $away > $home;
-                        })) }}</div>
-                        <div>Sets: {{ implode(' | ', array_map(function($set) {
-                            return ($set['home_score'] ?? $set['home'] ?? 0) . '-' . ($set['away_score'] ?? $set['away'] ?? 0);
-                        }, $match->sets)) }}</div>
-                    </div>
-                    @endif
-                </div>
-            </div>
-            @else
-            <!-- Not Started -->
-            <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-12 border border-gray-700/50 shadow-xl text-center">
-                <div class="text-6xl mb-4">⏳</div>
-                <h2 class="text-2xl font-bold text-white mb-4">Match Not Started</h2>
-                <p class="text-gray-400 mb-6">This match hasn't started yet. Check back later for live updates.</p>
-                @if($match->scheduled_at)
-                <div class="text-sm text-gray-400">
-                    Scheduled for: {{ $match->scheduled_at->format('M j, Y g:i A') }}
-                </div>
-                @endif
-            </div>
-            @endif
+            @livewire('public-live-score', ['match' => $match])
 
             <!-- Footer -->
             <div class="text-center mt-8 text-gray-400 text-sm">
@@ -175,5 +62,23 @@
             </div>
         </div>
     </div>
+
+    <!-- Mobile Navigation Menu (Fixed Bottom) -->
+    <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-gray-800/95 backdrop-blur-xl border-t border-gray-700/50 shadow-2xl z-50">
+        <div class="flex items-center justify-between py-3 px-4 w-full">
+            <a href="{{ route('home') }}" class="flex flex-col items-center text-gray-300 hover:text-white transition-colors text-xs flex-1">
+                <span class="text-lg">🏠</span>
+                <span class="mt-1">Home</span>
+            </a>
+            <a href="{{ route('public.live-matches') }}" class="flex flex-col items-center text-gray-300 hover:text-white transition-colors text-xs flex-1">
+                <span class="text-lg">📺</span>
+                <span class="mt-1">Live</span>
+            </a>
+            <a href="{{ route('public.leagues.index') }}" class="flex flex-col items-center text-gray-300 hover:text-white transition-colors text-xs flex-1">
+                <span class="text-lg">🏆</span>
+                <span class="mt-1">Leagues</span>
+            </a>
+        </div>
+    </nav>
 </body>
 </html>

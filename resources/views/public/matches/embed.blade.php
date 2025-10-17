@@ -32,8 +32,8 @@
         <!-- Match Header -->
         <div class="text-center mb-4">
             <div class="text-xs text-gray-400 mb-1">
-                @if($match->league)
-                    {{ $match->league->name }}
+                @if($match->competition)
+                    {{ $match->competition->name }}
                 @elseif($match->competition)
                     {{ $match->competition->name }}
                 @endif
@@ -52,7 +52,7 @@
             <!-- Home -->
             <div class="text-center">
                 <div class="text-sm font-semibold text-blue-400 mb-2 truncate">
-                    @if($match->league && $match->league->is_team_based)
+                    @if($match->competition && $match->competition->is_team_based)
                         {{ $match->homeTeam?->name ?? 'Home' }}
                     @elseif($match->competition && $match->competition->is_team_based)
                         {{ $match->homeTeam?->name ?? 'Home' }}
@@ -80,7 +80,7 @@
             <!-- Away -->
             <div class="text-center">
                 <div class="text-sm font-semibold text-red-400 mb-2 truncate">
-                    @if($match->league && $match->league->is_team_based)
+                    @if($match->competition && $match->competition->is_team_based)
                         {{ $match->awayTeam?->name ?? 'Away' }}
                     @elseif($match->competition && $match->competition->is_team_based)
                         {{ $match->awayTeam?->name ?? 'Away' }}

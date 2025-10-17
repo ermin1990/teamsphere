@@ -54,11 +54,19 @@ class LeagueMatch extends Model
     ];
 
     /**
-     * Get the league this match belongs to.
+     * Get the competition this match belongs to.
+     */
+    public function competition(): BelongsTo
+    {
+        return $this->belongsTo(Competition::class, 'competition_id');
+    }
+
+    /**
+     * Get the league this match belongs to (backward compatibility).
      */
     public function league(): BelongsTo
     {
-        return $this->belongsTo(League::class, 'competition_id');
+        return $this->competition();
     }
 
     /**

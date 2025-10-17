@@ -18,6 +18,12 @@
             </div>
         </div>
         <div class="text-left sm:text-right">
+            <div class="flex items-center space-x-3 mb-2">
+                <a href="{{ route('admin.users.assign-plan', $user) }}"
+                   class="px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white rounded-lg transition-colors text-sm font-medium">
+                    Assign Plan
+                </a>
+            </div>
             <p class="text-sm text-gray-400">Član od</p>
             <p class="text-lg font-semibold text-white">{{ $user->created_at->format('d.m.Y') }}</p>
         </div>
@@ -47,7 +53,7 @@
                     </svg>
                 </div>
                 <div>
-                    <p class="text-2xl font-bold text-white">{{ $user->organizations->sum(function($org) { return $org->leagues->count(); }) }}</p>
+                    <p class="text-2xl font-bold text-white">{{ $user->organizations->sum(function($org) { return $org->competitions->count(); }) }}</p>
                     <p class="text-gray-400 text-sm">Liga</p>
                 </div>
             </div>
@@ -61,7 +67,7 @@
                     </svg>
                 </div>
                 <div>
-                    <p class="text-2xl font-bold text-white">{{ $user->organizations->sum(function($org) { return $org->leagues->sum(function($league) { return $league->matches->count(); }); }) }}</p>
+                    <p class="text-2xl font-bold text-white">{{ $user->organizations->sum(function($org) { return $org->competitions->sum(function($competition) { return $competition->matches->count(); }); }) }}</p>
                     <p class="text-gray-400 text-sm">Utakmica</p>
                 </div>
             </div>
@@ -99,7 +105,7 @@
                         </div>
                         <div>
                             <h4 class="text-white font-semibold">{{ $organization->name }}</h4>
-                            <p class="text-gray-400 text-sm">{{ $organization->leagues->count() }} liga • {{ $organization->leagues->sum(function($league) { return $league->matches->count(); }) }} utakmica</p>
+                            <p class="text-gray-400 text-sm">{{ $organization->competitions->count() }} liga • {{ $organization->competitions->sum(function($competition) { return $competition->matches->count(); }) }} utakmica</p>
                         </div>
                     </div>
 
