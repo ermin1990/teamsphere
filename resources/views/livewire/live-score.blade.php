@@ -1,6 +1,9 @@
 @php
     // Pass setStartTime as JS variable for timer
     $setStartTime = $setStartTime ?? ($match->current_set_started_at ?? $match->played_at);
+
+    // Determine if this is a league or competition match and get the parent
+    $parent = $match->league ?? $match->competition;
 @endphp
 
 <div>
@@ -11,7 +14,7 @@
             <h3 class="text-xl font-bold mb-4 text-center">Who Serves First?</h3>
             <div class="space-y-3 max-w-md mx-auto">
                 <button wire:click="selectHomeServer" class="w-full p-4 bg-blue-600 hover:bg-blue-700 rounded-lg text-white font-bold">
-                    @if($match->league->is_team_based)
+                    @if($parent->is_team_based)
                         {{ $match->homeTeam->name }}
                     @else
                         {{ $match->homePlayer->name }}
@@ -19,7 +22,7 @@
                 </button>
                 
                 <button wire:click="selectAwayServer" class="w-full p-4 bg-red-600 hover:bg-red-700 rounded-lg text-white font-bold">
-                    @if($match->league->is_team_based)
+                    @if($parent->is_team_based)
                         {{ $match->awayTeam->name }}
                     @else
                         {{ $match->awayPlayer->name }}
@@ -67,14 +70,14 @@
                             </div>
                             @endif
                             <span class="{{ $currentServer === 'home' ? 'text-blue-400 animate-pulse drop-shadow-lg' : 'text-white' }}">
-                                @if($match->league->is_team_based)
+                                @if($parent->is_team_based)
                                     {{ $match->homeTeam->name ?? 'Home Team' }}
                                 @else
                                     {{ $match->homePlayer->name ?? 'Home Player' }}
                                 @endif
                             </span>
                         </h3>
-                        @if($match->league->is_team_based && $match->homeTeam)
+                        @if($parent->is_team_based && $match->homeTeam)
                             <div class="text-sm text-gray-400 mb-4">
                                 @foreach($match->homeTeam->players as $player)
                                     <div>{{ $player->name }}</div>
@@ -106,7 +109,7 @@
                     <div class="mb-4">
                         <h3 class="text-2xl font-bold transition-all duration-300 mb-2 flex items-center justify-center gap-2">
                             <span class="{{ $currentServer === 'away' ? 'text-red-400 animate-pulse drop-shadow-lg' : 'text-white' }}">
-                                @if($match->league->is_team_based)
+                                @if($parent->is_team_based)
                                     {{ $match->awayTeam->name ?? 'Away Team' }}
                                 @else
                                     {{ $match->awayPlayer->name ?? 'Away Player' }}
@@ -118,7 +121,7 @@
                             </div>
                             @endif
                         </h3>
-                        @if($match->league->is_team_based && $match->awayTeam)
+                        @if($parent->is_team_based && $match->awayTeam)
                             <div class="text-sm text-gray-400 mb-4">
                                 @foreach($match->awayTeam->players as $player)
                                     <div>{{ $player->name }}</div>
@@ -231,7 +234,7 @@
                             </h3>
                             <div class="mt-2">
                                 <p class="text-sm text-gray-300">
-                                    <span x-text="winner === 'home' ? '{{ $match->league->is_team_based ? $match->homeTeam->name ?? 'Home Team' : $match->homePlayer->name ?? 'Home Player' }}' : '{{ $match->league->is_team_based ? $match->awayTeam->name ?? 'Away Team' : $match->awayPlayer->name ?? 'Away Player' }}'"></span>
+                                    <span x-text="winner === 'home' ? '{{ $parent->is_team_based ? $match->homeTeam->name ?? 'Home Team' : $match->homePlayer->name ?? 'Home Player' }}' : '{{ $parent->is_team_based ? $match->awayTeam->name ?? 'Away Team' : $match->awayPlayer->name ?? 'Away Player' }}'"></span>
                                     wins the match with <span x-text="winner === 'home' ? homeSets : awaySets"></span> sets to <span x-text="winner === 'away' ? homeSets : awaySets"></span>!
                                 </p>
                             </div>

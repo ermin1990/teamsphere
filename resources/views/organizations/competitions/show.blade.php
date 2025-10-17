@@ -81,6 +81,9 @@
             </div>
             @endif
 
+            <!-- Main Content Area -->
+            <div class="space-y-6">
+
             <!-- Competition Info Cards -->
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                 <div class="bg-gray-800/50 backdrop-blur-xl rounded-xl p-4 border border-gray-700/50">
@@ -141,9 +144,6 @@
                 </div>
                 @endif
             </div>
-
-            <!-- Main Content Area -->
-            <div class="space-y-6">
 
                     @if($isOwner && $competition->status === 'draft')
                         <div class="bg-gradient-to-r from-blue-600/20 to-purple-600/20 backdrop-blur-xl rounded-xl p-6 border border-blue-500/30 shadow-xl">
@@ -323,17 +323,21 @@
                         <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50">
                             @php
                                 $totalRounds = $knockoutMatches->count();
+                                $firstRoundMatches = $knockoutMatches->get(1) ?? collect();
+                                $numPlayers = $firstRoundMatches->count() * 2;
+                                $expectedRounds = $numPlayers > 1 ? ceil(log($numPlayers, 2)) : 1;
+                                
                                 $roundNames = [
-                                    1 => $totalRounds == 3 ? __('Quarter Finals') : ($totalRounds == 2 ? __('Semi Finals') : __('Round 1')),
-                                    2 => $totalRounds == 3 ? __('Semi Finals') : ($totalRounds == 2 ? __('Final') : __('Round 2')),
-                                    3 => __('Final'),
-                                    4 => __('Round 4'),
+                                    1 => $expectedRounds == 4 ? __('Round of 16') : ($expectedRounds == 3 ? __('Quarter Finals') : ($expectedRounds == 2 ? __('Semi Finals') : __('Round 1'))),
+                                    2 => $expectedRounds == 4 ? __('Quarter Finals') : ($expectedRounds == 3 ? __('Semi Finals') : ($expectedRounds == 2 ? __('Final') : __('Round 2'))),
+                                    3 => $expectedRounds == 4 ? __('Semi Finals') : __('Final'),
+                                    4 => __('Final'),
                                 ];
                                 
                                 // Check if tournament is completed and get winner
                                 $finalMatch = $knockoutMatches->get($totalRounds)?->first();
                                 $winner = null;
-                                if ($finalMatch && $finalMatch->status === 'completed') {
+                                if ($finalMatch && $finalMatch->status === 'completed' && $totalRounds == $expectedRounds) {
                                     $winner = $finalMatch->home_score > $finalMatch->away_score 
                                         ? $finalMatch->homePlayer 
                                         : $finalMatch->awayPlayer;
@@ -474,8 +478,7 @@
                     @endphp
 
                     <div class="mb-8">
-                        <button onclick="toggleGroupPhase()" 
-                                class="w-full bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 hover:border-gray-600/50 transition-all text-left">
+                        <div class="w-full bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 hover:border-gray-600/50 transition-all text-left">
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center space-x-4">
                                     <h3 class="text-2xl font-bold text-white">📋 {{ __('Group Phase') }}</h3>
@@ -483,27 +486,27 @@
                                         <span class="px-3 py-1 text-xs rounded-full bg-green-600/20 text-green-400">
                                             ✓ {{ __('Completed') }}
                                         </span>
+                                        @if($isOwner && $knockoutMatches->count() === 0)
+                                            <button onclick="autoGenerateBracket(); event.stopPropagation();"
+                                                    class="ml-2 bg-green-600 hover:bg-green-700 text-white text-xs px-2 py-1 rounded transition-colors font-semibold">
+                                                ➡️ {{ __('Start Knockout') }}
+                                            </button>
+                                        @endif
                                     @else
                                         <span class="px-3 py-1 text-xs rounded-full bg-yellow-600/20 text-yellow-400">
                                             ⏳ {{ __('In Progress') }}
                                         </span>
                                     @endif
                                 </div>
-                                <div class="flex items-center gap-3">
-                                    @if($allGroupMatchesCompleted && $isOwner && $knockoutMatches->count() === 0)
-                                        <button onclick="autoGenerateBracket(); event.stopPropagation();"
-                                                class="bg-green-600 hover:bg-green-700 text-white text-sm px-4 py-2 rounded-lg transition-colors font-semibold">
-                                            ➡️ {{ __('Start Knockout Phase') }}
-                                        </button>
-                                    @endif
-                                    <svg id="group-phase-icon" class="w-6 h-6 text-gray-400 transition-transform {{ $allGroupMatchesCompleted ? '' : 'rotate-180' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <button onclick="toggleGroupPhase()" class="flex items-center">
+                                    <svg id="group-phase-icon" class="w-5 h-5 text-gray-400 transition-transform rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                                     </svg>
-                                </div>
+                                </button>
                             </div>
-                        </button>
+                        </div>
 
-                        <div id="group-phase-content" class="mt-4 {{ $allGroupMatchesCompleted ? 'hidden' : '' }}">
+                        <div id="group-phase-content" class="mt-4">
                     <!-- Groups Grid -->
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
                         @foreach($groupMatches as $groupId => $matchesInGroup)
@@ -984,8 +987,13 @@
 
         function autoGenerateBracket() {
             if (confirm('{{ __("This will automatically generate the knockout bracket based on group standings. Continue?") }}')) {
-                const organizationId = {{ $organization->id }};
-                const competitionId = {{ $competition->id }};
+                const button = event.target;
+                const originalText = button.innerHTML;
+                button.innerHTML = '⏳ {{ __("Generating...") }}';
+                button.disabled = true;
+                
+                const organizationId = '{{ $organization->slug }}';
+                const competitionId = '{{ $competition->slug }}';
                 
                 fetch(`/organizations/${organizationId}/competitions/${competitionId}/auto-generate-bracket`, {
                     method: 'POST',
@@ -998,8 +1006,16 @@
                     if (data.success) {
                         location.reload();
                     } else {
-                        alert('Error generating bracket');
+                        alert('Error generating bracket: ' + (data.message || 'Unknown error'));
+                        button.innerHTML = originalText;
+                        button.disabled = false;
                     }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Network error occurred');
+                    button.innerHTML = originalText;
+                    button.disabled = false;
                 });
             }
         }

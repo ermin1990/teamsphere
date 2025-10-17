@@ -107,7 +107,7 @@
                         <div class="text-center">
                             <p class="text-sm text-gray-400">{{ $league->created_at->format('d.m.Y') }}</p>
                         </div>
-                        <a href="{{ route('organizations.leagues.show', [$organization, $league]) }}" class="px-4 py-2 bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 rounded-lg transition-colors border border-blue-500/30">
+                        <a href="{{ route('leagues.show', $league) }}" class="px-4 py-2 bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 rounded-lg transition-colors border border-blue-500/30">
                             Pregledaj
                         </a>
                     </div>

@@ -69,7 +69,7 @@ class LeagueController extends Controller
         }
 
         // Ensure team belongs to league
-        if ($team->league_id !== $league->id) {
+        if ($team->competition_id !== $league->id) {
             abort(404);
         }
 
@@ -96,7 +96,7 @@ class LeagueController extends Controller
         }
 
         // Ensure team belongs to league
-        if ($team->league_id !== $league->id) {
+        if ($team->competition_id !== $league->id) {
             abort(404);
         }
 
@@ -123,7 +123,7 @@ class LeagueController extends Controller
         }
 
         // Ensure team belongs to league
-        if ($team->league_id !== $league->id) {
+        if ($team->competition_id !== $league->id) {
             abort(404);
         }
 
@@ -167,7 +167,7 @@ class LeagueController extends Controller
         }
 
         // Ensure team belongs to league
-        if ($team->league_id !== $league->id) {
+        if ($team->competition_id !== $league->id) {
             abort(404);
         }
 
@@ -411,7 +411,7 @@ class LeagueController extends Controller
         $team = Team::create([
             'name' => $request->name,
             'description' => $request->description,
-            'league_id' => $league->id,
+            'competition_id' => $league->id,
             'status' => 'active',
         ]);
 
@@ -657,7 +657,7 @@ class LeagueController extends Controller
         for ($i = 0; $i < count($participantIds); $i += 2) {
             if (isset($participantIds[$i + 1])) {
                 LeagueMatch::create([
-                    'league_id' => $league->id,
+                    'competition_id' => $league->id,
                     'home_team_id' => $league->is_team_based ? $participantIds[$i] : null,
                     'away_team_id' => $league->is_team_based ? $participantIds[$i + 1] : null,
                     'home_player_id' => !$league->is_team_based ? $participantIds[$i] : null,
@@ -679,7 +679,7 @@ class LeagueController extends Controller
         $position = 1;
         foreach ($participants as $participant) {
             Standing::create([
-                'league_id' => $league->id,
+                'competition_id' => $league->id,
                 'team_id' => $league->is_team_based ? $participant->id : null,
                 'player_id' => !$league->is_team_based ? $participant->id : null,
                 'position' => $position++,
@@ -693,7 +693,7 @@ class LeagueController extends Controller
     private function updateStandings(League $league)
     {
         // Reset all standings for this league
-        Standing::where('league_id', $league->id)->update([
+        Standing::where('competition_id', $league->id)->update([
             'played' => 0,
             'won' => 0,
             'drawn' => 0,
@@ -705,7 +705,7 @@ class LeagueController extends Controller
         ]);
 
         // Get all completed, forfeited matches and cancelled matches with scores
-        $completedMatches = LeagueMatch::where('league_id', $league->id)
+        $completedMatches = LeagueMatch::where('competition_id', $league->id)
             ->where(function($query) {
                 $query->whereIn('status', ['completed', 'forfeited'])
                       ->orWhere(function($q) {
@@ -722,11 +722,11 @@ class LeagueController extends Controller
             $homeParticipantId = $league->is_team_based ? $match->home_team_id : $match->home_player_id;
             $awayParticipantId = $league->is_team_based ? $match->away_team_id : $match->away_player_id;
 
-            $homeStanding = Standing::where('league_id', $league->id)
+            $homeStanding = Standing::where('competition_id', $league->id)
                 ->where($league->is_team_based ? 'team_id' : 'player_id', $homeParticipantId)
                 ->first();
 
-            $awayStanding = Standing::where('league_id', $league->id)
+            $awayStanding = Standing::where('competition_id', $league->id)
                 ->where($league->is_team_based ? 'team_id' : 'player_id', $awayParticipantId)
                 ->first();
 
@@ -785,7 +785,7 @@ class LeagueController extends Controller
         }
 
         // Update positions based on points, goal difference, goals for
-        $standings = Standing::where('league_id', $league->id)
+        $standings = Standing::where('competition_id', $league->id)
             ->orderBy('points', 'desc')
             ->orderBy('goal_difference', 'desc')
             ->orderBy('goals_for', 'desc')
@@ -817,7 +817,7 @@ class LeagueController extends Controller
         }
 
         // Ensure match belongs to league
-        if ($match->league_id !== $league->id) {
+        if ($match->competition_id !== $league->id) {
             abort(404);
         }
 
@@ -842,7 +842,7 @@ class LeagueController extends Controller
         }
 
         // Ensure match belongs to league
-        if ($match->league_id !== $league->id) {
+        if ($match->competition_id !== $league->id) {
             abort(404);
         }
 
@@ -862,7 +862,7 @@ class LeagueController extends Controller
         }
 
         // Ensure match belongs to league
-        if ($match->league_id !== $league->id) {
+        if ($match->competition_id !== $league->id) {
             abort(404);
         }
 
@@ -927,7 +927,7 @@ class LeagueController extends Controller
         }
 
         // Ensure match belongs to league
-        if ($match->league_id !== $league->id) {
+        if ($match->competition_id !== $league->id) {
             abort(404);
         }
 
@@ -955,7 +955,7 @@ class LeagueController extends Controller
         }
 
         // Ensure match belongs to league
-        if ($match->league_id !== $league->id) {
+        if ($match->competition_id !== $league->id) {
             abort(404);
         }
 
@@ -1032,7 +1032,7 @@ class LeagueController extends Controller
         }
 
         // Ensure match belongs to league
-        if ($match->league_id !== $league->id) {
+        if ($match->competition_id !== $league->id) {
             abort(404);
         }
 

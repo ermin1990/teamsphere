@@ -239,14 +239,17 @@ class LiveScore extends Component
 
     public function addPoint($player)
     {
+        // Get the parent (league or competition) for organization check
+        $parent = $this->match->league ?? $this->match->competition;
+        
         // Debug logging
         \Log::info('addPoint called', [
             'player' => $player,
             'match_id' => $this->match->id,
             'match_status' => $this->match->status,
-            'is_org_owner' => $this->match->league->organization->user_id === auth()->id(),
+            'is_org_owner' => $parent->organization->user_id === auth()->id(),
             'user_id' => auth()->id(),
-            'org_user_id' => $this->match->league->organization->user_id
+            'org_user_id' => $parent->organization->user_id
         ]);
 
         // Save current state for undo functionality
@@ -522,7 +525,8 @@ class LiveScore extends Component
             return false;
         }
 
-        $setsToWin = $this->match->league->settings['sets_to_win'] ?? 3;
+        $parent = $this->match->league ?? $this->match->competition;
+        $setsToWin = $parent->settings['sets_to_win'] ?? 3;
 
         $homeSetsWon = 0;
         $awaySetsWon = 0;
@@ -560,8 +564,8 @@ class LiveScore extends Component
             }
         }
 
-        // Check if match is actually completed before allowing end
-        $setsToWin = $this->match->league->settings['sets_to_win'] ?? 3;
+        $parent = $this->match->league ?? $this->match->competition;
+        $setsToWin = $parent->settings['sets_to_win'] ?? 3;
 
         // Only allow end match if someone has won enough sets
         if ($homeSetsWon < $setsToWin && $awaySetsWon < $setsToWin) {
@@ -584,24 +588,33 @@ class LiveScore extends Component
             'played_at' => now(),
         ]);
 
-        // Update league standings
-        $this->updateStandings($this->match->league);
+        // Update standings if this is a league match
+        if ($this->match->league) {
+            $this->updateStandings($this->match->league);
+        }
 
         // Stop timers and reset to 00:00
         $this->dispatch('stop-timers');
         $this->dispatch('reset-timer-display');
 
-
-        return redirect()->route('organizations.leagues.matches.show', [
-            'organization' => $this->match->league->organization,
-            'league' => $this->match->league,
-            'match' => $this->match
-        ]);
+        // Redirect based on match type
+        if ($this->match->league) {
+            return redirect()->route('leagues.matches.show', [
+                'league' => $this->match->league,
+                'match' => $this->match
+            ]);
+        } else {
+            return redirect()->route('organizations.competitions.show', [
+                'organization' => $this->match->competition->organization,
+                'competition' => $this->match->competition
+            ]);
+        }
     }
 
     private function checkMatchWin()
     {
-        $setsToWin = $this->match->league->settings['sets_to_win'] ?? 3;
+        $parent = $this->match->league ?? $this->match->competition;
+        $setsToWin = $parent->settings['sets_to_win'] ?? 3;
         $homeSetsWon = 0;
         $awaySetsWon = 0;
 
@@ -697,7 +710,7 @@ class LiveScore extends Component
     private function updateStandings($league)
     {
         // Reset all standings for this league
-        Standing::where('league_id', $league->id)->update([
+        Standing::where('competition_id', $league->id)->update([
             'played' => 0,
             'won' => 0,
             'drawn' => 0,
@@ -709,7 +722,7 @@ class LiveScore extends Component
         ]);
 
         // Get all completed, forfeited matches and cancelled matches with scores
-        $completedMatches = LeagueMatch::where('league_id', $league->id)
+        $completedMatches = LeagueMatch::where('competition_id', $league->id)
             ->where(function($query) {
                 $query->whereIn('status', ['completed', 'forfeited'])
                       ->orWhere(function($q) {
@@ -726,11 +739,11 @@ class LiveScore extends Component
             $homeParticipantId = $league->is_team_based ? $match->home_team_id : $match->home_player_id;
             $awayParticipantId = $league->is_team_based ? $match->away_team_id : $match->away_player_id;
 
-            $homeStanding = Standing::where('league_id', $league->id)
+            $homeStanding = Standing::where('competition_id', $league->id)
                 ->where($league->is_team_based ? 'team_id' : 'player_id', $homeParticipantId)
                 ->first();
 
-            $awayStanding = Standing::where('league_id', $league->id)
+            $awayStanding = Standing::where('competition_id', $league->id)
                 ->where($league->is_team_based ? 'team_id' : 'player_id', $awayParticipantId)
                 ->first();
 
@@ -793,7 +806,7 @@ class LiveScore extends Component
         }
 
         // Update positions based on points, then goal difference, then goals for
-        $standings = Standing::where('league_id', $league->id)
+        $standings = Standing::where('competition_id', $league->id)
             ->orderBy('points', 'desc')
             ->orderBy('goal_difference', 'desc')
             ->orderBy('goals_for', 'desc')
@@ -808,7 +821,12 @@ class LiveScore extends Component
 
     public function render()
     {
-        $isOrganizationOwner = $this->match->league->organization->user_id === auth()->id();
+        // Check if match belongs to league or competition and get organization accordingly
+        if ($this->match->league) {
+            $isOrganizationOwner = $this->match->league->organization->user_id === auth()->id();
+        } else {
+            $isOrganizationOwner = $this->match->competition->organization->user_id === auth()->id();
+        }
         
         return view('livewire.live-score', [
             'match' => $this->match,

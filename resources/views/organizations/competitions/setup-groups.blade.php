@@ -49,7 +49,7 @@
                         <ul class="text-blue-300 text-sm space-y-1">
                             <li>• {{ __('Drag players from the list on the left to groups on the right') }}</li>
                             <li>• {{ __('Or search and click "Add to Group" button') }}</li>
-                            <li>• {{ __('Each group must have exactly') }} {{ $competition->players_per_group }} {{ __('players') }}</li>
+                            <li>• {{ __('Each group should have 2-') }}{{ $competition->players_per_group }} {{ __('players') }}</li>
                             <li>• {{ __('Click "Shuffle" to randomly distribute unassigned players') }}</li>
                         </ul>
                     </div>
@@ -122,7 +122,7 @@
                                         {{ __('Group') }} {{ $group['name'] }}
                                     </h3>
                                     <span class="group-count text-sm px-3 py-1 rounded-full bg-gray-700">
-                                        <span class="current-count">0</span>/<span class="max-count">{{ $competition->players_per_group }}</span>
+                                        <span class="current-count">0</span> {{ __('players') }}
                                     </span>
                                 </div>
 
@@ -401,11 +401,14 @@
 
             // Update styling based on count
             const countBadge = groupContainer.querySelector('.group-count');
-            if (count === playersPerGroup) {
-                countBadge.classList.remove('bg-gray-700');
+            if (count >= 2 && count <= playersPerGroup) {
+                countBadge.classList.remove('bg-gray-700', 'bg-red-600');
                 countBadge.classList.add('bg-green-600');
+            } else if (count > playersPerGroup) {
+                countBadge.classList.remove('bg-gray-700', 'bg-green-600');
+                countBadge.classList.add('bg-red-600');
             } else {
-                countBadge.classList.remove('bg-green-600');
+                countBadge.classList.remove('bg-green-600', 'bg-red-600');
                 countBadge.classList.add('bg-gray-700');
             }
         }
@@ -421,16 +424,20 @@
 
         function updateSaveButton() {
             const saveBtn = document.getElementById('saveBtn');
-            const allGroupsFull = Array.from(document.querySelectorAll('.group-dropzone')).every(dropzone => {
-                return dropzone.querySelectorAll('.player-item').length === playersPerGroup;
+            const allGroupsValid = Array.from(document.querySelectorAll('.group-dropzone')).every(dropzone => {
+                const playerCount = dropzone.querySelectorAll('.player-item').length;
+                return playerCount >= 2 && playerCount <= playersPerGroup;
             });
+            const allPlayersAssigned = document.querySelectorAll('#unassignedPlayers .player-item').length === 0;
 
-            saveBtn.disabled = !allGroupsFull;
+            saveBtn.disabled = !(allGroupsValid && allPlayersAssigned);
             
-            if (allGroupsFull) {
+            if (allGroupsValid && allPlayersAssigned) {
                 saveBtn.textContent = '✓ Save Groups & Continue';
+            } else if (!allGroupsValid) {
+                saveBtn.textContent = 'Each group needs 2+ players';
             } else {
-                saveBtn.textContent = 'Fill all groups to continue';
+                saveBtn.textContent = 'Assign all players to groups';
             }
         }
 

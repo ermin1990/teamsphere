@@ -176,8 +176,7 @@ class PlayerMatchHistory extends Component
                 'match' => $match['id']
             ]);
         } else {
-            return route('organizations.leagues.matches.show', [
-                'organization' => $this->organization->slug,
+            return route('leagues.matches.show', [
                 'league' => $match['league_slug'],
                 'match' => $match['id']
             ]);

@@ -134,7 +134,7 @@
                         <div class="text-center">
                             <p class="text-sm text-gray-400">{{ $team->created_at->format('d.m.Y') }}</p>
                         </div>
-                        <a href="{{ route('organizations.leagues.team-management', [$league->organization, $league]) }}" class="px-4 py-2 bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 rounded-lg transition-colors border border-blue-500/30">
+                        <a href="{{ route('leagues.team-management', $league) }}" class="px-4 py-2 bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 rounded-lg transition-colors border border-blue-500/30">
                             Upravljaj
                         </a>
                     </div>
@@ -185,7 +185,7 @@
                             <p class="text-gray-500 text-xs">{{ $match->scheduled_at ? $match->scheduled_at->diffForHumans() : '' }}</p>
                         </div>
 
-                        <a href="{{ route('organizations.leagues.matches.show', [$league->organization, $league, $match]) }}" class="px-4 py-2 bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 rounded-lg transition-colors border border-blue-500/30">
+                        <a href="{{ route('leagues.matches.show', [$league, $match]) }}" class="px-4 py-2 bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 rounded-lg transition-colors border border-blue-500/30">
                             Pregledaj
                         </a>
                     </div>

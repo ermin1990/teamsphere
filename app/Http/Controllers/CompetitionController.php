@@ -928,14 +928,28 @@ class CompetitionController extends Controller
             return response()->json(['success' => false, 'message' => 'Not a tournament']);
         }
 
-        // Get advancing players from all groups
+        // Get advancing players from all groups using Standing model
         $advancingPlayers = [];
         foreach ($competition->tournamentGroups as $group) {
-            $groupStandings = collect($group->standings)->sortByDesc(function ($player) {
-                return [$player['points'], $player['sets_won'], $player['points_scored']];
-            })->take($competition->players_advancing_per_group);
+            $groupStandings = \App\Models\Standing::where('competition_id', $competition->id)
+                ->where('tournament_group_id', $group->id)
+                ->orderByDesc('points')
+                ->orderByRaw('(sets_won - sets_lost) desc')
+                ->orderByRaw('(points_won - points_lost) desc')
+                ->take($competition->players_advancing_per_group)
+                ->pluck('player_id')
+                ->toArray();
+            
+            // If no standings exist or all have 0 points, take the first players from the group
+            if (empty($groupStandings)) {
+                $groupStandings = collect($group->player_ids)->take($competition->players_advancing_per_group)->toArray();
+            }
+            
+            $advancingPlayers = array_merge($advancingPlayers, $groupStandings);
+        }
 
-            $advancingPlayers = array_merge($advancingPlayers, $groupStandings->pluck('player_id')->toArray());
+        if (empty($advancingPlayers)) {
+            return response()->json(['success' => false, 'message' => 'No players found to advance from groups']);
         }
 
         // Delete existing knockout matches
@@ -964,8 +978,18 @@ class CompetitionController extends Controller
             $playerIds[] = null; // null represents a bye
         }
 
-        // Shuffle players for bracket
-        shuffle($playerIds);
+        // Seed the bracket: arrange players so top seeds don't meet early
+        // Assuming playerIds is [top1, top2, top3, top4, second1, second2, second3, second4]
+        // Seeds: 1-4 tops, 5-8 seconds
+        // Bracket order: 1 vs 8, 4 vs 5, 2 vs 7, 3 vs 6
+        $seededOrder = [0, 7, 3, 4, 1, 6, 2, 5]; // indices for seeds 1,8,4,5,2,7,3,6
+        $seededPlayers = [];
+        foreach ($seededOrder as $index) {
+            if (isset($playerIds[$index])) {
+                $seededPlayers[] = $playerIds[$index];
+            }
+        }
+        $playerIds = $seededPlayers;
 
         // Create first round matches
         $matchesCreated = 0;

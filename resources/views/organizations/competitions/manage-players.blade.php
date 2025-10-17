@@ -1,0 +1,225 @@
+<x-app-layout>
+    <x-slot name="header">
+        <div class="flex items-center justify-between">
+            <div>
+                <h2 class="font-bold text-3xl bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                    {{ __('Manage Players') }}
+                </h2>
+                <p class="text-gray-400 mt-1">{{ $competition->name }} - {{ $organization->name }}</p>
+            </div>
+            <div class="flex items-center space-x-4">
+                <span class="px-3 py-1 text-sm rounded-full bg-yellow-500/20 text-yellow-400">
+                    {{ __('Step 1: Add Players') }}
+                </span>
+            </div>
+        </div>
+    </x-slot>
+
+    <div class="py-12">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            
+            <!-- Progress Indicator -->
+            <div class="mb-8">
+                <div class="flex items-center justify-between">
+                    <div class="flex-1">
+                        <div class="flex items-center">
+                            <div class="flex items-center justify-center w-10 h-10 bg-blue-600 rounded-full">
+                                <span class="text-white font-bold">1</span>
+                            </div>
+                            <div class="ml-4">
+                                <h3 class="text-white font-semibold">{{ __('Add Players') }}</h3>
+                                <p class="text-gray-400 text-sm">{{ __('Select participants') }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex-1 h-1 bg-gray-700 mx-4"></div>
+                    <div class="flex-1">
+                        <div class="flex items-center">
+                            <div class="flex items-center justify-center w-10 h-10 bg-gray-700 rounded-full">
+                                <span class="text-gray-400 font-bold">2</span>
+                            </div>
+                            <div class="ml-4">
+                                <h3 class="text-gray-400 font-semibold">{{ __('Setup Groups') }}</h3>
+                                <p class="text-gray-500 text-sm">{{ __('Organize participants') }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex-1 h-1 bg-gray-700 mx-4"></div>
+                    <div class="flex-1">
+                        <div class="flex items-center">
+                            <div class="flex items-center justify-center w-10 h-10 bg-gray-700 rounded-full">
+                                <span class="text-gray-400 font-bold">3</span>
+                            </div>
+                            <div class="ml-4">
+                                <h3 class="text-gray-400 font-semibold">{{ __('Start Competition') }}</h3>
+                                <p class="text-gray-500 text-sm">{{ __('Begin matches') }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                
+                <!-- Main Content - Add Players (2 columns) -->
+                <div class="lg:col-span-2">
+                    @livewire('add-player-to-competition', ['organization' => $organization, 'competition' => $competition])
+
+                    <!-- Current Participants -->
+                    <div class="mt-6 bg-gray-800/50 backdrop-blur-xl rounded-xl p-6 border border-gray-700/50 shadow-xl">
+                        <h3 class="text-xl font-bold text-white mb-4">
+                            {{ __('Current Participants') }}
+                            <span class="text-gray-400 text-sm ml-2">({{ $competition->players->count() }}/{{ $competition->max_participants ?? '∞' }})</span>
+                        </h3>
+
+                        @if($competition->players->count() > 0)
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                @foreach($competition->players as $player)
+                                    <div class="flex items-center justify-between bg-gray-700/30 rounded-lg p-3 hover:bg-gray-700/50 transition-colors">
+                                        <div class="flex items-center space-x-3 min-w-0 flex-1">
+                                            <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
+                                                <span class="text-white font-bold text-sm">{{ substr($player->name, 0, 2) }}</span>
+                                            </div>
+                                            <div class="min-w-0 flex-1">
+                                                <p class="text-white font-medium truncate">{{ $player->name }}</p>
+                                                <p class="text-gray-400 text-xs truncate">{{ $player->email }}</p>
+                                            </div>
+                                        </div>
+                                        <form action="{{ route('organizations.competitions.remove-player', [$organization, $competition, $player]) }}" method="POST">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="text-red-400 hover:text-red-300 transition-colors ml-2">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                                </svg>
+                                            </button>
+                                        </form>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @else
+                            <div class="text-center py-12">
+                                <div class="w-20 h-20 bg-gray-700/50 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <svg class="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                                    </svg>
+                                </div>
+                                <p class="text-gray-400">{{ __('No players added yet. Use the form above to add players.') }}</p>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+
+                <!-- Sidebar - Info & Actions (1 column) -->
+                <div class="space-y-6">
+                    
+                    <!-- Competition Info -->
+                    <div class="bg-gray-800/50 backdrop-blur-xl rounded-xl p-5 border border-gray-700/50 shadow-xl">
+                        <h3 class="text-base font-bold text-white mb-3">{{ __('Competition Info') }}</h3>
+                        <div class="space-y-2.5">
+                            <div class="flex items-center justify-between py-1.5 border-b border-gray-700/30">
+                                <span class="text-gray-400 text-xs">{{ __('Type') }}</span>
+                                <span class="text-white text-xs font-medium">{{ ucfirst($competition->type) }}</span>
+                            </div>
+                            <div class="flex items-center justify-between py-1.5 border-b border-gray-700/30">
+                                <span class="text-gray-400 text-xs">{{ __('Format') }}</span>
+                                <span class="text-white text-xs font-medium">{{ $competition->is_team_based ? __('Team') : __('Individual') }}</span>
+                            </div>
+                            <div class="flex items-center justify-between py-1.5 border-b border-gray-700/30">
+                                <span class="text-gray-400 text-xs">{{ __('Sport') }}</span>
+                                <span class="text-white text-xs font-medium">{{ $competition->sport->name }}</span>
+                            </div>
+                            @if($competition->type === 'tournament')
+                            <div class="flex items-center justify-between py-1.5 border-b border-gray-700/30">
+                                <span class="text-gray-400 text-xs">{{ __('Groups') }}</span>
+                                <span class="text-white text-xs font-medium">{{ $competition->group_count }}</span>
+                            </div>
+                            <div class="flex items-center justify-between py-1.5 border-b border-gray-700/30">
+                                <span class="text-gray-400 text-xs">{{ __('Per Group') }}</span>
+                                <span class="text-white text-xs font-medium">{{ $competition->players_per_group }}</span>
+                            </div>
+                            @endif
+                        </div>
+                    </div>
+
+                    <!-- Next Step Card -->
+                    @php
+                        $hasEnoughPlayers = $competition->players->count() >= ($competition->type === 'tournament' ? 4 : 2);
+                    @endphp
+
+                    @if($hasEnoughPlayers)
+                        <div class="bg-gradient-to-r from-green-600/20 to-emerald-600/20 backdrop-blur-xl rounded-xl p-5 border border-green-500/30 shadow-xl">
+                            <div class="flex items-start mb-3">
+                                <div class="flex-shrink-0">
+                                    <svg class="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                </div>
+                                <div class="ml-3 flex-1">
+                                    <h3 class="text-base font-bold text-white">{{ __('Ready for Next Step!') }}</h3>
+                                    <p class="text-gray-300 text-sm mt-1">{{ __('You have enough players to continue.') }}</p>
+                                </div>
+                            </div>
+
+                            @if($competition->type === 'tournament')
+                                <a href="{{ route('organizations.competitions.setup-groups', [$organization, $competition]) }}"
+                                   class="block w-full bg-green-600 hover:bg-green-700 text-white text-center px-4 py-3 rounded-lg transition-colors font-semibold">
+                                    {{ __('Continue to Setup Groups') }} →
+                                </a>
+                            @else
+                                <form method="POST" action="{{ route('organizations.competitions.start', [$organization, $competition]) }}">
+                                    @csrf
+                                    <button type="submit"
+                                            class="w-full bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-lg transition-colors font-semibold">
+                                        {{ __('Start League') }} →
+                                    </button>
+                                </form>
+                            @endif
+                        </div>
+                    @else
+                        <div class="bg-gradient-to-r from-yellow-600/20 to-orange-600/20 backdrop-blur-xl rounded-xl p-5 border border-yellow-500/30 shadow-xl">
+                            <div class="flex items-start mb-3">
+                                <div class="flex-shrink-0">
+                                    <svg class="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                                    </svg>
+                                </div>
+                                <div class="ml-3 flex-1">
+                                    <h3 class="text-base font-bold text-white">{{ __('Add More Players') }}</h3>
+                                    <p class="text-gray-300 text-sm mt-1">
+                                        @if($competition->type === 'tournament')
+                                            {{ __('Need at least 4 players to start.') }}
+                                        @else
+                                            {{ __('Need at least 2 players to start.') }}
+                                        @endif
+                                    </p>
+                                    <div class="mt-3 flex items-center justify-between bg-gray-800/50 rounded-lg px-3 py-2">
+                                        <span class="text-gray-400 text-xs">{{ __('Progress') }}</span>
+                                        <span class="text-white font-bold">{{ $competition->players->count() }}/{{ $competition->type === 'tournament' ? 4 : 2 }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+
+                    <!-- Quick Actions -->
+                    <div class="bg-gray-800/50 backdrop-blur-xl rounded-xl p-5 border border-gray-700/50 shadow-xl">
+                        <h3 class="text-base font-bold text-white mb-3">{{ __('Quick Actions') }}</h3>
+                        <div class="space-y-2">
+                            <a href="{{ route('organizations.competitions.show', [$organization, $competition]) }}"
+                               class="block w-full bg-gray-600 hover:bg-gray-700 text-white text-center text-sm px-4 py-2 rounded-lg transition-colors">
+                                ← {{ __('Back to Competition') }}
+                            </a>
+                            <a href="{{ route('organizations.competitions.settings', [$organization, $competition]) }}"
+                               class="block w-full bg-blue-600 hover:bg-blue-700 text-white text-center text-sm px-4 py-2 rounded-lg transition-colors">
+                                ⚙️ {{ __('Settings') }}
+                            </a>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+</x-app-layout>

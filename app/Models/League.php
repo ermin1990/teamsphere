@@ -103,7 +103,7 @@ class League extends Model
      */
     public function matches(): HasMany
     {
-        return $this->hasMany(LeagueMatch::class, 'league_id');
+        return $this->hasMany(LeagueMatch::class, 'competition_id');
     }
 
     /**

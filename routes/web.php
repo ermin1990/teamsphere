@@ -127,6 +127,7 @@ Route::middleware('auth')->group(function () {
     Route::get('organizations/{organization}/competitions/{competition}', [CompetitionController::class, 'show'])->name('organizations.competitions.show');
     Route::post('organizations/{organization}/competitions/{competition}/add-player', [CompetitionController::class, 'addPlayer'])->name('organizations.competitions.add-player');
     Route::delete('organizations/{organization}/competitions/{competition}/players/{player}', [CompetitionController::class, 'removePlayer'])->name('organizations.competitions.remove-player');
+    Route::get('organizations/{organization}/competitions/{competition}/manage-players', [CompetitionController::class, 'managePlayers'])->name('organizations.competitions.manage-players');
     Route::get('organizations/{organization}/competitions/{competition}/setup-groups', [CompetitionController::class, 'setupGroups'])->name('organizations.competitions.setup-groups');
     Route::post('organizations/{organization}/competitions/{competition}/save-groups', [CompetitionController::class, 'saveGroups'])->name('organizations.competitions.save-groups');
     Route::get('organizations/{organization}/competitions/{competition}/settings', [CompetitionController::class, 'showSettings'])->name('organizations.competitions.settings');
@@ -171,13 +172,27 @@ Route::middleware('auth')->group(function () {
     
     // Direct match access routes (for live scoring from competition view)
     Route::get('leagues/matches/{match}/live-score', function($matchId) {
-        $match = \App\Models\LeagueMatch::findOrFail($matchId);
-        return view('livewire.live-score', ['match' => $match]);
+        $match = \App\Models\LeagueMatch::with([
+            'league.organization',
+            'competition.organization',
+            'homeTeam.players',
+            'awayTeam.players',
+            'homePlayer',
+            'awayPlayer'
+        ])->findOrFail($matchId);
+        return view('live-score-page', ['match' => $match]);
     })->name('leagues.live-score');
     
     Route::get('competitions/matches/{match}/live-score', function($matchId) {
-        $match = \App\Models\CompetitionMatch::findOrFail($matchId);
-        return view('livewire.live-score', ['match' => $match]);
+        $match = \App\Models\CompetitionMatch::with([
+            'competition.organization',
+            'league.organization',
+            'homeTeam.players',
+            'awayTeam.players',
+            'homePlayer',
+            'awayPlayer'
+        ])->findOrFail($matchId);
+        return view('live-score-page', ['match' => $match]);
     })->name('competitions.live-score');
     
     // Quick result entry routes
