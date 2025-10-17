@@ -15,7 +15,7 @@
                 >
                     {{ ucfirst(str_replace('_', ' ', $match->status)) }}
                 </span>
-                <a href="{{ request()->routeIs('referee.*') ? route('referee.match.show', [$league, $match]) : route('organizations.leagues.matches.show', [$organization, $league, $match]) }}"
+                <a href="{{ request()->routeIs('referee.*') ? route('referee.match.show', [$league, $match]) : route('leagues.matches.show', [$league, $match]) }}"
                    class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors">
                     ← Back to Match
                 </a>

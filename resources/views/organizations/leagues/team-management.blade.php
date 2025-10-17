@@ -14,7 +14,7 @@
                     <p class="text-gray-400 mt-1">{{ __('Team Management') }} - {{ $organization->name }}</p>
                 </div>
                 <div class="flex items-center space-x-4">
-                    <a href="{{ route('organizations.leagues.show', [$organization, $league]) }}"
+                    <a href="{{ route('leagues.show', $league) }}"
                        class="bg-gray-700/50 hover:bg-gray-600/50 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200">
                         {{ __('Back to League') }}
                     </a>
@@ -38,7 +38,7 @@
             <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl">
                 <h3 class="text-xl font-semibold text-white mb-6">{{ __('Add Players to League') }}</h3>
 
-                <form id="addPlayersForm" action="{{ route('organizations.leagues.addPlayers', [$organization, $league]) }}" method="POST">
+                <form id="addPlayersForm" action="{{ route('leagues.addPlayers', $league) }}" method="POST">
                     @csrf
                     @method('POST')
 
@@ -180,7 +180,7 @@
                     <h3 class="text-xl font-semibold text-white mb-2">{{ __('Ready to Start League!') }}</h3>
                     <p class="text-gray-300 mb-6">{{ __('You have') }} {{ $league->teams->count() }} {{ __('teams ready. Click below to generate matches and start the league.') }}</p>
 
-                    <form method="POST" action="{{ route('organizations.leagues.start', [$organization, $league]) }}"
+                    <form method="POST" action="{{ route('leagues.start', $league) }}"
                           onsubmit="return confirm('{{ __('Are you sure you want to start this league? This will generate matches and standings.') }}')"
                           class="inline-block">
                         @csrf
@@ -202,7 +202,7 @@
     <div class="flex items-center justify-center min-h-screen p-4">
         <div class="bg-gray-800 rounded-2xl p-6 w-full max-w-md border border-gray-700">
             <h3 class="text-xl font-semibold text-white mb-4">{{ __('Create New Team') }}</h3>
-            <form id="createTeamForm" action="{{ route('organizations.leagues.teams.store', [$organization, $league]) }}" method="POST">
+            <form id="createTeamForm" action="{{ route('leagues.teams.store', $league) }}" method="POST">
                 @csrf
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-300 mb-2">{{ __('Team Name') }}</label>
@@ -287,7 +287,7 @@ function deleteTeam(teamId) {
     if (confirm('Are you sure you want to delete this team?')) {
         const form = document.createElement('form');
         form.method = 'POST';
-        form.action = '{{ route("organizations.leagues.teams.destroy", [$organization, $league, ":teamId"]) }}'.replace(':teamId', teamId);
+        form.action = '{{ route("leagues.teams.destroy", [$league, ":teamId"]) }}'.replace(':teamId', teamId);
 
         const csrf = document.createElement('input');
         csrf.type = 'hidden';
@@ -310,7 +310,7 @@ function removePlayerFromTeam(teamId, playerId) {
     if (confirm('Are you sure you want to remove this player from the team?')) {
         const form = document.createElement('form');
         form.method = 'POST';
-        form.action = '{{ route("organizations.leagues.teams.remove-player", [$organization, $league, ":teamId", ":playerId"]) }}'.replace(':teamId', teamId).replace(':playerId', playerId);
+        form.action = '{{ route("leagues.teams.remove-player", [$league, ":teamId", ":playerId"]) }}'.replace(':teamId', teamId).replace(':playerId', playerId);
 
         const csrf = document.createElement('input');
         csrf.type = 'hidden';
@@ -346,7 +346,7 @@ document.getElementById('addPlayerForm').addEventListener('submit', function(e) 
     // For now, we'll just reload the page
     const form = document.createElement('form');
     form.method = 'POST';
-    form.action = '{{ route("organizations.leagues.teams.add-player", [$organization, $league, ":teamId"]) }}'.replace(':teamId', teamId);
+    form.action = '{{ route("leagues.teams.add-player", [$league, ":teamId"]) }}'.replace(':teamId', teamId);
 
     const csrf = document.createElement('input');
     csrf.type = 'hidden';

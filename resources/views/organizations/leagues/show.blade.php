@@ -155,7 +155,7 @@
                                 <h4 class="text-lg font-medium text-white mb-3">{{ __('Round :round', ['round' => $round]) }}</h4>
                                 <div class="space-y-3">
                                     @foreach($roundMatches as $match)
-                                     <a href="{{ route('organizations.leagues.matches.show', [$organization, $league, $match]) }}"
+                                     <a href="{{ route('leagues.matches.show', [$league, $match]) }}"
                                         class="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-gray-700/30 rounded-lg hover:bg-gray-700/50 transition-colors cursor-pointer block">
                                          <div class="flex items-center space-x-4">
                                              <div class="text-center">
@@ -229,7 +229,7 @@
                     <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl">
                         <h3 class="text-xl font-semibold text-white mb-6">{{ __('Konfiguracija Lige') }}</h3>
                         
-                        <form action="{{ route('organizations.leagues.update', [$organization, $league]) }}" method="POST" class="space-y-8">
+                        <form action="{{ route('leagues.update', $league) }}" method="POST" class="space-y-8">
                             @csrf
                             @method('PUT')
 
@@ -498,7 +498,7 @@
                         @endphp
 
                         @if($availablePlayers->count() > 0)
-                        <form id="addPlayersForm" action="{{ route('organizations.leagues.addPlayers', [$organization, $league]) }}" method="POST">
+                        <form id="addPlayersForm" action="{{ route('leagues.addPlayers', $league) }}" method="POST">
                             @csrf
                             @method('POST')
 
@@ -567,14 +567,14 @@
                         <h3 class="text-lg font-semibold text-white mb-4">{{ __('Brze radnje') }}</h3>
                         <div class="space-y-3">
                             @if($league->is_team_based && $league->status === 'draft')
-                            <a href="{{ route('organizations.leagues.team-management', [$organization, $league]) }}"
+                            <a href="{{ route('leagues.team-management', $league) }}"
                                class="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-4 py-3 rounded-lg font-medium transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-blue-500/25 text-center block mb-3">
                                 {{ __('Upravljaj timovima i igračima') }}
                             </a>
                             @endif
 
                             @if($league->status === 'draft' && (($league->is_team_based && $league->teams->count() >= 2) || (!$league->is_team_based && $league->players->count() >= 2)))
-                            <form method="POST" action="{{ route('organizations.leagues.start', [$organization, $league]) }}"
+                            <form method="POST" action="{{ route('leagues.start', $league) }}"
                                   onsubmit="return confirm('{{ __('Are you sure you want to start this league? This will generate matches and standings.') }}')"
                                   class="w-full">
                                 @csrf
@@ -587,7 +587,7 @@
                             @endif
 
                             @if($league->status !== 'draft' && $organization->user_id === auth()->id())
-                            <form method="POST" action="{{ route('organizations.leagues.reset', [$organization, $league]) }}"
+                            <form method="POST" action="{{ route('leagues.reset', $league) }}"
                                   onsubmit="return confirm('{{ __('Are you sure you want to reset this league? All matches and standings will be deleted and the league will return to draft status.') }}')"
                                   class="w-full">
                                 @csrf
@@ -606,7 +606,7 @@
                             <hr class="border-gray-600/50">
 
                             @if($organization->user_id === auth()->id())
-                            <form method="POST" action="{{ route('organizations.leagues.destroy', [$organization, $league]) }}"
+                            <form method="POST" action="{{ route('leagues.destroy', $league) }}"
                                   onsubmit="return confirm('{{ __('Are you sure you want to delete this league? This action cannot be undone.') }}')"
                                   class="w-full">
                                 @csrf

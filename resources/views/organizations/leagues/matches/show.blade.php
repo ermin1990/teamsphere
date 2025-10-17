@@ -22,12 +22,12 @@
                 </span>
                 <div class="flex space-x-2">
                     @if((isset($isOwner) && $isOwner) || (isset($isReferee) && $isReferee))
-                    <a href="{{ request()->routeIs('referee.*') ? route('referee.match.edit', [$league, $match]) : route('organizations.leagues.matches.edit', [$organization, $league, $match]) }}"
+                    <a href="{{ request()->routeIs('referee.*') ? route('referee.match.edit', [$league, $match]) : route('leagues.matches.edit', [$league, $match]) }}"
                        class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition-colors">
                         ✏️ Edit Results
                     </a>
                     @if($match->status !== 'completed')
-                    <a href="{{ request()->routeIs('referee.*') ? route('referee.match.live', [$league, $match]) : route('organizations.leagues.matches.live', [$organization, $league, $match]) }}"
+                    <a href="{{ request()->routeIs('referee.*') ? route('referee.match.live', [$league, $match]) : route('leagues.matches.live', [$league, $match]) }}"
                        class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm rounded-lg transition-colors">
                         🎯 Live Score
                     </a>
@@ -380,7 +380,7 @@
                 <!-- Navigation -->
                 <div class="flex justify-center space-x-4">
                     @if($organization->user_id === auth()->id())
-                    <form method="POST" action="{{ request()->routeIs('referee.*') ? route('referee.match.reset', [$league, $match]) : route('organizations.leagues.matches.reset', [$organization, $league, $match]) }}"
+                    <form method="POST" action="{{ request()->routeIs('referee.*') ? route('referee.match.reset', [$league, $match]) : route('leagues.matches.reset', [$league, $match]) }}"
                           onsubmit="return confirm('Are you sure you want to reset this match? All current data will be lost.')"
                           class="inline">
                         @csrf
@@ -389,7 +389,7 @@
                         </button>
                     </form>
                     @endif
-                    <a href="{{ request()->routeIs('referee.*') ? route('referee.league.matches', $league) : route('organizations.leagues.show', [$organization, $league]) }}"
+                    <a href="{{ request()->routeIs('referee.*') ? route('referee.league.matches', $league) : route('leagues.show', $league) }}"
                        class="bg-gray-700/50 hover:bg-gray-600/50 text-white px-6 py-3 rounded-lg font-medium transition-all duration-200">
                         ← Back to League
                     </a>

@@ -34,8 +34,10 @@ class LeagueController extends Controller
     /**
      * Display the specified league.
      */
-    public function show(Organization $organization, League $league)
+    public function show(League $league)
     {
+        $organization = $league->organization;
+
         // Allow access if user owns the organization OR is registered as a player in it OR is a referee
         $isOwner = $organization->user_id === auth()->id();
         $isPlayer = $organization->players()->where('user_id', auth()->id())->exists();
@@ -48,11 +50,6 @@ class LeagueController extends Controller
             abort(403);
         }
 
-        // Ensure league belongs to organization
-        if ($league->organization_id !== $organization->id) {
-            abort(404);
-        }
-
         $league->load('sport', 'teams.players', 'matches.homeTeam', 'matches.awayTeam', 'matches.homePlayer', 'matches.awayPlayer', 'players', 'standings');
         $organization->load('players');
 
@@ -62,16 +59,13 @@ class LeagueController extends Controller
     /**
      * Update team information.
      */
-    public function updateTeam(Request $request, Organization $organization, League $league, Team $team)
+    public function updateTeam(Request $request, League $league, Team $team)
     {
+        $organization = $league->organization;
+
         // Ensure user owns this organization
         if ($organization->user_id !== auth()->id()) {
             abort(403);
-        }
-
-        // Ensure league belongs to organization
-        if ($league->organization_id !== $organization->id) {
-            abort(404);
         }
 
         // Ensure team belongs to league
@@ -92,16 +86,13 @@ class LeagueController extends Controller
     /**
      * Delete a team from the league.
      */
-    public function deleteTeam(Request $request, Organization $organization, League $league, Team $team)
+    public function deleteTeam(Request $request, League $league, Team $team)
     {
+        $organization = $league->organization;
+
         // Ensure user owns this organization
         if ($organization->user_id !== auth()->id()) {
             abort(403);
-        }
-
-        // Ensure league belongs to organization
-        if ($league->organization_id !== $organization->id) {
-            abort(404);
         }
 
         // Ensure team belongs to league
@@ -122,16 +113,13 @@ class LeagueController extends Controller
     /**
      * Add a player to a specific team.
      */
-    public function addPlayerToTeam(Request $request, Organization $organization, League $league, Team $team)
+    public function addPlayerToTeam(Request $request, League $league, Team $team)
     {
+        $organization = $league->organization;
+
         // Ensure user owns this organization
         if ($organization->user_id !== auth()->id()) {
             abort(403);
-        }
-
-        // Ensure league belongs to organization
-        if ($league->organization_id !== $organization->id) {
-            abort(404);
         }
 
         // Ensure team belongs to league
@@ -169,16 +157,13 @@ class LeagueController extends Controller
     /**
      * Remove a player from a team.
      */
-    public function removePlayerFromTeam(Request $request, Organization $organization, League $league, Team $team, Player $player)
+    public function removePlayerFromTeam(Request $request, League $league, Team $team, Player $player)
     {
+        $organization = $league->organization;
+
         // Ensure user owns this organization
         if ($organization->user_id !== auth()->id()) {
             abort(403);
-        }
-
-        // Ensure league belongs to organization
-        if ($league->organization_id !== $organization->id) {
-            abort(404);
         }
 
         // Ensure team belongs to league
@@ -205,16 +190,13 @@ class LeagueController extends Controller
     /**
      * Add a single player to the league (for individual leagues).
      */
-    public function addPlayer(Request $request, Organization $organization, League $league)
+    public function addPlayer(Request $request, League $league)
     {
+        $organization = $league->organization;
+
         // Ensure user owns this organization
         if ($organization->user_id !== auth()->id()) {
             abort(403);
-        }
-
-        // Ensure league belongs to organization
-        if ($league->organization_id !== $organization->id) {
-            abort(404);
         }
 
         // Ensure league is individual-based
@@ -252,21 +234,18 @@ class LeagueController extends Controller
     /**
      * Show team management interface for team-based leagues.
      */
-    public function teamManagement(Organization $organization, League $league)
+    public function teamManagement(League $league)
     {
+        $organization = $league->organization;
+
         // Ensure user owns this organization
         if ($organization->user_id !== auth()->id()) {
             abort(403);
         }
 
-        // Ensure league belongs to organization
-        if ($league->organization_id !== $organization->id) {
-            abort(404);
-        }
-
         // Ensure league is team-based
         if (!$league->is_team_based) {
-            return redirect()->route('organizations.leagues.show', [$organization, $league])
+            return redirect()->route('leagues.show', $league)
                            ->withErrors(['general' => __('This league is not team-based.')]);
         }
 
@@ -323,16 +302,13 @@ class LeagueController extends Controller
     /**
      * Update the specified league rules.
      */
-    public function update(Request $request, Organization $organization, League $league)
+    public function update(Request $request, League $league)
     {
+        $organization = $league->organization;
+
         // Ensure user owns this organization
         if ($organization->user_id !== auth()->id()) {
             abort(403);
-        }
-
-        // Ensure league belongs to organization
-        if ($league->organization_id !== $organization->id) {
-            abort(404);
         }
 
         // Ensure league is in draft status
@@ -378,16 +354,13 @@ class LeagueController extends Controller
     /**
      * Remove the specified league.
      */
-    public function destroy(Organization $organization, League $league)
+    public function destroy(League $league)
     {
+        $organization = $league->organization;
+
         // Ensure user owns this organization
         if ($organization->user_id !== auth()->id()) {
             abort(403);
-        }
-
-        // Ensure league belongs to organization
-        if ($league->organization_id !== $organization->id) {
-            abort(404);
         }
 
         // Delete the league
@@ -411,16 +384,13 @@ class LeagueController extends Controller
     /**
      * Add a team to the league.
      */
-    public function addTeam(Request $request, Organization $organization, League $league)
+    public function addTeam(Request $request, League $league)
     {
+        $organization = $league->organization;
+
         // Ensure user owns this organization
         if ($organization->user_id !== auth()->id()) {
             abort(403);
-        }
-
-        // Ensure league belongs to organization
-        if ($league->organization_id !== $organization->id) {
-            abort(404);
         }
 
         // Ensure league is team-based
@@ -456,16 +426,13 @@ class LeagueController extends Controller
     /**
      * Add multiple players to the league.
      */
-    public function addPlayers(Request $request, Organization $organization, League $league)
+    public function addPlayers(Request $request, League $league)
     {
+        $organization = $league->organization;
+
         // Ensure user owns this organization
         if ($organization->user_id !== auth()->id()) {
             abort(403);
-        }
-
-        // Ensure league belongs to organization
-        if ($league->organization_id !== $organization->id) {
-            abort(404);
         }
 
         // Ensure league is in draft status
@@ -510,16 +477,13 @@ class LeagueController extends Controller
     /**
      * Start the league.
      */
-    public function startLeague(Request $request, Organization $organization, League $league)
+    public function startLeague(Request $request, League $league)
     {
+        $organization = $league->organization;
+
         // Ensure user owns this organization
         if ($organization->user_id !== auth()->id()) {
             abort(403);
-        }
-
-        // Ensure league belongs to organization
-        if ($league->organization_id !== $organization->id) {
-            abort(404);
         }
 
         // Ensure league is in draft status
@@ -543,7 +507,7 @@ class LeagueController extends Controller
             // Start the league
             $league->update(['status' => 'active']);
 
-            return redirect()->route('organizations.leagues.show', [$organization, $league])
+            return redirect()->route('leagues.show', $league)
                            ->with('success', __('League started successfully!'));
         } catch (\Exception $e) {
             \Log::error('Error starting league: ' . $e->getMessage());
@@ -836,8 +800,10 @@ class LeagueController extends Controller
     /**
      * Show a specific match.
      */
-    public function showMatch(Request $request, Organization $organization, League $league, LeagueMatch $match)
+    public function showMatch(Request $request, League $league, LeagueMatch $match)
     {
+        $organization = $league->organization;
+
         // Allow access if user owns the organization OR is registered as a player in it OR is a referee
         $isOwner = $organization->user_id === auth()->id();
         $isPlayer = $organization->players()->where('user_id', auth()->id())->exists();
@@ -848,11 +814,6 @@ class LeagueController extends Controller
 
         if (!$isOwner && !$isPlayer && !$isReferee) {
             abort(403);
-        }
-
-        // Ensure league belongs to organization
-        if ($league->organization_id !== $organization->id) {
-            abort(404);
         }
 
         // Ensure match belongs to league
@@ -871,16 +832,13 @@ class LeagueController extends Controller
     /**
      * Show the form for editing match results.
      */
-    public function editMatch(Request $request, Organization $organization, League $league, LeagueMatch $match)
+    public function editMatch(Request $request, League $league, LeagueMatch $match)
     {
+        $organization = $league->organization;
+
         // Ensure user can manage matches for this organization (owner or referee)
         if (!$this->canManageMatches($organization)) {
             abort(403);
-        }
-
-        // Ensure league belongs to organization
-        if ($league->organization_id !== $organization->id) {
-            abort(404);
         }
 
         // Ensure match belongs to league
@@ -894,16 +852,13 @@ class LeagueController extends Controller
     /**
      * Update match results.
      */
-    public function updateMatch(Request $request, Organization $organization, League $league, LeagueMatch $match)
+    public function updateMatch(Request $request, League $league, LeagueMatch $match)
     {
+        $organization = $league->organization;
+
         // Ensure user can manage matches for this organization (owner or referee)
         if (!$this->canManageMatches($organization)) {
             abort(403);
-        }
-
-        // Ensure league belongs to organization
-        if ($league->organization_id !== $organization->id) {
-            abort(404);
         }
 
         // Ensure match belongs to league
@@ -955,23 +910,20 @@ class LeagueController extends Controller
             $this->updateStandings($league);
         }
 
-        return redirect()->route('organizations.leagues.matches.show', [$organization, $league, $match])
+        return redirect()->route('leagues.matches.show', [$league, $match])
             ->with('success', 'Match updated successfully!');
     }
 
     /**
      * Show live scoring interface for a match.
      */
-    public function liveScore(Request $request, Organization $organization, League $league, LeagueMatch $match)
+    public function liveScore(Request $request, League $league, LeagueMatch $match)
     {
+        $organization = $league->organization;
+
         // Ensure user can manage matches for this organization (owner or referee)
         if (!$this->canManageMatches($organization)) {
             abort(403);
-        }
-
-        // Ensure league belongs to organization
-        if ($league->organization_id !== $organization->id) {
-            abort(404);
         }
 
         // Ensure match belongs to league
@@ -993,16 +945,13 @@ class LeagueController extends Controller
     /**
      * Update live match score.
      */
-    public function updateLiveScore(Request $request, Organization $organization, League $league, LeagueMatch $match)
+    public function updateLiveScore(Request $request, League $league, LeagueMatch $match)
     {
+        $organization = $league->organization;
+
         // Ensure user can manage matches for this organization (owner or referee)
         if (!$this->canManageMatches($organization)) {
             abort(403);
-        }
-
-        // Ensure league belongs to organization
-        if ($league->organization_id !== $organization->id) {
-            abort(404);
         }
 
         // Ensure match belongs to league
@@ -1073,16 +1022,13 @@ class LeagueController extends Controller
     /**
      * Reset match to initial state.
      */
-    public function resetMatch(Request $request, Organization $organization, League $league, LeagueMatch $match)
+    public function resetMatch(Request $request, League $league, LeagueMatch $match)
     {
+        $organization = $league->organization;
+
         // Ensure user can manage matches for this organization (owner or referee)
         if (!$this->canManageMatches($organization)) {
             abort(403);
-        }
-
-        // Ensure league belongs to organization
-        if ($league->organization_id !== $organization->id) {
-            abort(404);
         }
 
         // Ensure match belongs to league
@@ -1108,23 +1054,20 @@ class LeagueController extends Controller
             $this->updateStandings($league);
         }
 
-        return redirect()->route('organizations.leagues.matches.show', [$organization, $league, $match])
+        return redirect()->route('leagues.matches.show', [$league, $match])
             ->with('success', 'Match has been reset to initial state.');
     }
 
     /**
      * Reset league to draft status and regenerate matches.
      */
-    public function resetLeague(Request $request, Organization $organization, League $league)
+    public function resetLeague(Request $request, League $league)
     {
+        $organization = $league->organization;
+
         // Ensure user owns this organization
         if ($organization->user_id !== auth()->id()) {
             abort(403);
-        }
-
-        // Ensure league belongs to organization
-        if ($league->organization_id !== $organization->id) {
-            abort(404);
         }
 
         try {
@@ -1137,7 +1080,7 @@ class LeagueController extends Controller
             // Reset league to draft status
             $league->update(['status' => 'draft']);
 
-            return redirect()->route('organizations.leagues.show', [$organization, $league])
+            return redirect()->route('leagues.show', $league)
                            ->with('success', __('League has been reset to draft status. You can now restart it with correct match pairings.'));
         } catch (\Exception $e) {
             \Log::error('Error resetting league: ' . $e->getMessage());

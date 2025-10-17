@@ -143,31 +143,31 @@ Route::middleware('auth')->group(function () {
     Route::get('organizations/{organization}/competitions/{competition}/available-players', [CompetitionController::class, 'getAvailablePlayers'])->name('organizations.competitions.available-players');
     Route::delete('organizations/{organization}/competitions/{competition}', [CompetitionController::class, 'destroy'])->name('organizations.competitions.destroy');
 
-    // League routes (nested under organizations)
-    Route::get('organizations/{organization}/leagues/create', [LeagueController::class, 'create'])->name('organizations.leagues.create');
-    Route::get('organizations/{organization}/leagues/{league}', [LeagueController::class, 'show'])->name('organizations.leagues.show');
-    Route::get('organizations/{organization}/leagues/{league}/team-management', [LeagueController::class, 'teamManagement'])->name('organizations.leagues.team-management');
-    Route::post('organizations/{organization}/leagues', [LeagueController::class, 'store'])->name('organizations.leagues.store');
-    Route::put('organizations/{organization}/leagues/{league}', [LeagueController::class, 'update'])->name('organizations.leagues.update');
-    Route::delete('organizations/{organization}/leagues/{league}', [LeagueController::class, 'destroy'])->name('organizations.leagues.destroy');
+    // League routes
+    Route::get('leagues/create/{organization}', [LeagueController::class, 'create'])->name('leagues.create');
+    Route::get('leagues/{league}', [LeagueController::class, 'show'])->name('leagues.show');
+    Route::get('leagues/{league}/team-management', [LeagueController::class, 'teamManagement'])->name('leagues.team-management');
+    Route::post('leagues/{organization}', [LeagueController::class, 'store'])->name('leagues.store');
+    Route::put('leagues/{league}', [LeagueController::class, 'update'])->name('leagues.update');
+    Route::delete('leagues/{league}', [LeagueController::class, 'destroy'])->name('leagues.destroy');
     Route::get('leagues/settings-form', [LeagueController::class, 'getSettingsForm'])->name('leagues.settings-form');
 
     // League teams and players routes
-    Route::post('organizations/{organization}/leagues/{league}/teams', [LeagueController::class, 'addTeam'])->name('organizations.leagues.teams.store');
-    Route::put('organizations/{organization}/leagues/{league}/teams/{team}', [LeagueController::class, 'updateTeam'])->name('organizations.leagues.teams.update');
-    Route::delete('organizations/{organization}/leagues/{league}/teams/{team}', [LeagueController::class, 'deleteTeam'])->name('organizations.leagues.teams.destroy');
-    Route::post('organizations/{organization}/leagues/{league}/teams/{team}/add-player', [LeagueController::class, 'addPlayerToTeam'])->name('organizations.leagues.teams.add-player');
-    Route::delete('organizations/{organization}/leagues/{league}/teams/{team}/remove-player/{player}', [LeagueController::class, 'removePlayerFromTeam'])->name('organizations.leagues.teams.remove-player');
-    Route::post('organizations/{organization}/leagues/{league}/players', [LeagueController::class, 'addPlayer'])->name('organizations.leagues.players.store');
-    Route::post('organizations/{organization}/leagues/{league}/add-players', [LeagueController::class, 'addPlayers'])->name('organizations.leagues.addPlayers');
-    Route::patch('organizations/{organization}/leagues/{league}/start', [LeagueController::class, 'startLeague'])->name('organizations.leagues.start');
-    Route::post('organizations/{organization}/leagues/{league}/reset', [LeagueController::class, 'resetLeague'])->name('organizations.leagues.reset');
-    Route::get('organizations/{organization}/leagues/{league}/matches/{match}', [LeagueController::class, 'showMatch'])->name('organizations.leagues.matches.show');
-    Route::get('organizations/{organization}/leagues/{league}/matches/{match}/edit', [LeagueController::class, 'editMatch'])->name('organizations.leagues.matches.edit');
-    Route::put('organizations/{organization}/leagues/{league}/matches/{match}', [LeagueController::class, 'updateMatch'])->name('organizations.leagues.matches.update');
-    Route::get('organizations/{organization}/leagues/{league}/matches/{match}/live', [LeagueController::class, 'liveScore'])->name('organizations.leagues.matches.live');
-    Route::post('organizations/{organization}/leagues/{league}/matches/{match}/live-score', [LeagueController::class, 'updateLiveScore'])->name('organizations.leagues.matches.live-score');
-    Route::post('organizations/{organization}/leagues/{league}/matches/{match}/reset', [LeagueController::class, 'resetMatch'])->name('organizations.leagues.matches.reset');
+    Route::post('leagues/{league}/teams', [LeagueController::class, 'addTeam'])->name('leagues.teams.store');
+    Route::put('leagues/{league}/teams/{team}', [LeagueController::class, 'updateTeam'])->name('leagues.teams.update');
+    Route::delete('leagues/{league}/teams/{team}', [LeagueController::class, 'deleteTeam'])->name('leagues.teams.destroy');
+    Route::post('leagues/{league}/teams/{team}/add-player', [LeagueController::class, 'addPlayerToTeam'])->name('leagues.teams.add-player');
+    Route::delete('leagues/{league}/teams/{team}/remove-player/{player}', [LeagueController::class, 'removePlayerFromTeam'])->name('leagues.teams.remove-player');
+    Route::post('leagues/{league}/players', [LeagueController::class, 'addPlayer'])->name('leagues.players.store');
+    Route::post('leagues/{league}/add-players', [LeagueController::class, 'addPlayers'])->name('leagues.addPlayers');
+    Route::patch('leagues/{league}/start', [LeagueController::class, 'startLeague'])->name('leagues.start');
+    Route::post('leagues/{league}/reset', [LeagueController::class, 'resetLeague'])->name('leagues.reset');
+    Route::get('leagues/{league}/matches/{match}', [LeagueController::class, 'showMatch'])->name('leagues.matches.show');
+    Route::get('leagues/{league}/matches/{match}/edit', [LeagueController::class, 'editMatch'])->name('leagues.matches.edit');
+    Route::put('leagues/{league}/matches/{match}', [LeagueController::class, 'updateMatch'])->name('leagues.matches.update');
+    Route::get('leagues/{league}/matches/{match}/live', [LeagueController::class, 'liveScore'])->name('leagues.matches.live');
+    Route::post('leagues/{league}/matches/{match}/live-score', [LeagueController::class, 'updateLiveScore'])->name('leagues.matches.live-score');
+    Route::post('leagues/{league}/matches/{match}/reset', [LeagueController::class, 'resetMatch'])->name('leagues.matches.reset');
     
     // Direct match access routes (for live scoring from competition view)
     Route::get('leagues/matches/{match}/live-score', function($matchId) {

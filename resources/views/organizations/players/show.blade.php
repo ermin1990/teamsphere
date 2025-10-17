@@ -226,7 +226,7 @@
                                 </div>
                                 <div class="mt-2 md:mt-0 text-right">
                                     <div class="text-2xl font-bold text-blue-400">{{ $match->home_score }} : {{ $match->away_score }}</div>
-                                    <a href="{{ route('organizations.leagues.matches.show', [$organization->slug, $match->league->slug, $match->id]) }}" class="text-purple-400 hover:text-purple-300 text-sm font-medium transition-colors mt-2 inline-block">{{ __('View Match') }} →</a>
+                                    <a href="{{ route('leagues.matches.show', [$match->league, $match]) }}" class="text-purple-400 hover:text-purple-300 text-sm font-medium transition-colors mt-2 inline-block">{{ __('View Match') }} →</a>
                                 </div>
                             </div>
                         @endforeach

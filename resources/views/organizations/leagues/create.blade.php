@@ -13,7 +13,7 @@
     <div class="py-12">
         <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-8 border border-gray-700/50 shadow-xl">
-                <form action="{{ route('organizations.leagues.store', $organization) }}" method="POST" id="leagueForm" class="space-y-8">
+                <form action="{{ route('leagues.store', $organization) }}" method="POST" id="leagueForm" class="space-y-8">
                     @csrf
 
                     <!-- League Name -->

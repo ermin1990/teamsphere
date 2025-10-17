@@ -31,11 +31,239 @@
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            
+            <!-- Quick Actions Bar -->
+            @if($isOwner)
+            <div class="mb-6 flex flex-wrap gap-3">
+                @if($competition->status === 'draft')
+                    <a href="{{ route('organizations.competitions.manage-players', [$organization, $competition]) }}"
+                       class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors font-semibold">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                        </svg>
+                        {{ __('Manage Players') }}
+                    </a>
+                @endif
                 
-                <!-- Main Content - Tournament/League Display (3 columns) -->
-                <div class="lg:col-span-3 space-y-6">
-                    
+                <a href="{{ route('organizations.competitions.settings', [$organization, $competition]) }}"
+                   class="inline-flex items-center px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors font-semibold">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    </svg>
+                    {{ __('Settings') }}
+                </a>
+                
+                <a href="{{ route('organizations.show', $organization) }}"
+                   class="inline-flex items-center px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors font-semibold">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                    </svg>
+                    {{ __('Back to Organization') }}
+                </a>
+                
+                @if($competition->status === 'draft')
+                <form action="{{ route('organizations.competitions.destroy', [$organization, $competition]) }}" 
+                      method="POST" 
+                      onsubmit="return confirm('{{ __('Are you sure you want to delete this competition? This action cannot be undone.') }}')"
+                      class="ml-auto">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" 
+                            class="inline-flex items-center px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors font-semibold">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                        </svg>
+                        {{ __('Delete') }}
+                    </button>
+                </form>
+                @endif
+            </div>
+            @endif
+
+            <!-- Competition Info Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <div class="bg-gray-800/50 backdrop-blur-xl rounded-xl p-4 border border-gray-700/50">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-400 text-xs uppercase">{{ __('Sport') }}</p>
+                            <p class="text-white text-lg font-bold mt-1">{{ $competition->sport->name }}</p>
+                        </div>
+                        <div class="w-10 h-10 bg-blue-600/20 rounded-lg flex items-center justify-center">
+                            <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-gray-800/50 backdrop-blur-xl rounded-xl p-4 border border-gray-700/50">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-400 text-xs uppercase">{{ __('Participants') }}</p>
+                            <p class="text-white text-lg font-bold mt-1">{{ $competition->players->count() }}</p>
+                        </div>
+                        <div class="w-10 h-10 bg-purple-600/20 rounded-lg flex items-center justify-center">
+                            <svg class="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-gray-800/50 backdrop-blur-xl rounded-xl p-4 border border-gray-700/50">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-400 text-xs uppercase">{{ __('Format') }}</p>
+                            <p class="text-white text-lg font-bold mt-1">{{ $competition->is_team_based ? __('Team') : __('Individual') }}</p>
+                        </div>
+                        <div class="w-10 h-10 bg-green-600/20 rounded-lg flex items-center justify-center">
+                            <svg class="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                @if($competition->start_date)
+                <div class="bg-gray-800/50 backdrop-blur-xl rounded-xl p-4 border border-gray-700/50">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-400 text-xs uppercase">{{ __('Start Date') }}</p>
+                            <p class="text-white text-lg font-bold mt-1">{{ $competition->start_date->format('M d, Y') }}</p>
+                        </div>
+                        <div class="w-10 h-10 bg-yellow-600/20 rounded-lg flex items-center justify-center">
+                            <svg class="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+                @endif
+            </div>
+
+            <!-- Main Content Area -->
+            <div class="space-y-6">
+
+                    @if($isOwner && $competition->status === 'draft')
+                        <div class="bg-gradient-to-r from-blue-600/20 to-purple-600/20 backdrop-blur-xl rounded-xl p-6 border border-blue-500/30 shadow-xl">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h3 class="text-xl font-bold text-white mb-2">{{ __('Setup Competition') }}</h3>
+                                    <p class="text-gray-300">{{ __('Follow these steps to set up your competition') }}</p>
+                                </div>
+                                <a href="{{ route('organizations.competitions.manage-players', [$organization, $competition]) }}"
+                                   class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-colors font-semibold flex items-center">
+                                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                    </svg>
+                                    {{ __('Manage Players') }}
+                                </a>
+                            </div>
+
+                            <!-- Setup Steps -->
+                            <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div class="bg-gray-800/50 rounded-lg p-4">
+                                    <div class="flex items-center mb-2">
+                                        <div class="w-8 h-8 rounded-full {{ $competition->players->count() > 0 ? 'bg-green-600' : 'bg-gray-600' }} flex items-center justify-center mr-3">
+                                            @if($competition->players->count() > 0)
+                                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                                </svg>
+                                            @else
+                                                <span class="text-white font-bold text-sm">1</span>
+                                            @endif
+                                        </div>
+                                        <h4 class="text-white font-semibold">{{ __('Add Players') }}</h4>
+                                    </div>
+                                    <p class="text-gray-400 text-sm">{{ $competition->players->count() }} {{ __('players added') }}</p>
+                                </div>
+
+                                @if($competition->type === 'tournament')
+                                <div class="bg-gray-800/50 rounded-lg p-4 {{ $competition->tournamentGroups->count() > 0 ? 'cursor-pointer hover:bg-gray-700/50' : '' }} transition-colors"
+                                     @if($competition->tournamentGroups->count() > 0)
+                                     onclick="window.location.href='{{ route('organizations.competitions.setup-groups', [$organization, $competition]) }}'"
+                                     @endif>
+                                    <div class="flex items-center justify-between mb-2">
+                                        <div class="flex items-center">
+                                            <div class="w-8 h-8 rounded-full {{ $competition->tournamentGroups->count() > 0 ? 'bg-green-600' : 'bg-gray-600' }} flex items-center justify-center mr-3">
+                                                @if($competition->tournamentGroups->count() > 0)
+                                                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                                    </svg>
+                                                @else
+                                                    <span class="text-white font-bold text-sm">2</span>
+                                                @endif
+                                            </div>
+                                            <h4 class="text-white font-semibold">{{ __('Setup Groups') }}</h4>
+                                        </div>
+                                        @if($competition->tournamentGroups->count() > 0)
+                                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                        </svg>
+                                        @else
+                                        <a href="{{ route('organizations.competitions.setup-groups', [$organization, $competition]) }}"
+                                           class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-3 py-1 rounded transition-colors">
+                                            {{ __('Setup') }}
+                                        </a>
+                                        @endif
+                                    </div>
+                                    <p class="text-gray-400 text-sm">
+                                        @if($competition->tournamentGroups->count() > 0)
+                                            {{ $competition->tournamentGroups->count() }} {{ __('groups configured') }} - {{ __('Click to edit') }}
+                                        @else
+                                            {{ __('Organize into groups') }}
+                                        @endif
+                                    </p>
+                                </div>
+                                @endif
+
+                                <div class="bg-gray-800/50 rounded-lg p-4">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <div class="flex items-center">
+                                            <div class="w-8 h-8 rounded-full
+                                                @if(($competition->type === 'tournament' && $competition->players->count() > 0 && $competition->tournamentGroups->count() > 0) ||
+                                                    ($competition->type === 'league' && $competition->players->count() > 0))
+                                                    bg-green-600
+                                                @else
+                                                    bg-gray-600
+                                                @endif
+                                                flex items-center justify-center mr-3">
+                                                @if(($competition->type === 'tournament' && $competition->players->count() > 0 && $competition->tournamentGroups->count() > 0) ||
+                                                    ($competition->type === 'league' && $competition->players->count() > 0))
+                                                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                                    </svg>
+                                                @else
+                                                    <span class="text-white font-bold text-sm">{{ $competition->type === 'tournament' ? '3' : '2' }}</span>
+                                                @endif
+                                            </div>
+                                            <h4 class="text-white font-semibold">{{ __('Start Competition') }}</h4>
+                                        </div>
+                                        @if(($competition->type === 'tournament' && $competition->players->count() > 0 && $competition->tournamentGroups->count() > 0) ||
+                                            ($competition->type === 'league' && $competition->players->count() > 0))
+                                        <form method="POST" action="{{ route('organizations.competitions.start', [$organization, $competition]) }}" class="inline">
+                                            @csrf
+                                            <button type="submit"
+                                                    class="bg-green-600 hover:bg-green-700 text-white text-sm px-4 py-2 rounded-lg transition-colors font-semibold">
+                                                🚀 {{ __('Start') }}
+                                            </button>
+                                        </form>
+                                        @endif
+                                    </div>
+                                    <p class="text-gray-400 text-sm">
+                                        @if(($competition->type === 'tournament' && $competition->players->count() > 0 && $competition->tournamentGroups->count() > 0) ||
+                                            ($competition->type === 'league' && $competition->players->count() > 0))
+                                            {{ __('Ready to start!') }}
+                                        @else
+                                            {{ __('Begin matches') }}
+                                        @endif
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+
             <!-- Tournament Groups with Tables and Matches -->
             @if(($competition->status === 'active' || $competition->status === 'completed') && $competition->type === 'tournament')
                 @php
@@ -547,68 +775,33 @@
                     </div>
                 </div>
             @endif
-            
-                </div>
-                
-                <!-- Sidebar - Competition Info & Actions (1 column) -->
-                <div class="space-y-6">
 
-                    <!-- Competition Details -->
-                    <div class="bg-gray-800/50 backdrop-blur-xl rounded-xl p-5 border border-gray-700/50 shadow-xl">
-                        <h3 class="text-base font-bold text-white mb-3">{{ __('Details') }}</h3>
-                        <div class="space-y-2.5">
-                            <div class="flex items-center justify-between py-1.5 border-b border-gray-700/30">
-                                <span class="text-gray-400 text-xs">{{ __('Sport') }}</span>
-                                <span class="text-white text-xs font-medium">{{ $competition->sport->name }}</span>
+                    <!-- Match Rules Section -->
+                    <div class="bg-gray-800/50 backdrop-blur-xl rounded-xl p-6 border border-gray-700/50 shadow-xl">
+                        <h3 class="text-xl font-bold text-white mb-4">{{ __('Match Rules') }}</h3>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div class="bg-gray-700/30 rounded-lg p-4">
+                                <p class="text-gray-400 text-sm mb-1">{{ __('Sets to Win') }}</p>
+                                <p class="text-white text-2xl font-bold">{{ $competition->sets_to_win ?? 2 }}</p>
                             </div>
-                            <div class="flex items-center justify-between py-1.5 border-b border-gray-700/30">
-                                <span class="text-gray-400 text-xs">{{ __('Format') }}</span>
-                                <span class="text-white text-xs font-medium">{{ $competition->is_team_based ? __('Team') : __('Individual') }}</span>
+                            <div class="bg-gray-700/30 rounded-lg p-4">
+                                <p class="text-gray-400 text-sm mb-1">{{ __('Points per Set') }}</p>
+                                <p class="text-white text-2xl font-bold">{{ $competition->points_per_set ?? 11 }}</p>
                             </div>
-                            @if($competition->start_date)
-                            <div class="flex items-center justify-between py-1.5 border-b border-gray-700/30">
-                                <span class="text-gray-400 text-xs">{{ __('Start') }}</span>
-                                <span class="text-white text-xs font-medium">{{ $competition->start_date->format('M d, Y') }}</span>
+                            <div class="bg-gray-700/30 rounded-lg p-4">
+                                <p class="text-gray-400 text-sm mb-1">{{ __('Win by Two') }}</p>
+                                <p class="text-white text-2xl font-bold">{{ $competition->must_win_by_two ? __('Yes') : __('No') }}</p>
                             </div>
-                            @endif
                             @if($competition->type === 'tournament')
-                            <div class="flex items-center justify-between py-1.5 border-b border-gray-700/30">
-                                <span class="text-gray-400 text-xs">{{ __('Players') }}</span>
-                                <span class="text-white text-xs font-medium">{{ $competition->players->count() }}/{{ $competition->max_participants }}</span>
-                            </div>
-                            <div class="flex items-center justify-between py-1.5 border-b border-gray-700/30">
-                                <span class="text-gray-400 text-xs">{{ __('Phase') }}</span>
-                                <span class="text-white text-xs font-medium">{{ ucfirst($competition->current_phase ?? 'groups') }}</span>
+                            <div class="bg-gray-700/30 rounded-lg p-4">
+                                <p class="text-gray-400 text-sm mb-1">{{ __('Win Points') }}</p>
+                                <p class="text-white text-2xl font-bold">{{ $competition->points_for_win ?? 2 }}</p>
                             </div>
                             @endif
-                        </div>
-                        
-                        <!-- Match Rules -->
-                        <div class="mt-4 pt-4 border-t border-gray-700/30">
-                            <h4 class="text-xs font-semibold text-gray-400 mb-2 uppercase">{{ __('Match Rules') }}</h4>
-                            <div class="grid grid-cols-2 gap-2">
-                                <div class="bg-gray-700/20 rounded p-2">
-                                    <p class="text-gray-400 text-[10px]">{{ __('Sets') }}</p>
-                                    <p class="text-white text-xs font-bold">{{ $competition->sets_to_win ?? 2 }}</p>
-                                </div>
-                                <div class="bg-gray-700/20 rounded p-2">
-                                    <p class="text-gray-400 text-[10px]">{{ __('Points') }}</p>
-                                    <p class="text-white text-xs font-bold">{{ $competition->points_per_set ?? 11 }}</p>
-                                </div>
-                                <div class="bg-gray-700/20 rounded p-2">
-                                    <p class="text-gray-400 text-[10px]">{{ __('Deuce') }}</p>
-                                    <p class="text-white text-xs font-bold">{{ $competition->must_win_by_two ? 'Yes' : 'No' }}</p>
-                                </div>
-                                @if($competition->type === 'tournament')
-                                <div class="bg-gray-700/20 rounded p-2">
-                                    <p class="text-gray-400 text-[10px]">{{ __('Win Pts') }}</p>
-                                    <p class="text-white text-xs font-bold">{{ $competition->points_for_win ?? 2 }}</p>
-                                </div>
-                                @endif
-                            </div>
                         </div>
                     </div>
 
+                    <!-- Tournament Groups Preview (Draft Only) -->
                     @if($competition->status === 'draft' && $competition->type === 'tournament' && $competition->tournamentGroups->count() > 0)
                     <!-- Tournament Groups (Draft Only) -->
                     <div class="bg-gray-800/50 backdrop-blur-xl rounded-xl p-5 border border-gray-700/50 shadow-xl">
@@ -645,202 +838,11 @@
                     </div>
                     @endif
 
-                    <!-- Participants (Compact) -->
-                    @if($competition->status === 'draft')
-                    <div class="bg-gray-800/50 backdrop-blur-xl rounded-xl p-5 border border-gray-700/50 shadow-xl">
-                        <div class="flex items-center justify-between mb-3">
-                            <h3 class="text-base font-bold text-white">
-                                {{ __('Participants') }}
-                                <span class="text-gray-400 text-xs ml-1">({{ $competition->players->count() }}/{{ $competition->max_participants ?? '∞' }})</span>
-                            </h3>
-                            @if($isOwner)
-                            <button onclick="document.getElementById('addPlayerModal').classList.remove('hidden')" 
-                                    class="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-xs transition-colors">
-                                + {{ __('Add') }}
-                            </button>
-                            @endif
-                        </div>
-
-                        @if($competition->players->count() > 0)
-                        <div class="space-y-1.5 max-h-48 overflow-y-auto">
-                            @foreach($competition->players as $player)
-                            <div class="flex items-center justify-between bg-gray-700/20 rounded p-1.5 hover:bg-gray-700/30 transition-colors">
-                                <div class="flex items-center space-x-2 min-w-0 flex-1">
-                                    <div class="w-6 h-6 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
-                                        <span class="text-white font-bold text-[9px]">{{ substr($player->name, 0, 2) }}</span>
-                                    </div>
-                                    <span class="text-white text-xs truncate">{{ $player->name }}</span>
-                                </div>
-                                @if($isOwner)
-                                <form action="{{ route('organizations.competitions.remove-player', [$organization, $competition, $player]) }}" method="POST">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="text-red-400 hover:text-red-300 transition-colors">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                                        </svg>
-                                    </button>
-                                </form>
-                                @endif
-                            </div>
-                            @endforeach
-                        </div>
-                        @else
-                        <div class="text-center py-4">
-                            <p class="text-gray-500 text-xs">{{ __('No participants yet') }}</p>
-                        </div>
-                        @endif
-                    </div>
-                    @endif
-
-                    <!-- Actions -->
-                    @if($isOwner)
-                    <div class="bg-gray-800/50 backdrop-blur-xl rounded-xl p-5 border border-gray-700/50 shadow-xl">
-                        <h3 class="text-base font-bold text-white mb-3">{{ __('Actions') }}</h3>
-                        <div class="space-y-2">
-                            @if($competition->status === 'draft')
-                                <a href="{{ route('organizations.competitions.settings', [$organization, $competition]) }}" 
-                                   class="w-full bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition-colors inline-block text-center">
-                                    ⚙️ {{ __('Competition Settings') }}
-                                </a>
-                            @endif
-
-                            @if($competition->status === 'draft' && $competition->type === 'tournament' && $competition->players->count() >= 4)
-                                @if($competition->tournamentGroups->count() === 0)
-                                    <a href="{{ route('organizations.competitions.setup-groups', [$organization, $competition]) }}" 
-                                       class="w-full bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors inline-block text-center">
-                                        {{ __('Setup Groups Manually') }}
-                                    </a>
-                                    <form action="{{ route('organizations.competitions.generate-groups', [$organization, $competition]) }}" method="POST">
-                                        @csrf
-                                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
-                                            {{ __('Auto Generate Groups') }}
-                                        </button>
-                                    </form>
-                                @else
-                                    <a href="{{ route('organizations.competitions.setup-groups', [$organization, $competition]) }}" 
-                                       class="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors inline-block text-center">
-                                        {{ __('Edit Groups') }}
-                                    </a>
-                                    <form action="{{ route('organizations.competitions.start', [$organization, $competition]) }}" method="POST">
-                                        @csrf
-                                        <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors">
-                                            {{ __('🚀 Start Tournament') }}
-                                        </button>
-                                    </form>
-                                @endif
-                            @endif
-
-                            @if($competition->status === 'draft' && $competition->type === 'league' && $competition->players->count() >= 2)
-                            <form action="{{ route('organizations.competitions.start', [$organization, $competition]) }}" method="POST">
-                                @csrf
-                                <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors">
-                                    {{ __('Start League') }}
-                                </button>
-                            </form>
-                            @endif
-
-                            <a href="{{ route('organizations.show', $organization) }}"
-                               class="w-full bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors inline-block text-center">
-                                {{ __('Back to Organization') }}
-                            </a>
-
-                            <!-- Danger Zone -->
-                            @if($competition->status === 'active')
-                            <div class="mt-6 pt-6 border-t border-gray-700">
-                                <h4 class="text-sm font-semibold text-red-400 mb-3">{{ __('Danger Zone') }}</h4>
-                                <form action="{{ route('organizations.competitions.reset', [$organization, $competition]) }}" 
-                                      method="POST" 
-                                      onsubmit="return confirm('Are you sure you want to reset this competition? All matches, groups, and standings will be deleted!');">
-                                    @csrf
-                                    <button type="submit" class="w-full bg-yellow-600/20 hover:bg-yellow-600/30 text-yellow-400 px-4 py-2 rounded-lg transition-colors mb-2">
-                                        🔄 {{ __('Reset Competition') }}
-                                    </button>
-                                </form>
-                            </div>
-                            @endif
-
-                            @if($competition->status === 'draft')
-                            <div class="mt-6 pt-6 border-t border-gray-700">
-                                <h4 class="text-sm font-semibold text-red-400 mb-3">{{ __('Danger Zone') }}</h4>
-                                <form action="{{ route('organizations.competitions.destroy', [$organization, $competition]) }}" 
-                                      method="POST" 
-                                      onsubmit="return confirm('Are you sure you want to delete this competition? This action cannot be undone!');">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="w-full bg-red-600/20 hover:bg-red-600/30 text-red-400 px-4 py-2 rounded-lg transition-colors">
-                                        🗑️ {{ __('Delete Competition') }}
-                                    </button>
-                                </form>
-                            </div>
-                            @endif
-                        </div>
-
-                        @if($competition->status === 'draft')
-                        <div class="mt-4 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-                            <p class="text-blue-400 text-xs">
-                                @if($competition->type === 'tournament')
-                                    @if($competition->tournamentGroups->count() === 0)
-                                        {{ __('Add at least 4 players, then setup groups to start') }}
-                                    @else
-                                        {{ __('✓ Groups are ready! You can now start the tournament') }}
-                                    @endif
-                                @else
-                                    {{ __('Add at least 2 players to start') }}
-                                @endif
-                            </p>
-                        </div>
-                        @endif
-                    </div>
-                    @endif
-
-                </div>
-
             </div>
         </div>
     </div>
 
-    <!-- Add Player Modal -->
-    <div id="addPlayerModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-gray-800 rounded-2xl p-6 max-w-md w-full border border-gray-700 shadow-xl">
-            <div class="flex items-center justify-between mb-6">
-                <h3 class="text-xl font-semibold text-white">{{ __('Add Player to Competition') }}</h3>
-                <button onclick="document.getElementById('addPlayerModal').classList.add('hidden')" class="text-gray-400 hover:text-white">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                </button>
-            </div>
 
-            <form action="{{ route('organizations.competitions.add-player', [$organization, $competition]) }}" method="POST">
-                @csrf
-                <div class="space-y-4">
-                    <div>
-                        <label for="player_id" class="block text-sm font-medium text-white mb-2">{{ __('Select Player') }}</label>
-                        <select id="player_id" name="player_id" required 
-                                class="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <option value="">{{ __('Choose a player...') }}</option>
-                            @foreach($organization->players->whereNotIn('id', $competition->players->pluck('id')) as $player)
-                            <option value="{{ $player->id }}">{{ $player->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div class="flex space-x-3">
-                        <button type="button" 
-                                onclick="document.getElementById('addPlayerModal').classList.add('hidden')"
-                                class="flex-1 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors">
-                            {{ __('Cancel') }}
-                        </button>
-                        <button type="submit" 
-                                class="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
-                            {{ __('Add Player') }}
-                        </button>
-                    </div>
-                </div>
-            </form>
-        </div>
-    </div>
 
     <!-- Quick Result Modal -->
     <div id="quickResultModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">

@@ -122,6 +122,46 @@ class CompetitionController extends Controller
             abort(404);
         }
 
+        // Generate group matches if tournament is active but no matches exist
+        if ($competition->isTournament() && $competition->status === 'active' && $competition->tournamentGroups()->count() > 0) {
+            $existingMatches = \App\Models\CompetitionMatch::where('competition_id', $competition->id)
+                ->whereNotNull('tournament_group_id')
+                ->count();
+            if ($existingMatches === 0) {
+                $competition->generateGroupMatches();
+            }
+        }
+
+        // Ensure standings exist for tournament groups
+        if ($competition->isTournament() && $competition->tournamentGroups()->count() > 0) {
+            foreach ($competition->tournamentGroups as $group) {
+                $existingStandings = \App\Models\Standing::where('competition_id', $competition->id)
+                    ->where('tournament_group_id', $group->id)
+                    ->count();
+                if ($existingStandings === 0) {
+                    foreach ($group->player_ids as $playerId) {
+                        \App\Models\Standing::create([
+                            'competition_id' => $competition->id,
+                            'tournament_group_id' => $group->id,
+                            'player_id' => $playerId,
+                            'played' => 0,
+                            'won' => 0,
+                            'drawn' => 0,
+                            'lost' => 0,
+                            'points' => 0,
+                            'sets_won' => 0,
+                            'sets_lost' => 0,
+                            'points_won' => 0,
+                            'points_lost' => 0,
+                            'goals_for' => 0,
+                            'goals_against' => 0,
+                            'goal_difference' => 0,
+                        ]);
+                    }
+                }
+            }
+        }
+
         $competition->load([
             'sport',
             'teams.players',
@@ -137,6 +177,34 @@ class CompetitionController extends Controller
         $organization->load('players');
 
         return view('organizations.competitions.show', compact('organization', 'competition', 'isOwner', 'isPlayer', 'isReferee'));
+    }
+
+    /**
+     * Show the manage players page.
+     */
+    public function managePlayers(Organization $organization, Competition $competition)
+    {
+        // Ensure user owns this organization
+        if ($organization->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        // Ensure competition belongs to organization
+        if ($competition->organization_id !== $organization->id) {
+            abort(404);
+        }
+
+        // Ensure competition is in draft status
+        if ($competition->status !== 'draft') {
+            return redirect()
+                ->route('organizations.competitions.show', [$organization, $competition])
+                ->with('error', __('Can only manage players for draft competitions.'));
+        }
+
+        $competition->load(['sport', 'players']);
+        $organization->load('players');
+
+        return view('organizations.competitions.manage-players', compact('organization', 'competition'));
     }
 
     /**
@@ -288,22 +356,46 @@ class CompetitionController extends Controller
         $request->validate([
             'groups' => ['required', 'array'],
             'groups.*' => ['required', 'array'],
-            'groups.*.players' => ['required', 'array', 'min:' . $competition->players_per_group, 'max:' . $competition->players_per_group],
+            'groups.*.players' => ['required', 'array', 'min:2', 'max:' . $competition->players_per_group],
             'groups.*.players.*' => ['exists:players,id'],
         ]);
 
         // Delete existing groups
         $competition->tournamentGroups()->delete();
 
+        // Delete existing standings for this competition
+        Standing::where('competition_id', $competition->id)->delete();
+
         // Create new groups
         foreach ($request->groups as $index => $groupData) {
-            TournamentGroup::create([
+            $group = TournamentGroup::create([
                 'competition_id' => $competition->id,
                 'name' => chr(65 + $index),
                 'group_number' => $index + 1,
                 'player_ids' => $groupData['players'],
                 'standings' => $competition->initializeGroupStandings($groupData['players']),
             ]);
+
+            // Create Standing records for each player in the group
+            foreach ($groupData['players'] as $playerId) {
+                Standing::create([
+                    'competition_id' => $competition->id,
+                    'tournament_group_id' => $group->id,
+                    'player_id' => $playerId,
+                    'played' => 0,
+                    'won' => 0,
+                    'drawn' => 0,
+                    'lost' => 0,
+                    'points' => 0,
+                    'sets_won' => 0,
+                    'sets_lost' => 0,
+                    'points_won' => 0,
+                    'points_lost' => 0,
+                    'goals_for' => 0,
+                    'goals_against' => 0,
+                    'goal_difference' => 0,
+                ]);
+            }
         }
 
         return redirect()
