@@ -297,6 +297,9 @@ class LeagueController extends Controller
             'is_active' => true,
         ]);
 
+        // Clear league cache
+        League::clearLeagueCache();
+
         return redirect()->route('organizations.show', $organization)->with('success', __('League created successfully!'));
     }
 

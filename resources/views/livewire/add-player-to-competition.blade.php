@@ -65,6 +65,12 @@
             @endforelse
         </div>
 
+        @if($availablePlayers->hasPages())
+            <div class="mt-4">
+                {{ $availablePlayers->links() }}
+            </div>
+        @endif
+
         @if(count($availablePlayers) > 0)
             <div class="flex items-center justify-between mt-4">
                 <div class="text-sm text-gray-400">

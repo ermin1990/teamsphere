@@ -63,10 +63,12 @@
                 
                 <!-- Main Content - Add Players (2 columns) -->
                 <div class="lg:col-span-2">
-                    @livewire('add-player-to-competition', ['organization' => $organization, 'competition' => $competition])
+                    @livewire('add-player-to-competition', ['organization' => $organization, 'competition' => $competition], key('add-player-' . $competition->id))
 
                     <!-- Current Participants -->
-                    <div class="mt-6 bg-gray-800/50 backdrop-blur-xl rounded-xl p-6 border border-gray-700/50 shadow-xl">
+                    <div class="mt-6 bg-gray-800/50 backdrop-blur-xl rounded-xl p-6 border border-gray-700/50 shadow-xl"
+                         wire:poll.5s="refreshParticipants"
+                         id="participants-list">
                         <h3 class="text-xl font-bold text-white mb-4">
                             Trenutni Učesnici
                             <span class="text-gray-400 text-sm ml-2">({{ $competition->players->count() }}/{{ $competition->max_participants ?? '∞' }})</span>
@@ -85,15 +87,7 @@
                                                 <p class="text-gray-400 text-xs truncate">{{ $player->email }}</p>
                                             </div>
                                         </div>
-                                        <form action="{{ route('organizations.competitions.remove-player', [$organization, $competition, $player]) }}" method="POST">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="text-red-400 hover:text-red-300 transition-colors ml-2">
-                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                                                </svg>
-                                            </button>
-                                        </form>
+                                        @livewire('remove-player-from-competition', ['organization' => $organization, 'competition' => $competition, 'player' => $player], key('remove-player-' . $player->id))
                                     </div>
                                 @endforeach
                             </div>
@@ -222,4 +216,18 @@
             </div>
         </div>
     </div>
+
+    <script>
+        document.addEventListener('livewire:loaded', () => {
+            Livewire.on('players-added', () => {
+                // Refresh the participants list
+                location.reload();
+            });
+
+            Livewire.on('player-removed', () => {
+                // Refresh the participants list
+                location.reload();
+            });
+        });
+    </script>
 </x-app-layout>

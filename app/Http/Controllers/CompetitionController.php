@@ -95,6 +95,9 @@ class CompetitionController extends Controller
             'current_phase' => 'groups',
         ]);
 
+        // Clear organization cache
+        Organization::clearOrganizationCache();
+
         return redirect()
             ->route('organizations.competitions.show', [$organization, $competition])
             ->with('success', 'Takmičenje uspješno kreirano!');
@@ -165,10 +168,10 @@ class CompetitionController extends Controller
         $competition->load([
             'sport',
             'teams.players',
-            // 'matches.homeTeam',
-            // 'matches.awayTeam',
-            // 'matches.homePlayer',
-            // 'matches.awayPlayer',
+            'matches.homeTeam',
+            'matches.awayTeam',
+            'matches.homePlayer',
+            'matches.awayPlayer',
             'players',
             'standings',
             'tournamentGroups'
