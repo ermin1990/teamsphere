@@ -18,11 +18,11 @@
                 </span>
                 @if($competition->type === 'tournament')
                 <span class="px-3 py-1 text-sm rounded-full bg-purple-500/20 text-purple-400">
-                    {{ __('Tournament') }}
+                    Turnir
                 </span>
                 @else
                 <span class="px-3 py-1 text-sm rounded-full bg-blue-500/20 text-blue-400">
-                    {{ __('League') }}
+                    Liga
                 </span>
                 @endif
             </div>
@@ -41,7 +41,7 @@
                         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
                         </svg>
-                        {{ __('Manage Players') }}
+                        Upravljaj Igračima
                     </a>
                 @endif
                 
@@ -51,7 +51,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                     </svg>
-                    {{ __('Settings') }}
+                    Postavke
                 </a>
                 
                 <a href="{{ route('organizations.show', $organization) }}"
@@ -59,13 +59,13 @@
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
                     </svg>
-                    {{ __('Back to Organization') }}
+                    Nazad na Organizaciju
                 </a>
                 
                 @if($competition->status === 'draft')
                 <form action="{{ route('organizations.competitions.destroy', [$organization, $competition]) }}" 
                       method="POST" 
-                      onsubmit="return confirm('{{ __('Are you sure you want to delete this competition? This action cannot be undone.') }}')"
+                      onsubmit="return confirm('Da li ste sigurni da želite obrisati ovo takmičenje? Ova akcija se ne može poništiti.')"
                       class="ml-auto">
                     @csrf
                     @method('DELETE')
@@ -74,7 +74,7 @@
                         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                         </svg>
-                        {{ __('Delete') }}
+                        Obriši
                     </button>
                 </form>
                 @endif
@@ -89,7 +89,7 @@
                 <div class="bg-gray-800/50 backdrop-blur-xl rounded-xl p-4 border border-gray-700/50">
                     <div class="flex items-center justify-between">
                         <div>
-                            <p class="text-gray-400 text-xs uppercase">{{ __('Sport') }}</p>
+                            <p class="text-gray-400 text-xs uppercase">Sport</p>
                             <p class="text-white text-lg font-bold mt-1">{{ $competition->sport->name }}</p>
                         </div>
                         <div class="w-10 h-10 bg-blue-600/20 rounded-lg flex items-center justify-center">
@@ -103,7 +103,7 @@
                 <div class="bg-gray-800/50 backdrop-blur-xl rounded-xl p-4 border border-gray-700/50">
                     <div class="flex items-center justify-between">
                         <div>
-                            <p class="text-gray-400 text-xs uppercase">{{ __('Participants') }}</p>
+                            <p class="text-gray-400 text-xs uppercase">Učesnici</p>
                             <p class="text-white text-lg font-bold mt-1">{{ $competition->players->count() }}</p>
                         </div>
                         <div class="w-10 h-10 bg-purple-600/20 rounded-lg flex items-center justify-center">
@@ -117,8 +117,8 @@
                 <div class="bg-gray-800/50 backdrop-blur-xl rounded-xl p-4 border border-gray-700/50">
                     <div class="flex items-center justify-between">
                         <div>
-                            <p class="text-gray-400 text-xs uppercase">{{ __('Format') }}</p>
-                            <p class="text-white text-lg font-bold mt-1">{{ $competition->is_team_based ? __('Team') : __('Individual') }}</p>
+                            <p class="text-gray-400 text-xs uppercase">Format</p>
+                            <p class="text-white text-lg font-bold mt-1">{{ $competition->is_team_based ? 'Tim' : 'Individualno' }}</p>
                         </div>
                         <div class="w-10 h-10 bg-green-600/20 rounded-lg flex items-center justify-center">
                             <svg class="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -132,7 +132,7 @@
                 <div class="bg-gray-800/50 backdrop-blur-xl rounded-xl p-4 border border-gray-700/50">
                     <div class="flex items-center justify-between">
                         <div>
-                            <p class="text-gray-400 text-xs uppercase">{{ __('Start Date') }}</p>
+                            <p class="text-gray-400 text-xs uppercase">Datum Početka</p>
                             <p class="text-white text-lg font-bold mt-1">{{ $competition->start_date->format('M d, Y') }}</p>
                         </div>
                         <div class="w-10 h-10 bg-yellow-600/20 rounded-lg flex items-center justify-center">
@@ -149,15 +149,15 @@
                         <div class="bg-gradient-to-r from-blue-600/20 to-purple-600/20 backdrop-blur-xl rounded-xl p-6 border border-blue-500/30 shadow-xl">
                             <div class="flex items-center justify-between">
                                 <div>
-                                    <h3 class="text-xl font-bold text-white mb-2">{{ __('Setup Competition') }}</h3>
-                                    <p class="text-gray-300">{{ __('Follow these steps to set up your competition') }}</p>
+                                    <h3 class="text-xl font-bold text-white mb-2">Postavi Takmičenje</h3>
+                                    <p class="text-gray-300">Pratite ove korake da postavite vaše takmičenje</p>
                                 </div>
                                 <a href="{{ route('organizations.competitions.manage-players', [$organization, $competition]) }}"
                                    class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-colors font-semibold flex items-center">
                                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                                     </svg>
-                                    {{ __('Manage Players') }}
+                                    Upravljaj Igračima
                                 </a>
                             </div>
 
@@ -174,9 +174,9 @@
                                                 <span class="text-white font-bold text-sm">1</span>
                                             @endif
                                         </div>
-                                        <h4 class="text-white font-semibold">{{ __('Add Players') }}</h4>
+                                        <h4 class="text-white font-semibold">Dodaj Igrače</h4>
                                     </div>
-                                    <p class="text-gray-400 text-sm">{{ $competition->players->count() }} {{ __('players added') }}</p>
+                                    <p class="text-gray-400 text-sm">{{ $competition->players->count() }} igrača dodano</p>
                                 </div>
 
                                 @if($competition->type === 'tournament')
@@ -195,7 +195,7 @@
                                                     <span class="text-white font-bold text-sm">2</span>
                                                 @endif
                                             </div>
-                                            <h4 class="text-white font-semibold">{{ __('Setup Groups') }}</h4>
+                                            <h4 class="text-white font-semibold">Postavi Grupe</h4>
                                         </div>
                                         @if($competition->tournamentGroups->count() > 0)
                                         <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -204,13 +204,13 @@
                                         @else
                                         <a href="{{ route('organizations.competitions.setup-groups', [$organization, $competition]) }}"
                                            class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-3 py-1 rounded transition-colors">
-                                            {{ __('Setup') }}
+                                            Postavi
                                         </a>
                                         @endif
                                     </div>
                                     <p class="text-gray-400 text-sm">
                                         @if($competition->tournamentGroups->count() > 0)
-                                            {{ $competition->tournamentGroups->count() }} {{ __('groups configured') }} - {{ __('Click to edit') }}
+                                            {{ $competition->tournamentGroups->count() }} grupa konfigurirano - Kliknite za uređivanje
                                         @else
                                             {{ __('Organize into groups') }}
                                         @endif

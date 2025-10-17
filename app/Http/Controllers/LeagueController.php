@@ -287,11 +287,12 @@ class LeagueController extends Controller
             'description' => $request->description,
             'organization_id' => $organization->id,
             'sport_id' => $request->sport_id,
+            'type' => 'league',
             'is_team_based' => $request->is_team_based,
             'status' => 'draft',
             'start_date' => $request->start_date,
             'end_date' => $request->end_date,
-            'max_teams' => null, // Will be configured later
+            // 'max_teams' => null, // Will be configured later - using database default
             'settings' => [], // Empty settings - will be configured later
             'is_active' => true,
         ]);

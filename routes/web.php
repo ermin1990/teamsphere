@@ -26,13 +26,16 @@ Route::get('/dashboard', function () {
     $players = \App\Models\Player::where('user_id', $user->id)->with('organization', 'homeMatches', 'awayMatches')->get();
 
     // Get organizations from players
-    $playerOrganizations = $players->pluck('organization')->unique();
+    $playerOrganizationIds = $players->pluck('organization_id')->unique()->filter();
     
     // Get organizations owned by user
-    $ownedOrganizations = $user->organizations()->with(['leagues', 'competitions'])->get();
+    $ownedOrganizationIds = $user->organizations()->pluck('id');
     
-    // Merge both collections and remove duplicates
-    $organizations = $playerOrganizations->merge($ownedOrganizations)->unique('id');
+    // Merge organization IDs and get unique ones
+    $allOrganizationIds = $playerOrganizationIds->merge($ownedOrganizationIds)->unique();
+    
+    // Load all organizations with relationships
+    $organizations = \App\Models\Organization::whereIn('id', $allOrganizationIds)->with(['leagues', 'competitions'])->get();
 
     // Get upcoming matches for this player
     $upcomingMatches = collect();

@@ -50,7 +50,7 @@ class CompetitionController extends Controller
             $request->validate([
                 'name' => ['required', 'string', 'max:255'],
                 'sport_id' => ['required', 'exists:sports,id'],
-                'type' => ['required', 'in:league,tournament'],
+                'type' => ['required', 'in:tournament,knockout'],
                 'start_date' => ['required', 'date'],
                 // Temporarily simplified validation
                 // 'description' => ['nullable', 'string', 'max:1000'],
@@ -97,7 +97,7 @@ class CompetitionController extends Controller
 
         return redirect()
             ->route('organizations.competitions.show', [$organization, $competition])
-            ->with('success', __('Competition created successfully!'));
+            ->with('success', 'Takmičenje uspješno kreirano!');
     }
 
     /**
@@ -486,10 +486,17 @@ class CompetitionController extends Controller
             return back()->with('error', 'Please setup groups before starting the tournament.');
         }
 
-        // Update competition status
+        // Update competition status and current phase
+        $currentPhase = null;
+        if ($competition->isTournament()) {
+            $currentPhase = 'groups';
+        } elseif ($competition->isKnockout()) {
+            $currentPhase = 'knockout';
+        }
+
         $competition->update([
             'status' => 'active',
-            'current_phase' => $competition->isTournament() ? 'groups' : null,
+            'current_phase' => $currentPhase,
         ]);
 
         // Generate matches and standings based on competition type
@@ -498,6 +505,9 @@ class CompetitionController extends Controller
         } elseif ($competition->isLeague()) {
             $competition->generateLeagueMatches();
             $competition->generateLeagueStandings();
+        } elseif ($competition->isKnockout()) {
+            // Generate knockout bracket for knockout tournaments
+            $competition->generateKnockoutBracket();
         }
 
         return back()->with('success', 'Competition started successfully! Matches have been generated.');

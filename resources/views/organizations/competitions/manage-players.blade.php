@@ -3,13 +3,13 @@
         <div class="flex items-center justify-between">
             <div>
                 <h2 class="font-bold text-3xl bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                    {{ __('Manage Players') }}
+                    Upravljaj Igračima
                 </h2>
                 <p class="text-gray-400 mt-1">{{ $competition->name }} - {{ $organization->name }}</p>
             </div>
             <div class="flex items-center space-x-4">
                 <span class="px-3 py-1 text-sm rounded-full bg-yellow-500/20 text-yellow-400">
-                    {{ __('Step 1: Add Players') }}
+                    Korak 1: Dodaj Igrače
                 </span>
             </div>
         </div>
@@ -27,8 +27,8 @@
                                 <span class="text-white font-bold">1</span>
                             </div>
                             <div class="ml-4">
-                                <h3 class="text-white font-semibold">{{ __('Add Players') }}</h3>
-                                <p class="text-gray-400 text-sm">{{ __('Select participants') }}</p>
+                                <h3 class="text-white font-semibold">Dodaj Igrače</h3>
+                                <p class="text-gray-400 text-sm">Odaberite učesnike</p>
                             </div>
                         </div>
                     </div>
@@ -39,8 +39,8 @@
                                 <span class="text-gray-400 font-bold">2</span>
                             </div>
                             <div class="ml-4">
-                                <h3 class="text-gray-400 font-semibold">{{ __('Setup Groups') }}</h3>
-                                <p class="text-gray-500 text-sm">{{ __('Organize participants') }}</p>
+                                <h3 class="text-gray-400 font-semibold">Postavi Grupe</h3>
+                                <p class="text-gray-500 text-sm">Organizujte učesnike</p>
                             </div>
                         </div>
                     </div>
@@ -51,8 +51,8 @@
                                 <span class="text-gray-400 font-bold">3</span>
                             </div>
                             <div class="ml-4">
-                                <h3 class="text-gray-400 font-semibold">{{ __('Start Competition') }}</h3>
-                                <p class="text-gray-500 text-sm">{{ __('Begin matches') }}</p>
+                                <h3 class="text-gray-400 font-semibold">Započni Takmičenje</h3>
+                                <p class="text-gray-500 text-sm">Započni mečeve</p>
                             </div>
                         </div>
                     </div>
@@ -68,7 +68,7 @@
                     <!-- Current Participants -->
                     <div class="mt-6 bg-gray-800/50 backdrop-blur-xl rounded-xl p-6 border border-gray-700/50 shadow-xl">
                         <h3 class="text-xl font-bold text-white mb-4">
-                            {{ __('Current Participants') }}
+                            Trenutni Učesnici
                             <span class="text-gray-400 text-sm ml-2">({{ $competition->players->count() }}/{{ $competition->max_participants ?? '∞' }})</span>
                         </h3>
 
@@ -104,7 +104,7 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
                                     </svg>
                                 </div>
-                                <p class="text-gray-400">{{ __('No players added yet. Use the form above to add players.') }}</p>
+                                <p class="text-gray-400">Još nema dodanih igrača. Koristite obrazac iznad da dodate igrače.</p>
                             </div>
                         @endif
                     </div>
@@ -115,27 +115,27 @@
                     
                     <!-- Competition Info -->
                     <div class="bg-gray-800/50 backdrop-blur-xl rounded-xl p-5 border border-gray-700/50 shadow-xl">
-                        <h3 class="text-base font-bold text-white mb-3">{{ __('Competition Info') }}</h3>
+                        <h3 class="text-base font-bold text-white mb-3">Informacije o Takmičenju</h3>
                         <div class="space-y-2.5">
                             <div class="flex items-center justify-between py-1.5 border-b border-gray-700/30">
-                                <span class="text-gray-400 text-xs">{{ __('Type') }}</span>
+                                <span class="text-gray-400 text-xs">Tip</span>
                                 <span class="text-white text-xs font-medium">{{ ucfirst($competition->type) }}</span>
                             </div>
                             <div class="flex items-center justify-between py-1.5 border-b border-gray-700/30">
-                                <span class="text-gray-400 text-xs">{{ __('Format') }}</span>
-                                <span class="text-white text-xs font-medium">{{ $competition->is_team_based ? __('Team') : __('Individual') }}</span>
+                                <span class="text-gray-400 text-xs">Format</span>
+                                <span class="text-white text-xs font-medium">{{ $competition->is_team_based ? 'Tim' : 'Individualno' }}</span>
                             </div>
                             <div class="flex items-center justify-between py-1.5 border-b border-gray-700/30">
-                                <span class="text-gray-400 text-xs">{{ __('Sport') }}</span>
+                                <span class="text-gray-400 text-xs">Sport</span>
                                 <span class="text-white text-xs font-medium">{{ $competition->sport->name }}</span>
                             </div>
                             @if($competition->type === 'tournament')
                             <div class="flex items-center justify-between py-1.5 border-b border-gray-700/30">
-                                <span class="text-gray-400 text-xs">{{ __('Groups') }}</span>
+                                <span class="text-gray-400 text-xs">Grupe</span>
                                 <span class="text-white text-xs font-medium">{{ $competition->group_count }}</span>
                             </div>
                             <div class="flex items-center justify-between py-1.5 border-b border-gray-700/30">
-                                <span class="text-gray-400 text-xs">{{ __('Per Group') }}</span>
+                                <span class="text-gray-400 text-xs">Po Grupi</span>
                                 <span class="text-white text-xs font-medium">{{ $competition->players_per_group }}</span>
                             </div>
                             @endif
@@ -156,15 +156,15 @@
                                     </svg>
                                 </div>
                                 <div class="ml-3 flex-1">
-                                    <h3 class="text-base font-bold text-white">{{ __('Ready for Next Step!') }}</h3>
-                                    <p class="text-gray-300 text-sm mt-1">{{ __('You have enough players to continue.') }}</p>
+                                    <h3 class="text-base font-bold text-white">Spremni za Sledeći Korak!</h3>
+                                    <p class="text-gray-300 text-sm mt-1">Imate dovoljno igrača da nastavite.</p>
                                 </div>
                             </div>
 
                             @if($competition->type === 'tournament')
                                 <a href="{{ route('organizations.competitions.setup-groups', [$organization, $competition]) }}"
                                    class="block w-full bg-green-600 hover:bg-green-700 text-white text-center px-4 py-3 rounded-lg transition-colors font-semibold">
-                                    {{ __('Continue to Setup Groups') }} →
+                                    Nastavi na Postavljanje Grupa →
                                 </a>
                             @else
                                 <form method="POST" action="{{ route('organizations.competitions.start', [$organization, $competition]) }}">

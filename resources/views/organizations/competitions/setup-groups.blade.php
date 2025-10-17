@@ -6,12 +6,12 @@
             <div class="mb-8">
                 <div class="flex items-center justify-between">
                     <div>
-                        <h1 class="text-3xl font-bold text-white mb-2">{{ __('Setup Tournament Groups') }}</h1>
+                        <h1 class="text-3xl font-bold text-white mb-2">Postavi Grupe Turnira</h1>
                         <p class="text-gray-300">{{ $competition->name }}</p>
                     </div>
                     <a href="{{ route('organizations.competitions.show', [$organization, $competition]) }}" 
                        class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors">
-                        {{ __('Back') }}
+                        Nazad
                     </a>
                 </div>
             </div>
@@ -45,12 +45,12 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
                     <div>
-                        <p class="text-blue-400 font-medium mb-1">{{ __('How to setup groups:') }}</p>
+                        <p class="text-blue-400 font-medium mb-1">Kako postaviti grupe:</p>
                         <ul class="text-blue-300 text-sm space-y-1">
-                            <li>• {{ __('Drag players from the list on the left to groups on the right') }}</li>
-                            <li>• {{ __('Or search and click "Add to Group" button') }}</li>
-                            <li>• {{ __('Each group should have 2-') }}{{ $competition->players_per_group }} {{ __('players') }}</li>
-                            <li>• {{ __('Click "Shuffle" to randomly distribute unassigned players') }}</li>
+                            <li>• Povucite igrače sa liste s lijeva na grupe s desna</li>
+                            <li>• Ili pretražite i kliknite dugme "Dodaj u Grupu"</li>
+                            <li>• Svaka grupa bi trebala imati 2-{{ $competition->players_per_group }} igrača</li>
+                            <li>• Kliknite "Shuffle" da nasumično rasporedite nedodijeljene igrače</li>
                         </ul>
                     </div>
                 </div>
@@ -65,7 +65,7 @@
                     <div class="lg:col-span-1">
                         <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl sticky top-4">
                             <h3 class="text-xl font-semibold text-white mb-4">
-                                {{ __('Available Players') }}
+                                Dostupni Igrači
                                 <span id="unassignedCount" class="text-gray-400 text-sm ml-2"></span>
                             </h3>
                             
@@ -73,7 +73,7 @@
                             <div class="mb-4">
                                 <input type="text" 
                                        id="playerSearch" 
-                                       placeholder="{{ __('Search players...') }}"
+                                       placeholder="Pretraži igrače..."
                                        class="w-full px-4 py-2 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
                             </div>
 
@@ -81,7 +81,7 @@
                             <button type="button" 
                                     id="shuffleBtn"
                                     class="w-full mb-4 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors">
-                                {{ __('🎲 Shuffle Remaining Players') }}
+                                🎲 Shuffle Preostale Igrače
                             </button>
 
                             <!-- Players List -->
@@ -102,7 +102,7 @@
                                         </div>
                                         <button type="button" 
                                                 class="add-to-group-btn hidden bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-xs transition-colors">
-                                            {{ __('Add') }}
+                                            Dodaj
                                         </button>
                                     </div>
                                 </div>
@@ -119,10 +119,10 @@
                                  data-group-index="{{ $index }}">
                                 <div class="flex items-center justify-between mb-4">
                                     <h3 class="text-xl font-semibold text-white">
-                                        {{ __('Group') }} {{ $group['name'] }}
+                                        Grupa {{ $group['name'] }}
                                     </h3>
                                     <span class="group-count text-sm px-3 py-1 rounded-full bg-gray-700">
-                                        <span class="current-count">0</span> {{ __('players') }}
+                                        <span class="current-count">0</span> igrača
                                     </span>
                                 </div>
 
@@ -133,7 +133,7 @@
 
                                 <button type="button" 
                                         class="clear-group-btn mt-4 w-full bg-red-600/20 hover:bg-red-600/30 text-red-400 px-4 py-2 rounded-lg transition-colors text-sm">
-                                    {{ __('Clear Group') }}
+                                    Očisti Grupu
                                 </button>
                             </div>
                             @endforeach
@@ -144,12 +144,12 @@
                             <button type="submit" 
                                     id="saveBtn"
                                     class="flex-1 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed">
-                                {{ __('Save Groups & Continue') }}
+                                Sačuvaj Grupe i Nastavi
                             </button>
                             <button type="button" 
                                     id="resetBtn"
                                     class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg transition-colors">
-                                {{ __('Reset All') }}
+                                Resetuj Sve
                             </button>
                         </div>
                     </div>

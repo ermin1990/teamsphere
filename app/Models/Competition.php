@@ -172,6 +172,14 @@ class Competition extends Model
     }
 
     /**
+     * Check if this is a knockout tournament.
+     */
+    public function isKnockout(): bool
+    {
+        return $this->type === 'knockout';
+    }
+
+    /**
      * Check if groups phase is completed.
      */
     public function isGroupsCompleted(): bool
@@ -342,9 +350,18 @@ class Competition extends Model
     }
 
     /**
+     * Generate knockout bracket for this competition.
+     */
+    public function generateKnockoutBracket()
+    {
+        $playerIds = $this->players()->pluck('id')->toArray();
+        $this->generateKnockoutBracketFromPlayers($playerIds);
+    }
+
+    /**
      * Generate knockout bracket from advancing players.
      */
-    private function generateKnockoutBracket(array $playerIds)
+    private function generateKnockoutBracketFromPlayers(array $playerIds)
     {
         // Handle odd number of players by adding byes
         $totalPlayers = count($playerIds);
@@ -396,50 +413,6 @@ class Competition extends Model
                 $this->generateMatchesFromBracket($bracket['right'], $roundNumber);
             }
         }
-    }
-
-    /**
-     * Get the next power of 2 for bracket size.
-     */
-    private function getNextPowerOfTwo(int $number): int
-    {
-        if ($number <= 1) return 1;
-        $power = 1;
-        while ($power < $number) {
-            $power *= 2;
-        }
-        return $power;
-    }
-
-    /**
-     * Generate bracket rounds recursively.
-     */
-    private function generateBracketRounds(array $players, int $roundNumber): array
-    {
-        if (count($players) <= 2) {
-            return [
-                'round' => $roundNumber,
-                'matches' => [
-                    [
-                        'player1_id' => $players[0],
-                        'player2_id' => $players[1] ?? null,
-                        'winner_id' => null,
-                        'is_bye' => $players[1] === null,
-                    ]
-                ]
-            ];
-        }
-
-        $mid = count($players) / 2;
-        $leftBracket = $this->generateBracketRounds(array_slice($players, 0, $mid), $roundNumber);
-        $rightBracket = $this->generateBracketRounds(array_slice($players, $mid), $roundNumber);
-
-        return [
-            'round' => $roundNumber,
-            'left' => $leftBracket,
-            'right' => $rightBracket,
-            'final_match' => null, // Will be set when this round's winner is determined
-        ];
     }
 
     /**
@@ -517,5 +490,55 @@ class Competition extends Model
                 'goal_difference' => 0,
             ]);
         }
+    }
+
+    /**
+     * Get the next power of two for bracket size.
+     */
+    private function getNextPowerOfTwo(int $number): int
+    {
+        return (int) pow(2, ceil(log($number, 2)));
+    }
+
+    /**
+     * Generate bracket rounds recursively.
+     */
+    private function generateBracketRounds(array $players, int $roundNumber): array
+    {
+        $totalPlayers = count($players);
+
+        if ($totalPlayers <= 2) {
+            // Final match
+            return [
+                'round' => $roundNumber,
+                'matches' => [
+                    [
+                        'player1_id' => $players[0],
+                        'player2_id' => $players[1] ?? null,
+                        'is_bye' => $players[1] === null,
+                    ]
+                ],
+                'final_match' => null,
+            ];
+        }
+
+        // Split players into two halves
+        $half = $totalPlayers / 2;
+        $leftPlayers = array_slice($players, 0, $half);
+        $rightPlayers = array_slice($players, $half);
+
+        $leftBracket = $this->generateBracketRounds($leftPlayers, $roundNumber);
+        $rightBracket = $this->generateBracketRounds($rightPlayers, $roundNumber);
+
+        return [
+            'round' => $roundNumber,
+            'left' => $leftBracket,
+            'right' => $rightBracket,
+            'final_match' => [
+                'player1_id' => null, // Will be winner of left bracket
+                'player2_id' => null, // Will be winner of right bracket
+                'is_bye' => false,
+            ],
+        ];
     }
 }
