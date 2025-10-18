@@ -196,7 +196,7 @@
         });
     </script>
 </head>
-<body class="antialiased bg-gray-900 text-white min-h-screen pb-16 md:pb-8">
+<body class="antialiased bg-gray-900 text-white min-h-screen pb-16 md:pb-8 px-4">
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <!-- Navigation Menu (Desktop only) -->
@@ -299,15 +299,15 @@
                         @if($matchesByRound->count() > 0)
                         <div class="space-y-3 md:space-y-5">
                             @foreach($matchesByRound as $round => $roundMatches)
-                            <div class="bg-gray-800/50 backdrop-blur-xl rounded-xl p-3 md:p-5 border border-gray-700/50 shadow-xl">
+                            <div>
                                 <h4 class="text-xs md:text-base font-semibold text-center mb-3 md:mb-4 text-gray-400 uppercase tracking-wider">
                                     Kolo {{ $round }}
                                 </h4>
                                 <div class="space-y-1 md:space-y-3">
                                     @foreach($roundMatches->sortByDesc('scheduled_at') as $match)
                                     <a href="{{ route('public.matches.show', [$competition, $match]) }}"
-                                       class="block bg-gray-700/20 hover:bg-gray-700/40 rounded-md p-4 transition-all duration-200 hover:scale-[1.01]">
-                                        <div class="grid grid-cols-[3fr_120px] gap-0 items-center p-4">
+                                       class="block bg-gray-700/20 hover:bg-gray-700/40 rounded-md p-3 transition-all duration-200 hover:scale-[1.01]">
+                                        <div class="grid grid-cols-[3fr_120px] gap-0 items-center p-3">
                                             <!-- Players Column -->
                                             <div class="space-y-4">
                                                 <!-- Home Player -->
@@ -494,7 +494,7 @@
                     }
                 </script>
             @elseif($competition->type === 'tournament')
-                <div class="px-2 md:px-0">
+                <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
                     @include('public.leagues._tournament')
                 </div>
             @endif
