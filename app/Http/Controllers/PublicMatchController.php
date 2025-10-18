@@ -14,8 +14,14 @@ class PublicMatchController extends Controller
      */
     public function indexLeagues()
     {
-        // Get all competitions with basic info
-        $competitions = Competition::with(['organization', 'sport'])->get();
+        // Get all public competitions with basic info
+        $competitions = Competition::where('type', 'league')
+            ->where(function($query) {
+                $query->whereJsonContains('settings->is_public', true)
+                      ->orWhereRaw("JSON_EXTRACT(settings, '$.is_public') IS NULL"); // For backward compatibility
+            })
+            ->with(['organization', 'sport'])
+            ->get();
 
         return view('public.leagues.index', compact('competitions'));
     }

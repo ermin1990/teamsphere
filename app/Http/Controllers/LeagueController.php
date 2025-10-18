@@ -350,6 +350,10 @@ class LeagueController extends Controller
             $settings['sets_to_win'] = $request->sets_to_win;
         }
 
+        if ($request->has('is_public')) {
+            $settings['is_public'] = $request->boolean('is_public');
+        }
+
         $league->update(['settings' => $settings]);
 
         return back()->with('success', __('League rules updated successfully!'));

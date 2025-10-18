@@ -190,4 +190,12 @@ class League extends Model
         $now = now()->toDateString();
         return $this->start_date <= $now && ($this->end_date >= $now || $this->end_date === null);
     }
+
+    /**
+     * Check if league is public (visible on public pages).
+     */
+    public function isPublic()
+    {
+        return $this->settings['is_public'] ?? false;
+    }
 }

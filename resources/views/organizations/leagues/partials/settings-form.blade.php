@@ -105,6 +105,24 @@
                 </p>
             </div>
         @endif
+
+        <!-- Public Visibility -->
+        <div class="flex items-center space-x-3 p-4 bg-gray-700/30 rounded-lg border border-gray-600/30">
+            <input type="checkbox"
+                   id="is_public"
+                   name="is_public"
+                   value="1"
+                   {{ old('is_public', $league->settings['is_public'] ?? false) ? 'checked' : '' }}
+                   class="w-5 h-5 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500 focus:ring-2">
+            <div>
+                <label for="is_public" class="text-white font-medium cursor-pointer">
+                    {{ __('Make league public') }}
+                </label>
+                <p class="text-sm text-gray-400 mt-1">
+                    {{ __('When enabled, this league will be visible on the public website for everyone to view.') }}
+                </p>
+            </div>
+        </div>
     </div>
 @else
     <div class="text-center py-8">
