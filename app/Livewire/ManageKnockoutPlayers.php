@@ -14,6 +14,7 @@ class ManageKnockoutPlayers extends Component
     public $organization;
     public $selectedPlayers = []; // Array of match_id => ['home_player_id', 'away_player_id']
     public $availablePlayers = []; // Array of available players for selection
+    public $quickMode = false; // Toggle for quick assignment mode
 
     public function mount(Competition $competition, $organization)
     {
@@ -116,6 +117,38 @@ class ManageKnockoutPlayers extends Component
         ]);
 
         session()->flash('success', 'Igrači su uspješno potvrđeni za utakmicu #' . $matchId);
+    }
+
+    public function toggleQuickMode()
+    {
+        $this->quickMode = !$this->quickMode;
+    }
+
+    public function autoAssignPlayers()
+    {
+        $knockoutMatches = CompetitionMatch::where('competition_id', $this->competition->id)
+            ->where('phase', 'knockout')
+            ->whereNull('home_player_id')
+            ->orWhereNull('away_player_id')
+            ->get();
+
+        $availablePlayers = $this->availablePlayers->shuffle();
+
+        foreach ($knockoutMatches as $match) {
+            if (!$match->home_player_id && $availablePlayers->count() > 0) {
+                $player = $availablePlayers->shift();
+                $match->update(['home_player_id' => $player->id]);
+                $this->selectedPlayers[$match->id]['home_player_id'] = $player->id;
+            }
+
+            if (!$match->away_player_id && $availablePlayers->count() > 0) {
+                $player = $availablePlayers->shift();
+                $match->update(['away_player_id' => $player->id]);
+                $this->selectedPlayers[$match->id]['away_player_id'] = $player->id;
+            }
+        }
+
+        session()->flash('success', 'Igrači su automatski dodijeljeni preostalim utakmicama.');
     }
 
     public function render()
