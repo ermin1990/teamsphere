@@ -16,10 +16,7 @@ class PublicMatchController extends Controller
     {
         // Get all public competitions with basic info
         $competitions = Competition::where('type', 'league')
-            ->where(function($query) {
-                $query->whereJsonContains('settings->is_public', true)
-                      ->orWhereRaw("JSON_EXTRACT(settings, '$.is_public') IS NULL"); // For backward compatibility
-            })
+            ->where('is_public', true)
             ->with(['organization', 'sport'])
             ->get();
 

@@ -28,6 +28,7 @@ class League extends Model
         'is_team_based',
         'settings',
         'is_active',
+        'is_public',
         'type',
     ];
 
@@ -38,6 +39,7 @@ class League extends Model
         'is_team_based' => 'boolean',
         'settings' => 'array',
         'is_active' => 'boolean',
+        'is_public' => 'boolean',
     ];
 
     /**
@@ -196,6 +198,6 @@ class League extends Model
      */
     public function isPublic()
     {
-        return $this->settings['is_public'] ?? false;
+        return $this->is_public;
     }
 }
