@@ -484,7 +484,6 @@ class CompetitionController extends Controller
             'points_for_loss' => ['required', 'integer', 'min:0', 'max:10'],
             'has_tiebreak' => ['boolean'],
             'tiebreak_points' => ['nullable', 'integer', 'min:5', 'max:15'],
-            'quick_mode' => ['boolean'],
         ]);
 
         $competition->update([
@@ -497,7 +496,6 @@ class CompetitionController extends Controller
             'points_for_loss' => $request->points_for_loss,
             'has_tiebreak' => $request->boolean('has_tiebreak'),
             'tiebreak_points' => $request->tiebreak_points,
-            'quick_mode' => $request->boolean('quick_mode'),
         ]);
 
         return redirect()

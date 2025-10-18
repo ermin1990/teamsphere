@@ -51,7 +51,6 @@ class Competition extends Model
         'has_tiebreak',
         'tiebreak_points',
         'manual_knockout_selection',
-        'quick_mode',
     ];
 
     protected $casts = [
@@ -81,7 +80,6 @@ class Competition extends Model
         'has_tiebreak' => 'boolean',
         'tiebreak_points' => 'integer',
         'manual_knockout_selection' => 'boolean',
-        'quick_mode' => 'boolean',
     ];
 
     /**
