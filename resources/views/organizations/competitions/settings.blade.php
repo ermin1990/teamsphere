@@ -278,6 +278,52 @@
                 </div>
                 @endif
 
+                <!-- Quick Mode Toggle -->
+                <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl mb-6">
+                    <h3 class="text-xl font-semibold text-white mb-4">Brzi Režim</h3>
+                    
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h4 class="text-white font-medium">{{ __('Quick Mode') }}</h4>
+                            <p class="text-sm text-gray-400">{{ __('Enable quick player assignment and auto-assign features in knockout phase') }}</p>
+                        </div>
+                        <div class="relative">
+                            <input type="checkbox"
+                                   name="quick_mode"
+                                   value="1"
+                                   {{ old('quick_mode', $competition->quick_mode ?? false) ? 'checked' : '' }}
+                                   class="sr-only">
+                            
+                            <!-- Custom Toggle Switch -->
+                            <div class="w-16 h-8 bg-gray-600 rounded-full relative cursor-pointer transition-colors duration-300 {{ old('quick_mode', $competition->quick_mode ?? false) ? 'bg-green-600' : 'bg-gray-600' }}"
+                                 onclick="document.querySelector('input[name=quick_mode]').click();">
+                                
+                                <!-- Slider -->
+                                <div class="absolute top-1 w-6 h-6 bg-white rounded-full shadow-md transform transition-transform duration-300 {{ old('quick_mode', $competition->quick_mode ?? false) ? 'translate-x-8' : 'translate-x-1' }}">
+                                    <!-- Icon inside slider -->
+                                    <div class="flex items-center justify-center w-full h-full">
+                                        @if(old('quick_mode', $competition->quick_mode ?? false))
+                                            <svg class="w-3 h-3 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                            </svg>
+                                        @else
+                                            <svg class="w-3 h-3 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm0 2h12v8H4V6z" clip-rule="evenodd"/>
+                                            </svg>
+                                        @endif
+                                    </div>
+                                </div>
+                                
+                                <!-- Background Labels -->
+                                <div class="absolute inset-0 flex items-center justify-between px-2 text-xs font-medium">
+                                    <span class="text-gray-400 {{ old('quick_mode', $competition->quick_mode ?? false) ? 'opacity-0' : 'opacity-100' }} transition-opacity duration-300">OFF</span>
+                                    <span class="text-white {{ old('quick_mode', $competition->quick_mode ?? false) ? 'opacity-100' : 'opacity-0' }} transition-opacity duration-300">ON</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Save Button -->
                 <div class="flex space-x-4">
                     <button type="submit" 

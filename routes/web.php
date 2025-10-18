@@ -99,6 +99,7 @@ Route::middleware('auth')->group(function () {
     Route::get('organizations/{organization}/competitions/create', [CompetitionController::class, 'create'])->name('organizations.competitions.create');
     Route::post('organizations/{organization}/competitions', [CompetitionController::class, 'store'])->name('organizations.competitions.store');
     Route::get('organizations/{organization}/competitions/{competition}', [CompetitionController::class, 'show'])->name('organizations.competitions.show');
+    Route::patch('organizations/{organization}/competitions/{competition}', [CompetitionController::class, 'update'])->name('organizations.competitions.update');
     Route::post('organizations/{organization}/competitions/{competition}/add-player', [CompetitionController::class, 'addPlayer'])->name('organizations.competitions.add-player');
     Route::delete('organizations/{organization}/competitions/{competition}/players/{player}', [CompetitionController::class, 'removePlayer'])->name('organizations.competitions.remove-player');
     Route::get('organizations/{organization}/competitions/{competition}/manage-players', [CompetitionController::class, 'managePlayers'])->name('organizations.competitions.manage-players');

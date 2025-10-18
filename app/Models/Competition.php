@@ -28,6 +28,7 @@ class Competition extends Model
         'is_team_based',
         'settings',
         'is_active',
+        'is_public',
         // Tournament fields
         'type',
         'max_participants',
@@ -50,6 +51,7 @@ class Competition extends Model
         'has_tiebreak',
         'tiebreak_points',
         'manual_knockout_selection',
+        'quick_mode',
     ];
 
     protected $casts = [
@@ -59,6 +61,7 @@ class Competition extends Model
         'is_team_based' => 'boolean',
         'settings' => 'array',
         'is_active' => 'boolean',
+        'is_public' => 'boolean',
         // Tournament casts
         'max_participants' => 'integer',
         'group_count' => 'integer',
@@ -78,6 +81,7 @@ class Competition extends Model
         'has_tiebreak' => 'boolean',
         'tiebreak_points' => 'integer',
         'manual_knockout_selection' => 'boolean',
+        'quick_mode' => 'boolean',
     ];
 
     /**
@@ -181,6 +185,14 @@ class Competition extends Model
     public function isKnockout(): bool
     {
         return $this->type === 'knockout';
+    }
+
+    /**
+     * Check if this competition is public.
+     */
+    public function isPublic(): bool
+    {
+        return $this->is_public;
     }
 
     /**
