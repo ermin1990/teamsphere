@@ -686,6 +686,9 @@ class CompetitionController extends Controller
 
         // Update standings if tournament
         if ($competition->type === 'tournament' && $match->tournamentGroup) {
+            // First update the in-model group standings (same as LiveScore)
+            $match->tournamentGroup->updateStandings($match);
+            // Then update Eloquent Standing records from scratch
             $groupService = app(\App\Services\TournamentGroupService::class);
             $groupService->recalculateGroupStandings($match->tournamentGroup);
         }
