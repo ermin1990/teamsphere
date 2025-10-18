@@ -1179,8 +1179,9 @@ class CompetitionController extends Controller
 
         // Update standings if match results changed and it's a tournament group match
         if ($match->tournamentGroup && 
-            (isset($validated['home_score']) || isset($validated['away_score'])) &&
-            in_array($validated['status'] ?: $match->status, ['completed', 'forfeited'])) {
+            (isset($validated['home_score']) || isset($validated['away_score']) || 
+             in_array($validated['status'], ['completed', 'forfeited']) ||
+             ($validated['status'] === 'cancelled' && ($validated['home_score'] > 0 || $validated['away_score'] > 0)))) {
             $groupService = app(\App\Services\TournamentGroupService::class);
             $groupService->recalculateGroupStandings($match->tournamentGroup);
         }
