@@ -610,7 +610,7 @@
                             <div class="bg-gray-700/30 rounded-lg p-4 border border-gray-600/30">
                                 <form method="POST" action="{{ route('leagues.update', $league) }}" class="space-y-3">
                                     @csrf
-                                    @method('PATCH')
+                                    @method('PUT')
                                     
                                     <div class="flex items-center justify-between">
                                         <div>
