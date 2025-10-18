@@ -29,16 +29,47 @@
         </div>
     </x-slot>
 
-    <!-- Success Message -->
+    <!-- Floating Success Message -->
     @if(session('success'))
-        <div id="success-message" class="bg-green-500/20 border border-green-500/50 text-green-400 px-6 py-4 rounded-lg mb-6">
-            <div class="flex items-center">
-                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div id="floating-success" class="fixed top-6 right-6 z-50 max-w-md w-full bg-green-600 text-white px-5 py-3 rounded-lg shadow-lg flex items-start gap-3 transition-opacity duration-300 ease-in-out">
+            <div class="flex-shrink-0 mt-0.5">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                 </svg>
+            </div>
+            <div class="flex-1 text-sm">
                 {{ session('success') }}
             </div>
+            <button id="floating-success-close" class="text-white opacity-80 hover:opacity-100 ml-3">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
         </div>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                const el = document.getElementById('floating-success');
+                if (!el) return;
+
+                // Auto-hide after 3.5s
+                const hideTimeout = setTimeout(() => {
+                    el.style.opacity = '0';
+                    // remove after transition
+                    el.addEventListener('transitionend', () => el.remove(), { once: true });
+                }, 3500);
+
+                // Allow manual close
+                const btn = document.getElementById('floating-success-close');
+                if (btn) {
+                    btn.addEventListener('click', () => {
+                        clearTimeout(hideTimeout);
+                        el.style.opacity = '0';
+                        el.addEventListener('transitionend', () => el.remove(), { once: true });
+                    });
+                }
+            });
+        </script>
     @endif
 
     <div class="py-12">
@@ -388,7 +419,7 @@
                                     </h4>
                                     <div class="grid gap-4" style="grid-template-columns: repeat({{ $roundMatches->count() }}, minmax(0, 1fr));">
                                         @foreach($roundMatches as $match)
-                                        <div class="bg-gray-700/40 rounded-xl border-2 border-gray-600/50 overflow-hidden hover:border-blue-500/50 transition-all">
+                                        <div id="match-card-{{ $match->id }}" class="bg-gray-700/40 rounded-xl border-2 border-gray-600/50 overflow-hidden hover:border-blue-500/50 transition-all">
                                             <!-- Match Header -->
                                             <div class="bg-gray-700/60 px-3 py-2 border-b border-gray-600/50">
                                                 <div class="flex items-center justify-between">
@@ -403,41 +434,105 @@
 
                                             <!-- Players -->
                                             <div class="p-3 space-y-2">
-                                                <!-- Home Player -->
-                                                <div class="flex items-center justify-between p-2 rounded-lg
-                                                    @if($match->is_bye || ($match->status === 'completed' && $match->home_score > $match->away_score)) 
-                                                        bg-green-600/20 border border-green-500/30
-                                                    @else 
-                                                        bg-gray-800/50
-                                                    @endif">
-                                                    <div class="flex items-center space-x-2 flex-1 min-w-0 player-clickable" 
-                                                         data-match-id="{{ $match->id }}" 
-                                                         data-player-type="home"
-                                                         @if($match->is_bye) style="pointer-events: none;" @endif>
-                                                        <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
-                                                            <span class="text-white font-bold text-sm">{{ substr($match->homePlayer->name ?? 'NEMA PROTIVNIKA', 0, 1) }}</span>
+                                                        <!-- Home Player -->
+                                                        @php
+                                                            // Prepare select options for this round: if first round use advancing players from groups, otherwise use players from previous round matches
+                                                            $selectPlayers = collect();
+                                                            if ($roundNumber === 1) {
+                                                                // gather advancing players from groups
+                                                                if ($competition->tournamentGroups) {
+                                                                    foreach ($competition->tournamentGroups as $g) {
+                                                                        $s = App\Models\Standing::where('competition_id', $competition->id)
+                                                                            ->where('tournament_group_id', $g->id)
+                                                                            ->orderBy('points', 'desc')
+                                                                            ->orderByRaw('(sets_won - sets_lost) desc')
+                                                                            ->limit($competition->players_advancing_per_group ?? 2)
+                                                                            ->get();
+                                                                        foreach ($s as $st) { if ($st->player) $selectPlayers->push($st->player); }
+                                                                    }
+                                                                }
+                                                            } else {
+                                                                // previous round players
+                                                                $prevMatches = $knockoutMatches->get($roundNumber - 1) ?? collect();
+                                                                foreach ($prevMatches as $pm) {
+                                                                    if ($pm->homePlayer) $selectPlayers->push($pm->homePlayer);
+                                                                    if ($pm->awayPlayer) $selectPlayers->push($pm->awayPlayer);
+                                                                }
+                                                            }
+                                                            $selectPlayers = $selectPlayers->unique('id')->values();
+                                                        @endphp
+
+                                                        @if($isOwner && $competition->manual_knockout_selection && $competition->current_phase === 'knockout' && !$match->is_bye)
+                                                        <div class="flex items-center justify-between p-2 rounded-lg bg-gray-800/50">
+                                                            <div class="flex items-center space-x-2 flex-1 min-w-0">
+                                                                <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
+                                                                    <span class="text-white font-bold text-sm">{{ substr($match->homePlayer->name ?? 'TBD', 0, 1) }}</span>
+                                                                </div>
+                                                                <select id="match-select-{{ $match->id }}-home" onchange="updateMatchSelect({{ $match->id }}, 'home', this.value)" class="bg-gray-700/60 text-white rounded px-3 py-1 w-full">
+                                                                    <option value="">-- Odaberite igrača --</option>
+                                                                    @foreach($selectPlayers as $p)
+                                                                        <option value="{{ $p->id }}" @if(optional($match->homePlayer)->id == $p->id) selected @endif>{{ $p->name }}</option>
+                                                                    @endforeach
+                                                                </select>
+                                                            </div>
+                                                            <span class="text-2xl font-bold ml-2 text-white">
+                                                                {{ $match->status !== 'scheduled' ? ($match->home_score ?? 0) : '-' }}
+                                                            </span>
                                                         </div>
-                                                        <span class="text-white font-semibold text-sm truncate">
-                                                            {{ $match->homePlayer->name ?? 'NEMA PROTIVNIKA' }}
-                                                        </span>
-                                                    </div>
-                                                    <span class="text-2xl font-bold ml-2
-                                                        @if($match->is_bye || ($match->status === 'completed' && $match->home_score > $match->away_score)) 
-                                                            text-green-400
-                                                        @elseif($match->status === 'completed') 
-                                                            text-gray-500
-                                                        @else 
-                                                            text-white
-                                                        @endif">
-                                                        @if($match->is_bye)
-                                                            ✓
                                                         @else
-                                                            {{ $match->status !== 'scheduled' ? ($match->home_score ?? 0) : '-' }}
+                                                        <div class="flex items-center justify-between p-2 rounded-lg
+                                                            @if($match->is_bye || ($match->status === 'completed' && $match->home_score > $match->away_score)) 
+                                                                bg-green-600/20 border border-green-500/30
+                                                            @else 
+                                                                bg-gray-800/50
+                                                            @endif">
+                                                            <div class="flex items-center space-x-2 flex-1 min-w-0 player-clickable" 
+                                                                 data-match-id="{{ $match->id }}" 
+                                                                 data-player-type="home"
+                                                                 @if($match->is_bye) style="pointer-events: none;" @endif>
+                                                                <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
+                                                                    <span class="text-white font-bold text-sm">{{ substr($match->homePlayer->name ?? 'NEMA PROTIVNIKA', 0, 1) }}</span>
+                                                                </div>
+                                                                <span class="text-white font-semibold text-sm truncate">
+                                                                    {{ $match->homePlayer->name ?? 'NEMA PROTIVNIKA' }}
+                                                                </span>
+                                                            </div>
+                                                            <span class="text-2xl font-bold ml-2
+                                                                @if($match->is_bye || ($match->status === 'completed' && $match->home_score > $match->away_score)) 
+                                                                    text-green-400
+                                                                @elseif($match->status === 'completed') 
+                                                                    text-gray-500
+                                                                @else 
+                                                                    text-white
+                                                                @endif">
+                                                                @if($match->is_bye)
+                                                                    ✓
+                                                                @else
+                                                                    {{ $match->status !== 'scheduled' ? ($match->home_score ?? 0) : '-' }}
+                                                                @endif
+                                                            </span>
+                                                        </div>
                                                         @endif
-                                                    </span>
-                                                </div>
 
                                                 <!-- Away Player -->
+                                                @if($isOwner && $competition->manual_knockout_selection && $competition->current_phase === 'knockout' && !$match->is_bye)
+                                                <div class="flex items-center justify-between p-2 rounded-lg bg-gray-800/50">
+                                                    <div class="flex items-center space-x-2 flex-1 min-w-0">
+                                                        <div class="w-8 h-8 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
+                                                            <span class="text-white font-bold text-sm">{{ substr($match->awayPlayer->name ?? 'TBD', 0, 1) }}</span>
+                                                        </div>
+                                                        <select id="match-select-{{ $match->id }}-away" onchange="updateMatchSelect({{ $match->id }}, 'away', this.value)" class="bg-gray-700/60 text-white rounded px-3 py-1 w-full">
+                                                            <option value="">-- Odaberite igrača --</option>
+                                                            @foreach($selectPlayers as $p)
+                                                                <option value="{{ $p->id }}" @if(optional($match->awayPlayer)->id == $p->id) selected @endif>{{ $p->name }}</option>
+                                                            @endforeach
+                                                        </select>
+                                                    </div>
+                                                    <span class="text-2xl font-bold ml-2 text-white">
+                                                        {{ $match->status !== 'scheduled' ? ($match->away_score ?? 0) : '-' }}
+                                                    </span>
+                                                </div>
+                                                @else
                                                 <div class="flex items-center justify-between p-2 rounded-lg
                                                     @if($match->is_bye) 
                                                         bg-gray-600/20 border border-gray-500/30
@@ -484,6 +579,7 @@
                                                         @endif
                                                     </span>
                                                 </div>
+                                                @endif
                                             </div>
 
                                             <!-- Actions -->
@@ -1178,16 +1274,32 @@
         }
 
         function showNotification(message, type = 'info') {
+            // Container to center notifications at the bottom. Reuse if already present.
+            let container = document.getElementById('toast-container-bottom-center');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'toast-container-bottom-center';
+                container.className = 'fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 flex flex-col items-center gap-3 pointer-events-none';
+                document.body.appendChild(container);
+            }
+
             const notification = document.createElement('div');
-            notification.className = `fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg z-50 ${
+            notification.className = `pointer-events-auto max-w-xl w-full px-6 py-3 rounded-lg shadow-lg transition-opacity duration-300 ease-out ${
                 type === 'success' ? 'bg-green-500' : 
                 type === 'error' ? 'bg-red-500' : 'bg-blue-500'
-            } text-white`;
+            } text-white opacity-0`;
             notification.textContent = message;
-            document.body.appendChild(notification);
 
+            container.appendChild(notification);
+
+            // Fade in
+            requestAnimationFrame(() => { notification.classList.remove('opacity-0'); notification.classList.add('opacity-100'); });
+
+            // Auto remove after 3s with fade out
             setTimeout(() => {
-                notification.remove();
+                notification.classList.remove('opacity-100');
+                notification.classList.add('opacity-0');
+                setTimeout(() => notification.remove(), 300);
             }, 3000);
         }
 
@@ -1397,6 +1509,87 @@
                 generateBtn.disabled = false;
             });
         }
+
+        // Update match player from select dropdown
+        function updateMatchSelect(matchId, playerType, playerId) {
+            const organizationId = '{{ $organization->slug }}';
+            const competitionId = '{{ $competition->slug }}';
+
+            fetch(`/organizations/${organizationId}/competitions/${competitionId}/update-match-players`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify({ match_id: matchId, player_type: playerType, player_id: playerId })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (!data.success) {
+                    showNotification('Greška: ' + (data.message || 'Nepoznata greška'), 'error');
+                    return;
+                }
+
+                showNotification('Igrač uspješno ažuriran', 'success');
+
+                // Update the card DOM in-place
+                const card = document.getElementById(`match-card-${matchId}`);
+                if (!card) return;
+
+                // Find the select and replace the display name and avatar initial
+                const selectId = `match-select-${matchId}-${playerType}`;
+                const select = document.getElementById(selectId);
+
+                // Determine player name from selected option text
+                let playerName = '';
+                if (select) {
+                    const opt = select.options[select.selectedIndex];
+                    playerName = opt ? opt.text : '';
+                }
+
+                // Update avatar initial and displayed name within the card
+                const playerContainer = card.querySelector(`[data-player-type="${playerType}"]`);
+                if (playerContainer) {
+                    const initialsEl = playerContainer.querySelector('div.w-8');
+                    if (initialsEl) {
+                        const span = initialsEl.querySelector('span');
+                        if (span) span.textContent = playerName ? playerName.substring(0,1) : '';
+                    }
+
+                    const nameEl = playerContainer.querySelector('span.text-white.font-semibold');
+                    if (nameEl) nameEl.textContent = playerName || (playerType === 'home' ? 'NEMA PROTIVNIKA' : 'NEMA PROTIVNIKA');
+                }
+
+                // Disable the selected player option in other selects for same round to avoid duplicate assignment
+                // Find all selects in the document for this competition round
+                const allSelects = document.querySelectorAll(`select[id^='match-select-']`);
+                allSelects.forEach(s => {
+                    if (s.id === selectId) return;
+                    // Re-enable all first
+                    Array.from(s.options).forEach(o => o.disabled = false);
+                });
+
+                // Build a set of currently selected player ids
+                const selectedIds = new Set();
+                allSelects.forEach(s => {
+                    const v = s.value;
+                    if (v) selectedIds.add(v);
+                });
+
+                // Disable options that are already selected in other selects
+                allSelects.forEach(s => {
+                    Array.from(s.options).forEach(o => {
+                        if (o.value && selectedIds.has(o.value) && s.value !== o.value) {
+                            o.disabled = true;
+                        }
+                    });
+                });
+            })
+            .catch(err => {
+                console.error(err);
+                showNotification('Greška pri ažuriranju igrača', 'error');
+            });
+        }
     </script>
 
 
@@ -1501,6 +1694,11 @@
                                 class="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors">
                             Otkaži
                         </button>
+                        <button onclick="createEmptyKnockoutBracket()"
+                                id="createEmptyBracketBtn"
+                                class="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg transition-colors font-semibold">
+                            Stvori prazne mečeve
+                        </button>
                         <button onclick="generateManualKnockoutBracket()"
                                 id="generateBracketBtn"
                                 class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed">
@@ -1511,6 +1709,43 @@
             </div>
         </div>
     </div>
+
+    <script>
+        function createEmptyKnockoutBracket() {
+            if (!confirm('Ovo će kreirati prazne mečeve za eliminacionu fazu. Nastaviti?')) return;
+
+            const btn = document.getElementById('createEmptyBracketBtn');
+            const original = btn.innerHTML;
+            btn.innerHTML = '⏳ Stvaranje...';
+            btn.disabled = true;
+
+            fetch(`{{ route('organizations.competitions.generate-manual-knockout', [$organization, $competition]) }}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify({ create_empty: true })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification('Prazni mečevi kreirani', 'success');
+                    setTimeout(() => location.reload(), 600);
+                } else {
+                    showNotification('Greška: ' + (data.message || 'Nepoznata greška'), 'error');
+                    btn.innerHTML = original;
+                    btn.disabled = false;
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                showNotification('Greška pri kreiranju praznih mečeva', 'error');
+                btn.innerHTML = original;
+                btn.disabled = false;
+            });
+        }
+    </script>
 
     <script>
         // Auto-refresh page after successful result submission to update standings

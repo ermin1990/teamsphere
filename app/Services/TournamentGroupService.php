@@ -107,21 +107,40 @@ class TournamentGroupService
     {
         $competition = $group->competition;
 
-        // Get all completed matches in this group
-        $completedMatches = $group->matches()
+        // Get all completed matches for this group (do not rely on TournamentGroup::matches() which filters by phase)
+        $completedMatches = CompetitionMatch::where('tournament_group_id', $group->id)
+            ->where('competition_id', $competition->id)
             ->whereIn('status', ['completed', 'forfeited'])
             ->get();
 
         // Calculate standings from scratch
         $standingsData = $this->calculateStandingsFromMatches($group, $completedMatches, $competition);
 
-        // Update or create Standing records
+        // Remove any existing standings for this group and recreate from scratch
+        Standing::where('competition_id', $competition->id)
+            ->where('tournament_group_id', $group->id)
+            ->delete();
+
+        // Create fresh Standing records
         foreach ($standingsData as $playerId => $data) {
-            Standing::updateOrCreate([
+            Standing::create(array_merge([
                 'competition_id' => $competition->id,
                 'tournament_group_id' => $group->id,
                 'player_id' => $playerId,
-            ], $data);
+            ], $data));
+        }
+
+        // Recalculate positions
+        $ordered = Standing::where('competition_id', $competition->id)
+            ->where('tournament_group_id', $group->id)
+            ->get()
+            ->sortByDesc(function ($s) {
+                return [$s->points ?? 0, ($s->sets_won - $s->sets_lost) ?? 0, $s->points_won ?? 0];
+            })->values();
+
+        foreach ($ordered as $index => $standing) {
+            $standing->position = $index + 1;
+            $standing->save();
         }
     }
 

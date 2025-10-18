@@ -470,18 +470,30 @@
             this.submit();
         });
 
-        // Notification helper
+        // Notification helper (bottom-center, non-shifting)
         function showNotification(message, type = 'info') {
+            let container = document.getElementById('toast-container-bottom-center');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'toast-container-bottom-center';
+                container.className = 'fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 flex flex-col items-center gap-3 pointer-events-none';
+                document.body.appendChild(container);
+            }
+
             const notification = document.createElement('div');
-            notification.className = `fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg z-50 ${
+            notification.className = `pointer-events-auto max-w-xl w-full px-6 py-3 rounded-lg shadow-lg transition-opacity duration-300 ease-out ${
                 type === 'success' ? 'bg-green-500' : 
                 type === 'error' ? 'bg-red-500' : 'bg-blue-500'
-            } text-white`;
+            } text-white opacity-0`;
             notification.textContent = message;
-            document.body.appendChild(notification);
+
+            container.appendChild(notification);
+            requestAnimationFrame(() => { notification.classList.remove('opacity-0'); notification.classList.add('opacity-100'); });
 
             setTimeout(() => {
-                notification.remove();
+                notification.classList.remove('opacity-100');
+                notification.classList.add('opacity-0');
+                setTimeout(() => notification.remove(), 300);
             }, 3000);
         }
     </script>

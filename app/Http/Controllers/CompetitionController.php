@@ -686,6 +686,8 @@ class CompetitionController extends Controller
 
         // Update standings if tournament
         if ($competition->type === 'tournament' && $match->tournamentGroup) {
+            // Refresh match to get updated values (like LiveScore does)
+            $match->refresh();
             // First update the in-model group standings (same as LiveScore)
             $match->tournamentGroup->updateStandings($match);
             // Then update Eloquent Standing records from scratch
@@ -1019,6 +1021,85 @@ class CompetitionController extends Controller
             return response()->json(['success' => false, 'message' => 'Not a tournament']);
         }
 
+        // If requested, create empty match slots for the first knockout round
+        if ($request->boolean('create_empty')) {
+            // Verify manual selection flag
+            if (!$competition->manual_knockout_selection) {
+                return response()->json(['success' => false, 'message' => 'Manual knockout selection is not enabled for this competition']);
+            }
+
+            // Ensure competition is in knockout phase (or move it there)
+            if ($competition->current_phase !== 'knockout') {
+                $competition->update(['current_phase' => 'knockout']);
+            }
+
+            // Check existing knockout matches
+            $existingMatches = CompetitionMatch::where('competition_id', $competition->id)
+                ->where('phase', 'knockout')
+                ->count();
+
+            if ($existingMatches > 0) {
+                return response()->json(['success' => false, 'message' => 'Knockout matches already exist']);
+            }
+
+            // Determine advancing players count (estimate from standings) and create empty slots
+            $advancingPlayers = [];
+            foreach ($competition->tournamentGroups as $group) {
+                $standings = \App\Models\Standing::where('competition_id', $competition->id)
+                    ->where('tournament_group_id', $group->id)
+                    ->orderBy('points', 'desc')
+                    ->orderByRaw('(sets_won - sets_lost) desc')
+                    ->limit($competition->players_advancing_per_group ?? 2)
+                    ->pluck('player_id')
+                    ->toArray();
+                if (!empty($standings)) {
+                    $advancingPlayers = array_merge($advancingPlayers, $standings);
+                }
+            }
+
+            $advancingPlayers = array_values(array_unique($advancingPlayers));
+            $count = count($advancingPlayers);
+            if ($count === 0) {
+                // If no advancing players found, fallback to using players count
+                $count = $competition->players()->count();
+            }
+
+            // Number of matches in first round
+            $matchesCount = (int) ceil($count / 2);
+
+            $bracket = [];
+            $roundNumber = 1;
+
+            for ($i = 0; $i < $matchesCount; $i++) {
+                $position = $i + 1;
+                $bracket[] = [
+                    'round' => $roundNumber,
+                    'home_player_id' => null,
+                    'away_player_id' => null,
+                    'position' => $position,
+                ];
+
+                CompetitionMatch::create([
+                    'competition_id' => $competition->id,
+                    'home_player_id' => null,
+                    'away_player_id' => null,
+                    'phase' => 'knockout',
+                    'round_number' => $roundNumber,
+                    'status' => 'scheduled',
+                    'scheduled_at' => null,
+                    'played_at' => null,
+                    'home_score' => 0,
+                    'away_score' => 0,
+                    'is_bye' => false,
+                ]);
+            }
+
+            $competition->update(['knockout_bracket' => $bracket]);
+
+            return response()->json(['success' => true]);
+        }
+
+        // Default behavior: expect full matches payload with player ids
         $request->validate([
             'matches' => 'required|array|min:1',
             'matches.*.home_player_id' => 'required|integer|exists:players,id',
@@ -1185,6 +1266,8 @@ class CompetitionController extends Controller
             (isset($validated['home_score']) || isset($validated['away_score']) || 
              in_array($validated['status'], ['completed', 'forfeited']) ||
              ($validated['status'] === 'cancelled' && ($validated['home_score'] > 0 || $validated['away_score'] > 0)))) {
+            // Refresh match to get updated values (like LiveScore does)
+            $match->refresh();
             // Update TournamentGroup standings first (like LiveScore does)
             $match->tournamentGroup->updateStandings($match);
             // Then recalculate Eloquent standings in database
