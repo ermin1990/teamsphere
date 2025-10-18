@@ -21,14 +21,11 @@
         let lastUpdate = null;
 
         function updateLiveMatches() {
-            console.log('Updating live matches...');
             fetch('{{ route("public.api.live-matches") }}')
                 .then(response => {
-                    console.log('Response received:', response);
                     return response.json();
                 })
                 .then(data => {
-                    console.log('Data received:', data);
                     if (data.success) {
                         // Update total count in header
                         const headerElement = document.querySelector('p.text-gray-400');
@@ -40,44 +37,27 @@
                     // Update matches
                         updateMatchesDisplay(data.data);
 
-                        console.log('About to update matches display with:', data.data);
-
                         // Update last updated time
                         lastUpdate = data.last_updated;
                     }
                 })
                 .catch(error => {
-                    console.error('Error updating live matches:', error);
                 });
         }
 
         function updateMatchesDisplay(competitionsData) {
-            console.log('updateMatchesDisplay called with:', competitionsData);
-            // Update only scores within existing matches, don't reorder leagues
-            // Match anchors can contain competition slugs, so match by the URL suffix: /matches/{id}/live
             competitionsData.forEach(compData => {
-                console.log('Processing competition:', compData.competition.name);
                 const matches = compData.matches;
                 matches.forEach(match => {
-                    // Find any anchor whose href ends with /matches/{id}/live
-                    const matchAnchors = document.querySelectorAll(`a[href$="/matches/${match.id}/live"]`);
+                    // Find any anchor whose href ends with /{match.id}
+                    const matchAnchors = document.querySelectorAll(`a[href$="/${match.id}"]`);
                     if (!matchAnchors || matchAnchors.length === 0) {
-                        console.debug('No anchor found for match id', match.id);
                         return;
                     }
                     const matchLink = matchAnchors[0];
-                    console.debug('Found anchor for match', match.id, matchLink);
-
-                    // Status updates removed - keep layout clean like professional sites
-
-                    // Overall score now handled by current score update above
-
-                    // Status updates removed - no live indicator in matches
 
                     // Update set scores
                     if (match.sets && match.sets.length > 0) {
-                        console.log('Updating set scores for match', match.id, 'sets:', match.sets);
-
                         // Find all player rows (flex items-center justify-between)
                         const playerRows = matchLink.querySelectorAll('.flex.items-center.justify-between');
 
@@ -114,10 +94,7 @@
                                 }
                             });
                         }
-
-                        console.debug('Updated set scores for match', match.id);
                     }
-
 
                     // Update sets won indicators in white squares - calculate from sets data
                     const homeSetsSquare = matchLink.querySelector('.flex.items-center.justify-between:first-child .w-8.h-8.rounded.bg-white\\/20 .text-xs.font-bold, .flex.items-center.justify-between:first-child .w-8.h-8.rounded.bg-white\\/20 span');
@@ -163,7 +140,6 @@
                     const currentScoreContainer = matchLink.querySelector('.flex.flex-col.items-start.justify-center.space-y-1.pl-4');
                     if (currentScoreContainer) {
                         const scoreBoxes = currentScoreContainer.querySelectorAll('.w-8.h-8');
-                        console.log('Updating green boxes for match', match.id, 'home_score:', match.home_score, 'away_score:', match.away_score);
                         if (match.status === 'in_progress') {
                             // Update home score box
                             if (scoreBoxes[0]) {
@@ -172,7 +148,6 @@
                                 if (homeScoreDiv) {
                                     homeScoreDiv.textContent = match.home_score ?? 0;
                                     homeScoreDiv.className = 'text-sm font-bold text-green-300';
-                                    console.log('Updated home score to:', match.home_score ?? 0);
                                 }
                             }
                             // Update away score box
@@ -182,7 +157,6 @@
                                 if (awayScoreDiv) {
                                     awayScoreDiv.textContent = match.away_score ?? 0;
                                     awayScoreDiv.className = 'text-sm font-bold text-green-300';
-                                    console.log('Updated away score to:', match.away_score ?? 0);
                                 }
                             }
                         } else {

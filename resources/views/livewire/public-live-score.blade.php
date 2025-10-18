@@ -1,4 +1,4 @@
-<div>
+<div wire:poll.3s="pollMatchData">
 @php
     $isIndividualMatch = (!$match->league || !$match->league->is_team_based) && (!$match->competition || !$match->competition->is_team_based);
 @endphp
@@ -11,6 +11,10 @@
             @if($matchStatus === 'in_progress')
                 <div class="text-green-400 font-semibold text-sm md:text-base">
                     🔴 LIVE
+                </div>
+            @elseif($matchStatus === 'completed')
+                <div class="text-green-400 font-semibold text-sm md:text-base">
+                    ✅ COMPLETED
                 </div>
             @endif
         </div>
@@ -145,16 +149,14 @@
         <div class="mb-3 md:mb-6">
             <h3 class="text-lg md:text-2xl font-bold transition-all duration-300 mb-2">
                 <span class="text-blue-400">
-                    @if($match->league && $match->league->is_team_based)
-                        {{ $match->homeTeam->name ?? 'Home Team' }}
-                    @elseif($match->competition && $match->competition->is_team_based)
+                    @if($parent && $parent->is_team_based)
                         {{ $match->homeTeam->name ?? 'Home Team' }}
                     @else
                         {{ $match->homePlayer->name ?? 'Home Player' }}
                     @endif
                 </span>
             </h3>
-            @if($match->league && $match->league->is_team_based && $match->homeTeam)
+            @if($parent && $parent->is_team_based && $match->homeTeam)
                 <div class="text-xs md:text-sm text-gray-400 mb-2 md:mb-4">
                     @foreach($match->homeTeam->players as $player)
                         <div>{{ $player->name }}</div>
@@ -232,16 +234,14 @@
         <div class="mb-3 md:mb-6">
             <h3 class="text-lg md:text-2xl font-bold transition-all duration-300 mb-2">
                 <span class="text-red-400">
-                    @if($match->league && $match->league->is_team_based)
-                        {{ $match->awayTeam->name ?? 'Away Team' }}
-                    @elseif($match->competition && $match->competition->is_team_based)
+                    @if($parent && $parent->is_team_based)
                         {{ $match->awayTeam->name ?? 'Away Team' }}
                     @else
                         {{ $match->awayPlayer->name ?? 'Away Player' }}
                     @endif
                 </span>
             </h3>
-            @if($match->league && $match->league->is_team_based && $match->awayTeam)
+            @if($parent && $parent->is_team_based && $match->awayTeam)
                 <div class="text-xs md:text-sm text-gray-400 mb-2 md:mb-4">
                     @foreach($match->awayTeam->players as $player)
                         <div>{{ $player->name }}</div>
@@ -292,9 +292,7 @@
                 <tr class="border-b border-gray-700">
                     <th class="pb-2 md:pb-3 text-gray-400 font-medium text-xs md:text-sm">Set</th>
                     <th class="pb-2 md:pb-3 text-blue-400 font-medium text-xs md:text-sm">
-                        @if($match->league && $match->league->is_team_based)
-                            {{ $match->homeTeam->name ?? 'Home' }}
-                        @elseif($match->competition && $match->competition->is_team_based)
+                        @if($parent && $parent->is_team_based)
                             {{ $match->homeTeam->name ?? 'Home' }}
                         @else
                             {{ $match->homePlayer->name ?? 'Home' }}
@@ -302,9 +300,7 @@
                     </th>
                     <th class="pb-2 md:pb-3 text-gray-400 font-medium text-xs md:text-sm">-</th>
                     <th class="pb-2 md:pb-3 text-red-400 font-medium text-xs md:text-sm">
-                        @if($match->league && $match->league->is_team_based)
-                            {{ $match->awayTeam->name ?? 'Away' }}
-                        @elseif($match->competition && $match->competition->is_team_based)
+                        @if($parent && $parent->is_team_based)
                             {{ $match->awayTeam->name ?? 'Away' }}
                         @else
                             {{ $match->awayPlayer->name ?? 'Away' }}

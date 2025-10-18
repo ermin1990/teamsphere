@@ -610,6 +610,8 @@ class LiveScore extends Component
             'current_set_started_at' => $this->setStartTime,
             'current_server' => $this->currentServer,
             'first_server' => $this->firstServer,
+            'home_score' => $this->homeScore,
+            'away_score' => $this->awayScore,
         ]);
 
         \Log::info('Database update result', [

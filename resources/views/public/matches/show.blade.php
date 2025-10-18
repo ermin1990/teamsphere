@@ -16,6 +16,80 @@
 
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+    <script>
+        let lastUpdate = null;
+
+        function updateMatchDetails() {
+            fetch('{{ route("public.api.match", $match) }}')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const matchData = data.data;
+                        
+                        // Update home score
+                        const homeScoreElement = document.getElementById('home-score');
+                        if (homeScoreElement) {
+                            if (matchData.status === 'completed' && matchData.sets && matchData.sets.length > 0) {
+                                // Show final sets won for completed matches
+                                const homeSetsWon = matchData.sets.filter(set => 
+                                    (set.home_score ?? set.home ?? 0) > (set.away_score ?? set.away ?? 0)
+                                ).length;
+                                homeScoreElement.textContent = homeSetsWon;
+                            } else {
+                                homeScoreElement.textContent = matchData.home_score ?? 0;
+                            }
+                        }
+                        
+                        // Update away score
+                        const awayScoreElement = document.getElementById('away-score');
+                        if (awayScoreElement) {
+                            if (matchData.status === 'completed' && matchData.sets && matchData.sets.length > 0) {
+                                // Show final sets won for completed matches
+                                const awaySetsWon = matchData.sets.filter(set => 
+                                    (set.away_score ?? set.away ?? 0) > (set.home_score ?? set.home ?? 0)
+                                ).length;
+                                awayScoreElement.textContent = awaySetsWon;
+                            } else {
+                                awayScoreElement.textContent = matchData.away_score ?? 0;
+                            }
+                        }
+                        
+                        // Update match status
+                        const matchStatusElement = document.getElementById('match-status');
+                        if (matchStatusElement) {
+                            if (matchData.status === 'in_progress') {
+                                matchStatusElement.innerHTML = '<div class="text-green-400 font-semibold text-sm md:text-base">🔴 LIVE</div>';
+                            } else if (matchData.status === 'completed') {
+                                matchStatusElement.innerHTML = '<div class="text-green-400 font-semibold text-sm md:text-base">✅ COMPLETED</div>';
+                            } else {
+                                matchStatusElement.innerHTML = '';
+                            }
+                        }
+                        
+                        // Update last updated time if element exists
+                        const lastUpdatedElement = document.getElementById('last-updated-time');
+                        if (lastUpdatedElement && data.last_updated) {
+                            const date = new Date(data.last_updated);
+                            lastUpdatedElement.textContent = 'Last updated: ' + date.toLocaleTimeString();
+                        }
+                        
+                        lastUpdate = data.last_updated;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error updating match details:', error);
+                });
+        }
+
+        // Update every 3 seconds
+        setInterval(updateMatchDetails, 3000);
+
+        // Initial update
+        document.addEventListener('DOMContentLoaded', function() {
+            updateMatchDetails();
+        });
+    </script>
 </head>
 <body class="antialiased bg-gray-900 text-white min-h-screen pb-32 md:pb-8">
     <div class="py-12">
