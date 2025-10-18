@@ -33,29 +33,46 @@
             @endif
 
             <!-- Quick Presets -->
+                        <!-- Quick Presets -->
             <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl mb-6">
                 <h3 class="text-xl font-semibold text-white mb-4">Brzi Predlošci</h3>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <button onclick="applyPreset('standard')" 
-                            class="bg-blue-600/20 hover:bg-blue-600/30 border-2 border-blue-500 text-white p-4 rounded-lg transition-colors text-left">
+                            {{ $competition->status !== 'draft' ? 'disabled' : '' }}
+                            class="{{ $competition->status !== 'draft' ? 'bg-gray-600/20 border-gray-500 cursor-not-allowed' : 'bg-blue-600/20 hover:bg-blue-600/30 border-blue-500' }} border-2 text-white p-4 rounded-lg transition-colors text-left">
                         <h4 class="font-semibold mb-2">🏓 Standard (11 poena)</h4>
                         <p class="text-sm text-gray-300">Najbolji od 3, 11 poena, završetak pri 10</p>
                     </button>
                     <button onclick="applyPreset('extended')" 
-                            class="bg-purple-600/20 hover:bg-purple-600/30 border-2 border-purple-500 text-white p-4 rounded-lg transition-colors text-left">
+                            {{ $competition->status !== 'draft' ? 'disabled' : '' }}
+                            class="{{ $competition->status !== 'draft' ? 'bg-gray-600/20 border-gray-500 cursor-not-allowed' : 'bg-purple-600/20 hover:bg-purple-600/30 border-purple-500' }} border-2 text-white p-4 rounded-lg transition-colors text-left">
                         <h4 class="font-semibold mb-2">🎯 Produženo (15 poena)</h4>
                         <p class="text-sm text-gray-300">Najbolji od 3, 15 poena, završetak pri 14</p>
                     </button>
                     <button onclick="applyPreset('classic')" 
-                            class="bg-green-600/20 hover:bg-green-600/30 border-2 border-green-500 text-white p-4 rounded-lg transition-colors text-left">
+                            {{ $competition->status !== 'draft' ? 'disabled' : '' }}
+                            class="{{ $competition->status !== 'draft' ? 'bg-gray-600/20 border-gray-500 cursor-not-allowed' : 'bg-green-600/20 hover:bg-green-600/30 border-green-500' }} border-2 text-white p-4 rounded-lg transition-colors text-left">
                         <h4 class="font-semibold mb-2">⚡ Classic (21 pts)</h4>
                         <p class="text-sm text-gray-300">Best of 3, 21 points, deuce at 20</p>
                     </button>
                 </div>
             </div>
 
-            <form action="{{ route('organizations.competitions.update-settings', [$organization, $competition]) }}" method="POST">
+            @if($competition->status !== 'draft')
+            <div class="mb-6 bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4">
+                <div class="flex items-center">
+                    <svg class="w-5 h-5 text-yellow-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                    </svg>
+                    <p class="text-yellow-400">Postavke se mogu mijenjati samo kada je takmičenje u statusu "Draft". Trenutni status: <strong>{{ ucfirst($competition->status) }}</strong></p>
+                </div>
+            </div>
+            @endif
+
+            <form action="{{ route('organizations.competitions.update-settings', [$organization, $competition]) }}" method="POST" {{ $competition->status !== 'draft' ? 'onsubmit="return false;"' : '' }}>
                 @csrf
+
+                <fieldset {{ $competition->status !== 'draft' ? 'disabled' : '' }}>
 
                 <!-- Match Format -->
                 <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl mb-6">
@@ -278,10 +295,13 @@
                 </div>
                 @endif
 
+                </div>
+
                 <!-- Save Button -->
                 <div class="flex space-x-4">
                     <button type="submit" 
-                            class="flex-1 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg transition-colors font-semibold">
+                            {{ $competition->status !== 'draft' ? 'disabled' : '' }}
+                            class="flex-1 {{ $competition->status !== 'draft' ? 'bg-gray-600 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700' }} text-white px-6 py-3 rounded-lg transition-colors font-semibold">
                         Sačuvaj Postavke
                     </button>
                     <a href="{{ route('organizations.competitions.show', [$organization, $competition]) }}"
@@ -290,6 +310,7 @@
                     </a>
                 </div>
 
+                </fieldset>
             </form>
 
         </div>

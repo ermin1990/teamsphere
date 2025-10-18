@@ -453,10 +453,6 @@ class CompetitionController extends Controller
             abort(404);
         }
 
-        if ($competition->status !== 'draft') {
-            return back()->with('error', 'Cannot change settings after competition has started.');
-        }
-
         return view('organizations.competitions.settings', compact('organization', 'competition'));
     }
 
