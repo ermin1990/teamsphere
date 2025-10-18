@@ -30,7 +30,7 @@
                         📺 Live Matches
                     </a>
                     <a href="{{ route('public.leagues.index') }}" class="text-gray-300 hover:text-white transition-colors text-sm md:text-base font-medium">
-                        🏆 Leagues
+                        🏆 Competitions
                     </a>
                 </div>
             </nav>
@@ -46,148 +46,8 @@
                 </div>
             </div>
 
-            <!-- Match Info -->
-            <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-8 border border-gray-700/50 shadow-xl mb-8">
-                <div class="flex items-center justify-center space-x-8 mb-8">
-                    <!-- Home Participant -->
-                    <div class="text-center">
-                        <div class="w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <span class="text-2xl font-bold text-white">
-                                @if($competition->is_team_based)
-                                    {{ substr($match->homeTeam->name ?? 'TBD', 0, 2) }}
-                                @else
-                                    {{ substr($match->homePlayer->name ?? 'TBD', 0, 2) }}
-                                @endif
-                            </span>
-                        </div>
-                        <h3 class="text-xl font-bold text-white mb-2">
-                            @if($competition->is_team_based)
-                                {{ $match->homeTeam->name ?? 'TBD' }}
-                            @else
-                                {{ $match->homePlayer->name ?? 'TBD' }}
-                            @endif
-                        </h3>
-                        @if($competition->is_team_based && $match->homeTeam)
-                            <div class="text-sm text-gray-400">
-                                @foreach($match->homeTeam->players as $player)
-                                    <div>{{ $player->name }}</div>
-                                @endforeach
-                            </div>
-                        @endif
-                    </div>
-
-                    <div class="text-center">
-                        <div class="text-4xl font-bold text-gray-400 mb-2">VS</div>
-                        <div class="px-4 py-2 bg-gray-700 rounded-lg">
-                            <div class="text-sm text-gray-400">{{ ucfirst(str_replace('_', ' ', $match->status)) }}</div>
-                        </div>
-                    </div>
-
-                    <!-- Away Participant -->
-                    <div class="text-center">
-                        <div class="w-20 h-20 bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <span class="text-2xl font-bold text-white">
-                                @if($competition->is_team_based)
-                                    {{ substr($match->awayTeam->name ?? 'TBD', 0, 2) }}
-                                @else
-                                    {{ substr($match->awayPlayer->name ?? 'TBD', 0, 2) }}
-                                @endif
-                            </span>
-                        </div>
-                        <h3 class="text-xl font-bold text-white mb-2">
-                            @if($competition->is_team_based)
-                                {{ $match->awayTeam->name ?? 'TBD' }}
-                            @else
-                                {{ $match->awayPlayer->name ?? 'TBD' }}
-                            @endif
-                        </h3>
-                        @if($competition->is_team_based && $match->awayTeam)
-                            <div class="text-sm text-gray-400">
-                                @foreach($match->awayTeam->players as $player)
-                                    <div>{{ $player->name }}</div>
-                                @endforeach
-                            </div>
-                        @endif
-                    </div>
-                </div>
-
-                <!-- Score Display -->
-                @if($match->status === 'completed' || $match->status === 'in_progress')
-                <div class="text-center mb-8">
-                    <div class="text-6xl font-bold bg-gradient-to-r from-green-400 to-blue-400 bg-clip-text text-transparent mb-4">
-                        {{ $match->home_score ?? 0 }} - {{ $match->away_score ?? 0 }}
-                    </div>
-                    @if($match->sets && count($match->sets) > 0)
-                        <div class="text-sm text-gray-400">
-                            Sets: {{ implode(' | ', array_map(function($set) {
-                                return ($set['home_score'] ?? $set['home'] ?? 0) . '-' . ($set['away_score'] ?? $set['away'] ?? 0);
-                            }, $match->sets)) }}
-                        </div>
-                    @endif
-                </div>
-                @endif
-
-                <!-- Live Score Button -->
-                @if($match->status === 'in_progress')
-                <div class="text-center">
-                    <a href="{{ route('public.matches.live', [$competition, $match]) }}"
-                       class="inline-flex items-center px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors font-semibold">
-                        🎯 Watch Live Score
-                    </a>
-                </div>
-                @endif
-            </div>
-
-            <!-- Match Details -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <!-- Match Info -->
-                <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl">
-                    <h3 class="text-xl font-bold text-white mb-4">Match Information</h3>
-                    <div class="space-y-3">
-                        <div class="flex justify-between">
-                            <span class="text-gray-400">Status:</span>
-                            <span class="text-white">{{ ucfirst(str_replace('_', ' ', $match->status)) }}</span>
-                        </div>
-                        @if($match->scheduled_at)
-                        <div class="flex justify-between">
-                            <span class="text-gray-400">Scheduled:</span>
-                            <span class="text-white">{{ $match->scheduled_at->format('M j, Y g:i A') }}</span>
-                        </div>
-                        @endif
-                        @if($match->played_at)
-                        <div class="flex justify-between">
-                            <span class="text-gray-400">Played:</span>
-                            <span class="text-white">{{ $match->played_at->format('M j, Y g:i A') }}</span>
-                        </div>
-                        @endif
-                        @if($match->moderator)
-                        <div class="flex justify-between">
-                            <span class="text-gray-400">Referee:</span>
-                            <span class="text-white">{{ $match->moderator->name }}</span>
-                        </div>
-                        @endif
-                    </div>
-                </div>
-
-                <!-- Organization Info -->
-                <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl">
-                    <h3 class="text-xl font-bold text-white mb-4">Organization</h3>
-                    <div class="space-y-3">
-                        <div class="flex justify-between">
-                            <span class="text-gray-400">Name:</span>
-                            <span class="text-white">{{ $organization->name }}</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-gray-400">Sport:</span>
-                            <span class="text-white">{{ $competition->sport->name }}</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-gray-400">League:</span>
-                            <span class="text-white">{{ $competition->name }}</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <!-- Live Score Component -->
+            @livewire('public-live-score', ['match' => $match])
 
             <!-- Back to League -->
             <div class="text-center mt-8 mb-20 md:mb-8">
@@ -212,7 +72,7 @@
             </a>
             <a href="{{ route('public.leagues.index') }}" class="flex flex-col items-center text-gray-300 hover:text-white transition-colors text-xs flex-1">
                 <span class="text-lg">🏆</span>
-                <span class="mt-1">Leagues</span>
+                <span class="mt-1">Competitions</span>
             </a>
         </div>
     </nav>

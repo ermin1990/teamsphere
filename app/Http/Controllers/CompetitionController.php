@@ -175,7 +175,8 @@ class CompetitionController extends Controller
             'matches.awayPlayer',
             'players',
             'standings',
-            'tournamentGroups'
+            'tournamentGroups.standings.player',
+            'tournamentGroups.standings.team'
         ]);
 
         $organization->load('players');
@@ -200,8 +201,12 @@ class CompetitionController extends Controller
 
         // Handle public visibility toggle (can be changed anytime)
         if ($request->has('is_public')) {
-            $competition->update(['is_public' => $request->boolean('is_public')]);
-            return back()->with('success', __('Public visibility updated successfully!'));
+            $isPublic = $request->boolean('is_public');
+            $competition->update(['is_public' => $isPublic]);
+            $message = $isPublic
+                ? 'Takmičenje je sada javno i vidljivo na web stranici!'
+                : 'Takmičenje je sada privatno i skriveno od javnog pogleda!';
+            return back()->with('success', $message);
         }
 
         // For other updates, ensure competition is in draft status

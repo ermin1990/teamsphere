@@ -17,8 +17,96 @@
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
-    <!-- Auto refresh every 30 seconds -->
-    <meta http-equiv="refresh" content="30">
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        let lastUpdated = null;
+        
+        function updateMatchData() {
+            fetch('{{ route("public.api.match", $match) }}')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        updateMatchDisplay(data.data);
+                        lastUpdated = data.last_updated;
+                        
+                        // Update last updated time
+                        const lastUpdatedElement = document.getElementById('last-updated-time');
+                        if (lastUpdatedElement) {
+                            const time = new Date(data.last_updated);
+                            lastUpdatedElement.textContent = 'Last updated: ' + time.toLocaleTimeString();
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error updating match data:', error);
+                });
+        }
+        
+        function updateMatchDisplay(matchData) {
+            // Update home score
+            const homeScoreElement = document.getElementById('home-score');
+            if (homeScoreElement) {
+                homeScoreElement.textContent = matchData.home_score;
+            }
+            
+            // Update away score
+            const awayScoreElement = document.getElementById('away-score');
+            if (awayScoreElement) {
+                awayScoreElement.textContent = matchData.away_score;
+            }
+            
+            // Update sets if they exist
+            if (matchData.sets && matchData.sets.length > 0) {
+                updateSetsDisplay(matchData.sets);
+            }
+            
+            // Update status
+            const statusElement = document.getElementById('match-status');
+            if (statusElement) {
+                if (matchData.status === 'in_progress') {
+                    statusElement.innerHTML = '<div class="text-green-400 font-semibold text-sm md:text-base">🔴 LIVE</div>';
+                } else if (matchData.status === 'completed') {
+                    statusElement.innerHTML = '<div class="text-green-400 font-semibold text-sm md:text-base">✅ COMPLETED</div>';
+                } else {
+                    statusElement.innerHTML = '';
+                }
+            }
+        }
+        
+        function updateSetsDisplay(sets) {
+            // Update sets breakdown for individual matches
+            const setsContainer = document.getElementById('sets-breakdown');
+            if (setsContainer && sets.length > 0) {
+                let html = '<h3 class="text-lg md:text-xl font-bold text-center mb-4 bg-gradient-to-r from-green-400 to-blue-400 bg-clip-text text-transparent">Set Scores</h3>';
+                html += '<div class="overflow-x-auto"><table class="w-full text-center text-sm md:text-base">';
+                html += '<thead><tr class="border-b border-gray-700">';
+                html += '<th class="pb-2 md:pb-3 text-gray-400 font-medium text-xs md:text-sm">Set</th>';
+                html += '<th class="pb-2 md:pb-3 text-blue-400 font-medium text-xs md:text-sm">{{ $match->homePlayer->name ?? "Home" }}</th>';
+                html += '<th class="pb-2 md:pb-3 text-gray-400 font-medium text-xs md:text-sm">-</th>';
+                html += '<th class="pb-2 md:pb-3 text-red-400 font-medium text-xs md:text-sm">{{ $match->awayPlayer->name ?? "Away" }}</th>';
+                html += '</tr></thead><tbody>';
+                
+                sets.forEach((set, index) => {
+                    html += '<tr class="border-b border-gray-700/50">';
+                    html += '<td class="py-2 md:py-3 text-gray-300 font-medium text-xs md:text-sm">' + (index + 1) + '</td>';
+                    html += '<td class="py-2 md:py-3 text-blue-400 font-bold text-sm md:text-lg">' + (set.home_score ?? set.home ?? 0) + '</td>';
+                    html += '<td class="py-2 md:py-3 text-gray-400 text-xs md:text-sm">-</td>';
+                    html += '<td class="py-2 md:py-3 text-red-400 font-bold text-sm md:text-lg">' + (set.away_score ?? set.away ?? 0) + '</td>';
+                    html += '</tr>';
+                });
+                
+                html += '</tbody></table></div>';
+                setsContainer.innerHTML = html;
+            }
+        }
+        
+        // Update every 3 seconds
+        setInterval(updateMatchData, 3000);
+        
+        // Initial update after a short delay
+        setTimeout(updateMatchData, 1000);
+    });
+    </script>
 </head>
 <body class="antialiased bg-gray-900 text-white min-h-screen pb-16 md:pb-8">
     <div class="py-8">
@@ -33,7 +121,7 @@
                         📺 Live Matches
                     </a>
                     <a href="{{ route('public.leagues.index') }}" class="text-gray-300 hover:text-white transition-colors text-sm md:text-base font-medium">
-                        🏆 Leagues
+                        🏆 Competitions
                     </a>
                 </div>
             </nav>
@@ -79,7 +167,7 @@
             </a>
             <a href="{{ route('public.leagues.index') }}" class="flex flex-col items-center text-gray-300 hover:text-white transition-colors text-xs flex-1">
                 <span class="text-lg">🏆</span>
-                <span class="mt-1">Leagues</span>
+                <span class="mt-1">Competitions</span>
             </a>
         </div>
     </nav>

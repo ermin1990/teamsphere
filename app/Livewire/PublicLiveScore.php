@@ -15,9 +15,12 @@ class PublicLiveScore extends Component
     public $lastUpdated;
     public $isUpdating = false;
 
+    public $randomId;
+
     public function mount($match)
     {
         $this->match = $match;
+        $this->randomId = rand(1000, 9999);
         $this->loadMatchData();
     }
 
@@ -25,14 +28,15 @@ class PublicLiveScore extends Component
     {
         $this->isUpdating = true;
         
-        // Refresh match data from database
-        $this->match->refresh();
-
-        $this->homeScore = $this->match->home_score ?? 0;
-        $this->awayScore = $this->match->away_score ?? 0;
-        $this->sets = $this->match->sets ?? [];
-        $this->matchStatus = $this->match->status;
+        // Refresh match data from database with fresh query
+        $freshMatch = \App\Models\LeagueMatch::find($this->match->id);
+        
+        $this->homeScore = $freshMatch->home_score ?? 0;
+        $this->awayScore = $freshMatch->away_score ?? 0;
+        $this->sets = $freshMatch->sets ?? [];
+        $this->matchStatus = $freshMatch->status;
         $this->lastUpdated = now();
+        $this->randomId = rand(1000, 9999); // Force DOM update
         
         $this->isUpdating = false;
     }

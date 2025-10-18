@@ -45,6 +45,14 @@ class TournamentGroup extends Model
     }
 
     /**
+     * Get the standings for this group.
+     */
+    public function standings(): HasMany
+    {
+        return $this->hasMany(Standing::class);
+    }
+
+    /**
      * Get players in this group.
      */
     public function getPlayers()

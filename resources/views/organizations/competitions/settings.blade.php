@@ -32,6 +32,32 @@
             </div>
             @endif
 
+            <!-- Public Visibility Toggle -->
+            <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl mb-6">
+                <form method="POST" action="{{ route('organizations.competitions.update', [$organization, $competition]) }}" class="space-y-3">
+                    @csrf
+                    @method('PATCH')
+                    
+                    <input type="hidden" name="is_public" value="0">
+                    
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h4 class="text-white font-medium">Javna Vidljivost</h4>
+                            <p class="text-sm text-gray-400">Učini ovo takmičenje vidljivim na javnoj web stranici</p>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox"
+                                   name="is_public"
+                                   value="1"
+                                   {{ $competition->isPublic() ? 'checked' : '' }}
+                                   class="sr-only peer"
+                                   onchange="this.form.submit()">
+                            <div class="w-11 h-6 bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                        </label>
+                    </div>
+                </form>
+            </div>
+
             <!-- Quick Presets -->
                         <!-- Quick Presets -->
             <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl mb-6">
@@ -40,7 +66,7 @@
                     <button onclick="applyPreset('standard')" 
                             {{ $competition->status !== 'draft' ? 'disabled' : '' }}
                             class="{{ $competition->status !== 'draft' ? 'bg-gray-600/20 border-gray-500 cursor-not-allowed' : 'bg-blue-600/20 hover:bg-blue-600/30 border-blue-500' }} border-2 text-white p-4 rounded-lg transition-colors text-left">
-                        <h4 class="font-semibold mb-2">🏓 Standard (11 poena)</h4>
+                        <h4 class="font-semibold mb-2">� Standard (11 poena)</h4>
                         <p class="text-sm text-gray-300">Najbolji od 3, 11 poena, završetak pri 10</p>
                     </button>
                     <button onclick="applyPreset('extended')" 
@@ -57,17 +83,6 @@
                     </button>
                 </div>
             </div>
-
-            @if($competition->status !== 'draft')
-            <div class="mb-6 bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4">
-                <div class="flex items-center">
-                    <svg class="w-5 h-5 text-yellow-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
-                    </svg>
-                    <p class="text-yellow-400">Postavke se mogu mijenjati samo kada je takmičenje u statusu "Draft". Trenutni status: <strong>{{ ucfirst($competition->status) }}</strong></p>
-                </div>
-            </div>
-            @endif
 
             <form action="{{ route('organizations.competitions.update-settings', [$organization, $competition]) }}" method="POST" {{ $competition->status !== 'draft' ? 'onsubmit="return false;"' : '' }}>
                 @csrf

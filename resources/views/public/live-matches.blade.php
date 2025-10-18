@@ -17,8 +17,206 @@
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
-    <!-- Auto refresh every 60 seconds -->
-    <meta http-equiv="refresh" content="60">
+    <script>
+        let lastUpdate = null;
+
+        function updateLiveMatches() {
+            console.log('Updating live matches...');
+            fetch('{{ route("public.api.live-matches") }}')
+                .then(response => {
+                    console.log('Response received:', response);
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Data received:', data);
+                    if (data.success) {
+                        // Update total count in header
+                        const headerElement = document.querySelector('p.text-gray-400');
+                        if (headerElement) {
+                            const countText = headerElement.innerHTML.replace(/\d+/, data.total_live_matches);
+                            headerElement.innerHTML = countText;
+                        }
+
+                    // Update matches
+                        updateMatchesDisplay(data.data);
+
+                        console.log('About to update matches display with:', data.data);
+
+                        // Update last updated time
+                        lastUpdate = data.last_updated;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error updating live matches:', error);
+                });
+        }
+
+        function updateMatchesDisplay(competitionsData) {
+            console.log('updateMatchesDisplay called with:', competitionsData);
+            // Update only scores within existing matches, don't reorder leagues
+            // Match anchors can contain competition slugs, so match by the URL suffix: /matches/{id}/live
+            competitionsData.forEach(compData => {
+                console.log('Processing competition:', compData.competition.name);
+                const matches = compData.matches;
+                matches.forEach(match => {
+                    // Find any anchor whose href ends with /matches/{id}/live
+                    const matchAnchors = document.querySelectorAll(`a[href$="/matches/${match.id}/live"]`);
+                    if (!matchAnchors || matchAnchors.length === 0) {
+                        console.debug('No anchor found for match id', match.id);
+                        return;
+                    }
+                    const matchLink = matchAnchors[0];
+                    console.debug('Found anchor for match', match.id, matchLink);
+
+                    // Status updates removed - keep layout clean like professional sites
+
+                    // Overall score now handled by current score update above
+
+                    // Status updates removed - no live indicator in matches
+
+                    // Update set scores
+                    if (match.sets && match.sets.length > 0) {
+                        console.log('Updating set scores for match', match.id, 'sets:', match.sets);
+
+                        // Find all player rows (flex items-center justify-between)
+                        const playerRows = matchLink.querySelectorAll('.flex.items-center.justify-between');
+
+                        // Home player (first row)
+                        if (playerRows[0]) {
+                            const homeSetSpans = playerRows[0].querySelectorAll('.flex.gap-1.ml-4 .w-6.text-center span');
+                            homeSetSpans.forEach((span, index) => {
+                                if (index < match.sets.length) {
+                                    const set = match.sets[index];
+                                    const homeScore = set.home_score ?? 0;
+                                    const awayScore = set.away_score ?? 0;
+                                    span.textContent = homeScore;
+                                    span.className = `text-xs px-1 py-0.5 rounded ${homeScore > awayScore ? 'bg-green-900/60 text-green-300 font-bold' : 'text-gray-400'}`;
+                                } else {
+                                    span.textContent = '-';
+                                    span.className = 'text-xs px-1 py-0.5 rounded text-gray-600';
+                                }
+                            });
+                        }
+
+                        // Away player (second row)
+                        if (playerRows[1]) {
+                            const awaySetSpans = playerRows[1].querySelectorAll('.flex.gap-1.ml-4 .w-6.text-center span');
+                            awaySetSpans.forEach((span, index) => {
+                                if (index < match.sets.length) {
+                                    const set = match.sets[index];
+                                    const homeScore = set.home_score ?? 0;
+                                    const awayScore = set.away_score ?? 0;
+                                    span.textContent = awayScore;
+                                    span.className = `text-xs px-1 py-0.5 rounded ${awayScore > homeScore ? 'bg-green-900/60 text-green-300 font-bold' : 'text-gray-400'}`;
+                                } else {
+                                    span.textContent = '-';
+                                    span.className = 'text-xs px-1 py-0.5 rounded text-gray-600';
+                                }
+                            });
+                        }
+
+                        console.debug('Updated set scores for match', match.id);
+                    }
+
+
+                    // Update sets won indicators in white squares - calculate from sets data
+                    const homeSetsSquare = matchLink.querySelector('.flex.items-center.justify-between:first-child .w-8.h-8.rounded.bg-white\\/20 .text-xs.font-bold, .flex.items-center.justify-between:first-child .w-8.h-8.rounded.bg-white\\/20 span');
+                    const awaySetsSquare = matchLink.querySelector('.flex.items-center.justify-between:nth-child(2) .w-8.h-8.rounded.bg-white\\/20 .text-xs.font-bold, .flex.items-center.justify-between:nth-child(2) .w-8.h-8.rounded.bg-white\\/20 span');
+
+                    // Calculate sets won by counting sets where player has higher score
+                    let homeSetsWon = 0;
+                    let awaySetsWon = 0;
+
+                    if (match.sets && match.sets.length > 0) {
+                        match.sets.forEach(set => {
+                            const homeScore = set.home_score ?? 0;
+                            const awayScore = set.away_score ?? 0;
+                            if (homeScore > awayScore) {
+                                homeSetsWon++;
+                            } else if (awayScore > homeScore) {
+                                awaySetsWon++;
+                            }
+                        });
+                    }
+
+                    if (homeSetsSquare) {
+                        if (match.status === 'in_progress') {
+                            homeSetsSquare.innerHTML = `<span class="text-green-400">${homeSetsWon}</span>`;
+                        } else if (match.status === 'completed') {
+                            homeSetsSquare.innerHTML = homeSetsWon;
+                        } else {
+                            homeSetsSquare.innerHTML = `<span class="text-gray-500">0</span>`;
+                        }
+                    }
+
+                    if (awaySetsSquare) {
+                        if (match.status === 'in_progress') {
+                            awaySetsSquare.innerHTML = `<span class="text-green-400">${awaySetsWon}</span>`;
+                        } else if (match.status === 'completed') {
+                            awaySetsSquare.innerHTML = awaySetsWon;
+                        } else {
+                            awaySetsSquare.innerHTML = `<span class="text-gray-500">0</span>`;
+                        }
+                    }
+
+                    // Update current set scores in green boxes
+                    const currentScoreContainer = matchLink.querySelector('.flex.flex-col.items-start.justify-center.space-y-1.pl-4');
+                    if (currentScoreContainer) {
+                        const scoreBoxes = currentScoreContainer.querySelectorAll('.w-8.h-8');
+                        console.log('Updating green boxes for match', match.id, 'home_score:', match.home_score, 'away_score:', match.away_score);
+                        if (match.status === 'in_progress') {
+                            // Update home score box
+                            if (scoreBoxes[0]) {
+                                scoreBoxes[0].className = 'w-8 h-8 bg-green-900/80 rounded-lg flex items-center justify-center';
+                                const homeScoreDiv = scoreBoxes[0].querySelector('.text-sm.font-bold');
+                                if (homeScoreDiv) {
+                                    homeScoreDiv.textContent = match.home_score ?? 0;
+                                    homeScoreDiv.className = 'text-sm font-bold text-green-300';
+                                    console.log('Updated home score to:', match.home_score ?? 0);
+                                }
+                            }
+                            // Update away score box
+                            if (scoreBoxes[1]) {
+                                scoreBoxes[1].className = 'w-8 h-8 bg-green-900/80 rounded-lg flex items-center justify-center';
+                                const awayScoreDiv = scoreBoxes[1].querySelector('.text-sm.font-bold');
+                                if (awayScoreDiv) {
+                                    awayScoreDiv.textContent = match.away_score ?? 0;
+                                    awayScoreDiv.className = 'text-sm font-bold text-green-300';
+                                    console.log('Updated away score to:', match.away_score ?? 0);
+                                }
+                            }
+                        } else {
+                            // Set to inactive state
+                            if (scoreBoxes[0]) {
+                                scoreBoxes[0].className = 'w-8 h-8 bg-gray-700/50 rounded-lg flex items-center justify-center';
+                                const homeScoreDiv = scoreBoxes[0].querySelector('.text-sm.font-bold');
+                                if (homeScoreDiv) {
+                                    homeScoreDiv.textContent = '-';
+                                    homeScoreDiv.className = 'text-sm font-bold text-gray-500';
+                                }
+                            }
+                            if (scoreBoxes[1]) {
+                                scoreBoxes[1].className = 'w-8 h-8 bg-gray-700/50 rounded-lg flex items-center justify-center';
+                                const awayScoreDiv = scoreBoxes[1].querySelector('.text-sm.font-bold');
+                                if (awayScoreDiv) {
+                                    awayScoreDiv.textContent = '-';
+                                    awayScoreDiv.className = 'text-sm font-bold text-gray-500';
+                                }
+                            }
+                        }
+                    }
+                });
+            });
+        }
+
+        // Update every 3 seconds
+        setInterval(updateLiveMatches, 3000);
+
+        // Initial update
+        document.addEventListener('DOMContentLoaded', function() {
+            updateLiveMatches();
+        });
+    </script>
 </head>
 <body class="antialiased bg-gray-900 text-white min-h-screen pb-16 md:pb-8">
     <div class="py-12">
@@ -33,7 +231,7 @@
                         📺 Live Matches
                     </a>
                     <a href="{{ route('public.leagues.index') }}" class="text-gray-300 hover:text-white transition-colors text-sm md:text-base font-medium">
-                        🏆 Leagues
+                        🏆 Competitions
                     </a>
                 </div>
             </nav>
@@ -46,106 +244,185 @@
                     </h1>
                     <p class="text-gray-400">Watch live table tennis matches from all leagues</p>
                     <div class="mt-4 text-sm text-gray-500">
-                        Page auto-refreshes every 60 seconds • {{ $liveMatches->count() }} live matches
+                        Real-time updates • {{ $liveMatches->count() }} live matches
                     </div>
                 </div>
             </div>
 
             @if($liveMatches->count() > 0)
-                <!-- Live Matches Grid -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    @foreach($liveMatches as $match)
-                    <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl hover:bg-gray-800/70 transition-colors">
-                        <!-- Match Header -->
-                        <div class="text-center mb-4">
-                            <div class="text-xs text-gray-400 mb-1">
-                                {{ $match->competition->organization->name }} • {{ $match->competition->name }}
-                            </div>
-                            <div class="text-xs text-green-400 font-semibold">
-                                🔴 LIVE • Round {{ $match->round }}
-                            </div>
-                        </div>
+                <!-- Group matches by competition -->
+                @php
+                    $matchesByCompetition = $liveMatches->groupBy(function($match) {
+                        return $match->competition->id;
+                    });
+                @endphp
 
-                        <!-- Teams/Players -->
-                        <div class="space-y-3 mb-4">
-                            <!-- Home -->
-                            <div class="flex items-center justify-between p-3 bg-gray-700/50 rounded-lg">
-                                <div class="flex items-center space-x-3">
-                                    <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                                        <span class="text-xs font-bold text-white">
-                                            @if($match->competition->is_team_based)
-                                                {{ substr($match->homeTeam?->name ?? 'H', 0, 1) }}
-                                            @else
-                                                {{ substr($match->homePlayer?->name ?? 'H', 0, 1) }}
-                                            @endif
-                                        </span>
-                                    </div>
-                                    <div class="text-sm font-medium text-white">
-                                        @if($match->competition->is_team_based)
-                                            {{ $match->homeTeam?->name ?? 'Home Team' }}
-                                        @else
-                                            {{ $match->homePlayer?->name ?? 'Home Player' }}
-                                        @endif
-                                    </div>
-                                </div>
-                                <div class="text-xl font-bold text-blue-400">
-                                    {{ $match->home_score ?? 0 }}
-                                </div>
-                            </div>
+                <div class="space-y-6 md:space-y-8" id="live-matches-container">
+                    @foreach($matchesByCompetition as $competitionId => $competitionMatches)
+                    @php
+                        $competition = $competitionMatches->first()->competition;
+                    @endphp
 
-                            <!-- Away -->
-                            <div class="flex items-center justify-between p-3 bg-gray-700/50 rounded-lg">
-                                <div class="flex items-center space-x-3">
-                                    <div class="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center">
-                                        <span class="text-xs font-bold text-white">
-                                            @if($match->competition->is_team_based)
-                                                {{ substr($match->awayTeam?->name ?? 'A', 0, 1) }}
-                                            @else
-                                                {{ substr($match->awayPlayer?->name ?? 'A', 0, 1) }}
-                                            @endif
-                                        </span>
-                                    </div>
-                                    <div class="text-sm font-medium text-white">
-                                        @if($match->competition->is_team_based)
-                                            {{ $match->awayTeam?->name ?? 'Away Team' }}
-                                        @else
-                                            {{ $match->awayPlayer?->name ?? 'Away Player' }}
-                                        @endif
-                                    </div>
-                                </div>
-                                <div class="text-xl font-bold text-red-400">
-                                    {{ $match->away_score ?? 0 }}
+                    <!-- Competition Header -->
+                    <div class="bg-gray-800/30 backdrop-blur-xl rounded-xl p-4 md:p-6 border border-gray-700/30 shadow-xl">
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <h2 class="text-lg md:text-xl font-bold text-white">
+                                    {{ $competition->name }}
+                                </h2>
+                                <p class="text-sm text-gray-400">
+                                    {{ $competition->organization->name }} • {{ $competition->sport->name }}
+                                </p>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-sm text-green-400 font-semibold">
+                                    🔴 {{ $competitionMatches->count() }} LIVE
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Sets Info -->
-                        @if($match->sets && count($match->sets) > 0)
-                        <div class="text-center mb-4">
-                            <div class="text-xs text-gray-400 mb-1">Sets</div>
-                            <div class="text-sm text-white">
-                                {{ implode(' | ', array_map(function($set) {
-                                    return ($set['home_score'] ?? $set['home'] ?? 0) . '-' . ($set['away_score'] ?? $set['away'] ?? 0);
-                                }, $match->sets)) }}
-                            </div>
-                        </div>
-                        @endif
+                        <!-- Matches Table -->
+                        <div class="bg-gray-800/30 rounded-lg overflow-hidden border border-gray-700/30">
+                            <!-- Table Header - Removed -->
+                            <!-- <div class="grid grid-cols-[3fr_120px] gap-0 bg-gray-700/50 border-b border-gray-600/30">
+                                <div class="p-4">
+                                    <span class="text-sm font-semibold text-gray-300 uppercase tracking-wider">Players</span>
+                                </div>
+                                <div class="p-4 text-center">
+                                    <span class="text-sm font-semibold text-gray-300 uppercase tracking-wider">Score</span>
+                                </div>
+                            </div> -->
 
-                        <!-- Action Buttons -->
-                        <div class="flex space-x-2">
-                            <a href="{{ route('public.matches.live', [$match->competition, $match]) }}"
-                               class="flex-1 bg-green-600 hover:bg-green-700 text-white text-center py-2 px-4 rounded-lg text-sm font-medium transition-colors">
-                                🎯 Watch Live
-                            </a>
+                            @foreach($competitionMatches as $match)
                             <a href="{{ route('public.matches.show', [$match->competition, $match]) }}"
-                               class="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-center py-2 px-4 rounded-lg text-sm font-medium transition-colors">
-                                📊 Details
-                            </a>
-                        </div>
+                               class="block hover:bg-gray-700/20 transition-colors duration-200 border-b border-gray-700/20 last:border-b-0 group">
+                                <div class="grid grid-cols-[3fr_120px] gap-0 items-center p-4">
+                                    <!-- Players Column -->
+                                    <div class="space-y-4">
+                                        <!-- Home Player -->
+                                        <div class="flex items-center justify-between">
+                                            <div class="flex items-center gap-3 flex-1 min-w-0">
+                                                <!-- Sets won indicator -->
+                                                <div class="w-8 h-8 rounded bg-white/20 flex items-center justify-center text-xs font-bold text-white flex-shrink-0">
+                                                    @php
+                                                        $homeSetsWon = 0;
+                                                        if(isset($match->sets) && is_array($match->sets)) {
+                                                            foreach($match->sets as $set) {
+                                                                if(($set['home_score'] ?? 0) > ($set['away_score'] ?? 0)) {
+                                                                    $homeSetsWon++;
+                                                                }
+                                                            }
+                                                        }
+                                                    @endphp
+                                                    @if($match->status === 'completed')
+                                                        {{ $homeSetsWon }}
+                                                    @elseif($match->status === 'in_progress')
+                                                        <span class="text-green-400">{{ $homeSetsWon }}</span>
+                                                    @else
+                                                        <span class="text-gray-500">0</span>
+                                                    @endif
+                                                </div>
+                                                <div class="text-xs md:text-sm font-semibold text-white truncate">
+                                                    @if($match->competition->is_team_based)
+                                                        {{ $match->homeTeam?->name ?? 'Home Team' }}
+                                                    @else
+                                                        {{ $match->homePlayer?->name ?? 'Home Player' }}
+                                                    @endif
+                                                </div>
+                                            </div>
+                                            <div class="flex gap-1 ml-4">
+                                                @for($i = 1; $i <= 5; $i++)
+                                                <div class="w-6 text-center {{ $i < 5 ? 'border-r border-gray-600/30' : '' }}">
+                                                    @if(isset($match->sets) && isset($match->sets[$i-1]))
+                                                        <span class="text-xs px-1 py-0.5 rounded {{ $match->sets[$i-1]['home_score'] > $match->sets[$i-1]['away_score'] ? 'bg-green-900/60 text-green-300 font-bold' : 'text-gray-400' }}">
+                                                            {{ $match->sets[$i-1]['home_score'] ?? 0 }}
+                                                        </span>
+                                                    @else
+                                                        <span class="text-xs px-1 py-0.5 rounded text-gray-600">-</span>
+                                                    @endif
+                                                </div>
+                                                @endfor
+                                            </div>
+                                        </div>
 
-                        <!-- Last Updated -->
-                        <div class="text-center mt-3 text-xs text-gray-500">
-                            Updated {{ $match->updated_at->diffForHumans() }}
+                                        <!-- Away Player -->
+                                        <div class="flex items-center justify-between">
+                                            <div class="flex items-center gap-3 flex-1 min-w-0">
+                                                <!-- Sets won indicator -->
+                                                <div class="w-8 h-8 rounded bg-white/20 flex items-center justify-center text-xs font-bold text-white flex-shrink-0">
+                                                    @php
+                                                        $awaySetsWon = 0;
+                                                        if(isset($match->sets) && is_array($match->sets)) {
+                                                            foreach($match->sets as $set) {
+                                                                if(($set['away_score'] ?? 0) > ($set['home_score'] ?? 0)) {
+                                                                    $awaySetsWon++;
+                                                                }
+                                                            }
+                                                        }
+                                                    @endphp
+                                                    @if($match->status === 'completed')
+                                                        {{ $awaySetsWon }}
+                                                    @elseif($match->status === 'in_progress')
+                                                        <span class="text-green-400">{{ $awaySetsWon }}</span>
+                                                    @else
+                                                        <span class="text-gray-500">0</span>
+                                                    @endif
+                                                </div>
+                                                <div class="text-xs md:text-sm font-semibold text-white truncate">
+                                                    @if($match->competition->is_team_based)
+                                                        {{ $match->awayTeam?->name ?? 'Away Team' }}
+                                                    @else
+                                                        {{ $match->awayPlayer?->name ?? 'Away Player' }}
+                                                    @endif
+                                                </div>
+                                            </div>
+                                            <div class="flex gap-1 ml-4">
+                                                @for($i = 1; $i <= 5; $i++)
+                                                <div class="w-6 text-center {{ $i < 5 ? 'border-r border-gray-600/30' : '' }}">
+                                                    @if(isset($match->sets) && isset($match->sets[$i-1]))
+                                                        <span class="text-xs px-1 py-0.5 rounded {{ $match->sets[$i-1]['away_score'] > $match->sets[$i-1]['home_score'] ? 'bg-green-900/60 text-green-300 font-bold' : 'text-gray-400' }}">
+                                                            {{ $match->sets[$i-1]['away_score'] ?? 0 }}
+                                                        </span>
+                                                    @else
+                                                        <span class="text-xs px-1 py-0.5 rounded text-gray-600">-</span>
+                                                    @endif
+                                                </div>
+                                                @endfor
+                                            </div>
+                                        </div>
+
+                                        <!-- Match Status - Removed live indicator -->
+                                    </div>
+
+                                    <!-- Current Set Score Column -->
+                                    <div class="flex flex-col items-start justify-center space-y-1 pl-4">
+                                        @if($match->status === 'in_progress')
+                                            <div class="flex flex-col items-center space-y-1">
+                                                <div class="w-8 h-8 bg-green-900/80 rounded-lg flex items-center justify-center">
+                                                    <div class="text-sm font-bold text-green-300">
+                                                        {{ $match->home_score ?? 0 }}
+                                                    </div>
+                                                </div>
+                                                <div class="w-8 h-8 bg-green-900/80 rounded-lg flex items-center justify-center">
+                                                    <div class="text-sm font-bold text-green-300">
+                                                        {{ $match->away_score ?? 0 }}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        @else
+                                            <div class="flex flex-col items-center space-y-1">
+                                                <div class="w-8 h-8 bg-gray-700/50 rounded-lg flex items-center justify-center">
+                                                    <div class="text-sm font-bold text-gray-500">-</div>
+                                                </div>
+                                                <div class="w-8 h-8 bg-gray-700/50 rounded-lg flex items-center justify-center">
+                                                    <div class="text-sm font-bold text-gray-500">-</div>
+                                                </div>
+                                            </div>
+                                        @endif
+                                    </div>
+                                </div>
+                            </a>
+                            @endforeach
                         </div>
                     </div>
                     @endforeach
@@ -182,7 +459,7 @@
             </a>
             <a href="{{ route('public.leagues.index') }}" class="flex flex-col items-center text-gray-300 hover:text-white transition-colors text-xs flex-1">
                 <span class="text-lg">🏆</span>
-                <span class="mt-1">Leagues</span>
+                <span class="mt-1">Competitions</span>
             </a>
         </div>
     </nav>

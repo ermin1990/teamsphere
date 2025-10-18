@@ -706,7 +706,7 @@ class LeagueController extends Controller
     /**
      * Update standings table based on completed matches.
      */
-    private function updateStandings(League $league)
+    public function updateStandings(League $league)
     {
         // Reset all standings for this league
         Standing::where('competition_id', $league->id)->update([
@@ -715,6 +715,8 @@ class LeagueController extends Controller
             'drawn' => 0,
             'lost' => 0,
             'points' => 0,
+            'sets_won' => 0,
+            'sets_lost' => 0,
             'goals_for' => 0,
             'goals_against' => 0,
             'goal_difference' => 0,
@@ -772,6 +774,12 @@ class LeagueController extends Controller
                     $homeStanding->increment('goals_against', $match->away_score);
                     $awayStanding->increment('goals_for', $match->away_score);
                     $awayStanding->increment('goals_against', $match->home_score);
+
+                    // Update sets won/lost
+                    $homeStanding->increment('sets_won', $match->home_score);
+                    $homeStanding->increment('sets_lost', $match->away_score);
+                    $awayStanding->increment('sets_won', $match->away_score);
+                    $awayStanding->increment('sets_lost', $match->home_score);
 
                     if ($match->home_score > $match->away_score) {
                         $homeStanding->increment('won');
