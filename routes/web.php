@@ -125,6 +125,7 @@ Route::middleware('auth')->group(function () {
     Route::get('leagues/{league}/team-management', [LeagueController::class, 'teamManagement'])->name('leagues.team-management');
     Route::post('leagues/{organization}', [LeagueController::class, 'store'])->name('leagues.store');
     Route::put('leagues/{league}', [LeagueController::class, 'update'])->name('leagues.update');
+    Route::patch('leagues/{league}', [LeagueController::class, 'update']);
     Route::delete('leagues/{league}', [LeagueController::class, 'destroy'])->name('leagues.destroy');
     Route::get('leagues/settings-form', [LeagueController::class, 'getSettingsForm'])->name('leagues.settings-form');
 
