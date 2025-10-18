@@ -612,10 +612,12 @@
                                     @csrf
                                     @method('PUT')
                                     
+                                    <input type="hidden" name="is_public" value="0">
+                                    
                                     <div class="flex items-center justify-between">
                                         <div>
-                                            <h4 class="text-white font-medium">{{ __('Public Visibility') }}</h4>
-                                            <p class="text-sm text-gray-400">{{ __('Make this league visible on the public website') }}</p>
+                                            <h4 class="text-white font-medium">{{ __('public_visibility') }}</h4>
+                                            <p class="text-sm text-gray-400">{{ __('make_league_visible') }}</p>
                                         </div>
                                         <label class="relative inline-flex items-center cursor-pointer">
                                             <input type="checkbox"

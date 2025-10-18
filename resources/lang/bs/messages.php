@@ -638,4 +638,10 @@ return [
     'cancel' => 'Otkaži',
     'save_result' => 'Sačuvaj Rezultat',
     'add_set_score' => 'Dodaj Rezultat Seta',
+
+    // League visibility messages
+    'league_now_public' => 'Liga je sada javna i vidljiva na web stranici!',
+    'league_now_private' => 'Liga je sada privatna i skrivena od javnog pogleda!',
+    'public_visibility' => 'Javna Vidljivost',
+    'make_league_visible' => 'Učini ovu ligu vidljivom na javnoj web stranici',
 ];

@@ -317,8 +317,14 @@ class LeagueController extends Controller
 
         // Handle public visibility toggle (can be changed anytime)
         if ($request->has('is_public')) {
-            $league->update(['is_public' => $request->boolean('is_public')]);
-            return back()->with('success', __('Public visibility updated successfully!'));
+            $isPublic = $request->boolean('is_public');
+            $league->update(['is_public' => $isPublic]);
+            
+            $message = $isPublic 
+                ? __('league_now_public')
+                : __('league_now_private');
+                
+            return back()->with('success', $message);
         }
 
         // Ensure league is in draft status for other settings
