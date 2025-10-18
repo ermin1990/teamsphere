@@ -114,6 +114,11 @@
                             @foreach($currentGroupMatches as $match)
                             <a href="{{ route('public.matches.show', [$competition, $match]) }}"
                                class="block bg-gray-700/20 hover:bg-gray-700/40 rounded-md p-4 transition-all duration-200 hover:scale-[1.01]">
+                                @if($match->status === 'in_progress')
+                                <div class="text-center mb-2">
+                                    <span class="text-red-400 font-semibold text-xs uppercase tracking-wider">Live</span>
+                                </div>
+                                @endif
                                 <div class="grid grid-cols-[3fr_120px] gap-0 items-center p-4">
                                     <!-- Players Column -->
                                     <div class="space-y-4">
@@ -323,6 +328,11 @@
                         @foreach($roundMatches as $match)
                         <a href="{{ route('public.matches.show', [$competition, $match]) }}"
                            class="block bg-gray-700/20 hover:bg-gray-700/40 rounded-md p-4 transition-all duration-200 hover:scale-[1.01]">
+                            @if($match->status === 'in_progress' && !$match->is_bye)
+                            <div class="text-center mb-2">
+                                <span class="text-red-400 font-semibold text-xs uppercase tracking-wider">Live</span>
+                            </div>
+                            @endif
                             <div class="grid grid-cols-[3fr_120px] gap-0 items-center p-4">
                                 <!-- Players Column -->
                                 <div class="space-y-4">
