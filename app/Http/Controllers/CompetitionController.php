@@ -1182,6 +1182,9 @@ class CompetitionController extends Controller
             (isset($validated['home_score']) || isset($validated['away_score']) || 
              in_array($validated['status'], ['completed', 'forfeited']) ||
              ($validated['status'] === 'cancelled' && ($validated['home_score'] > 0 || $validated['away_score'] > 0)))) {
+            // Update TournamentGroup standings first (like LiveScore does)
+            $match->tournamentGroup->updateStandings($match);
+            // Then recalculate Eloquent standings in database
             $groupService = app(\App\Services\TournamentGroupService::class);
             $groupService->recalculateGroupStandings($match->tournamentGroup);
         }
