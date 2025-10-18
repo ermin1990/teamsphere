@@ -315,7 +315,15 @@ class LeagueController extends Controller
             abort(403);
         }
 
-        // Ensure league is in draft status
+        // Handle public visibility toggle (can be changed anytime)
+        if ($request->has('is_public')) {
+            $settings = $league->settings ?? [];
+            $settings['is_public'] = $request->boolean('is_public');
+            $league->update(['settings' => $settings]);
+            return back()->with('success', __('Public visibility updated successfully!'));
+        }
+
+        // Ensure league is in draft status for other settings
         if ($league->status !== 'draft') {
             return back()->withErrors(['general' => __('Cannot modify rules for a league that has already started.')]);
         }
@@ -348,10 +356,6 @@ class LeagueController extends Controller
             ]);
 
             $settings['sets_to_win'] = $request->sets_to_win;
-        }
-
-        if ($request->has('is_public')) {
-            $settings['is_public'] = $request->boolean('is_public');
         }
 
         $league->update(['settings' => $settings]);
