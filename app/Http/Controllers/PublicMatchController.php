@@ -212,16 +212,27 @@ class PublicMatchController extends Controller
     /**
      * Get single match data as JSON for AJAX updates.
      */
-    public function getMatchData(LeagueMatch $match)
+    public function getMatchData($matchId)
     {
-        // Load necessary relationships
-        $match->load(['competition.organization', 'homeTeam', 'awayTeam', 'homePlayer', 'awayPlayer', 'moderator']);
+        // Try to find as LeagueMatch first, then CompetitionMatch
+        $match = LeagueMatch::with(['competition.organization', 'homeTeam', 'awayTeam', 'homePlayer', 'awayPlayer', 'moderator'])->find($matchId);
+        
+        if (!$match) {
+            $match = \App\Models\CompetitionMatch::with(['competition.organization', 'homePlayer', 'awayPlayer', 'tournamentGroup'])->find($matchId);
+        }
+
+        if (!$match) {
+            return response()->json(['success' => false, 'message' => 'Match not found'], 404);
+        }
+
+        // Get parent competition/league
+        $parent = $match->competition ?? $match->league;
 
         return response()->json([
             'success' => true,
             'data' => [
                 'id' => $match->id,
-                'round' => $match->round,
+                'round' => $match->round ?? $match->round_number ?? null,
                 'home_score' => $match->home_score ?? 0,
                 'away_score' => $match->away_score ?? 0,
                 'status' => $match->status,
@@ -243,18 +254,18 @@ class PublicMatchController extends Controller
                     'name' => $match->awayTeam->name,
                 ] : null,
                 'sets' => $match->sets ?? [],
-                'competition' => [
-                    'id' => $match->competition->id,
-                    'name' => $match->competition->name,
+                'competition' => $parent ? [
+                    'id' => $parent->id,
+                    'name' => $parent->name,
                     'organization' => [
-                        'id' => $match->competition->organization->id,
-                        'name' => $match->competition->organization->name,
+                        'id' => $parent->organization->id,
+                        'name' => $parent->organization->name,
                     ],
                     'sport' => [
-                        'id' => $match->competition->sport->id,
-                        'name' => $match->competition->sport->name,
+                        'id' => $parent->sport->id,
+                        'name' => $parent->sport->name,
                     ],
-                ],
+                ] : null,
             ],
             'last_updated' => now()->toISOString(),
         ]);

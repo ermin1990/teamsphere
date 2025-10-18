@@ -1785,15 +1785,169 @@
     </script>
 
     <script>
-        // Auto-refresh page after successful result submission to update standings
-        document.addEventListener('DOMContentLoaded', function() {
-            const successMessage = document.getElementById('success-message');
-            if (successMessage) {
-                // Wait 2 seconds to show the success message, then refresh
-                setTimeout(function() {
-                    location.reload();
-                }, 2000);
+        // Auto-refresh knockout bracket results
+        let knockoutUpdateInterval = null;
+
+        function startKnockoutUpdates() {
+            // Only start updates if there are knockout matches
+            @if($knockoutMatches->count() > 0)
+            knockoutUpdateInterval = setInterval(updateKnockoutResults, 3000);
+            updateKnockoutResults(); // Initial update
+            @endif
+        }
+
+        function updateKnockoutResults() {
+            // Get all match IDs from knockout matches
+            const matchIds = [
+                @foreach($knockoutMatches as $roundMatches)
+                    @foreach($roundMatches as $match)
+                        {{ $match->id }},
+                    @endforeach
+                @endforeach
+            ].filter((id, index, arr) => arr.indexOf(id) === index); // Remove duplicates
+
+            if (matchIds.length === 0) return;
+
+            // Fetch data for all matches
+            Promise.all(matchIds.map(matchId => 
+                fetch(`/public/api/matches/${matchId}`)
+                    .then(response => response.json())
+                    .then(data => ({ matchId, data }))
+                    .catch(error => ({ matchId, error }))
+            ))
+            .then(results => {
+                results.forEach(result => {
+                    if (result.error) {
+                        console.error('Error updating match', result.matchId, result.error);
+                        return;
+                    }
+
+                    const matchData = result.data.data;
+                    updateMatchCard(matchData);
+                });
+            })
+            .catch(error => {
+                console.error('Error updating knockout results:', error);
+            });
+        }
+
+        function updateMatchCard(matchData) {
+            const card = document.getElementById(`match-card-${matchData.id}`);
+            if (!card) return;
+
+            // Update status indicator
+            const statusElement = card.querySelector('.text-xs.text-green-400.animate-pulse, .text-xs.text-gray-400');
+            if (statusElement) {
+                if (matchData.status === 'in_progress') {
+                    statusElement.textContent = '🔴 UŽIVO';
+                    statusElement.className = 'text-xs text-green-400 animate-pulse';
+                } else if (matchData.status === 'completed') {
+                    statusElement.textContent = '✓';
+                    statusElement.className = 'text-xs text-gray-400';
+                }
             }
+
+            // Update home player score
+            const homeScoreElement = card.querySelector('[data-player-type="home"] + span.text-2xl.font-bold.ml-2');
+            if (homeScoreElement) {
+                const newScore = matchData.status !== 'scheduled' ? (matchData.home_score ?? 0) : '-';
+                if (homeScoreElement.textContent !== newScore) {
+                    homeScoreElement.textContent = newScore;
+                    
+                    // Update color based on winner
+                    if (matchData.status === 'completed') {
+                        if (matchData.home_score > matchData.away_score) {
+                            homeScoreElement.className = 'text-2xl font-bold ml-2 text-green-400';
+                        } else {
+                            homeScoreElement.className = 'text-2xl font-bold ml-2 text-gray-500';
+                        }
+                    } else {
+                        homeScoreElement.className = 'text-2xl font-bold ml-2 text-white';
+                    }
+                }
+            }
+
+            // Update away player score
+            const awayScoreElement = card.querySelector('[data-player-type="away"] + span.text-2xl.font-bold.ml-2');
+            if (awayScoreElement) {
+                const newScore = matchData.status !== 'scheduled' ? (matchData.away_score ?? 0) : '-';
+                if (awayScoreElement.textContent !== newScore) {
+                    awayScoreElement.textContent = newScore;
+                    
+                    // Update color based on winner
+                    if (matchData.status === 'completed') {
+                        if (matchData.away_score > matchData.home_score) {
+                            awayScoreElement.className = 'text-2xl font-bold ml-2 text-green-400';
+                        } else {
+                            awayScoreElement.className = 'text-2xl font-bold ml-2 text-gray-500';
+                        }
+                    } else {
+                        awayScoreElement.className = 'text-2xl font-bold ml-2 text-white';
+                    }
+                }
+            }
+
+            // Update background colors for winner highlighting
+            const homePlayerDiv = card.querySelector('[data-player-type="home"]').closest('.flex.items-center.justify-between.p-2');
+            const awayPlayerDiv = card.querySelector('[data-player-type="away"]').closest('.flex.items-center.justify-between.p-2');
+
+            if (matchData.status === 'completed') {
+                // Reset classes
+                homePlayerDiv.className = 'flex items-center justify-between p-2';
+                awayPlayerDiv.className = 'flex items-center justify-between p-2';
+
+                if (matchData.home_score > matchData.away_score) {
+                    homePlayerDiv.classList.add('bg-green-600/20', 'border', 'border-green-500/30');
+                    awayPlayerDiv.classList.add('bg-gray-800/50');
+                } else if (matchData.away_score > matchData.home_score) {
+                    awayPlayerDiv.classList.add('bg-green-600/20', 'border', 'border-green-500/30');
+                    homePlayerDiv.classList.add('bg-gray-800/50');
+                } else {
+                    homePlayerDiv.classList.add('bg-gray-800/50');
+                    awayPlayerDiv.classList.add('bg-gray-800/50');
+                }
+            } else {
+                homePlayerDiv.className = 'flex items-center justify-between p-2 bg-gray-800/50';
+                awayPlayerDiv.className = 'flex items-center justify-between p-2 bg-gray-800/50';
+            }
+
+            // Update action buttons
+            const actionsDiv = card.querySelector('.px-3.pb-3');
+            if (actionsDiv) {
+                if (matchData.status === 'scheduled') {
+                    actionsDiv.innerHTML = `
+                        <div class="flex gap-2">
+                            <a href="/competitions/matches/${matchData.id}/live-score"
+                               class="flex-1 bg-green-600 hover:bg-green-700 text-white text-xs px-3 py-2 rounded-lg transition-colors text-center font-semibold">
+                                ▶️ Start
+                            </a>
+                            <button onclick="openQuickResultModal(${matchData.id}, '${matchData.home_player?.name || 'Player 1'}', '${matchData.away_player?.name || 'Player 2'}')"
+                                    class="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-2 rounded-lg transition-colors text-center font-semibold">
+                                ⚡ Result
+                            </button>
+                        </div>
+                    `;
+                } else if (matchData.status === 'in_progress') {
+                    actionsDiv.innerHTML = `
+                        <a href="/competitions/matches/${matchData.id}/live-score"
+                           class="block bg-green-600/20 text-green-400 text-xs px-3 py-2 rounded-lg text-center font-semibold hover:bg-green-600/30 transition-colors">
+                            👁️ Watch Live
+                        </a>
+                    `;
+                } else if (matchData.status === 'completed') {
+                    actionsDiv.innerHTML = `
+                        <a href="/organizations/{{ $organization->slug }}/competitions/{{ $competition->slug }}/matches/${matchData.id}/edit"
+                           class="block bg-blue-600/20 text-blue-400 text-xs px-3 py-2 rounded-lg text-center font-semibold hover:bg-blue-600/30 transition-colors">
+                            ✏️ Uredi rezultate
+                        </a>
+                    `;
+                }
+            }
+        }
+
+        // Start updates when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            startKnockoutUpdates();
         });
     </script>
 </x-app-layout>

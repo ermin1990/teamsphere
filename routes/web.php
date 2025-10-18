@@ -212,7 +212,7 @@ Route::prefix('public')->name('public.')->group(function () {
     Route::get('/api/live-matches', [App\Http\Controllers\PublicMatchController::class, 'getLiveMatchesData'])->name('api.live-matches');
 
     // API endpoint for single match data
-    Route::get('/api/matches/{match}', [App\Http\Controllers\PublicMatchController::class, 'getMatchData'])->name('api.match');
+    Route::get('/api/matches/{matchId}', [App\Http\Controllers\PublicMatchController::class, 'getMatchData'])->name('api.match');
 
     // Embed widget
     Route::get('/embed/matches/{match}', [App\Http\Controllers\PublicMatchController::class, 'embedMatch'])->name('matches.embed');
