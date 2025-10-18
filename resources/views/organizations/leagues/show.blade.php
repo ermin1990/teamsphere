@@ -603,7 +603,35 @@
                                 {{ __('Vrati se na organizaciju') }}
                             </a>
 
-                            <hr class="border-gray-600/50">
+                            <hr class="border-gray-600/50 my-4">
+
+                            <!-- Public Visibility Toggle -->
+                            @if($organization->user_id === auth()->id())
+                            <div class="bg-gray-700/30 rounded-lg p-4 border border-gray-600/30">
+                                <form method="POST" action="{{ route('leagues.update', $league) }}" class="space-y-3">
+                                    @csrf
+                                    @method('PATCH')
+                                    
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <h4 class="text-white font-medium">{{ __('Public Visibility') }}</h4>
+                                            <p class="text-sm text-gray-400">{{ __('Make this league visible on the public website') }}</p>
+                                        </div>
+                                        <label class="relative inline-flex items-center cursor-pointer">
+                                            <input type="checkbox" 
+                                                   name="is_public" 
+                                                   value="1" 
+                                                   {{ $league->isPublic() ? 'checked' : '' }}
+                                                   class="sr-only peer"
+                                                   onchange="this.form.submit()">
+                                            <div class="w-11 h-6 bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                        </label>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <hr class="border-gray-600/50 my-4">
+                            @endif
 
                             @if($organization->user_id === auth()->id())
                             <form method="POST" action="{{ route('leagues.destroy', $league) }}"
