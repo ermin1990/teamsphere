@@ -110,37 +110,146 @@
                     @if($currentGroupMatches->count() > 0)
                     <div>
                         <h5 class="text-sm md:text-base font-semibold text-gray-300 mb-2 uppercase tracking-wide">Mečevi</h5>
-                        <div class="space-y-1 md:space-y-2">
+                        <div class="space-y-1 md:space-y-3">
                             @foreach($currentGroupMatches as $match)
                             <a href="{{ route('public.matches.show', [$competition, $match]) }}"
-                               class="block {{ $match->status === 'in_progress' ? 'bg-red-900/30 hover:bg-red-900/40 border-red-500/50' : 'bg-gray-700/20 hover:bg-gray-700/40' }} rounded-md p-2 md:p-3 text-xs md:text-sm transition-all duration-200 hover:scale-[1.01] {{ $match->status === 'in_progress' ? 'border border-red-500/30 shadow-lg shadow-red-500/20' : '' }}">
-                                @if($match->status === 'in_progress')
-                                <div class="text-center mb-1">
-                                    <span class="text-red-400 font-semibold text-xs uppercase tracking-wider animate-pulse">🔴 live</span>
-                                </div>
-                                @endif
-                                <div class="flex items-center justify-between">
-                                    <div class="flex-1 truncate pr-2">
-                                        <span class="text-gray-300">{{ $match->homePlayer->name ?? 'TBD' }}</span>
+                               class="block bg-gray-700/20 hover:bg-gray-700/40 rounded-md p-4 transition-all duration-200 hover:scale-[1.01]">
+                                <div class="grid grid-cols-[3fr_120px] gap-0 items-center p-4">
+                                    <!-- Players Column -->
+                                    <div class="space-y-4">
+                                        <!-- Home Player -->
+                                        <div class="flex items-center justify-between">
+                                            <div class="flex items-center gap-3 flex-1 min-w-0">
+                                                <!-- Sets won indicator -->
+                                                <div class="w-8 h-8 rounded bg-white/20 flex items-center justify-center text-xs font-bold text-white flex-shrink-0">
+                                                    @php
+                                                        $homeSetsWon = 0;
+                                                        if(isset($match->sets) && is_array($match->sets)) {
+                                                            foreach($match->sets as $set) {
+                                                                if(($set['home_score'] ?? 0) > ($set['away_score'] ?? 0)) {
+                                                                    $homeSetsWon++;
+                                                                }
+                                                            }
+                                                        } elseif ($match->status === 'completed') {
+                                                            $homeSetsWon = $match->home_score;
+                                                        }
+                                                    @endphp
+                                                    @if($match->status === 'completed')
+                                                        {{ $homeSetsWon }}
+                                                    @elseif($match->status === 'in_progress')
+                                                        <span class="text-green-400">{{ $homeSetsWon }}</span>
+                                                    @else
+                                                        <span class="text-gray-500">0</span>
+                                                    @endif
+                                                </div>
+                                                <div class="text-xs md:text-sm font-semibold text-white truncate">
+                                                    {{ $match->homePlayer->name ?? 'Home Player' }}
+                                                </div>
+                                            </div>
+                                            <div class="flex gap-1 ml-4">
+                                                @php
+                                                    $displaySets = isset($match->sets) && is_array($match->sets) && count($match->sets) > 0 ? $match->sets : [];
+                                                @endphp
+                                                @for($i = 1; $i <= 5; $i++)
+                                                <div class="w-6 text-center {{ $i < 5 ? 'border-r border-gray-600/30' : '' }}">
+                                                    @if(isset($displaySets[$i-1]))
+                                                        <span class="text-xs px-1 py-0.5 rounded {{ $displaySets[$i-1]['home_score'] > $displaySets[$i-1]['away_score'] ? 'bg-green-900/60 text-green-300 font-bold' : 'text-gray-400' }}">
+                                                            {{ $displaySets[$i-1]['home_score'] ?? 0 }}
+                                                        </span>
+                                                    @else
+                                                        <span class="text-xs px-1 py-0.5 rounded text-gray-600">-</span>
+                                                    @endif
+                                                </div>
+                                                @endfor
+                                            </div>
+                                        </div>
+
+                                        <!-- Away Player -->
+                                        <div class="flex items-center justify-between">
+                                            <div class="flex items-center gap-3 flex-1 min-w-0">
+                                                <!-- Sets won indicator -->
+                                                <div class="w-8 h-8 rounded bg-white/20 flex items-center justify-center text-xs font-bold text-white flex-shrink-0">
+                                                    @php
+                                                        $awaySetsWon = 0;
+                                                        if(isset($match->sets) && is_array($match->sets)) {
+                                                            foreach($match->sets as $set) {
+                                                                if(($set['away_score'] ?? 0) > ($set['home_score'] ?? 0)) {
+                                                                    $awaySetsWon++;
+                                                                }
+                                                            }
+                                                        } elseif ($match->status === 'completed') {
+                                                            $awaySetsWon = $match->away_score;
+                                                        }
+                                                    @endphp
+                                                    @if($match->status === 'completed')
+                                                        {{ $awaySetsWon }}
+                                                    @elseif($match->status === 'in_progress')
+                                                        <span class="text-green-400">{{ $awaySetsWon }}</span>
+                                                    @else
+                                                        <span class="text-gray-500">0</span>
+                                                    @endif
+                                                </div>
+                                                <div class="text-xs md:text-sm font-semibold text-white truncate">
+                                                    {{ $match->awayPlayer->name ?? 'Away Player' }}
+                                                </div>
+                                            </div>
+                                            <div class="flex gap-1 ml-4">
+                                                @for($i = 1; $i <= 5; $i++)
+                                                <div class="w-6 text-center {{ $i < 5 ? 'border-r border-gray-600/30' : '' }}">
+                                                    @if(isset($displaySets[$i-1]))
+                                                        <span class="text-xs px-1 py-0.5 rounded {{ $displaySets[$i-1]['away_score'] > $displaySets[$i-1]['home_score'] ? 'bg-green-900/60 text-green-300 font-bold' : 'text-gray-400' }}">
+                                                            {{ $displaySets[$i-1]['away_score'] ?? 0 }}
+                                                        </span>
+                                                    @else
+                                                        <span class="text-xs px-1 py-0.5 rounded text-gray-600">-</span>
+                                                    @endif
+                                                </div>
+                                                @endfor
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div class="flex-shrink-0 px-2">
-                                        @if($match->status === 'completed')
-                                            <span class="font-bold text-white">{{ $match->home_score ?? 0 }}-{{ $match->away_score ?? 0 }}</span>
-                                        @elseif($match->status === 'in_progress')
-                                            <span class="text-green-400 font-semibold animate-pulse">{{ $match->home_score ?? 0 }}-{{ $match->away_score ?? 0 }}</span>
+
+                                    <!-- Current Set Score Column -->
+                                    <div class="flex flex-col items-start justify-center space-y-1 pl-4">
+                                        @if($match->status === 'in_progress')
+                                            <div class="flex flex-col items-center space-y-1">
+                                                <div class="w-8 h-8 bg-green-900/80 rounded-lg flex items-center justify-center">
+                                                    <div class="text-sm font-bold text-green-300">
+                                                        {{ $match->home_score ?? 0 }}
+                                                    </div>
+                                                </div>
+                                                <div class="w-8 h-8 bg-green-900/80 rounded-lg flex items-center justify-center">
+                                                    <div class="text-sm font-bold text-green-300">
+                                                        {{ $match->away_score ?? 0 }}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        @elseif($match->status === 'completed')
+                                            <div class="flex flex-col items-center space-y-1">
+                                                <div class="w-8 h-8 bg-green-900/80 rounded-lg flex items-center justify-center">
+                                                    <div class="text-sm font-bold text-green-300">
+                                                        {{ $homeSetsWon }}
+                                                    </div>
+                                                </div>
+                                                <div class="w-8 h-8 bg-green-900/80 rounded-lg flex items-center justify-center">
+                                                    <div class="text-sm font-bold text-green-300">
+                                                        {{ $awaySetsWon }}
+                                                    </div>
+                                                </div>
+                                            </div>
                                         @else
-                                            <span class="text-gray-500">-</span>
+                                            <div class="flex flex-col items-center space-y-1">
+                                                <div class="w-8 h-8 bg-gray-700/50 rounded-lg flex items-center justify-center">
+                                                    <div class="text-sm font-bold text-gray-500">-</div>
+                                                </div>
+                                                <div class="w-8 h-8 bg-gray-700/50 rounded-lg flex items-center justify-center">
+                                                    <div class="text-sm font-bold text-gray-500">-</div>
+                                                </div>
+                                            </div>
                                         @endif
                                     </div>
-                                    <div class="flex-1 truncate pl-2 text-right">
-                                        <span class="text-gray-300">{{ $match->awayPlayer->name ?? 'TBD' }}</span>
-                                    </div>
                                 </div>
-                                @if($match->sets && count($match->sets) > 0)
-                                <div class="text-center text-xs text-gray-400 mt-1">
-                                    {{ collect($match->sets)->map(function($set) { return ($set['home_score'] ?? $set['home'] ?? 0) . '-' . ($set['away_score'] ?? $set['away'] ?? 0); })->join(' | ') }}
-                                </div>
-                                @endif
+
                                 @if($match->played_at)
                                 <div class="text-center text-xs md:text-sm text-gray-500 mt-1 md:mt-2">
                                     {{ $match->played_at->format('d.m. H:i') }}
@@ -213,34 +322,155 @@
                     <div class="space-y-2 md:space-y-3">
                         @foreach($roundMatches as $match)
                         <a href="{{ route('public.matches.show', [$competition, $match]) }}"
-                           class="block {{ $match->status === 'in_progress' && !$match->is_bye ? 'bg-red-900/30 hover:bg-red-900/40 border-red-500/50' : 'bg-gray-700/20 hover:bg-gray-700/40' }} rounded-lg p-3 md:p-4 transition-all duration-200 hover:scale-[1.01] {{ $match->status === 'in_progress' && !$match->is_bye ? 'border border-red-500/30 shadow-lg shadow-red-500/20' : 'border border-gray-600/20 hover:border-gray-500/40' }}">
-                            @if($match->status === 'in_progress' && !$match->is_bye)
-                            <div class="text-center mb-1">
-                                <span class="text-red-400 font-bold text-xs uppercase tracking-wider animate-pulse">🔴 LIVE</span>
-                            </div>
-                            @endif
-                            <div class="flex items-center justify-between">
-                                <div class="flex-1 truncate pr-3">
-                                    <span class="text-gray-300 text-sm md:text-base font-medium">{{ $match->homePlayer->name ?? 'NEMA PROTIVNIKA' }}</span>
+                           class="block bg-gray-700/20 hover:bg-gray-700/40 rounded-md p-4 transition-all duration-200 hover:scale-[1.01]">
+                            <div class="grid grid-cols-[3fr_120px] gap-0 items-center p-4">
+                                <!-- Players Column -->
+                                <div class="space-y-4">
+                                    <!-- Home Player -->
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center gap-3 flex-1 min-w-0">
+                                            <!-- Sets won indicator -->
+                                            <div class="w-8 h-8 rounded bg-white/20 flex items-center justify-center text-xs font-bold text-white flex-shrink-0">
+                                                @php
+                                                    $homeSetsWon = 0;
+                                                    if(isset($match->sets) && is_array($match->sets)) {
+                                                        foreach($match->sets as $set) {
+                                                            if(($set['home_score'] ?? 0) > ($set['away_score'] ?? 0)) {
+                                                                $homeSetsWon++;
+                                                            }
+                                                        }
+                                                    } elseif ($match->status === 'completed') {
+                                                        $homeSetsWon = $match->home_score;
+                                                    }
+                                                @endphp
+                                                @if($match->status === 'completed')
+                                                    {{ $homeSetsWon }}
+                                                @elseif($match->status === 'in_progress')
+                                                    <span class="text-green-400">{{ $homeSetsWon }}</span>
+                                                @else
+                                                    <span class="text-gray-500">0</span>
+                                                @endif
+                                            </div>
+                                            <div class="text-xs md:text-sm font-semibold text-white truncate">
+                                                {{ $match->homePlayer->name ?? 'NEMA PROTIVNIKA' }}
+                                            </div>
+                                        </div>
+                                        <div class="flex gap-1 ml-4">
+                                            @php
+                                                $displaySets = isset($match->sets) && is_array($match->sets) && count($match->sets) > 0 ? $match->sets : [];
+                                            @endphp
+                                            @for($i = 1; $i <= 5; $i++)
+                                            <div class="w-6 text-center {{ $i < 5 ? 'border-r border-gray-600/30' : '' }}">
+                                                @if(isset($displaySets[$i-1]))
+                                                    <span class="text-xs px-1 py-0.5 rounded {{ $displaySets[$i-1]['home_score'] > $displaySets[$i-1]['away_score'] ? 'bg-green-900/60 text-green-300 font-bold' : 'text-gray-400' }}">
+                                                        {{ $displaySets[$i-1]['home_score'] ?? 0 }}
+                                                    </span>
+                                                @else
+                                                    <span class="text-xs px-1 py-0.5 rounded text-gray-600">-</span>
+                                                @endif
+                                            </div>
+                                            @endfor
+                                        </div>
+                                    </div>
+
+                                    <!-- Away Player -->
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center gap-3 flex-1 min-w-0">
+                                            <!-- Sets won indicator -->
+                                            <div class="w-8 h-8 rounded bg-white/20 flex items-center justify-center text-xs font-bold text-white flex-shrink-0">
+                                                @php
+                                                    $awaySetsWon = 0;
+                                                    if(isset($match->sets) && is_array($match->sets)) {
+                                                        foreach($match->sets as $set) {
+                                                            if(($set['away_score'] ?? 0) > ($set['home_score'] ?? 0)) {
+                                                                $awaySetsWon++;
+                                                            }
+                                                        }
+                                                    } elseif ($match->status === 'completed') {
+                                                        $awaySetsWon = $match->away_score;
+                                                    }
+                                                @endphp
+                                                @if($match->status === 'completed')
+                                                    {{ $awaySetsWon }}
+                                                @elseif($match->status === 'in_progress')
+                                                    <span class="text-green-400">{{ $awaySetsWon }}</span>
+                                                @else
+                                                    <span class="text-gray-500">0</span>
+                                                @endif
+                                            </div>
+                                            <div class="text-xs md:text-sm font-semibold text-white truncate">
+                                                {{ $match->awayPlayer->name ?? 'NEMA PROTIVNIKA' }}
+                                            </div>
+                                        </div>
+                                        <div class="flex gap-1 ml-4">
+                                            @for($i = 1; $i <= 5; $i++)
+                                            <div class="w-6 text-center {{ $i < 5 ? 'border-r border-gray-600/30' : '' }}">
+                                                @if(isset($displaySets[$i-1]))
+                                                    <span class="text-xs px-1 py-0.5 rounded {{ $displaySets[$i-1]['away_score'] > $displaySets[$i-1]['home_score'] ? 'bg-green-900/60 text-green-300 font-bold' : 'text-gray-400' }}">
+                                                        {{ $displaySets[$i-1]['away_score'] ?? 0 }}
+                                                    </span>
+                                                @else
+                                                    <span class="text-xs px-1 py-0.5 rounded text-gray-600">-</span>
+                                                @endif
+                                            </div>
+                                            @endfor
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="flex-shrink-0 px-3">
-                                    @if($match->status === 'completed')
-                                        <span class="font-bold text-white text-sm md:text-base">{{ $match->home_score ?? 0 }}-{{ $match->away_score ?? 0 }}</span>
-                                    @elseif($match->status === 'in_progress' && !$match->is_bye)
-                                        <span class="text-green-400 font-semibold animate-pulse text-sm md:text-base">{{ $match->home_score ?? 0 }}-{{ $match->away_score ?? 0 }}</span>
+
+                                <!-- Current Set Score Column -->
+                                <div class="flex flex-col items-start justify-center space-y-1 pl-4">
+                                    @if($match->status === 'in_progress' && !$match->is_bye)
+                                        <div class="flex flex-col items-center space-y-1">
+                                            <div class="w-8 h-8 bg-green-900/80 rounded-lg flex items-center justify-center">
+                                                <div class="text-sm font-bold text-green-300">
+                                                    {{ $match->home_score ?? 0 }}
+                                                </div>
+                                            </div>
+                                            <div class="w-8 h-8 bg-green-900/80 rounded-lg flex items-center justify-center">
+                                                <div class="text-sm font-bold text-green-300">
+                                                    {{ $match->away_score ?? 0 }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @elseif($match->status === 'completed')
+                                        <div class="flex flex-col items-center space-y-1">
+                                            <div class="w-8 h-8 bg-green-900/80 rounded-lg flex items-center justify-center">
+                                                <div class="text-sm font-bold text-green-300">
+                                                    {{ $homeSetsWon }}
+                                                </div>
+                                            </div>
+                                            <div class="w-8 h-8 bg-green-900/80 rounded-lg flex items-center justify-center">
+                                                <div class="text-sm font-bold text-green-300">
+                                                    {{ $awaySetsWon }}
+                                                </div>
+                                            </div>
+                                        </div>
                                     @elseif($match->is_bye)
-                                        <span class="text-gray-500 text-sm md:text-base">bye</span>
+                                        <div class="flex flex-col items-center space-y-1">
+                                            <div class="w-8 h-8 bg-gray-700/50 rounded-lg flex items-center justify-center">
+                                                <div class="text-sm font-bold text-gray-500">bye</div>
+                                            </div>
+                                            <div class="w-8 h-8 bg-gray-700/50 rounded-lg flex items-center justify-center">
+                                                <div class="text-sm font-bold text-gray-500">-</div>
+                                            </div>
+                                        </div>
                                     @else
-                                        <span class="text-gray-500 text-sm md:text-base">-</span>
+                                        <div class="flex flex-col items-center space-y-1">
+                                            <div class="w-8 h-8 bg-gray-700/50 rounded-lg flex items-center justify-center">
+                                                <div class="text-sm font-bold text-gray-500">-</div>
+                                            </div>
+                                            <div class="w-8 h-8 bg-gray-700/50 rounded-lg flex items-center justify-center">
+                                                <div class="text-sm font-bold text-gray-500">-</div>
+                                            </div>
+                                        </div>
                                     @endif
                                 </div>
-                                <div class="flex-1 truncate pl-3 text-right">
-                                    <span class="text-gray-300 text-sm md:text-base font-medium">{{ $match->awayPlayer->name ?? 'NEMA PROTIVNIKA' }}</span>
-                                </div>
                             </div>
-                            @if($match->sets && count($match->sets) > 0)
-                            <div class="text-center text-xs text-gray-400 mt-1">
-                                {{ collect($match->sets)->map(function($set) { return ($set['home_score'] ?? $set['home'] ?? 0) . '-' . ($set['away_score'] ?? $set['away'] ?? 0); })->join(' | ') }}
+
+                            @if($match->played_at)
+                            <div class="text-center text-xs md:text-sm text-gray-500 mt-1 md:mt-2">
+                                {{ $match->played_at->format('d.m. H:i') }}
                             </div>
                             @endif
                         </a>
