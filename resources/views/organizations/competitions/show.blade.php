@@ -210,7 +210,7 @@
                                     </div>
                                     <p class="text-gray-400 text-sm">
                                         @if($competition->tournamentGroups->count() > 0)
-                                            {{ $competition->tournamentGroups->count() }} grupa konfigurirano - Kliknite za uređivanje
+                                            {{ $competition->tournamentGroups->count() }} grupa konfigurisano - Kliknite za uređivanje
                                         @else
                                             {{ __('Organize into groups') }}
                                         @endif
@@ -288,13 +288,21 @@
                 @if($knockoutMatches->count() > 0)
                     <div class="mb-8">
                         <div class="flex items-center justify-between mb-6">
-                            <h3 class="text-3xl font-bold text-white">🏆 {{ __('Knockout Phase') }}</h3>
+                            <h3 class="text-3xl font-bold text-white">🏆 Eliminaciona faza</h3>
                             @if($isOwner)
                                 <div class="flex gap-2">
                                     @if($competition->current_phase === 'groups')
                                         <button onclick="autoGenerateBracket()"
                                                 class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded-lg transition-colors">
-                                            🔄 {{ __('Auto Generate') }}
+                                            🔄 Automatski generiši
+                                        </button>
+                                    @endif
+                                    
+                                    @if($competition->current_phase === 'knockout')
+                                        <button onclick="toggleBracketEditMode()"
+                                                id="bracketEditBtn"
+                                                class="bg-orange-600 hover:bg-orange-700 text-white text-sm px-4 py-2 rounded-lg transition-colors">
+                                            ✏️ Ručno edituj bracket
                                         </button>
                                     @endif
                                     
@@ -311,7 +319,7 @@
                                             @csrf
                                             <button type="submit"
                                                     class="bg-green-600 hover:bg-green-700 text-white text-sm px-4 py-2 rounded-lg transition-colors font-semibold">
-                                                ➡️ {{ __('Generate Next Round') }}
+                                                ➡️ Generiši sledeću rundu
                                             </button>
                                         </form>
                                     @endif
@@ -364,7 +372,7 @@
                                 @foreach($knockoutMatches->sortKeysDesc() as $roundNumber => $roundMatches)
                                 <div>
                                     <h4 class="text-xl font-bold text-center mb-6 text-white">
-                                        {{ $roundNames[$roundNumber] ?? __('Round') . ' ' . $roundNumber }}
+                                        {{ $roundNames[$roundNumber] ?? 'Runda' . ' ' . $roundNumber }}
                                     </h4>
                                     <div class="grid gap-4" style="grid-template-columns: repeat({{ $roundMatches->count() }}, minmax(0, 1fr));">
                                         @foreach($roundMatches as $match)
@@ -372,9 +380,9 @@
                                             <!-- Match Header -->
                                             <div class="bg-gray-700/60 px-3 py-2 border-b border-gray-600/50">
                                                 <div class="flex items-center justify-between">
-                                                    <span class="text-xs text-gray-400">{{ __('Match') }} #{{ $match->id }}</span>
+                                                    <span class="text-xs text-gray-400">Utakmica #{{ $match->id }}</span>
                                                     @if($match->status === 'in_progress')
-                                                        <span class="text-xs text-green-400 animate-pulse">🔴 {{ __('LIVE') }}</span>
+                                                        <span class="text-xs text-green-400 animate-pulse">🔴 UŽIVO</span>
                                                     @elseif($match->status === 'completed')
                                                         <span class="text-xs text-gray-400">✓</span>
                                                     @endif
@@ -385,61 +393,95 @@
                                             <div class="p-3 space-y-2">
                                                 <!-- Home Player -->
                                                 <div class="flex items-center justify-between p-2 rounded-lg
-                                                    @if($match->status === 'completed' && $match->home_score > $match->away_score) 
+                                                    @if($match->is_bye || ($match->status === 'completed' && $match->home_score > $match->away_score)) 
                                                         bg-green-600/20 border border-green-500/30
                                                     @else 
                                                         bg-gray-800/50
                                                     @endif">
-                                                    <div class="flex items-center space-x-2 flex-1 min-w-0">
+                                                    <div class="flex items-center space-x-2 flex-1 min-w-0 player-clickable" 
+                                                         data-match-id="{{ $match->id }}" 
+                                                         data-player-type="home"
+                                                         @if($match->is_bye) style="pointer-events: none;" @endif>
                                                         <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
-                                                            <span class="text-white font-bold text-sm">{{ substr($match->homePlayer->name ?? 'TBD', 0, 1) }}</span>
+                                                            <span class="text-white font-bold text-sm">{{ substr($match->homePlayer->name ?? 'NEMA PROTIVNIKA', 0, 1) }}</span>
                                                         </div>
                                                         <span class="text-white font-semibold text-sm truncate">
-                                                            {{ $match->homePlayer->name ?? 'TBD' }}
+                                                            {{ $match->homePlayer->name ?? 'NEMA PROTIVNIKA' }}
                                                         </span>
                                                     </div>
                                                     <span class="text-2xl font-bold ml-2
-                                                        @if($match->status === 'completed' && $match->home_score > $match->away_score) 
+                                                        @if($match->is_bye || ($match->status === 'completed' && $match->home_score > $match->away_score)) 
                                                             text-green-400
                                                         @elseif($match->status === 'completed') 
                                                             text-gray-500
                                                         @else 
                                                             text-white
                                                         @endif">
-                                                        {{ $match->status !== 'scheduled' ? ($match->home_score ?? 0) : '-' }}
+                                                        @if($match->is_bye)
+                                                            ✓
+                                                        @else
+                                                            {{ $match->status !== 'scheduled' ? ($match->home_score ?? 0) : '-' }}
+                                                        @endif
                                                     </span>
                                                 </div>
 
                                                 <!-- Away Player -->
                                                 <div class="flex items-center justify-between p-2 rounded-lg
-                                                    @if($match->status === 'completed' && $match->away_score > $match->home_score) 
+                                                    @if($match->is_bye) 
+                                                        bg-gray-600/20 border border-gray-500/30
+                                                    @elseif($match->status === 'completed' && $match->away_score > $match->home_score) 
                                                         bg-green-600/20 border border-green-500/30
                                                     @else 
                                                         bg-gray-800/50
                                                     @endif">
-                                                    <div class="flex items-center space-x-2 flex-1 min-w-0">
+                                                    <div class="flex items-center space-x-2 flex-1 min-w-0 player-clickable" 
+                                                         data-match-id="{{ $match->id }}" 
+                                                         data-player-type="away"
+                                                         @if($match->is_bye) style="pointer-events: none;" @endif>
                                                         <div class="w-8 h-8 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
-                                                            <span class="text-white font-bold text-sm">{{ substr($match->awayPlayer->name ?? 'TBD', 0, 1) }}</span>
+                                                            <span class="text-white font-bold text-sm">
+                                                                @if($match->is_bye)
+                                                                    🏆
+                                                                @else
+                                                                    {{ substr($match->awayPlayer->name ?? 'TBD', 0, 1) }}
+                                                                @endif
+                                                            </span>
                                                         </div>
                                                         <span class="text-white font-semibold text-sm truncate">
-                                                            {{ $match->awayPlayer->name ?? 'TBD' }}
+                                                            @if($match->is_bye)
+                                                                BYE
+                                                            @else
+                                                                {{ $match->awayPlayer->name ?? 'NEMA PROTIVNIKA' }}
+                                                            @endif
                                                         </span>
                                                     </div>
                                                     <span class="text-2xl font-bold ml-2
-                                                        @if($match->status === 'completed' && $match->away_score > $match->home_score) 
+                                                        @if($match->is_bye) 
+                                                            text-gray-500
+                                                        @elseif($match->status === 'completed' && $match->away_score > $match->home_score) 
                                                             text-green-400
                                                         @elseif($match->status === 'completed') 
                                                             text-gray-500
                                                         @else 
                                                             text-white
                                                         @endif">
-                                                        {{ $match->status !== 'scheduled' ? ($match->away_score ?? 0) : '-' }}
+                                                        @if($match->is_bye)
+                                                            ✗
+                                                        @else
+                                                            {{ $match->status !== 'scheduled' ? ($match->away_score ?? 0) : '-' }}
+                                                        @endif
                                                     </span>
                                                 </div>
                                             </div>
 
                                             <!-- Actions -->
-                                            @if($match->status === 'scheduled' && $isOwner)
+                                            @if($match->is_bye)
+                                            <div class="px-3 pb-3">
+                                                <div class="text-center text-green-400 text-xs font-semibold py-2">
+                                                    🏆 {{ __('Bye - Automatic Win') }}
+                                                </div>
+                                            </div>
+                                            @elseif($match->status === 'scheduled' && $isOwner)
                                             <div class="px-3 pb-3 flex gap-2">
                                                 <a href="{{ route('competitions.live-score', [$match->id]) }}"
                                                    class="flex-1 bg-green-600 hover:bg-green-700 text-white text-xs px-3 py-2 rounded-lg transition-colors text-center font-semibold">
@@ -456,6 +498,15 @@
                                                 <a href="{{ route('competitions.live-score', [$match->id]) }}"
                                                    class="block bg-green-600/20 text-green-400 text-xs px-3 py-2 rounded-lg text-center font-semibold hover:bg-green-600/30 transition-colors">
                                                     👁️ {{ __('Watch Live') }}
+                                                </a>
+                                                @endif
+                                            </div>
+                                            @elseif($match->status === 'completed')
+                                            <div class="px-3 pb-3">
+                                                @if($isOwner)
+                                                <a href="{{ route('organizations.competitions.matches.edit', [$organization, $competition, $match]) }}"
+                                                   class="block bg-blue-600/20 text-blue-400 text-xs px-3 py-2 rounded-lg text-center font-semibold hover:bg-blue-600/30 transition-colors">
+                                                    ✏️ Uredi rezultate
                                                 </a>
                                                 @endif
                                             </div>
@@ -529,7 +580,7 @@
                                     <div class="flex items-center justify-between">
                                         <h4 class="text-white font-bold text-base flex items-center space-x-2">
                                             <span class="bg-gradient-to-r from-blue-500 to-purple-600 px-3 py-1 rounded-full text-xs">
-                                                {{ __('Group') }} {{ $group->name ?? 'Unknown' }}
+                                                Grupa {{ $group->name ?? 'Unknown' }}
                                             </span>
                                         </h4>
                                         <span class="text-gray-400 text-xs">
@@ -569,7 +620,7 @@
                                                 @endforeach
                                             @else
                                                 <tr>
-                                                    <td colspan="7" class="py-3 text-center text-gray-500 text-xs">{{ __('No standings yet') }}</td>
+                                                    <td colspan="7" class="py-3 text-center text-gray-500 text-xs">Još nema rezultata</td>
                                                 </tr>
                                             @endif
                                         </tbody>
@@ -578,7 +629,7 @@
 
                                 <!-- Matches for this group -->
                                 <div class="px-4 py-3 space-y-2">
-                                    <h5 class="text-gray-400 text-xs font-semibold mb-2 uppercase">{{ __('Matches') }}</h5>
+                                    <h5 class="text-gray-400 text-xs font-semibold mb-2 uppercase">Utakmice</h5>
                                     @foreach($matchesInGroup as $match)
                                     <div class="bg-gray-700/20 rounded-lg p-2 hover:bg-gray-700/40 transition-all border border-gray-600/10">
                                         <div class="flex items-center justify-between gap-2">
@@ -621,7 +672,7 @@
                                                 <div class="flex gap-1 mt-1">
                                                     @foreach($match->sets as $set)
                                                     <div class="bg-gray-600/40 px-1.5 py-0.5 rounded text-[10px] text-gray-300">
-                                                        {{ $set['home'] }}-{{ $set['away'] }}
+                                                        {{ ($set['home_score'] ?? $set['home'] ?? 0) }}-{{ ($set['away_score'] ?? $set['away'] ?? 0) }}
                                                     </div>
                                                     @endforeach
                                                 </div>
@@ -659,6 +710,12 @@
                                                     <span class="text-[10px] bg-gray-600/20 text-gray-400 px-2 py-1 rounded text-center whitespace-nowrap">
                                                         ✓ {{ __('FT') }}
                                                     </span>
+                                                    @if($isOwner)
+                                                    <a href="{{ route('organizations.competitions.matches.edit', [$organization, $competition, $match]) }}" 
+                                                       class="text-blue-400 hover:text-blue-300 text-[10px] text-center whitespace-nowrap">
+                                                        ✏️ {{ __('Edit') }}
+                                                    </a>
+                                                    @endif
                                                 @endif
                                             </div>
                                         </div>
@@ -725,7 +782,7 @@
                                             <div class="flex gap-1 mt-2">
                                                 @foreach($match->sets as $set)
                                                 <div class="bg-gray-600/30 px-2 py-1 rounded text-xs text-gray-300">
-                                                    {{ $set['home'] }}-{{ $set['away'] }}
+                                                    {{ ($set['home_score'] ?? $set['home'] ?? 0) }}-{{ ($set['away_score'] ?? $set['away'] ?? 0) }}
                                                 </div>
                                                 @endforeach
                                             </div>
@@ -977,6 +1034,143 @@
         // Drag and Drop functionality for knockout bracket
         let draggedPlayer = null;
         let isBracketEditMode = false;
+        let selectedMatchId = null;
+        let selectedPlayerType = null;
+
+        function toggleBracketEditMode() {
+            isBracketEditMode = !isBracketEditMode;
+            const button = document.getElementById('bracketEditBtn');
+            
+            if (isBracketEditMode) {
+                button.innerHTML = '✅ Završi editovanje';
+                button.classList.remove('bg-orange-600', 'hover:bg-orange-700');
+                button.classList.add('bg-green-600', 'hover:bg-green-700');
+                
+                // Add click listeners to player elements
+                document.querySelectorAll('.player-clickable').forEach(player => {
+                    player.style.cursor = 'pointer';
+                    player.addEventListener('click', handlePlayerClick);
+                });
+                
+                showNotification('Kliknite na igrača da ga zamijenite', 'info');
+            } else {
+                button.innerHTML = '✏️ Ručno edituj bracket';
+                button.classList.remove('bg-green-600', 'hover:bg-green-700');
+                button.classList.add('bg-orange-600', 'hover:bg-orange-700');
+                
+                // Remove click listeners
+                document.querySelectorAll('.player-clickable').forEach(player => {
+                    player.style.cursor = 'default';
+                    player.removeEventListener('click', handlePlayerClick);
+                });
+            }
+        }
+
+        function handlePlayerClick(event) {
+            if (!isBracketEditMode) return;
+            
+            event.preventDefault();
+            event.stopPropagation();
+            
+            const playerElement = event.currentTarget;
+            selectedMatchId = playerElement.dataset.matchId;
+            selectedPlayerType = playerElement.dataset.playerType;
+            
+            // Show player selection modal
+            openPlayerSelectionModal();
+        }
+
+        function openPlayerSelectionModal() {
+            const modal = document.getElementById('playerSelectionModal');
+            const container = document.getElementById('availablePlayersContainer');
+            
+            // Fetch available players
+            const organizationId = '{{ $organization->slug }}';
+            const competitionId = '{{ $competition->slug }}';
+            
+            fetch(`/organizations/${organizationId}/competitions/${competitionId}/available-players`)
+                .then(response => response.json())
+                .then(data => {
+                    container.innerHTML = '';
+                    
+                    if (data.players && data.players.length > 0) {
+                        data.players.forEach(player => {
+                            const playerDiv = document.createElement('div');
+                            playerDiv.className = 'flex items-center space-x-3 p-3 bg-gray-700/50 rounded-lg hover:bg-gray-600/50 cursor-pointer transition-colors';
+                            playerDiv.onclick = () => selectPlayer(player.id, player.name);
+                            playerDiv.innerHTML = `
+                                <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                                    <span class="text-white font-bold text-sm">${player.name.substring(0, 2).toUpperCase()}</span>
+                                </div>
+                                <span class="text-white font-medium">${player.name}</span>
+                            `;
+                            container.appendChild(playerDiv);
+                        });
+                    } else {
+                        container.innerHTML = '<p class="text-gray-400 text-center py-4">Nema dostupnih igrača</p>';
+                    }
+                    
+                    modal.classList.remove('hidden');
+                })
+                .catch(error => {
+                    console.error('Error fetching players:', error);
+                    showNotification('Greška pri učitavanju igrača', 'error');
+                });
+        }
+
+        function selectPlayer(playerId, playerName) {
+            if (!selectedMatchId || !selectedPlayerType) return;
+            
+            // Update match player
+            const organizationId = '{{ $organization->slug }}';
+            const competitionId = '{{ $competition->slug }}';
+            
+            fetch(`/organizations/${organizationId}/competitions/${competitionId}/update-match-players`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify({
+                    match_id: selectedMatchId,
+                    player_type: selectedPlayerType,
+                    player_id: playerId
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    closePlayerSelectionModal();
+                    location.reload(); // Refresh to show updated bracket
+                } else {
+                    showNotification('Greška: ' + (data.message || 'Nepoznata greška'), 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error updating player:', error);
+                showNotification('Greška pri ažuriranju igrača', 'error');
+            });
+        }
+
+        function closePlayerSelectionModal() {
+            document.getElementById('playerSelectionModal').classList.add('hidden');
+            selectedMatchId = null;
+            selectedPlayerType = null;
+        }
+
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg z-50 ${
+                type === 'success' ? 'bg-green-500' : 
+                type === 'error' ? 'bg-red-500' : 'bg-blue-500'
+            } text-white`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
 
         function toggleGroupPhase() {
             const content = document.getElementById('group-phase-content');
@@ -1026,4 +1220,36 @@
             }
         }
     </script>
+
+
+
+    <!-- Player Selection Modal -->
+    <div id="playerSelectionModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-gray-800 rounded-2xl p-6 max-w-md w-full border border-gray-700 shadow-xl">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-semibold text-white">👤 Odaberite igrača</h3>
+                <button onclick="closePlayerSelectionModal()" class="text-gray-400 hover:text-white">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="mb-4">
+                <p class="text-gray-300 text-sm">Odaberite igrača koji će zamijeniti trenutnog u meču:</p>
+            </div>
+
+            <div id="availablePlayersContainer" class="max-h-64 overflow-y-auto space-y-2">
+                <!-- Players will be loaded here -->
+            </div>
+
+            <div class="flex justify-end mt-6">
+                <button onclick="closePlayerSelectionModal()" 
+                        class="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors">
+                    Otkaži
+                </button>
+            </div>
+        </div>
+    </div>
+
 </x-app-layout>

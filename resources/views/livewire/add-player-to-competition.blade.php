@@ -115,13 +115,12 @@
                     </div>
 
                     <div>
-                        <label for="newPlayerEmail" class="block text-sm font-medium text-white mb-2">{{ __('Email Address') }}</label>
+                        <label for="newPlayerEmail" class="block text-sm font-medium text-white mb-2">{{ __('Email Address') }} <span class="text-gray-400 text-xs">({{ __('optional') }})</span></label>
                         <input type="email"
                                wire:model="newPlayerEmail"
                                id="newPlayerEmail"
-                               required
                                class="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                               placeholder="{{ __('Enter email address') }}">
+                               placeholder="{{ __('Enter email address (optional)') }}">
                         @error('newPlayerEmail') <span class="text-red-400 text-sm">{{ $message }}</span> @enderror
                     </div>
 

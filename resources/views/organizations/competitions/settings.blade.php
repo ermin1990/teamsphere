@@ -38,13 +38,13 @@
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <button onclick="applyPreset('standard')" 
                             class="bg-blue-600/20 hover:bg-blue-600/30 border-2 border-blue-500 text-white p-4 rounded-lg transition-colors text-left">
-                        <h4 class="font-semibold mb-2">🏓 Standard (11 pts)</h4>
-                        <p class="text-sm text-gray-300">Best of 3, 11 points, deuce at 10</p>
+                        <h4 class="font-semibold mb-2">🏓 Standard (11 poena)</h4>
+                        <p class="text-sm text-gray-300">Najbolji od 3, 11 poena, završetak pri 10</p>
                     </button>
                     <button onclick="applyPreset('extended')" 
                             class="bg-purple-600/20 hover:bg-purple-600/30 border-2 border-purple-500 text-white p-4 rounded-lg transition-colors text-left">
-                        <h4 class="font-semibold mb-2">🎯 Extended (15 pts)</h4>
-                        <p class="text-sm text-gray-300">Best of 3, 15 points, deuce at 14</p>
+                        <h4 class="font-semibold mb-2">🎯 Produženo (15 poena)</h4>
+                        <p class="text-sm text-gray-300">Najbolji od 3, 15 poena, završetak pri 14</p>
                     </button>
                     <button onclick="applyPreset('classic')" 
                             class="bg-green-600/20 hover:bg-green-600/30 border-2 border-green-500 text-white p-4 rounded-lg transition-colors text-left">
@@ -69,10 +69,10 @@
                             </label>
                             <select id="sets_to_win" name="sets_to_win" required
                                     class="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                <option value="1" {{ old('sets_to_win', $competition->sets_to_win ?? 2) == 1 ? 'selected' : '' }}>1 (Best of 1)</option>
-                                <option value="2" {{ old('sets_to_win', $competition->sets_to_win ?? 2) == 2 ? 'selected' : '' }}>2 (Best of 3)</option>
-                                <option value="3" {{ old('sets_to_win', $competition->sets_to_win ?? 2) == 3 ? 'selected' : '' }}>3 (Best of 5)</option>
-                                <option value="4" {{ old('sets_to_win', $competition->sets_to_win ?? 2) == 4 ? 'selected' : '' }}>4 (Best of 7)</option>
+                                <option value="1" {{ old('sets_to_win', $competition->sets_to_win ?? 2) == 1 ? 'selected' : '' }}>1 (Najbolji od 1)</option>
+                                <option value="2" {{ old('sets_to_win', $competition->sets_to_win ?? 2) == 2 ? 'selected' : '' }}>2 (Najbolji od 3)</option>
+                                <option value="3" {{ old('sets_to_win', $competition->sets_to_win ?? 2) == 3 ? 'selected' : '' }}>3 (Najbolji od 5)</option>
+                                <option value="4" {{ old('sets_to_win', $competition->sets_to_win ?? 2) == 4 ? 'selected' : '' }}>4 (Najbolji od 7)</option>
                             </select>
                             <p class="text-gray-400 text-xs mt-1">Broj setova koji igrač treba da osvoji za pobjedu u meču</p>
                         </div>
@@ -84,10 +84,10 @@
                             </label>
                             <select id="points_per_set" name="points_per_set" required
                                     class="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                <option value="7" {{ old('points_per_set', $competition->points_per_set ?? 11) == 7 ? 'selected' : '' }}>7 points</option>
-                                <option value="11" {{ old('points_per_set', $competition->points_per_set ?? 11) == 11 ? 'selected' : '' }}>11 points (Standard)</option>
-                                <option value="15" {{ old('points_per_set', $competition->points_per_set ?? 11) == 15 ? 'selected' : '' }}>15 points</option>
-                                <option value="21" {{ old('points_per_set', $competition->points_per_set ?? 11) == 21 ? 'selected' : '' }}>21 points (Classic)</option>
+                                <option value="7" {{ old('points_per_set', $competition->points_per_set ?? 11) == 7 ? 'selected' : '' }}>7 poena</option>
+                                <option value="11" {{ old('points_per_set', $competition->points_per_set ?? 11) == 11 ? 'selected' : '' }}>11 poena (Standard)</option>
+                                <option value="15" {{ old('points_per_set', $competition->points_per_set ?? 11) == 15 ? 'selected' : '' }}>15 poena</option>
+                                <option value="21" {{ old('points_per_set', $competition->points_per_set ?? 11) == 21 ? 'selected' : '' }}>21 poen (Klasično)</option>
                             </select>
                             <p class="text-gray-400 text-xs mt-1">Poeni potrebni za pobjedu u setu</p>
                         </div>

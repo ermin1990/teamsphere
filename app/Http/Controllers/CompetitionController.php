@@ -370,13 +370,14 @@ class CompetitionController extends Controller
         Standing::where('competition_id', $competition->id)->delete();
 
         // Create new groups
+        $groupService = app(\App\Services\TournamentGroupService::class);
         foreach ($request->groups as $index => $groupData) {
             $group = TournamentGroup::create([
                 'competition_id' => $competition->id,
                 'name' => chr(65 + $index),
                 'group_number' => $index + 1,
                 'player_ids' => $groupData['players'],
-                'standings' => $competition->initializeGroupStandings($groupData['players']),
+                'standings' => $groupService->initializeGroupStandings($groupData['players']),
             ]);
 
             // Create Standing records for each player in the group
@@ -684,7 +685,8 @@ class CompetitionController extends Controller
 
         // Update standings if tournament
         if ($competition->type === 'tournament' && $match->tournamentGroup) {
-            $this->updateGroupStandings($match);
+            $groupService = app(\App\Services\TournamentGroupService::class);
+            $groupService->recalculateGroupStandings($match->tournamentGroup);
         }
 
         // Check if we need to advance knockout rounds
@@ -698,13 +700,15 @@ class CompetitionController extends Controller
     /**
      * Update group standings after a match.
      */
+
+
     private function updateGroupStandings($match)
     {
         $competition = $match->competition;
         $group = $match->tournamentGroup;
 
         // Get or create standings for both players
-        $homeStanding = Standing::firstOrCreate([
+        $homeStanding = \App\Models\Standing::firstOrCreate([
             'competition_id' => $competition->id,
             'tournament_group_id' => $group->id,
             'player_id' => $match->home_player_id,
@@ -719,7 +723,7 @@ class CompetitionController extends Controller
             'points_lost' => 0,
         ]);
 
-        $awayStanding = Standing::firstOrCreate([
+        $awayStanding = \App\Models\Standing::firstOrCreate([
             'competition_id' => $competition->id,
             'tournament_group_id' => $group->id,
             'player_id' => $match->away_player_id,
@@ -780,40 +784,44 @@ class CompetitionController extends Controller
     {
         $currentRound = $completedMatch->round_number;
         
-        // Check if all matches in current round are completed
+        // Get all matches in current round
         $roundMatches = CompetitionMatch::where('competition_id', $competition->id)
             ->where('phase', 'knockout')
             ->where('round_number', $currentRound)
             ->get();
-        
-        $allCompleted = $roundMatches->every(function($match) {
+
+        // Check if all matches are completed
+        $allCompleted = $roundMatches->every(function ($match) {
             return $match->status === 'completed';
         });
-        
+
         if (!$allCompleted) {
             return; // Not all matches in round are done
         }
-        
+
         // Check if next round already exists
         $nextRoundExists = CompetitionMatch::where('competition_id', $competition->id)
             ->where('phase', 'knockout')
             ->where('round_number', $currentRound + 1)
             ->exists();
-        
+
         if ($nextRoundExists) {
             return; // Next round already created
         }
-        
-        // Get winners from current round
+
+        // Get winners from current round (including bye matches)
         $winners = [];
         foreach ($roundMatches as $match) {
-            if ($match->home_score > $match->away_score) {
+            if ($match->is_bye) {
+                // For bye matches, winner is always home_player_id
+                $winners[] = $match->home_player_id;
+            } elseif ($match->home_score > $match->away_score) {
                 $winners[] = $match->home_player_id;
             } else {
                 $winners[] = $match->away_player_id;
             }
         }
-        
+
         // If only 1 winner, tournament is complete
         if (count($winners) <= 1) {
             $competition->update([
@@ -823,18 +831,29 @@ class CompetitionController extends Controller
             ]);
             return;
         }
-        
+
         // Create next round matches
         for ($i = 0; $i < count($winners); $i += 2) {
-            CompetitionMatch::create([
+            $isBye = ($winners[$i + 1] ?? null) === null;
+            
+            $match = CompetitionMatch::create([
                 'competition_id' => $competition->id,
                 'home_player_id' => $winners[$i],
                 'away_player_id' => $winners[$i + 1] ?? null,
                 'phase' => 'knockout',
                 'round_number' => $currentRound + 1,
-                'status' => 'scheduled',
+                'status' => $isBye ? 'completed' : 'scheduled',
                 'scheduled_at' => now(),
+                'played_at' => $isBye ? now() : null,
+                'home_score' => $isBye ? 1 : 0, // Winner gets 1 set
+                'away_score' => $isBye ? 0 : 0, // Bye gets 0 sets
+                'is_bye' => $isBye,
             ]);
+
+            // If this is a bye match, immediately generate next round
+            if ($isBye) {
+                $this->advanceKnockoutRound($competition, $match);
+            }
         }
     }
 
@@ -971,70 +990,20 @@ class CompetitionController extends Controller
             ->delete();
 
         // Generate new bracket
-        $this->generateKnockoutBracketFromPlayers($competition, $advancingPlayers);
+        $bracketService = app(\App\Services\KnockoutBracketService::class);
+        $bracket = $bracketService->generateBracket($competition, $advancingPlayers);
+
+        $competition->update(['knockout_bracket' => $bracket]);
+
+        // Generate matches from bracket
+        $bracketService->generateMatchesFromBracket($competition, $bracket, 1);
 
         return response()->json(['success' => true]);
     }
 
-    /**
-     * Generate knockout bracket from player IDs.
-     */
-    private function generateKnockoutBracketFromPlayers($competition, array $playerIds)
-    {
-        // Handle odd number of players by adding byes
-        $totalPlayers = count($playerIds);
-        $bracketSize = $this->getNextPowerOfTwo($totalPlayers);
 
-        // Add byes if necessary
-        $byesNeeded = $bracketSize - $totalPlayers;
-        for ($i = 0; $i < $byesNeeded; $i++) {
-            $playerIds[] = null; // null represents a bye
-        }
 
-        // Seed the bracket: arrange players so top seeds don't meet early
-        // Assuming playerIds is [top1, top2, top3, top4, second1, second2, second3, second4]
-        // Seeds: 1-4 tops, 5-8 seconds
-        // Bracket order: 1 vs 8, 4 vs 5, 2 vs 7, 3 vs 6
-        $seededOrder = [0, 7, 3, 4, 1, 6, 2, 5]; // indices for seeds 1,8,4,5,2,7,3,6
-        $seededPlayers = [];
-        foreach ($seededOrder as $index) {
-            if (isset($playerIds[$index])) {
-                $seededPlayers[] = $playerIds[$index];
-            }
-        }
-        $playerIds = $seededPlayers;
 
-        // Create first round matches
-        $matchesCreated = 0;
-        for ($i = 0; $i < count($playerIds); $i += 2) {
-            CompetitionMatch::create([
-                'competition_id' => $competition->id,
-                'home_player_id' => $playerIds[$i],
-                'away_player_id' => $playerIds[$i + 1] ?? null,
-                'phase' => 'knockout',
-                'round_number' => 1,
-                'status' => 'scheduled',
-                'scheduled_at' => now(),
-                'is_bye' => $playerIds[$i + 1] === null,
-            ]);
-            $matchesCreated++;
-        }
-
-        return $matchesCreated;
-    }
-
-    /**
-     * Get the next power of 2 for bracket size.
-     */
-    private function getNextPowerOfTwo(int $number): int
-    {
-        if ($number <= 1) return 1;
-        $power = 1;
-        while ($power < $number) {
-            $power *= 2;
-        }
-        return $power;
-    }
 
     /**
      * Get available players for bracket editing.
@@ -1046,18 +1015,117 @@ class CompetitionController extends Controller
             return response()->json(['players' => []]);
         }
 
-        // Get all players from groups
-        $players = [];
+        // Get players who advanced from group stage
+        $advancingPlayers = [];
+
         foreach ($competition->tournamentGroups as $group) {
-            $groupPlayers = collect($group->standings)->map(function ($standing) {
-                return [
-                    'id' => $standing['player_id'],
-                    'name' => Player::find($standing['player_id'])->name ?? 'Unknown'
-                ];
-            });
-            $players = array_merge($players, $groupPlayers->toArray());
+            // Get advancing players from this group (typically top 2 players)
+            $advancingPlayerIds = $group->getAdvancingPlayers(2); // Assuming 2 players advance per group
+
+            foreach ($advancingPlayerIds as $playerId) {
+                $player = \App\Models\Player::find($playerId);
+                if ($player) {
+                    $advancingPlayers[] = [
+                        'id' => $player->id,
+                        'name' => $player->name
+                    ];
+                }
+            }
         }
 
-        return response()->json(['players' => array_unique($players, SORT_REGULAR)]);
+        return response()->json(['players' => array_unique($advancingPlayers, SORT_REGULAR)]);
+    }
+
+    /**
+     * Show the form for editing match results.
+     */
+    public function editMatch(Request $request, Organization $organization, Competition $competition, CompetitionMatch $match)
+    {
+        // Ensure user owns this organization
+        if ($organization->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        // Ensure match belongs to competition
+        if ($match->competition_id !== $competition->id) {
+            abort(404);
+        }
+
+        $isOwner = $organization->user_id === auth()->id();
+
+        return view('organizations.competitions.matches.edit', compact('organization', 'competition', 'match', 'isOwner'));
+    }
+
+    /**
+     * Update match results.
+     */
+    public function updateMatch(Request $request, Organization $organization, Competition $competition, CompetitionMatch $match)
+    {
+        // Ensure user owns this organization
+        if ($organization->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        // Ensure match belongs to competition
+        if ($match->competition_id !== $competition->id) {
+            abort(404);
+        }
+
+        // Validation
+        $validated = $request->validate([
+            'status' => 'required|in:scheduled,in_progress,completed,forfeited,cancelled',
+            'home_score' => 'nullable|numeric|min:0',
+            'away_score' => 'nullable|numeric|min:0',
+            'forfeited_by' => 'nullable|in:home,away',
+            'sets' => 'nullable|array',
+            'sets.*.home_score' => 'nullable|numeric|min:0',
+            'sets.*.away_score' => 'nullable|numeric|min:0',
+        ]);
+
+        // Prepare update data
+        $updateData = ['status' => $validated['status']];
+
+        if ($validated['status'] === 'scheduled') {
+            // Reset everything
+            $updateData['home_score'] = 0;
+            $updateData['away_score'] = 0;
+            $updateData['forfeited_by'] = null;
+            $updateData['played_at'] = null;
+            $updateData['sets'] = null;
+        } else {
+            // Update scores if provided
+            if (isset($validated['home_score'])) {
+                $updateData['home_score'] = $validated['home_score'];
+            }
+            if (isset($validated['away_score'])) {
+                $updateData['away_score'] = $validated['away_score'];
+            }
+            if (isset($validated['forfeited_by'])) {
+                $updateData['forfeited_by'] = $validated['forfeited_by'];
+            }
+            if (isset($validated['sets'])) {
+                $updateData['sets'] = $validated['sets'];
+            }
+            
+            // Set played_at for completed or forfeited matches
+            if (in_array($validated['status'], ['completed', 'forfeited'])) {
+                $updateData['played_at'] = now();
+            }
+        }
+
+        // Update match
+        $match->update($updateData);
+
+        // Update standings if match results changed and it's a tournament group match
+        if ($match->tournamentGroup && 
+            (isset($validated['home_score']) || isset($validated['away_score']) || 
+             in_array($validated['status'], ['completed', 'forfeited']) ||
+             ($validated['status'] === 'cancelled' && ($validated['home_score'] > 0 || $validated['away_score'] > 0)))) {
+            $groupService = app(\App\Services\TournamentGroupService::class);
+            $groupService->recalculateGroupStandings($match->tournamentGroup);
+        }
+
+        return redirect()->route('organizations.competitions.show', [$organization, $competition])
+            ->with('success', 'Match updated successfully!');
     }
 }

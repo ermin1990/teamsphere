@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Cache;
+use App\Services\TournamentGroupService;
+use App\Services\KnockoutBracketService;
 
 class Competition extends Model
 {
@@ -263,26 +265,15 @@ class Competition extends Model
         return $groups;
     }
 
-    /**
-     * Initialize standings for a group.
+
+
+        /**
+     * Generate tournament groups for this competition.
      */
-    public function initializeGroupStandings(array $playerIds): array
+    public function generateTournamentGroups(): array
     {
-        $standings = [];
-        foreach ($playerIds as $playerId) {
-            $standings[] = [
-                'player_id' => $playerId,
-                'played' => 0,
-                'won' => 0,
-                'lost' => 0,
-                'points' => 0,
-                'sets_won' => 0,
-                'sets_lost' => 0,
-                'points_scored' => 0,
-                'points_conceded' => 0,
-            ];
-        }
-        return $standings;
+        $groupService = app(TournamentGroupService::class);
+        return $groupService->generateGroups($this);
     }
 
     /**
@@ -294,30 +285,8 @@ class Competition extends Model
             return;
         }
 
-        $groups = $this->tournamentGroups;
-
-        foreach ($groups as $group) {
-            $playerIds = $group->player_ids;
-            
-            // Generate round-robin matches for this group
-            $matches = [];
-            $playerCount = count($playerIds);
-            
-            for ($i = 0; $i < $playerCount; $i++) {
-                for ($j = $i + 1; $j < $playerCount; $j++) {
-                    $matches[] = CompetitionMatch::create([
-                        'competition_id' => $this->id,
-                        'tournament_group_id' => $group->id,
-                        'home_player_id' => $playerIds[$i],
-                        'away_player_id' => $playerIds[$j],
-                        'status' => 'scheduled',
-                        'scheduled_at' => now(),
-                    ]);
-                }
-            }
-        }
-
-        return true;
+        $groupService = app(TournamentGroupService::class);
+        $groupService->generateGroupMatches($this);
     }
 
     /**
@@ -329,18 +298,9 @@ class Competition extends Model
             return;
         }
 
-        $advancingPlayers = [];
+        $bracketService = app(KnockoutBracketService::class);
+        $advancingPlayers = $bracketService->getAdvancingPlayers($this);
 
-        foreach ($this->tournamentGroups as $group) {
-            $groupStandings = collect($group->standings)->sortByDesc(function ($player) {
-                // Sort by points, then by sets won, then by points scored
-                return [$player['points'], $player['sets_won'], $player['points_scored']];
-            })->take($this->players_advancing_per_group);
-
-            $advancingPlayers = array_merge($advancingPlayers, $groupStandings->pluck('player_id')->toArray());
-        }
-
-        // Generate knockout bracket
         $this->generateKnockoutBracket($advancingPlayers);
 
         $this->update([
@@ -352,67 +312,15 @@ class Competition extends Model
     /**
      * Generate knockout bracket for this competition.
      */
-    public function generateKnockoutBracket()
+    public function generateKnockoutBracket(array $playerIds = null)
     {
-        $playerIds = $this->players()->pluck('id')->toArray();
-        $this->generateKnockoutBracketFromPlayers($playerIds);
-    }
-
-    /**
-     * Generate knockout bracket from advancing players.
-     */
-    private function generateKnockoutBracketFromPlayers(array $playerIds)
-    {
-        // Handle odd number of players by adding byes
-        $totalPlayers = count($playerIds);
-        $bracketSize = $this->getNextPowerOfTwo($totalPlayers);
-
-        // Add byes if necessary
-        $byesNeeded = $bracketSize - $totalPlayers;
-        for ($i = 0; $i < $byesNeeded; $i++) {
-            $playerIds[] = null; // null represents a bye
-        }
-
-        // Shuffle players for bracket
-        shuffle($playerIds);
-
-        $bracket = $this->generateBracketRounds($playerIds, 1);
+        $bracketService = app(KnockoutBracketService::class);
+        $bracket = $bracketService->generateBracket($this, $playerIds);
 
         $this->update(['knockout_bracket' => $bracket]);
 
-        // Generate actual matches from bracket
-        $this->generateMatchesFromBracket($bracket, 1);
-    }
-
-    /**
-     * Generate matches from bracket structure.
-     */
-    private function generateMatchesFromBracket(array $bracket, int $roundNumber)
-    {
-        if (isset($bracket['matches'])) {
-            // This is a round with matches
-            foreach ($bracket['matches'] as $matchData) {
-                if (!$matchData['is_bye']) {
-                    CompetitionMatch::create([
-                        'competition_id' => $this->id,
-                        'home_player_id' => $matchData['player1_id'],
-                        'away_player_id' => $matchData['player2_id'],
-                        'phase' => 'knockout',
-                        'round_number' => $roundNumber,
-                        'status' => 'scheduled',
-                        'scheduled_at' => now(),
-                    ]);
-                }
-            }
-        } else {
-            // This is a bracket with sub-brackets
-            if (isset($bracket['left'])) {
-                $this->generateMatchesFromBracket($bracket['left'], $roundNumber);
-            }
-            if (isset($bracket['right'])) {
-                $this->generateMatchesFromBracket($bracket['right'], $roundNumber);
-            }
-        }
+        // Generate matches from bracket
+        $bracketService->generateMatchesFromBracket($this, $bracket, 1);
     }
 
     /**
@@ -492,53 +400,5 @@ class Competition extends Model
         }
     }
 
-    /**
-     * Get the next power of two for bracket size.
-     */
-    private function getNextPowerOfTwo(int $number): int
-    {
-        return (int) pow(2, ceil(log($number, 2)));
-    }
 
-    /**
-     * Generate bracket rounds recursively.
-     */
-    private function generateBracketRounds(array $players, int $roundNumber): array
-    {
-        $totalPlayers = count($players);
-
-        if ($totalPlayers <= 2) {
-            // Final match
-            return [
-                'round' => $roundNumber,
-                'matches' => [
-                    [
-                        'player1_id' => $players[0],
-                        'player2_id' => $players[1] ?? null,
-                        'is_bye' => $players[1] === null,
-                    ]
-                ],
-                'final_match' => null,
-            ];
-        }
-
-        // Split players into two halves
-        $half = $totalPlayers / 2;
-        $leftPlayers = array_slice($players, 0, $half);
-        $rightPlayers = array_slice($players, $half);
-
-        $leftBracket = $this->generateBracketRounds($leftPlayers, $roundNumber);
-        $rightBracket = $this->generateBracketRounds($rightPlayers, $roundNumber);
-
-        return [
-            'round' => $roundNumber,
-            'left' => $leftBracket,
-            'right' => $rightBracket,
-            'final_match' => [
-                'player1_id' => null, // Will be winner of left bracket
-                'player2_id' => null, // Will be winner of right bracket
-                'is_bye' => false,
-            ],
-        ];
-    }
 }

@@ -632,4 +632,10 @@ return [
         'points_for_win_description' => 'Poeni dodijeljeni za pobjedu u meču',
         'points_for_draw' => 'Poeni za Neriješeno',
     ],
+
+    // General UI translations
+    'edit' => 'Uredi',
+    'cancel' => 'Otkaži',
+    'save_result' => 'Sačuvaj Rezultat',
+    'add_set_score' => 'Dodaj Rezultat Seta',
 ];

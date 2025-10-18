@@ -94,6 +94,14 @@ class LeagueMatch extends Model
     }
 
     /**
+     * Get the tournament group this match belongs to (for tournament matches).
+     */
+    public function tournamentGroup(): BelongsTo
+    {
+        return $this->belongsTo(TournamentGroup::class);
+    }
+
+    /**
      * Get the home team for this match.
      */
     public function homeTeam(): BelongsTo

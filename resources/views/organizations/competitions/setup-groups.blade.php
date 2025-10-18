@@ -240,7 +240,7 @@
 
             // Check if group is full
             if (currentCount >= playersPerGroup) {
-                showNotification('Group is full!', 'error');
+                showNotification('Grupa je puna!', 'error');
                 return false;
             }
 
@@ -308,7 +308,7 @@
                 const availablePlayers = Array.from(document.querySelectorAll('#availablePlayers .player-item'));
                 
                 if (availablePlayers.length === 0) {
-                    showNotification('No players to shuffle!', 'error');
+                    showNotification('Nema igrača za shuffle!', 'error');
                     return;
                 }
 
@@ -342,7 +342,7 @@
 
                 updateUnassignedCount();
                 updateSaveButton();
-                showNotification('Players shuffled!', 'success');
+                showNotification('Igrači su shuffle-ovani!', 'success');
             });
 
             // Clear group buttons
@@ -369,7 +369,7 @@
 
             // Reset all button
             document.getElementById('resetBtn').addEventListener('click', function() {
-                if (!confirm('Are you sure you want to reset all groups?')) {
+                if (!confirm('Da li ste sigurni da želite resetovati sve grupe?')) {
                     return;
                 }
 
@@ -388,7 +388,7 @@
                 updateAllGroupCounts();
                 updateUnassignedCount();
                 updateSaveButton();
-                showNotification('All groups cleared!', 'success');
+                showNotification('Sve grupe su očišćene!', 'success');
             });
         }
 
@@ -433,11 +433,11 @@
             saveBtn.disabled = !(allGroupsValid && allPlayersAssigned);
             
             if (allGroupsValid && allPlayersAssigned) {
-                saveBtn.textContent = '✓ Save Groups & Continue';
+                saveBtn.textContent = '✓ Sačuvaj Grupe i Nastavi';
             } else if (!allGroupsValid) {
-                saveBtn.textContent = 'Each group needs 2+ players';
+                saveBtn.textContent = 'Svaka grupa treba 2+ igrača';
             } else {
-                saveBtn.textContent = 'Assign all players to groups';
+                saveBtn.textContent = 'Dodijeli sve igrače u grupe';
             }
         }
 

@@ -122,7 +122,7 @@ class AddPlayerToCompetition extends Component
     {
         $this->validate([
             'newPlayerName' => 'required|string|max:255',
-            'newPlayerEmail' => 'required|email|unique:players,email',
+            'newPlayerEmail' => 'nullable|email|unique:players,email',
         ]);
 
         try {
