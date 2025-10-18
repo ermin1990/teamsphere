@@ -215,6 +215,26 @@
                                 <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
                             @enderror
                         </div>
+
+                        <!-- Manual Knockout Selection -->
+                        <div>
+                            <label class="block text-sm font-medium text-white mb-2">
+                                Odabir Igrača za Eliminacionu Fazu
+                            </label>
+                            <div class="space-y-2">
+                                <div class="flex items-center">
+                                    <input type="checkbox" id="manual_knockout_selection" name="manual_knockout_selection" value="1" {{ old('manual_knockout_selection') ? 'checked' : '' }}
+                                           class="border-gray-600/50 bg-gray-700/50 text-blue-600 focus:ring-blue-500 focus:ring-2 rounded">
+                                    <label for="manual_knockout_selection" class="ml-3 text-sm font-medium text-white">
+                                        Omogući ručni odabir igrača za eliminacionu fazu
+                                    </label>
+                                </div>
+                                <p class="text-xs text-gray-400 ml-6">Ako je omogućeno, organizator će ručno birati igrače za svaki meč u eliminacionoj fazi umjesto automatskog generisanja</p>
+                            </div>
+                            @error('manual_knockout_selection')
+                                <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
+                            @enderror
+                        </div>
                     </div>
 
                     <!-- Competition Duration -->

@@ -540,10 +540,17 @@
                                             ✓ {{ __('Completed') }}
                                         </span>
                                         @if($isOwner && $knockoutMatches->count() === 0)
-                                            <button onclick="autoGenerateBracket(); event.stopPropagation();"
-                                                    class="ml-2 bg-green-600 hover:bg-green-700 text-white text-xs px-2 py-1 rounded transition-colors font-semibold">
-                                                ➡️ {{ __('Start Knockout') }}
-                                            </button>
+                                            @if($competition->manual_knockout_selection)
+                                                <button onclick="showManualPlayerSelection(); event.stopPropagation();"
+                                                        class="ml-2 bg-blue-600 hover:bg-blue-700 text-white text-xs px-2 py-1 rounded transition-colors font-semibold">
+                                                    👥 {{ __('Odaberi Igrače') }}
+                                                </button>
+                                            @else
+                                                <button onclick="autoGenerateBracket(); event.stopPropagation();"
+                                                        class="ml-2 bg-green-600 hover:bg-green-700 text-white text-xs px-2 py-1 rounded transition-colors font-semibold">
+                                                    ➡️ {{ __('Start Knockout') }}
+                                                </button>
+                                            @endif
                                         @endif
                                     @else
                                         <span class="px-3 py-1 text-xs rounded-full bg-yellow-600/20 text-yellow-400">
@@ -1219,6 +1226,165 @@
                 });
             }
         }
+
+        // Manual player selection for knockout phase
+        let selectedPlayers = {};
+        let matchSlots = [];
+
+        function showManualPlayerSelection() {
+            // Calculate number of matches needed for first round
+            const advancingPlayersCount = {{ count($advancingPlayers ?? []) }};
+            const matchesInFirstRound = Math.floor(advancingPlayersCount / 2);
+            
+            // Generate match slots
+            matchSlots = [];
+            const matchSlotsContainer = document.getElementById('matchSlots');
+            matchSlotsContainer.innerHTML = '';
+            
+            for (let i = 0; i < matchesInFirstRound; i++) {
+                matchSlots.push({
+                    id: i + 1,
+                    homePlayer: null,
+                    awayPlayer: null
+                });
+                
+                const matchSlot = document.createElement('div');
+                matchSlot.className = 'bg-gray-700/50 rounded-lg p-4 border border-gray-600/50';
+                matchSlot.innerHTML = `
+                    <div class="text-white font-medium mb-3">Meč ${i + 1}</div>
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between p-2 bg-gray-800/50 rounded border-2 border-dashed border-gray-600" id="home-slot-${i + 1}">
+                            <span class="text-gray-400">Domaći igrač</span>
+                            <button onclick="clearPlayerFromMatch(${i + 1}, 'home')" class="text-red-400 hover:text-red-300 text-sm opacity-0 group-hover:opacity-100 transition-opacity">✕</button>
+                        </div>
+                        <div class="text-center text-gray-500 text-sm">vs</div>
+                        <div class="flex items-center justify-between p-2 bg-gray-800/50 rounded border-2 border-dashed border-gray-600" id="away-slot-${i + 1}">
+                            <span class="text-gray-400">Gostujući igrač</span>
+                            <button onclick="clearPlayerFromMatch(${i + 1}, 'away')" class="text-red-400 hover:text-red-300 text-sm opacity-0 group-hover:opacity-100 transition-opacity">✕</button>
+                        </div>
+                    </div>
+                `;
+                matchSlotsContainer.appendChild(matchSlot);
+            }
+            
+            document.getElementById('manualPlayerSelectionModal').classList.remove('hidden');
+        }
+
+        function closeManualPlayerSelectionModal() {
+            document.getElementById('manualPlayerSelectionModal').classList.add('hidden');
+            selectedPlayers = {};
+            matchSlots = [];
+        }
+
+        function selectPlayerForMatch(playerId, playerName, element) {
+            // Find first available slot
+            for (let slot of matchSlots) {
+                if (!slot.homePlayer) {
+                    slot.homePlayer = { id: playerId, name: playerName };
+                    selectedPlayers[playerId] = true;
+                    updateMatchSlot(slot.id, 'home', playerName);
+                    element.style.display = 'none';
+                    break;
+                } else if (!slot.awayPlayer) {
+                    slot.awayPlayer = { id: playerId, name: playerName };
+                    selectedPlayers[playerId] = true;
+                    updateMatchSlot(slot.id, 'away', playerName);
+                    element.style.display = 'none';
+                    break;
+                }
+            }
+            
+            updateGenerateButton();
+        }
+
+        function clearPlayerFromMatch(matchId, position) {
+            const slot = matchSlots.find(s => s.id === matchId);
+            if (!slot) return;
+            
+            let playerId = null;
+            if (position === 'home' && slot.homePlayer) {
+                playerId = slot.homePlayer.id;
+                slot.homePlayer = null;
+            } else if (position === 'away' && slot.awayPlayer) {
+                playerId = slot.awayPlayer.id;
+                slot.awayPlayer = null;
+            }
+            
+            if (playerId) {
+                delete selectedPlayers[playerId];
+                // Show player in available list again
+                const playerElement = document.querySelector(`[data-player-id="${playerId}"]`);
+                if (playerElement) {
+                    playerElement.style.display = 'block';
+                }
+            }
+            
+            updateMatchSlot(matchId, position, null);
+            updateGenerateButton();
+        }
+
+        function updateMatchSlot(matchId, position, playerName) {
+            const slotElement = document.getElementById(`${position}-slot-${matchId}`);
+            if (playerName) {
+                slotElement.innerHTML = `
+                    <span class="text-white">${playerName}</span>
+                    <button onclick="clearPlayerFromMatch(${matchId}, '${position}')" class="text-red-400 hover:text-red-300 text-sm">✕</button>
+                `;
+                slotElement.className = 'flex items-center justify-between p-2 bg-green-600/20 rounded border-2 border-green-500/50';
+            } else {
+                slotElement.innerHTML = `
+                    <span class="text-gray-400">${position === 'home' ? 'Domaći igrač' : 'Gostujući igrač'}</span>
+                    <button onclick="clearPlayerFromMatch(${matchId}, '${position}')" class="text-red-400 hover:text-red-300 text-sm opacity-0">✕</button>
+                `;
+                slotElement.className = 'flex items-center justify-between p-2 bg-gray-800/50 rounded border-2 border-dashed border-gray-600';
+            }
+        }
+
+        function updateGenerateButton() {
+            const generateBtn = document.getElementById('generateBracketBtn');
+            const allMatchesFilled = matchSlots.every(slot => slot.homePlayer && slot.awayPlayer);
+            generateBtn.disabled = !allMatchesFilled;
+        }
+
+        function generateManualKnockoutBracket() {
+            const generateBtn = document.getElementById('generateBracketBtn');
+            const originalText = generateBtn.innerHTML;
+            
+            generateBtn.innerHTML = '⏳ Generisanje...';
+            generateBtn.disabled = true;
+            
+            // Prepare data for API call
+            const matches = matchSlots.map(slot => ({
+                home_player_id: slot.homePlayer.id,
+                away_player_id: slot.awayPlayer.id
+            }));
+            
+            fetch(`{{ route('organizations.competitions.generate-manual-knockout', [$organization, $competition]) }}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify({ matches: matches })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    closeManualPlayerSelectionModal();
+                    location.reload();
+                } else {
+                    alert('Greška: ' + (data.message || 'Nepoznata greška'));
+                    generateBtn.innerHTML = originalText;
+                    generateBtn.disabled = false;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Greška pri generisanju bracket-a');
+                generateBtn.innerHTML = originalText;
+                generateBtn.disabled = false;
+            });
+        }
     </script>
 
 
@@ -1248,6 +1414,88 @@
                         class="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors">
                     Otkaži
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Manual Player Selection Modal for Knockout Phase -->
+    <div id="manualPlayerSelectionModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-gray-800 rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
+                <div class="flex items-center justify-between p-6 border-b border-gray-700">
+                    <h3 class="text-xl font-bold text-white">👥 Ručni Odabir Igrača za Eliminacionu Fazu</h3>
+                    <button onclick="closeManualPlayerSelectionModal()" class="text-gray-400 hover:text-white">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="p-6">
+                    <div class="mb-6">
+                        <p class="text-gray-300 text-sm mb-4">
+                            Odaberite igrače za svaki meč u eliminacionoj fazi. Igrač se može koristiti samo u jednom meču.
+                        </p>
+
+                        @php
+                            $advancingPlayers = [];
+                            if ($competition->tournamentGroups) {
+                                foreach ($competition->tournamentGroups as $group) {
+                                    $standings = App\Models\Standing::where('competition_id', $competition->id)
+                                        ->where('tournament_group_id', $group->id)
+                                        ->with('player')
+                                        ->orderBy('points', 'desc')
+                                        ->orderByRaw('(sets_won - sets_lost) desc')
+                                        ->limit($competition->players_advancing_per_group ?? 2)
+                                        ->get();
+                                    
+                                    foreach ($standings as $standing) {
+                                        $advancingPlayers[] = $standing->player;
+                                    }
+                                }
+                            }
+                        @endphp
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Available Players -->
+                            <div>
+                                <h4 class="text-lg font-semibold text-white mb-3">Dostupni Igrači ({{ count($advancingPlayers) }})</h4>
+                                <div id="availablePlayersList" class="space-y-2 max-h-96 overflow-y-auto">
+                                    @foreach($advancingPlayers as $player)
+                                        <div class="player-item bg-gray-700/50 rounded-lg p-3 border border-gray-600/50 cursor-pointer hover:bg-gray-600/50 transition-colors"
+                                             data-player-id="{{ $player->id }}"
+                                             onclick="selectPlayerForMatch({{ $player->id }}, '{{ $player->name }}', this)">
+                                            <div class="flex items-center justify-between">
+                                                <span class="text-white font-medium">{{ $player->name }}</span>
+                                                <span class="text-xs text-gray-400">ID: {{ $player->id }}</span>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+
+                            <!-- Match Slots -->
+                            <div>
+                                <h4 class="text-lg font-semibold text-white mb-3">Mečevi Eliminacione Faze</h4>
+                                <div id="matchSlots" class="space-y-3">
+                                    <!-- Match slots will be generated here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end gap-3">
+                        <button onclick="closeManualPlayerSelectionModal()"
+                                class="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors">
+                            Otkaži
+                        </button>
+                        <button onclick="generateManualKnockoutBracket()"
+                                id="generateBracketBtn"
+                                class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed">
+                            Generiši Bracket
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

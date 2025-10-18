@@ -92,6 +92,7 @@ class CompetitionController extends Controller
             'players_per_group' => $request->players_per_group ?: 4,
             'players_advancing_per_group' => $request->players_advancing_per_group ?: 2,
             'advancement_method' => $request->advancement_method ?: 'automatic',
+            'manual_knockout_selection' => (bool) $request->input('manual_knockout_selection', false),
             'current_phase' => 'groups',
         ]);
 
@@ -1001,9 +1002,69 @@ class CompetitionController extends Controller
         return response()->json(['success' => true]);
     }
 
+    /**
+     * Generate knockout bracket with manually selected players.
+     */
+    public function generateManualKnockout(Request $request, Organization $organization, Competition $competition)
+    {
+        // Ensure user owns this organization
+        if ($organization->user_id !== auth()->id()) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized']);
+        }
 
+        if (!$competition->isTournament()) {
+            return response()->json(['success' => false, 'message' => 'Not a tournament']);
+        }
 
+        $request->validate([
+            'matches' => 'required|array|min:1',
+            'matches.*.home_player_id' => 'required|integer|exists:players,id',
+            'matches.*.away_player_id' => 'required|integer|exists:players,id',
+        ]);
 
+        $matches = $request->matches;
+
+        // Verify that manual selection is enabled
+        if (!$competition->manual_knockout_selection) {
+            return response()->json(['success' => false, 'message' => 'Manual knockout selection is not enabled for this competition']);
+        }
+
+        // Verify that competition is in the correct phase
+        if ($competition->current_phase !== 'knockout') {
+            return response()->json(['success' => false, 'message' => 'Competition must be in knockout phase']);
+        }
+
+        // Check that we don't already have knockout matches
+        $existingMatches = CompetitionMatch::where('competition_id', $competition->id)
+            ->where('phase', 'knockout')
+            ->count();
+
+        if ($existingMatches > 0) {
+            return response()->json(['success' => false, 'message' => 'Knockout matches already exist']);
+        }
+
+        // Create bracket structure manually
+        $bracket = [];
+        $roundNumber = 1;
+
+        foreach ($matches as $matchData) {
+            $bracket[] = [
+                'round' => $roundNumber,
+                'home_player_id' => $matchData['home_player_id'],
+                'away_player_id' => $matchData['away_player_id'],
+                'position' => count($bracket) + 1,
+            ];
+        }
+
+        // Save bracket to competition
+        $competition->update(['knockout_bracket' => $bracket]);
+
+        // Generate matches from bracket
+        $bracketService = app(\App\Services\KnockoutBracketService::class);
+        $bracketService->generateMatchesFromBracket($competition, $bracket, $roundNumber);
+
+        return response()->json(['success' => true]);
+    }
 
     /**
      * Get available players for bracket editing.

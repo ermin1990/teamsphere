@@ -49,6 +49,7 @@ class Competition extends Model
         'points_for_loss',
         'has_tiebreak',
         'tiebreak_points',
+        'manual_knockout_selection',
     ];
 
     protected $casts = [
@@ -76,6 +77,7 @@ class Competition extends Model
         'points_for_loss' => 'integer',
         'has_tiebreak' => 'boolean',
         'tiebreak_points' => 'integer',
+        'manual_knockout_selection' => 'boolean',
     ];
 
     /**
@@ -301,7 +303,10 @@ class Competition extends Model
         $bracketService = app(KnockoutBracketService::class);
         $advancingPlayers = $bracketService->getAdvancingPlayers($this);
 
-        $this->generateKnockoutBracket($advancingPlayers);
+        // Only generate knockout bracket automatically if manual selection is disabled
+        if (!$this->manual_knockout_selection) {
+            $this->generateKnockoutBracket($advancingPlayers);
+        }
 
         $this->update([
             'current_phase' => 'knockout',
