@@ -60,8 +60,6 @@
                         if (matchStatusElement) {
                             if (matchData.status === 'in_progress') {
                                 matchStatusElement.innerHTML = '<div class="text-green-400 font-semibold text-sm md:text-base">🔴 LIVE</div>';
-                            } else if (matchData.status === 'completed') {
-                                matchStatusElement.innerHTML = '<div class="text-green-400 font-semibold text-sm md:text-base">✅ COMPLETED</div>';
                             } else {
                                 matchStatusElement.innerHTML = '';
                             }
