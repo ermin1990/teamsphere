@@ -29,6 +29,18 @@
         </div>
     </x-slot>
 
+    <!-- Success Message -->
+    @if(session('success'))
+        <div id="success-message" class="bg-green-500/20 border border-green-500/50 text-green-400 px-6 py-4 rounded-lg mb-6">
+            <div class="flex items-center">
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                {{ session('success') }}
+            </div>
+        </div>
+    @endif
+
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             
@@ -1500,4 +1512,16 @@
         </div>
     </div>
 
+    <script>
+        // Auto-refresh page after successful result submission to update standings
+        document.addEventListener('DOMContentLoaded', function() {
+            const successMessage = document.getElementById('success-message');
+            if (successMessage) {
+                // Wait 2 seconds to show the success message, then refresh
+                setTimeout(function() {
+                    location.reload();
+                }, 2000);
+            }
+        });
+    </script>
 </x-app-layout>
