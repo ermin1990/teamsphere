@@ -203,13 +203,6 @@
                                         Automatski - Najbolji igrači napreduju na osnovu bodova
                                     </label>
                                 </div>
-                                <div class="flex items-center">
-                                    <input type="radio" id="manual" name="advancement_method" value="manual" {{ old('advancement_method') === 'manual' ? 'checked' : '' }}
-                                           class="border-gray-600/50 bg-gray-700/50 text-blue-600 focus:ring-blue-500 focus:ring-2">
-                                    <label for="manual" class="ml-3 text-sm font-medium text-white">
-                                        Ručno - Organizator bira ko napreduje
-                                    </label>
-                                </div>
                             </div>
                             @error('advancement_method')
                                 <p class="mt-1 text-sm text-red-400">{{ $message }}</p>

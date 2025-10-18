@@ -91,7 +91,7 @@ class CompetitionController extends Controller
             'group_count' => $request->group_count ?: 4,
             'players_per_group' => $request->players_per_group ?: 4,
             'players_advancing_per_group' => $request->players_advancing_per_group ?: 2,
-            'advancement_method' => $request->advancement_method ?: 'automatic',
+            'advancement_method' => 'automatic',
             'manual_knockout_selection' => (bool) $request->input('manual_knockout_selection', false),
             'current_phase' => 'groups',
         ]);
