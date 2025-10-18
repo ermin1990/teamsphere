@@ -105,7 +105,7 @@
                     Nazad na Organizaciju
                 </a>
                 
-                @if($competition->status === 'draft')
+                                @if($competition->status === 'draft')
                 <form action="{{ route('organizations.competitions.destroy', [$organization, $competition]) }}" 
                       method="POST" 
                       onsubmit="return confirm('Da li ste sigurni da želite obrisati ovo takmičenje? Ova akcija se ne može poništiti.')"
@@ -120,6 +120,14 @@
                         Obriši
                     </button>
                 </form>
+                @else
+                    {{-- Reset competition to factory defaults --}}
+                    <form method="POST" action="{{ route('organizations.competitions.reset', [$organization, $competition]) }}" class="ml-auto" onsubmit="return confirm('Resetovati takmičenje na fabrička podešavanja? Svi mečevi, grupe i rezultati biće obrisani.');">
+                        @csrf
+                        <button type="submit" class="inline-flex items-center px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors font-semibold">
+                            ⟲ Resetuj takmičenje
+                        </button>
+                    </form>
                 @endif
             </div>
             @endif
@@ -228,21 +236,10 @@
                                      onclick="window.location.href='{{ route('organizations.competitions.setup-groups', [$organization, $competition]) }}'"
                                      @endif>
                                     <div class="flex items-center justify-between mb-2">
-                                        <div class="flex items-center">
-                                            <div class="w-8 h-8 rounded-full {{ $competition->tournamentGroups->count() > 0 ? 'bg-green-600' : 'bg-gray-600' }} flex items-center justify-center mr-3">
-                                                @if($competition->tournamentGroups->count() > 0)
-                                                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                                                    </svg>
-                                                @else
-                                                    <span class="text-white font-bold text-sm">2</span>
-                                                @endif
-                                            </div>
-                                            <h4 class="text-white font-semibold">Postavi Grupe</h4>
-                                        </div>
+                                        <h4 class="font-semibold text-white">Grupe</h4>
                                         @if($competition->tournamentGroups->count() > 0)
-                                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                        <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                         </svg>
                                         @else
                                         <a href="{{ route('organizations.competitions.setup-groups', [$organization, $competition]) }}"
@@ -452,11 +449,22 @@
                                                                     }
                                                                 }
                                                             } else {
-                                                                // previous round players
+                                                                // previous round winners only
                                                                 $prevMatches = $knockoutMatches->get($roundNumber - 1) ?? collect();
                                                                 foreach ($prevMatches as $pm) {
-                                                                    if ($pm->homePlayer) $selectPlayers->push($pm->homePlayer);
-                                                                    if ($pm->awayPlayer) $selectPlayers->push($pm->awayPlayer);
+                                                                    if ($pm->status === 'completed') {
+                                                                        // Determine winner based on score
+                                                                        if ($pm->home_score > $pm->away_score) {
+                                                                            if ($pm->homePlayer) $selectPlayers->push($pm->homePlayer);
+                                                                        } elseif ($pm->away_score > $pm->home_score) {
+                                                                            if ($pm->awayPlayer) $selectPlayers->push($pm->awayPlayer);
+                                                                        }
+                                                                        // If draw, don't include anyone (edge case)
+                                                                    } else {
+                                                                        // If match not completed, include both players as potential winners
+                                                                        if ($pm->homePlayer) $selectPlayers->push($pm->homePlayer);
+                                                                        if ($pm->awayPlayer) $selectPlayers->push($pm->awayPlayer);
+                                                                    }
                                                                 }
                                                             }
                                                             $selectPlayers = $selectPlayers->unique('id')->values();
@@ -595,7 +603,7 @@
                                                    class="flex-1 bg-green-600 hover:bg-green-700 text-white text-xs px-3 py-2 rounded-lg transition-colors text-center font-semibold">
                                                     ▶️ {{ __('Start') }}
                                                 </a>
-                                                <button onclick="openQuickResultModal({{ $match->id }}, '{{ $match->homePlayer->name ?? 'TBD' }}', '{{ $match->awayPlayer->name ?? 'TBD' }}')"
+                                                <button onclick="openQuickResultModal({{ $match->id }}, '{{ $match->homePlayer?->name }}', '{{ $match->awayPlayer?->name }}')"
                                                         class="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-2 rounded-lg transition-colors text-center font-semibold">
                                                     ⚡ {{ __('Result') }}
                                                 </button>
@@ -648,17 +656,16 @@
                                             ✓ {{ __('Completed') }}
                                         </span>
                                         @if($isOwner && $knockoutMatches->count() === 0)
-                                            @if($competition->manual_knockout_selection)
-                                                <button onclick="showManualPlayerSelection(); event.stopPropagation();"
-                                                        class="ml-2 bg-blue-600 hover:bg-blue-700 text-white text-xs px-2 py-1 rounded transition-colors font-semibold">
-                                                    👥 {{ __('Odaberi Igrače') }}
-                                                </button>
-                                            @else
-                                                <button onclick="autoGenerateBracket(); event.stopPropagation();"
-                                                        class="ml-2 bg-green-600 hover:bg-green-700 text-white text-xs px-2 py-1 rounded transition-colors font-semibold">
-                                                    ➡️ {{ __('Start Knockout') }}
-                                                </button>
-                                            @endif
+                                            {{-- Always show auto-generate and manual-empty options when no knockout matches exist --}}
+                                            <button onclick="autoGenerateBracket(); event.stopPropagation();"
+                                                    class="ml-2 bg-green-600 hover:bg-green-700 text-white text-xs px-2 py-1 rounded transition-colors font-semibold">
+                                                🔄 {{ __('Generiši automatski') }}
+                                            </button>
+
+                                            <button onclick="createEmptyKnockoutBracket(); event.stopPropagation();"
+                                                    class="ml-2 bg-yellow-600 hover:bg-yellow-700 text-white text-xs px-2 py-1 rounded transition-colors font-semibold">
+                                                🟡 {{ __('Generiši prazne manuelno') }}
+                                            </button>
                                         @endif
                                     @else
                                         <span class="px-3 py-1 text-xs rounded-full bg-yellow-600/20 text-yellow-400">
@@ -1099,11 +1106,42 @@
         function openQuickResultModal(matchId, homeName, awayName, league = false) {
             currentMatchId = matchId;
             isLeague = league;
-            
+
+            // If names are not provided or look like placeholders (TBD, NEMA PROTIVNIKA), try to read current values from the DOM
+            try {
+                // First check if there are select elements (manual knockout selection mode)
+                const homeSelect = document.getElementById(`match-select-${matchId}-home`);
+                const awaySelect = document.getElementById(`match-select-${matchId}-away`);
+                
+                if (homeSelect && homeSelect.value) {
+                    const selectedOption = homeSelect.options[homeSelect.selectedIndex];
+                    homeName = selectedOption ? selectedOption.text : homeName;
+                } else if (!homeName || homeName === 'TBD' || homeName === 'NEMA PROTIVNIKA' || homeName.trim() === '') {
+                    const el = document.querySelector(`#match-card-${matchId} [data-player-type="home"] span.text-white.font-semibold`);
+                    homeName = el ? el.textContent.trim() : (homeName || 'TBD');
+                }
+            } catch (e) {
+                // fallback to passed value
+            }
+
+            try {
+                const awaySelect = document.getElementById(`match-select-${matchId}-away`);
+                
+                if (awaySelect && awaySelect.value) {
+                    const selectedOption = awaySelect.options[awaySelect.selectedIndex];
+                    awayName = selectedOption ? selectedOption.text : awayName;
+                } else if (!awayName || awayName === 'TBD' || awayName === 'NEMA PROTIVNIKA' || awayName.trim() === '') {
+                    const el2 = document.querySelector(`#match-card-${matchId} [data-player-type="away"] span.text-white.font-semibold`);
+                    awayName = el2 ? el2.textContent.trim() : (awayName || 'TBD');
+                }
+            } catch (e) {
+                // fallback
+            }
+
             document.getElementById('homePlayerName').textContent = homeName;
             document.getElementById('awayPlayerName').textContent = awayName;
-            document.getElementById('homeInitials').textContent = homeName.substring(0, 2).toUpperCase();
-            document.getElementById('awayInitials').textContent = awayName.substring(0, 2).toUpperCase();
+            document.getElementById('homeInitials').textContent = (homeName || 'TBD').substring(0, 2).toUpperCase();
+            document.getElementById('awayInitials').textContent = (awayName || 'TBD').substring(0, 2).toUpperCase();
             
             document.getElementById('homeScoreInput').value = '';
             document.getElementById('awayScoreInput').value = '';
@@ -1712,8 +1750,6 @@
 
     <script>
         function createEmptyKnockoutBracket() {
-            if (!confirm('Ovo će kreirati prazne mečeve za eliminacionu fazu. Nastaviti?')) return;
-
             const btn = document.getElementById('createEmptyBracketBtn');
             const original = btn.innerHTML;
             btn.innerHTML = '⏳ Stvaranje...';

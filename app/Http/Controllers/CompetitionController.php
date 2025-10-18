@@ -644,7 +644,9 @@ class CompetitionController extends Controller
         // Reset competition status
         $competition->update([
             'status' => 'draft',
-            'current_phase' => null,
+            // set to initial phase (must respect NOT NULL constraint in DB)
+            'current_phase' => 'groups',
+            'knockout_bracket' => null,
             'groups_completed_at' => null,
             'knockout_completed_at' => null,
         ]);
