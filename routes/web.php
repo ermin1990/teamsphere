@@ -17,7 +17,10 @@ Route::get('/locale/{locale}', function ($locale) {
 })->name('locale');
 
 Route::get('/', function () {
-    return view('welcome');
+    // Get count of live matches
+    $liveMatchesCount = \App\Models\LeagueMatch::where('status', 'in_progress')->count();
+    
+    return view('welcome', compact('liveMatchesCount'));
 })->name('home');
 
 Route::get('/dashboard', [DashboardController::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
