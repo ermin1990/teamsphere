@@ -90,17 +90,31 @@
                     if (match.sets && match.sets.length > 0) {
                         console.log('Updating set scores for match', match.id, 'sets:', match.sets);
 
-                        // Find all player rows (flex items-center justify-between)
-                        const playerRows = matchElement.querySelectorAll('.flex.items-center.justify-between');
+                        // Find the players column div
+                        const playersColumn = matchElement.querySelector('.space-y-4');
+                        if (!playersColumn) {
+                            console.error('Could not find players column for match', match.id);
+                            return;
+                        }
 
-                        // Home player (first row)
-                        if (playerRows[0]) {
-                            const homeSetSpans = playerRows[0].querySelectorAll('.flex.gap-1.ml-4 .w-6.text-center span');
-                            homeSetSpans.forEach((span, index) => {
+                        // Find all set score containers (both home and away rows)
+                        const setContainers = playersColumn.querySelectorAll('.flex.gap-1.ml-4');
+                        console.log('Found set containers:', setContainers.length);
+
+                        if (setContainers.length >= 2) {
+                            // Home player sets (first container)
+                            const homeSetDivs = setContainers[0].querySelectorAll('.w-6.text-center');
+                            console.log('Found home set divs:', homeSetDivs.length, 'Match has sets:', match.sets.length);
+                            
+                            homeSetDivs.forEach((div, index) => {
+                                const span = div.querySelector('span');
+                                if (!span) return;
+                                
                                 if (index < match.sets.length) {
                                     const set = match.sets[index];
                                     const homeScore = set.home_score ?? 0;
                                     const awayScore = set.away_score ?? 0;
+                                    console.log(`Set ${index + 1}: Home=${homeScore}, Away=${awayScore}`);
                                     span.textContent = homeScore;
                                     span.className = `text-xs px-1 py-0.5 rounded ${homeScore > awayScore ? 'bg-green-900/60 text-green-300 font-bold' : 'text-gray-400'}`;
                                 } else {
@@ -108,12 +122,15 @@
                                     span.className = 'text-xs px-1 py-0.5 rounded text-gray-600';
                                 }
                             });
-                        }
 
-                        // Away player (second row)
-                        if (playerRows[1]) {
-                            const awaySetSpans = playerRows[1].querySelectorAll('.flex.gap-1.ml-4 .w-6.text-center span');
-                            awaySetSpans.forEach((span, index) => {
+                            // Away player sets (second container)
+                            const awaySetDivs = setContainers[1].querySelectorAll('.w-6.text-center');
+                            console.log('Found away set divs:', awaySetDivs.length);
+                            
+                            awaySetDivs.forEach((div, index) => {
+                                const span = div.querySelector('span');
+                                if (!span) return;
+                                
                                 if (index < match.sets.length) {
                                     const set = match.sets[index];
                                     const homeScore = set.home_score ?? 0;
@@ -125,9 +142,13 @@
                                     span.className = 'text-xs px-1 py-0.5 rounded text-gray-600';
                                 }
                             });
-                        }
 
-                        console.debug('Updated set scores for match', match.id);
+                            console.log('✅ Successfully updated set scores for match', match.id);
+                        } else {
+                            console.error('Could not find both set containers for match', match.id);
+                        }
+                    } else {
+                        console.log('No sets data for match', match.id);
                     }
 
                     // Update current set scores in green boxes
@@ -137,31 +158,50 @@
                         const scoreBoxes = currentScoreContainer.querySelectorAll('.w-8.h-8');
                         console.log('Found score boxes:', scoreBoxes.length, 'for match', match.id);
                         if (match.status === 'in_progress') {
-                            // Update home score box
+                            // Update home score box - green and glowing for live match
                             if (scoreBoxes[0]) {
                                 scoreBoxes[0].className = 'w-8 h-8 bg-green-900/80 rounded-lg flex items-center justify-center';
-                                const homeScoreDiv = scoreBoxes[0].querySelector('.text-sm.font-bold');
+                                const homeScoreDiv = scoreBoxes[0].querySelector('.text-sm.font-bold') || scoreBoxes[0].querySelector('div');
                                 if (homeScoreDiv) {
                                     homeScoreDiv.textContent = match.home_score ?? 0;
                                     homeScoreDiv.className = 'text-sm font-bold text-green-300';
                                     console.log('Updated home score to:', match.home_score ?? 0);
                                 }
                             }
-                            // Update away score box
+                            // Update away score box - green and glowing for live match
                             if (scoreBoxes[1]) {
                                 scoreBoxes[1].className = 'w-8 h-8 bg-green-900/80 rounded-lg flex items-center justify-center';
-                                const awayScoreDiv = scoreBoxes[1].querySelector('.text-sm.font-bold');
+                                const awayScoreDiv = scoreBoxes[1].querySelector('.text-sm.font-bold') || scoreBoxes[1].querySelector('div');
                                 if (awayScoreDiv) {
                                     awayScoreDiv.textContent = match.away_score ?? 0;
                                     awayScoreDiv.className = 'text-sm font-bold text-green-300';
                                     console.log('Updated away score to:', match.away_score ?? 0);
                                 }
                             }
+                        } else if (match.status === 'completed') {
+                            // Match finished - hide current set boxes (show nothing)
+                            if (scoreBoxes[0]) {
+                                scoreBoxes[0].className = 'w-8 h-8 bg-transparent rounded-lg flex items-center justify-center';
+                                const homeScoreDiv = scoreBoxes[0].querySelector('.text-sm.font-bold') || scoreBoxes[0].querySelector('div');
+                                if (homeScoreDiv) {
+                                    homeScoreDiv.textContent = '';
+                                    homeScoreDiv.className = 'text-sm font-bold text-transparent';
+                                }
+                            }
+                            if (scoreBoxes[1]) {
+                                scoreBoxes[1].className = 'w-8 h-8 bg-transparent rounded-lg flex items-center justify-center';
+                                const awayScoreDiv = scoreBoxes[1].querySelector('.text-sm.font-bold') || scoreBoxes[1].querySelector('div');
+                                if (awayScoreDiv) {
+                                    awayScoreDiv.textContent = '';
+                                    awayScoreDiv.className = 'text-sm font-bold text-transparent';
+                                }
+                            }
+                            console.log('✅ Match completed - hiding current set boxes');
                         } else {
-                            // Set to inactive state
+                            // Set to inactive state (scheduled/cancelled)
                             if (scoreBoxes[0]) {
                                 scoreBoxes[0].className = 'w-8 h-8 bg-gray-700/50 rounded-lg flex items-center justify-center';
-                                const homeScoreDiv = scoreBoxes[0].querySelector('.text-sm.font-bold');
+                                const homeScoreDiv = scoreBoxes[0].querySelector('.text-sm.font-bold') || scoreBoxes[0].querySelector('div');
                                 if (homeScoreDiv) {
                                     homeScoreDiv.textContent = '-';
                                     homeScoreDiv.className = 'text-sm font-bold text-gray-500';
@@ -169,7 +209,7 @@
                             }
                             if (scoreBoxes[1]) {
                                 scoreBoxes[1].className = 'w-8 h-8 bg-gray-700/50 rounded-lg flex items-center justify-center';
-                                const awayScoreDiv = scoreBoxes[1].querySelector('.text-sm.font-bold');
+                                const awayScoreDiv = scoreBoxes[1].querySelector('.text-sm.font-bold') || scoreBoxes[1].querySelector('div');
                                 if (awayScoreDiv) {
                                     awayScoreDiv.textContent = '-';
                                     awayScoreDiv.className = 'text-sm font-bold text-gray-500';

@@ -55,11 +55,18 @@
                             }
                         }
                         
+                        // Update set history table
+                        if (matchData.sets && matchData.sets.length > 0) {
+                            updateSetHistoryTable(matchData.sets);
+                        }
+                        
                         // Update match status
                         const matchStatusElement = document.getElementById('match-status');
                         if (matchStatusElement) {
                             if (matchData.status === 'in_progress') {
                                 matchStatusElement.innerHTML = '<div class="text-green-400 font-semibold text-sm md:text-base">🔴 LIVE</div>';
+                            } else if (matchData.status === 'completed') {
+                                matchStatusElement.innerHTML = '<div class="text-green-400 font-semibold text-sm md:text-base">✅ COMPLETED</div>';
                             } else {
                                 matchStatusElement.innerHTML = '';
                             }
@@ -78,6 +85,37 @@
                 .catch(error => {
                     console.error('Error updating match details:', error);
                 });
+        }
+
+        function updateSetHistoryTable(sets) {
+            const tbody = document.querySelector('#sets-breakdown tbody');
+            if (!tbody) {
+                console.log('Set history table body not found');
+                return;
+            }
+
+            console.log('Updating set history with', sets.length, 'sets');
+
+            // Clear existing rows
+            tbody.innerHTML = '';
+
+            // Add new rows for each set
+            sets.forEach((set, index) => {
+                const homeScore = set.home_score ?? set.home ?? 0;
+                const awayScore = set.away_score ?? set.away ?? 0;
+                
+                const tr = document.createElement('tr');
+                tr.className = 'border-b border-gray-700/50';
+                tr.innerHTML = `
+                    <td class="py-2 md:py-3 text-gray-300 font-medium text-xs md:text-sm">${index + 1}</td>
+                    <td class="py-2 md:py-3 text-blue-400 font-bold text-sm md:text-lg">${homeScore}</td>
+                    <td class="py-2 md:py-3 text-gray-400 text-xs md:text-sm">-</td>
+                    <td class="py-2 md:py-3 text-red-400 font-bold text-sm md:text-lg">${awayScore}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            console.log('✅ Set history table updated with', sets.length, 'rows');
         }
 
         // Update every 3 seconds

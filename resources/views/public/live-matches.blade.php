@@ -141,29 +141,47 @@
                     if (currentScoreContainer) {
                         const scoreBoxes = currentScoreContainer.querySelectorAll('.w-8.h-8');
                         if (match.status === 'in_progress') {
-                            // Update home score box
+                            // Update home score box - green and glowing for live match
                             if (scoreBoxes[0]) {
                                 scoreBoxes[0].className = 'w-8 h-8 bg-green-900/80 rounded-lg flex items-center justify-center';
-                                const homeScoreDiv = scoreBoxes[0].querySelector('.text-sm.font-bold');
+                                const homeScoreDiv = scoreBoxes[0].querySelector('.text-sm.font-bold') || scoreBoxes[0].querySelector('div');
                                 if (homeScoreDiv) {
                                     homeScoreDiv.textContent = match.home_score ?? 0;
                                     homeScoreDiv.className = 'text-sm font-bold text-green-300';
                                 }
                             }
-                            // Update away score box
+                            // Update away score box - green and glowing for live match
                             if (scoreBoxes[1]) {
                                 scoreBoxes[1].className = 'w-8 h-8 bg-green-900/80 rounded-lg flex items-center justify-center';
-                                const awayScoreDiv = scoreBoxes[1].querySelector('.text-sm.font-bold');
+                                const awayScoreDiv = scoreBoxes[1].querySelector('.text-sm.font-bold') || scoreBoxes[1].querySelector('div');
                                 if (awayScoreDiv) {
                                     awayScoreDiv.textContent = match.away_score ?? 0;
                                     awayScoreDiv.className = 'text-sm font-bold text-green-300';
                                 }
                             }
+                        } else if (match.status === 'completed') {
+                            // Match finished - hide current set boxes (show nothing)
+                            if (scoreBoxes[0]) {
+                                scoreBoxes[0].className = 'w-8 h-8 bg-transparent rounded-lg flex items-center justify-center';
+                                const homeScoreDiv = scoreBoxes[0].querySelector('.text-sm.font-bold') || scoreBoxes[0].querySelector('div');
+                                if (homeScoreDiv) {
+                                    homeScoreDiv.textContent = '';
+                                    homeScoreDiv.className = 'text-sm font-bold text-transparent';
+                                }
+                            }
+                            if (scoreBoxes[1]) {
+                                scoreBoxes[1].className = 'w-8 h-8 bg-transparent rounded-lg flex items-center justify-center';
+                                const awayScoreDiv = scoreBoxes[1].querySelector('.text-sm.font-bold') || scoreBoxes[1].querySelector('div');
+                                if (awayScoreDiv) {
+                                    awayScoreDiv.textContent = '';
+                                    awayScoreDiv.className = 'text-sm font-bold text-transparent';
+                                }
+                            }
                         } else {
-                            // Set to inactive state
+                            // Set to inactive state (scheduled/cancelled)
                             if (scoreBoxes[0]) {
                                 scoreBoxes[0].className = 'w-8 h-8 bg-gray-700/50 rounded-lg flex items-center justify-center';
-                                const homeScoreDiv = scoreBoxes[0].querySelector('.text-sm.font-bold');
+                                const homeScoreDiv = scoreBoxes[0].querySelector('.text-sm.font-bold') || scoreBoxes[0].querySelector('div');
                                 if (homeScoreDiv) {
                                     homeScoreDiv.textContent = '-';
                                     homeScoreDiv.className = 'text-sm font-bold text-gray-500';
@@ -171,7 +189,7 @@
                             }
                             if (scoreBoxes[1]) {
                                 scoreBoxes[1].className = 'w-8 h-8 bg-gray-700/50 rounded-lg flex items-center justify-center';
-                                const awayScoreDiv = scoreBoxes[1].querySelector('.text-sm.font-bold');
+                                const awayScoreDiv = scoreBoxes[1].querySelector('.text-sm.font-bold') || scoreBoxes[1].querySelector('div');
                                 if (awayScoreDiv) {
                                     awayScoreDiv.textContent = '-';
                                     awayScoreDiv.className = 'text-sm font-bold text-gray-500';

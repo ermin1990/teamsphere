@@ -52,8 +52,21 @@
             </main>
         </div>
 
-        <!-- Service Worker Registration -->
+        <!-- Service Worker Registration - Disabled for development -->
         <script>
+            // Unregister any existing service workers to prevent caching issues
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                    for(let registration of registrations) {
+                        registration.unregister().then(function(success) {
+                            console.log('Service Worker unregistered:', success);
+                        });
+                    }
+                });
+            }
+            
+            // Only register in production
+            @if(app()->environment('production'))
             if ('serviceWorker' in navigator) {
                 window.addEventListener('load', function() {
                     navigator.serviceWorker.register('/sw.js')
@@ -65,6 +78,7 @@
                         });
                 });
             }
+            @endif
         </script>
 
         @livewireScripts

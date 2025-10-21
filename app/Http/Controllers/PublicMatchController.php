@@ -104,13 +104,25 @@ class PublicMatchController extends Controller
      */
     public function getLiveMatchesData()
     {
-        // Get all live league matches
-        $liveLeagueMatches = LeagueMatch::where('status', 'in_progress')
+        // Get all live league matches + recently completed (last 2 minutes)
+        $liveLeagueMatches = LeagueMatch::where(function($query) {
+                $query->where('status', 'in_progress')
+                      ->orWhere(function($q) {
+                          $q->where('status', 'completed')
+                            ->where('completed_at', '>=', now()->subMinutes(2));
+                      });
+            })
             ->with(['competition.organization', 'homeTeam', 'awayTeam', 'homePlayer', 'awayPlayer', 'moderator'])
             ->get();
 
-        // Get all live tournament matches
-        $liveTournamentMatches = \App\Models\CompetitionMatch::where('status', 'in_progress')
+        // Get all live tournament matches + recently completed (last 2 minutes)
+        $liveTournamentMatches = \App\Models\CompetitionMatch::where(function($query) {
+                $query->where('status', 'in_progress')
+                      ->orWhere(function($q) {
+                          $q->where('status', 'completed')
+                            ->where('completed_at', '>=', now()->subMinutes(2));
+                      });
+            })
             ->with(['competition.organization', 'homePlayer', 'awayPlayer', 'tournamentGroup'])
             ->get();
 
