@@ -1,12 +1,14 @@
 <?php
 
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DisplayController;
 use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\OrganizationController;
 use App\Http\Controllers\PlayerController;
 use App\Http\Controllers\CompetitionController;
 use App\Http\Controllers\LeagueController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SemaforController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/locale/{locale}', function ($locale) {
@@ -24,6 +26,14 @@ Route::get('/', function () {
 })->name('home');
 
 Route::get('/dashboard', [DashboardController::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
+
+// Display routes (Live Matches Display Screen)
+Route::get('/live', [DisplayController::class, 'selector'])->name('display.selector'); // Public league selector
+Route::get('/display', [DisplayController::class, 'show'])->name('display.show'); // Public display screen
+Route::middleware(['auth'])->group(function () {
+    Route::get('/display/admin', [DisplayController::class, 'admin'])->name('display.admin');
+    Route::post('/display/toggle/{league}', [DisplayController::class, 'toggleLeague'])->name('display.toggle');
+});
 
 // Feedback routes
 Route::get('/feedback', [FeedbackController::class, 'create'])->name('feedback.create');

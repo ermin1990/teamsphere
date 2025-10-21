@@ -222,6 +222,9 @@
                     <a href="{{ route('public.live-matches') }}" class="text-blue-400 font-semibold text-sm md:text-base">
                         📺 Live Matches
                     </a>
+                    <a href="{{ route('display.selector') }}" class="text-gray-300 hover:text-white transition-colors text-sm md:text-base font-medium">
+                        📺 Semafor
+                    </a>
                     <a href="{{ route('public.leagues.index') }}" class="text-gray-300 hover:text-white transition-colors text-sm md:text-base font-medium">
                         🏆 Competitions
                     </a>
@@ -237,6 +240,22 @@
                     <p class="text-gray-400">Watch live table tennis matches from all leagues</p>
                     <div class="mt-4 text-sm text-gray-500">
                         Real-time updates • {{ $liveMatches->count() }} live matches
+                    </div>
+                    
+                    <!-- Display Screen Link -->
+                    <div class="mt-6">
+                        <a href="{{ route('display.selector') }}" 
+                           target="_blank"
+                           class="inline-flex items-center space-x-3 px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                            </svg>
+                            <span>Prikaz na Velikom Ekranu</span>
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                            </svg>
+                        </a>
+                        <p class="text-xs text-gray-500 mt-2">Odaberi turnire za display mode</p>
                     </div>
                 </div>
             </div>
@@ -448,6 +467,10 @@
             <a href="{{ route('public.live-matches') }}" class="flex flex-col items-center text-gray-300 hover:text-white transition-colors text-xs flex-1">
                 <span class="text-lg">📺</span>
                 <span class="mt-1">Live</span>
+            </a>
+            <a href="{{ route('display.selector') }}" class="flex flex-col items-center text-gray-300 hover:text-white transition-colors text-xs flex-1">
+                <span class="text-lg">📺</span>
+                <span class="mt-1">Semafor</span>
             </a>
             <a href="{{ route('public.leagues.index') }}" class="flex flex-col items-center text-gray-300 hover:text-white transition-colors text-xs flex-1">
                 <span class="text-lg">🏆</span>
