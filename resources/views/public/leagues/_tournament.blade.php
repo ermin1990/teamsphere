@@ -1,5 +1,5 @@
 <!-- Tournament Groups with Tables and Matches -->
-@if(($competition->status === 'active' || $competition->status === 'completed') && $competition->type === 'tournament')
+@if($competition->type === 'tournament')
     @php
         $knockoutMatches = App\Models\CompetitionMatch::where('competition_id', $competition->id)
             ->where('phase', 'knockout')

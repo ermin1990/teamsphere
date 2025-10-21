@@ -146,6 +146,14 @@ class Competition extends Model
     }
 
     /**
+     * Get the league matches for this competition.
+     */
+    public function leagueMatches(): HasMany
+    {
+        return $this->hasMany(LeagueMatch::class, 'competition_id');
+    }
+
+    /**
      * Get the standings for this competition.
      */
     public function standings(): HasMany

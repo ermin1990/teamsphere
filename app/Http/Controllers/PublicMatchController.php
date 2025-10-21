@@ -22,31 +22,55 @@ class PublicMatchController extends Controller
         return view('public.leagues.index', compact('competitions'));
     }
 
-    /**
+        /**
      * Display a specific public competition (league or tournament).
      */
     public function showLeague(Competition $competition)
     {
-        // Ensure competition is public
-        if (!$competition->is_public) {
+        // Ensure competition is public, or allow access if user is the owner
+        $isOwner = auth()->check() && auth()->id() === $competition->organization->user_id;
+        if (!$competition->is_public && !$isOwner) {
             abort(404, 'Competition not found.');
         }
 
-        // Load necessary relationships
-        $competition->load([
-            'organization',
-            'sport',
-            'standings.team',
-            'standings.player',
-            'matches' => function ($query) {
-                $query->orderBy('scheduled_at', 'desc')
-                      ->with(['homeTeam', 'awayTeam', 'homePlayer', 'awayPlayer']);
+        try {
+            // Load necessary relationships
+            $competition->load([
+                'organization',
+                'sport',
+                'standings.team',
+                'standings.player',
+            ]);
+
+            // Load matches based on competition type
+            if ($competition->type === 'league') {
+                $competition->load([
+                    'leagueMatches' => function ($query) {
+                        $query->orderBy('scheduled_at', 'desc')
+                              ->with(['homeTeam', 'awayTeam', 'homePlayer', 'awayPlayer']);
+                    }
+                ]);
+            } else {
+                // For tournaments, matches are CompetitionMatch
+                $competition->load([
+                    'matches' => function ($query) {
+                        $query->orderBy('scheduled_at', 'desc')
+                              ->with(['homePlayer', 'awayPlayer', 'tournamentGroup']);
+                    }
+                ]);
             }
-        ]);
 
-        $organization = $competition->organization;
+            $organization = $competition->organization;
 
-        return view('public.leagues.show', compact('competition', 'organization'));
+            return view('public.leagues.show', compact('competition', 'organization'));
+        } catch (\Exception $e) {
+            \Log::error('Error loading competition: ' . $e->getMessage(), [
+                'competition_id' => $competition->id,
+                'user_id' => auth()->id(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            abort(500, 'Error loading competition: ' . $e->getMessage());
+        }
     }
 
     /**

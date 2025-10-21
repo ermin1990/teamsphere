@@ -278,6 +278,10 @@
                                     class="tab-button border-b-2 py-2 px-1 text-sm md:text-base font-medium transition-colors border-transparent text-gray-400 hover:text-gray-300">
                                 🎯 Mečevi
                             </button>
+                            <button onclick="showLeagueTab('settings')" id="settings-tab"
+                                    class="tab-button border-b-2 py-2 px-1 text-sm md:text-base font-medium transition-colors border-transparent text-gray-400 hover:text-gray-300">
+                                ⚙️ Postavke
+                            </button>
                         </nav>
                     </div>
 
@@ -334,7 +338,8 @@
                     <!-- Matches Tab Content -->
                     <div id="matches-content" class="tab-content mt-4 md:mt-6 hidden">
                         @php
-                            $matchesByRound = $competition->matches->sortBy('round')->groupBy('round');
+                            $matches = $competition->type === 'league' ? $competition->leagueMatches : $competition->matches;
+                            $matchesByRound = $matches->sortBy('round')->groupBy('round');
                         @endphp
                         @if($matchesByRound->count() > 0)
                         <div class="space-y-3 md:space-y-5">
@@ -509,6 +514,39 @@
                             <p class="text-gray-400 text-sm md:text-base">Mečevi će se pojaviti kada liga počne.</p>
                         </div>
                         @endif
+                    </div>
+
+                    <!-- Settings Tab Content -->
+                    <div id="settings-content" class="tab-content mt-4 md:mt-6 hidden">
+                        <div class="bg-gray-800/50 backdrop-blur-xl rounded-xl p-3 md:p-5 border border-gray-700/50 shadow-xl">
+                            <h3 class="text-lg md:text-xl font-semibold text-white mb-4">Postavke turnira</h3>
+                            
+                            @auth
+                                @if(auth()->user()->id === $organization->user_id)
+                                    <div class="space-y-4">
+                                        <div class="bg-red-900/20 border border-red-700/50 rounded-lg p-4">
+                                            <h4 class="text-md font-semibold text-red-400 mb-2">Resetovanje lige</h4>
+                                            <p class="text-gray-300 text-sm mb-4">
+                                                Ova akcija će obrisati sve mečeve, rezultate i tabele. Liga će se vratiti u status "draft" i moći ćete je ponovo pokrenuti ispočetka.
+                                            </p>
+                                            <form method="POST" action="{{ route('organizations.competitions.reset', [$organization, $competition]) }}" 
+                                                  onsubmit="return confirm('Da li ste sigurni da želite resetovati ovu ligu? Svi podaci će biti izgubljeni!')">
+                                                @csrf
+                                                @method('POST')
+                                                <button type="submit" 
+                                                        class="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors">
+                                                    🔄 Resetuj ligu
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                @else
+                                    <p class="text-gray-400">Nemate dozvolu za pristup postavkama ove lige.</p>
+                                @endif
+                            @else
+                                <p class="text-gray-400">Morate biti prijavljeni da biste pristupili postavkama.</p>
+                            @endauth
+                        </div>
                     </div>
                 </div>
 
