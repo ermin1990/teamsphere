@@ -850,8 +850,8 @@ class LeagueController extends Controller
             $match->load(['homeTeam.players', 'awayTeam.players']);
         }
 
-        // Load audit relationships
-        $match->load(['moderator', 'editedBy', 'completedBy']);
+        // Load audit relationships and match officials
+        $match->load(['moderator', 'referee', 'table', 'editedBy', 'completedBy']);
 
         return view('organizations.leagues.matches.show', compact('organization', 'league', 'match', 'isOwner', 'isPlayer', 'isReferee'));
     }
@@ -902,6 +902,8 @@ class LeagueController extends Controller
             'away_score' => 'nullable|numeric|min:0',
             'forfeited_by' => 'nullable|in:home,away',
             'moderator_id' => 'nullable|exists:users,id',
+            'referee_user_id' => 'nullable|exists:users,id',
+            'table_id' => 'nullable|exists:tables,id',
         ]);
 
         // Check if user is owner (only owners can assign moderators)
@@ -921,12 +923,32 @@ class LeagueController extends Controller
             }
         }
 
+        // Check if table belongs to this organization
+        if ($request->filled('table_id')) {
+            $isValidTable = \App\Models\Table::where('id', $request->table_id)
+                ->where('organization_id', $organization->id)
+                ->exists();
+            if (!$isValidTable) {
+                return back()->withErrors(['table_id' => 'Selected table does not belong to this organization.']);
+            }
+        }
+
         // Prepare update data
         $updateData = ['status' => $validated['status']];
 
         // Add moderator if provided
         if (isset($validated['moderator_id'])) {
             $updateData['moderator_id'] = $validated['moderator_id'] ?: null;
+        }
+
+        // Add referee if provided
+        if (isset($validated['referee_user_id'])) {
+            $updateData['referee_user_id'] = $validated['referee_user_id'] ?: null;
+        }
+
+        // Add table if provided
+        if (isset($validated['table_id'])) {
+            $updateData['table_id'] = $validated['table_id'] ?: null;
         }
 
         if ($validated['status'] === 'scheduled') {

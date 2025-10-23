@@ -92,14 +92,14 @@
                              style="position: relative; z-index: 10; {{ $match->status === 'completed' ? 'pointer-events: none;' : '' }}">
                             {{ $homeScore }}
                         </div>
-                        @if(!$isOrganizationOwner)
-                            <div class="text-xs text-yellow-400 mt-1">⚠️ Samo vlasnik organizacije može mijenjati rezultat</div>
+                        @if(!$canManageLiveScore)
+                            <div class="text-xs text-yellow-400 mt-1">⚠️ Nemaš dozvolu za mijenjanje rezultata</div>
                         @endif
                     </div>
 
                     <div class="flex justify-center">
-                        <button type="button" @if($match->status !== 'completed' && $isOrganizationOwner) wire:click="subtractPoint('home')" @endif
-                                class="px-4 py-2 bg-gray-600 {{ $match->status === 'completed' || !$isOrganizationOwner ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-700' }} text-white rounded-lg transition-all duration-200 font-semibold text-sm">
+                        <button type="button" @if($match->status !== 'completed' && $canManageLiveScore) wire:click="subtractPoint('home')" @endif
+                                class="px-4 py-2 bg-gray-600 {{ $match->status === 'completed' || !$canManageLiveScore ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-700' }} text-white rounded-lg transition-all duration-200 font-semibold text-sm">
                             -1
                         </button>
                     </div>
@@ -136,14 +136,14 @@
                              style="position: relative; z-index: 10; {{ $match->status === 'completed' ? 'pointer-events: none;' : '' }}">
                             {{ $awayScore }}
                         </div>
-                        @if(!$isOrganizationOwner)
-                            <div class="text-xs text-yellow-400 mt-1">⚠️ Samo vlasnik organizacije može mijenjati rezultat</div>
+                        @if(!$canManageLiveScore)
+                            <div class="text-xs text-yellow-400 mt-1">⚠️ Nemaš dozvolu za mijenjanje rezultata</div>
                         @endif
                     </div>
 
                     <div class="flex justify-center">
-                        <button type="button" @if($match->status !== 'completed' && $isOrganizationOwner) wire:click="subtractPoint('away')" @endif
-                                class="px-4 py-2 bg-gray-600 {{ $match->status === 'completed' || !$isOrganizationOwner ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-700' }} text-white rounded-lg transition-all duration-200 font-semibold text-sm">
+                        <button type="button" @if($match->status !== 'completed' && $canManageLiveScore) wire:click="subtractPoint('away')" @endif
+                                class="px-4 py-2 bg-gray-600 {{ $match->status === 'completed' || !$canManageLiveScore ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-700' }} text-white rounded-lg transition-all duration-200 font-semibold text-sm">
                             -1
                         </button>
                     </div>
@@ -176,7 +176,7 @@
 
             <div class="border-t border-gray-700 pt-6 mt-6">
                 <div class="flex justify-center space-x-4 mb-4">
-                    @if($match->status !== 'completed' && $isOrganizationOwner)
+                    @if($match->status !== 'completed' && $canManageLiveScore)
                     <button type="button" wire:click="undoPoint"
                             class="px-6 py-3 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg transition-colors font-semibold"
                             wire:loading.attr="disabled"

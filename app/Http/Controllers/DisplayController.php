@@ -99,7 +99,9 @@ class DisplayController extends Controller
                 'homePlayer',
                 'awayPlayer',
                 'homeTeam',
-                'awayTeam'
+                'awayTeam',
+                'table',
+                'referee'
             ])
             ->orderBy('competition_id')
             ->orderBy('scheduled_at')

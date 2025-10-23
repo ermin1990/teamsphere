@@ -27,6 +27,8 @@ class CompetitionMatch extends Model
         'round',
         'sets',
         'forfeited_by',
+        'table_id',
+        'referee_user_id',
         'first_server',
         'current_server',
         'set_durations',
@@ -200,5 +202,21 @@ class CompetitionMatch extends Model
             'third_place' => 'Third Place',
             default => 'Unknown Phase'
         };
+    }
+
+    /**
+     * Get the table for this match.
+     */
+    public function table(): BelongsTo
+    {
+        return $this->belongsTo(Table::class, 'table_id');
+    }
+
+    /**
+     * Get the referee for this match.
+     */
+    public function referee(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'referee_user_id');
     }
 }

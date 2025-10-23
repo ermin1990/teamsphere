@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -68,6 +69,14 @@ class User extends Authenticatable
     public function userPlans(): HasMany
     {
         return $this->hasMany(UserPlan::class);
+    }
+
+    /**
+     * Get the player profile for this user.
+     */
+    public function playerProfile(): HasOne
+    {
+        return $this->hasOne(Player::class);
     }
 
     /**

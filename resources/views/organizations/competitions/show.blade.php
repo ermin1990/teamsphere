@@ -72,6 +72,13 @@
         </script>
     @endif
 
+    @php
+        $isRefereeForMatch = function($match) use ($isReferee) {
+            if (!$isReferee) return false;
+            return $match->referee_user_id === auth()->id();
+        };
+    @endphp
+
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             
@@ -598,21 +605,21 @@
                                                     🏆 {{ __('Bye - Automatic Win') }}
                                                 </div>
                                             </div>
-                                            @elseif($match->status === 'scheduled' && $isOwner)
+                                            @elseif($match->status === 'scheduled' && ($isOwner || $isRefereeForMatch($match)))
                                             <div class="px-3 pb-3 flex gap-2">
-                                                <a href="{{ route('competitions.live-score', [$match->id]) }}"
+                                                <a href="{{ $isRefereeForMatch($match) ? route('referee.competition.match.edit', [$match]) : route('organizations.competitions.matches.edit', [$organization, $competition, $match]) }}"
+                                                   class="flex-1 bg-purple-600 hover:bg-purple-700 text-white text-xs px-3 py-2 rounded-lg transition-colors text-center font-semibold">
+                                                    ✏️ {{ __('Edit') }}
+                                                </a>
+                                                <a href="{{ $isRefereeForMatch($match) ? route('referee.competition.match.live', [$match]) : route('competitions.live-score', [$match->id]) }}"
                                                    class="flex-1 bg-green-600 hover:bg-green-700 text-white text-xs px-3 py-2 rounded-lg transition-colors text-center font-semibold">
                                                     ▶️ {{ __('Start') }}
                                                 </a>
-                                                <button onclick="openQuickResultModal({{ $match->id }}, '{{ $match->homePlayer?->name }}', '{{ $match->awayPlayer?->name }}')"
-                                                        class="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-2 rounded-lg transition-colors text-center font-semibold">
-                                                    ⚡ {{ __('Result') }}
-                                                </button>
                                             </div>
                                             @elseif($match->status === 'in_progress')
                                             <div class="px-3 pb-3">
-                                                @if($isOwner)
-                                                <a href="{{ route('competitions.live-score', [$match->id]) }}"
+                                                @if($isOwner || $isRefereeForMatch($match))
+                                                <a href="{{ $isRefereeForMatch($match) ? route('referee.competition.match.live', [$match]) : route('competitions.live-score', [$match->id]) }}"
                                                    class="block bg-green-600/20 text-green-400 text-xs px-3 py-2 rounded-lg text-center font-semibold hover:bg-green-600/30 transition-colors">
                                                     👁️ {{ __('Watch Live') }}
                                                 </a>
@@ -620,8 +627,8 @@
                                             </div>
                                             @elseif($match->status === 'completed')
                                             <div class="px-3 pb-3">
-                                                @if($isOwner)
-                                                <a href="{{ route('organizations.competitions.matches.edit', [$organization, $competition, $match]) }}"
+                                                @if($isOwner || $isRefereeForMatch($match))
+                                                <a href="{{ $isRefereeForMatch($match) ? route('referee.competition.match.edit', [$match]) : route('organizations.competitions.matches.edit', [$organization, $competition, $match]) }}"
                                                    class="block bg-blue-600/20 text-blue-400 text-xs px-3 py-2 rounded-lg text-center font-semibold hover:bg-blue-600/30 transition-colors">
                                                     ✏️ Uredi rezultate
                                                 </a>
@@ -805,15 +812,15 @@
                                             <!-- Actions -->
                                             <div class="flex flex-col gap-1 flex-shrink-0">
                                                 @if($match->status === 'scheduled')
-                                                    @if($isOwner)
-                                                    <a href="{{ route('competitions.live-score', [$match->id]) }}" 
+                                                    @if($isOwner || $isRefereeForMatch($match))
+                                                    <a href="{{ $isRefereeForMatch($match) ? route('referee.competition.match.edit', [$match]) : route('organizations.competitions.matches.edit', [$organization, $competition, $match]) }}" 
+                                                       class="bg-purple-600 hover:bg-purple-700 text-white text-[10px] px-2 py-1 rounded transition-colors text-center whitespace-nowrap">
+                                                        ✏️ {{ __('Edit') }}
+                                                    </a>
+                                                    <a href="{{ $isRefereeForMatch($match) ? route('referee.competition.match.live', [$match]) : route('competitions.live-score', [$match->id]) }}" 
                                                        class="bg-green-600 hover:bg-green-700 text-white text-[10px] px-2 py-1 rounded transition-colors text-center whitespace-nowrap">
                                                         ▶️ {{ __('Live') }}
                                                     </a>
-                                                    <button onclick="openQuickResultModal({{ $match->id }}, '{{ $match->homePlayer->name }}', '{{ $match->awayPlayer->name }}')"
-                                                            class="bg-blue-600 hover:bg-blue-700 text-white text-[10px] px-2 py-1 rounded transition-colors text-center whitespace-nowrap">
-                                                        ⚡ {{ __('Result') }}
-                                                    </button>
                                                     @else
                                                     <span class="text-[10px] bg-yellow-600/20 text-yellow-400 px-2 py-1 rounded text-center whitespace-nowrap">
                                                         {{ __('Soon') }}
@@ -823,8 +830,8 @@
                                                     <span class="text-[10px] bg-green-600/20 text-green-400 px-2 py-1 rounded text-center whitespace-nowrap animate-pulse">
                                                         🔴 {{ __('Live') }}
                                                     </span>
-                                                    @if($isOwner)
-                                                    <a href="{{ route('competitions.live-score', [$match->id]) }}" 
+                                                    @if($isOwner || $isRefereeForMatch($match))
+                                                    <a href="{{ $isRefereeForMatch($match) ? route('referee.competition.match.live', [$match]) : route('competitions.live-score', [$match->id]) }}" 
                                                        class="text-blue-400 hover:text-blue-300 text-[10px] text-center whitespace-nowrap">
                                                         👁️ {{ __('Watch') }}
                                                     </a>
@@ -833,8 +840,8 @@
                                                     <span class="text-[10px] bg-gray-600/20 text-gray-400 px-2 py-1 rounded text-center whitespace-nowrap">
                                                         ✓ {{ __('FT') }}
                                                     </span>
-                                                    @if($isOwner)
-                                                    <a href="{{ route('organizations.competitions.matches.edit', [$organization, $competition, $match]) }}" 
+                                                    @if($isOwner || $isRefereeForMatch($match))
+                                                    <a href="{{ $isRefereeForMatch($match) ? route('referee.competition.match.edit', [$match]) : route('organizations.competitions.matches.edit', [$organization, $competition, $match]) }}" 
                                                        class="text-blue-400 hover:text-blue-300 text-[10px] text-center whitespace-nowrap">
                                                         ✏️ {{ __('Edit') }}
                                                     </a>

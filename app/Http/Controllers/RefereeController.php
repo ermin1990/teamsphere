@@ -4,12 +4,38 @@ namespace App\Http\Controllers;
 
 use App\Models\League;
 use App\Models\LeagueMatch;
+use App\Models\Competition;
+use App\Models\CompetitionMatch;
 use App\Models\Standing;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class RefereeController extends Controller
 {
+    /**
+     * Check if user has referee rights for a match.
+     * Returns true if user is:
+     * 1. Organization referee
+     * 2. Match moderator (for league matches)
+     * 3. Match referee (referee_user_id)
+     */
+    protected function hasRefereeRights($user, $competition, $match = null)
+    {
+        // Check if user is organization referee
+        $isOrgReferee = $user->organizationUsers()
+            ->where('organization_id', $competition->organization_id)
+            ->where('role', 'referee')
+            ->exists();
+
+        // Check if user is match moderator (only for league matches)
+        $isMatchModerator = $match && method_exists($match, 'moderator_id') && $match->moderator_id === $user->id;
+
+        // Check if user is assigned as match referee
+        $isMatchReferee = $match && $match->referee_user_id === $user->id;
+
+        return $isOrgReferee || $isMatchModerator || $isMatchReferee;
+    }
+
     /**
      * Display referee dashboard.
      */
@@ -59,8 +85,11 @@ class RefereeController extends Controller
             return $league->matches->where('status', 'scheduled')->count();
         });
 
-        // Get moderator matches - show all matches where user is moderator
-        $allModeratorMatches = LeagueMatch::where('moderator_id', $user->id)
+        // Get moderator/referee matches - show all matches where user is moderator or assigned referee
+        $allModeratorMatches = LeagueMatch::where(function($query) use ($user) {
+                $query->where('moderator_id', $user->id)
+                      ->orWhere('referee_user_id', $user->id);
+            })
             ->with(['league.organization', 'homeTeam', 'awayTeam', 'homePlayer', 'awayPlayer'])
             ->orderByRaw("CASE 
                 WHEN status = 'in_progress' THEN 1 
@@ -73,12 +102,29 @@ class RefereeController extends Controller
             ->limit(10)
             ->get();
 
+        // Get competition matches where user is assigned referee
+        $competitionRefereeMatches = CompetitionMatch::where('referee_user_id', $user->id)
+            ->with(['competition.organization', 'homeTeam', 'awayTeam', 'homePlayer', 'awayPlayer'])
+            ->orderByRaw("CASE 
+                WHEN status = 'in_progress' THEN 1 
+                WHEN status = 'scheduled' THEN 2 
+                WHEN status = 'completed' THEN 3 
+                WHEN status = 'forfeited' THEN 4 
+                ELSE 5 END")
+            ->orderBy('scheduled_at', 'desc')
+            ->orderBy('updated_at', 'desc')
+            ->limit(10)
+            ->get();
+
+        // Combine all referee matches
+        $allRefereeMatches = $allModeratorMatches->concat($competitionRefereeMatches);
+
         // Split into recent (completed/forfeited) and upcoming (scheduled/in_progress)
-        $moderatorRecentMatches = $allModeratorMatches->filter(function($match) {
+        $moderatorRecentMatches = $allRefereeMatches->filter(function($match) {
             return in_array($match->status, ['completed', 'forfeited']);
         })->take(5);
 
-        $moderatorUpcomingMatches = $allModeratorMatches->filter(function($match) {
+        $moderatorUpcomingMatches = $allRefereeMatches->filter(function($match) {
             return in_array($match->status, ['scheduled', 'in_progress']);
         })->take(5);
 
@@ -92,8 +138,11 @@ class RefereeController extends Controller
     {
         $user = Auth::user();
 
-        // Get all matches where user is assigned as moderator
-        $allModeratorMatches = LeagueMatch::where('moderator_id', $user->id)
+        // Get all matches where user is assigned as moderator or referee
+        $allModeratorMatches = LeagueMatch::where(function($query) use ($user) {
+                $query->where('moderator_id', $user->id)
+                      ->orWhere('referee_user_id', $user->id);
+            })
             ->with(['league.organization', 'homeTeam', 'awayTeam', 'homePlayer', 'awayPlayer'])
             ->orderByRaw("CASE 
                 WHEN status = 'in_progress' THEN 1 
@@ -105,12 +154,28 @@ class RefereeController extends Controller
             ->orderBy('updated_at', 'desc')
             ->get();
 
+        // Get competition matches where user is assigned referee
+        $competitionRefereeMatches = CompetitionMatch::where('referee_user_id', $user->id)
+            ->with(['competition.organization', 'homeTeam', 'awayTeam', 'homePlayer', 'awayPlayer'])
+            ->orderByRaw("CASE 
+                WHEN status = 'in_progress' THEN 1 
+                WHEN status = 'scheduled' THEN 2 
+                WHEN status = 'completed' THEN 3 
+                WHEN status = 'forfeited' THEN 4 
+                ELSE 5 END")
+            ->orderBy('scheduled_at', 'desc')
+            ->orderBy('updated_at', 'desc')
+            ->get();
+
+        // Combine all referee matches
+        $allRefereeMatches = $allModeratorMatches->concat($competitionRefereeMatches);
+
         // Separate into moderated (completed/forfeited) and assigned (scheduled/in_progress)
-        $moderatedMatches = $allModeratorMatches->filter(function($match) {
+        $moderatedMatches = $allRefereeMatches->filter(function($match) {
             return in_array($match->status, ['completed', 'forfeited']);
         });
 
-        $assignedMatches = $allModeratorMatches->filter(function($match) {
+        $assignedMatches = $allRefereeMatches->filter(function($match) {
             return in_array($match->status, ['scheduled', 'in_progress']);
         });
 
@@ -171,15 +236,12 @@ class RefereeController extends Controller
     {
         $user = Auth::user();
 
-        // Check if user is referee for this league's organization
-        $isReferee = $user->organizationUsers()
-            ->where('organization_id', $league->organization_id)
-            ->where('role', 'referee')
-            ->exists();
-
-        if (!$isReferee) {
+        // Check if user has referee rights for this match
+        if (!$this->hasRefereeRights($user, $league, $match)) {
             abort(403, 'You are not authorized to view this match.');
         }
+
+        $isReferee = true;
 
         // Ensure match belongs to league
         if ($match->league_id !== $league->id) {
@@ -194,8 +256,8 @@ class RefereeController extends Controller
             $match->load(['homeTeam.players', 'awayTeam.players']);
         }
 
-        // Load audit relationships
-        $match->load(['moderator', 'editedBy', 'completedBy']);
+        // Load audit relationships and match officials
+        $match->load(['moderator', 'referee', 'table', 'editedBy', 'completedBy']);
 
         return view('organizations.leagues.matches.show', compact('organization', 'league', 'match', 'isOwner', 'isReferee'));
     }
@@ -207,15 +269,12 @@ class RefereeController extends Controller
     {
         $user = Auth::user();
 
-        // Check if user is referee for this league's organization
-        $isReferee = $user->organizationUsers()
-            ->where('organization_id', $league->organization_id)
-            ->where('role', 'referee')
-            ->exists();
-
-        if (!$isReferee) {
+        // Check if user has referee rights for this match
+        if (!$this->hasRefereeRights($user, $league, $match)) {
             abort(403, 'You are not authorized to edit this match.');
         }
+
+        $isReferee = true;
 
         // Ensure match belongs to league
         if ($match->league_id !== $league->id) {
@@ -235,15 +294,12 @@ class RefereeController extends Controller
     {
         $user = Auth::user();
 
-        // Check if user is referee for this league's organization
-        $isReferee = $user->organizationUsers()
-            ->where('organization_id', $league->organization_id)
-            ->where('role', 'referee')
-            ->exists();
-
-        if (!$isReferee) {
+        // Check if user has referee rights for this match
+        if (!$this->hasRefereeRights($user, $league, $match)) {
             abort(403, 'You are not authorized to manage this match.');
         }
+
+        $isReferee = true;
 
         // Ensure match belongs to league
         if ($match->league_id !== $league->id) {
@@ -271,15 +327,12 @@ class RefereeController extends Controller
     {
         $user = Auth::user();
 
-        // Check if user is referee for this league's organization
-        $isReferee = $user->organizationUsers()
-            ->where('organization_id', $league->organization_id)
-            ->where('role', 'referee')
-            ->exists();
-
-        if (!$isReferee) {
+        // Check if user has referee rights for this match
+        if (!$this->hasRefereeRights($user, $league, $match)) {
             abort(403, 'You are not authorized to update this match.');
         }
+
+        $isReferee = true;
 
         // Ensure match belongs to league
         if ($match->league_id !== $league->id) {
@@ -295,6 +348,8 @@ class RefereeController extends Controller
             'status' => 'required|in:scheduled,in_progress,completed,cancelled',
             'forfeited_by' => 'nullable|in:home,away',
             'moderator_id' => 'nullable|exists:users,id',
+            'referee_user_id' => 'nullable|exists:users,id',
+            'table_id' => 'nullable|exists:tables,id',
         ]);
 
         // Check moderator assignment permissions
@@ -313,7 +368,17 @@ class RefereeController extends Controller
             }
         }
 
-        $updateData = $request->only(['home_score', 'away_score', 'status', 'forfeited_by', 'moderator_id']);
+        // Check if table belongs to this organization
+        if ($request->filled('table_id')) {
+            $isValidTable = \App\Models\Table::where('id', $request->table_id)
+                ->where('organization_id', $league->organization_id)
+                ->exists();
+            if (!$isValidTable) {
+                return back()->withErrors(['table_id' => 'Selected table does not belong to this organization.']);
+            }
+        }
+
+        $updateData = $request->only(['home_score', 'away_score', 'status', 'forfeited_by', 'moderator_id', 'referee_user_id', 'table_id']);
 
         // Set played_at when match is completed or cancelled
         if (in_array($request->status, ['completed', 'cancelled']) && !$match->played_at) {
@@ -343,13 +408,8 @@ class RefereeController extends Controller
     {
         $user = Auth::user();
 
-        // Check if user is referee for this league's organization
-        $isReferee = $user->organizationUsers()
-            ->where('organization_id', $league->organization_id)
-            ->where('role', 'referee')
-            ->exists();
-
-        if (!$isReferee) {
+        // Check if user has referee rights for this match
+        if (!$this->hasRefereeRights($user, $league, $match)) {
             abort(403, 'You are not authorized to reset this match.');
         }
 
@@ -492,5 +552,175 @@ class RefereeController extends Controller
         foreach ($standings as $standing) {
             $standing->update(['position' => $position++]);
         }
+    }
+
+    /**
+     * Show competition match details for referee.
+     */
+    public function showCompetitionMatch(Competition $competition, CompetitionMatch $match)
+    {
+        $user = Auth::user();
+
+        // Check if user has referee rights for this match
+        if (!$this->hasRefereeRights($user, $competition, $match)) {
+            abort(403, 'You are not authorized to view this match.');
+        }
+
+        $isReferee = true;
+
+        // Ensure match belongs to competition
+        if ($match->competition_id !== $competition->id) {
+            abort(404, 'Match not found in this competition.');
+        }
+
+        $organization = $competition->organization;
+        $isOwner = $organization->user_id === $user->id;
+
+        // Load teams with players for team-based competitions
+        if ($competition->is_team_based) {
+            $match->load(['homeTeam.players', 'awayTeam.players']);
+        }
+
+        // Load audit relationships and match officials
+        $match->load(['referee', 'table']);
+
+        return view('organizations.competitions.matches.show', compact('organization', 'competition', 'match', 'isOwner', 'isReferee'));
+    }
+
+    /**
+     * Show form to edit competition match result.
+     */
+    public function editCompetitionMatch(Competition $competition, CompetitionMatch $match)
+    {
+        $user = Auth::user();
+
+        // Check if user has referee rights for this match
+        if (!$this->hasRefereeRights($user, $competition, $match)) {
+            abort(403, 'You are not authorized to edit this match.');
+        }
+
+        $isReferee = true;
+
+        // Ensure match belongs to competition
+        if ($match->competition_id !== $competition->id) {
+            abort(404, 'Match not found in this competition.');
+        }
+
+        $organization = $competition->organization;
+        $isOwner = $organization->user_id === $user->id;
+
+        return view('organizations.competitions.matches.edit', compact('organization', 'competition', 'match', 'isOwner', 'isReferee'));
+    }
+
+    /**
+     * Show live scoring interface for competition match.
+     */
+    public function liveCompetitionScore(Competition $competition, CompetitionMatch $match)
+    {
+        $user = Auth::user();
+
+        // Check if user has referee rights for this match
+        if (!$this->hasRefereeRights($user, $competition, $match)) {
+            abort(403, 'You are not authorized to manage this match.');
+        }
+
+        $isReferee = true;
+
+        // Ensure match belongs to competition
+        if ($match->competition_id !== $competition->id) {
+            abort(404, 'Match not found in this competition.');
+        }
+
+        $organization = $competition->organization;
+        $isOwner = $organization->user_id === $user->id;
+
+        // Load teams with players for team-based competitions
+        if ($competition->is_team_based) {
+            $match->load(['homeTeam.players', 'awayTeam.players']);
+        }
+
+        return view('organizations.competitions.matches.live', compact('organization', 'competition', 'match', 'isOwner', 'isReferee'));
+    }
+
+    /**
+     * Update competition match result.
+     */
+    public function updateCompetitionMatch(Request $request, Competition $competition, CompetitionMatch $match)
+    {
+        $user = Auth::user();
+
+        // Check if user has referee rights for this match
+        if (!$this->hasRefereeRights($user, $competition, $match)) {
+            abort(403, 'You are not authorized to update this match.');
+        }
+
+        $isReferee = true;
+
+        // Ensure match belongs to competition
+        if ($match->competition_id !== $competition->id) {
+            abort(404, 'Match not found in this competition.');
+        }
+
+        $request->validate([
+            'home_score' => 'nullable|integer|min:0',
+            'away_score' => 'nullable|integer|min:0',
+            'status' => 'required|in:scheduled,in_progress,completed,cancelled,forfeited',
+            'forfeited_by' => 'nullable|in:home,away',
+            'referee_user_id' => 'nullable|exists:users,id',
+            'table_id' => 'nullable|exists:tables,id',
+        ]);
+
+        // Check if table belongs to this organization
+        if ($request->filled('table_id')) {
+            $isValidTable = \App\Models\Table::where('id', $request->table_id)
+                ->where('organization_id', $competition->organization_id)
+                ->exists();
+            if (!$isValidTable) {
+                return back()->withErrors(['table_id' => 'Selected table does not belong to this organization.']);
+            }
+        }
+
+        $updateData = $request->only(['home_score', 'away_score', 'status', 'forfeited_by', 'referee_user_id', 'table_id']);
+
+        // Set played_at when match is completed or forfeited
+        if (in_array($request->status, ['completed', 'forfeited']) && !$match->played_at) {
+            $updateData['played_at'] = now();
+        }
+
+        $match->update($updateData);
+
+        return redirect()->route('referee.competition.match.show', [$competition, $match])
+            ->with('success', 'Match result updated successfully.');
+    }
+
+    /**
+     * Reset competition match to initial state.
+     */
+    public function resetCompetitionMatch(Request $request, Competition $competition, CompetitionMatch $match)
+    {
+        $user = Auth::user();
+
+        // Check if user has referee rights for this match
+        if (!$this->hasRefereeRights($user, $competition, $match)) {
+            abort(403, 'You are not authorized to reset this match.');
+        }
+
+        // Ensure match belongs to competition
+        if ($match->competition_id !== $competition->id) {
+            abort(404, 'Match not found in this competition.');
+        }
+
+        // Reset match to initial state
+        $match->update([
+            'status' => 'scheduled',
+            'home_score' => 0,
+            'away_score' => 0,
+            'sets' => [],
+            'played_at' => null,
+            'forfeited_by' => null,
+        ]);
+
+        return redirect()->route('referee.competition.match.show', [$competition, $match])
+            ->with('success', 'Match has been reset to initial state.');
     }
 }

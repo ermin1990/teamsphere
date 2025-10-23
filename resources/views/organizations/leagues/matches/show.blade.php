@@ -381,17 +381,56 @@
 
                 </div>
 
-                <!-- Audit Information -->
-                @if($match->edited_by || $match->completed_by || $match->moderator)
+                <!-- Match Officials -->
+                @if($match->table || $match->referee || $match->moderator)
                 <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl">
-                    <h3 class="text-lg font-semibold text-white mb-4">📋 Audit Information</h3>
+                    <h3 class="text-lg font-semibold text-white mb-4">🏓 Match Details</h3>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        @if($match->table)
+                        <div class="bg-gray-700/30 rounded-lg p-4">
+                            <div class="flex items-center space-x-2 mb-2">
+                                <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                                </svg>
+                                <div class="text-sm text-gray-400">Sto</div>
+                            </div>
+                            <div class="text-white font-medium">{{ $match->table->name }}</div>
+                            @if($match->table->description)
+                                <div class="text-xs text-gray-400 mt-1">{{ $match->table->description }}</div>
+                            @endif
+                        </div>
+                        @endif
+                        @if($match->referee)
+                        <div class="bg-gray-700/30 rounded-lg p-4">
+                            <div class="flex items-center space-x-2 mb-2">
+                                <svg class="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                </svg>
+                                <div class="text-sm text-gray-400">Sudija</div>
+                            </div>
+                            <div class="text-white font-medium">{{ $match->referee->name }}</div>
+                        </div>
+                        @endif
                         @if($match->moderator)
                         <div class="bg-gray-700/30 rounded-lg p-4">
-                            <div class="text-sm text-gray-400 mb-1">Moderator</div>
+                            <div class="flex items-center space-x-2 mb-2">
+                                <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                <div class="text-sm text-gray-400">Moderator</div>
+                            </div>
                             <div class="text-white font-medium">{{ $match->moderator->name }}</div>
                         </div>
                         @endif
+                    </div>
+                </div>
+                @endif
+
+                <!-- Audit Information -->
+                @if($match->edited_by || $match->completed_by)
+                <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl">
+                    <h3 class="text-lg font-semibold text-white mb-4">📋 Audit Information</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         @if($match->edited_by)
                         <div class="bg-gray-700/30 rounded-lg p-4">
                             <div class="text-sm text-gray-400 mb-1">Last Edited By</div>

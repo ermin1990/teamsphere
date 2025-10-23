@@ -339,6 +339,29 @@
                 @endif
             </div>
 
+            <!-- Tables Section -->
+            <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-xl font-bold text-white">Stolovi</h3>
+                    @if($organization->user_id === Auth::id())
+                        <a href="{{ route('organizations.tables.index', $organization) }}" class="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white px-4 py-2 rounded-xl transition-all duration-200 transform hover:scale-[1.02] hover:shadow-lg hover:shadow-purple-500/25">
+                            <span class="flex items-center space-x-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                                </svg>
+                                <span>Upravljaj Stolovima</span>
+                            </span>
+                        </a>
+                    @endif
+                </div>
+
+                <div class="text-center py-6">
+                    <p class="text-gray-400 text-sm">
+                        Kreirajte stolove koje ćete koristiti prilikom organizacije turnira i dodjele mečeva.
+                    </p>
+                </div>
+            </div>
+
             <!-- Players Section -->
             <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl">
                 <div class="flex items-center justify-between mb-6">

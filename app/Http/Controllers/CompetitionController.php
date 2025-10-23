@@ -1258,10 +1258,16 @@ class CompetitionController extends Controller
             'sets' => 'nullable|array',
             'sets.*.home_score' => 'nullable|numeric|min:0',
             'sets.*.away_score' => 'nullable|numeric|min:0',
+            'table_id' => 'nullable|exists:tables,id',
+            'referee_user_id' => 'nullable|exists:users,id',
         ]);
 
         // Prepare update data
-        $updateData = ['status' => $validated['status']];
+        $updateData = [
+            'status' => $validated['status'],
+            'table_id' => $validated['table_id'] ?? null,
+            'referee_user_id' => $validated['referee_user_id'] ?? null,
+        ];
 
         if ($validated['status'] === 'scheduled') {
             // Reset everything

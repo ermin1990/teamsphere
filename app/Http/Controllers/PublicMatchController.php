@@ -90,7 +90,9 @@ class PublicMatchController extends Controller
             'homePlayer',
             'awayPlayer',
             'competition.organization',
-            'moderator'
+            'moderator',
+            'referee',
+            'table'
         ]);
 
         $organization = $competition->organization;
@@ -115,7 +117,9 @@ class PublicMatchController extends Controller
             'homePlayer',
             'awayPlayer',
             'competition.organization',
-            'moderator'
+            'moderator',
+            'referee',
+            'table'
         ]);
 
         $organization = $competition->organization;
@@ -251,10 +255,10 @@ class PublicMatchController extends Controller
     public function getMatchData($matchId)
     {
         // Try to find as LeagueMatch first, then CompetitionMatch
-        $match = LeagueMatch::with(['competition.organization', 'homeTeam', 'awayTeam', 'homePlayer', 'awayPlayer', 'moderator'])->find($matchId);
+        $match = LeagueMatch::with(['competition.organization', 'homeTeam', 'awayTeam', 'homePlayer', 'awayPlayer', 'moderator', 'table', 'referee'])->find($matchId);
         
         if (!$match) {
-            $match = \App\Models\CompetitionMatch::with(['competition.organization', 'homePlayer', 'awayPlayer', 'tournamentGroup'])->find($matchId);
+            $match = \App\Models\CompetitionMatch::with(['competition.organization', 'homePlayer', 'awayPlayer', 'tournamentGroup', 'table', 'referee'])->find($matchId);
         }
 
         if (!$match) {

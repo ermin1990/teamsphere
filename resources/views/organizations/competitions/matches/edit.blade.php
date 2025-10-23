@@ -165,6 +165,60 @@
                         </div>
                     </div>
 
+                    <!-- Referee Assignment -->
+                    <div>
+                        <label for="referee_user_id" class="block text-sm font-medium text-gray-300 mb-2">
+                            <span class="flex items-center space-x-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                </svg>
+                                <span>Sudija Meča</span>
+                            </span>
+                        </label>
+                        <select name="referee_user_id" id="referee_user_id" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                            <option value="">Bez sudije</option>
+                            @php
+                                // Get all organization members who can referee
+                                $organizationMembers = \App\Models\User::whereHas('organizationUsers', function($q) use ($organization) {
+                                    $q->where('organization_id', $organization->id);
+                                })->get();
+                            @endphp
+                            @foreach($organizationMembers as $member)
+                                <option value="{{ $member->id }}" {{ $match->referee_user_id == $member->id ? 'selected' : '' }}>
+                                    {{ $member->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                        <p class="text-xs text-gray-400 mt-1">Sudija će imati puna prava za ažuriranje rezultata ovog meča</p>
+                    </div>
+
+                    <!-- Table Assignment -->
+                    <div>
+                        <label for="table_id" class="block text-sm font-medium text-gray-300 mb-2">
+                            <span class="flex items-center space-x-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                                </svg>
+                                <span>Sto</span>
+                            </span>
+                        </label>
+                        <select name="table_id" id="table_id" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                            <option value="">Bez stola</option>
+                            @php
+                                $tables = \App\Models\Table::where('organization_id', $organization->id)
+                                    ->where('is_active', true)
+                                    ->orderBy('name')
+                                    ->get();
+                            @endphp
+                            @foreach($tables as $table)
+                                <option value="{{ $table->id }}" {{ $match->table_id == $table->id ? 'selected' : '' }}>
+                                    {{ $table->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                        <p class="text-xs text-gray-400 mt-1">Odaberite sto na kojem će se igrati ovaj meč</p>
+                    </div>
+
                     <!-- Submit Button -->
                     <div class="flex justify-end space-x-4 pt-6 border-t border-gray-700">
                         <a href="{{ route('organizations.competitions.show', [$organization, $competition]) }}"

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Live Display - Team Sphere</title>
+    <title>Uživo Prikaz - Team Sphere</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
@@ -34,7 +34,7 @@
 
         @keyframes scoreUpdate {
             0% { transform: scale(1); }
-            50% { transform: scale(1.1); color: #10b981; }
+            50% { transform: scale(1.2); }
             100% { transform: scale(1); }
         }
         
@@ -70,7 +70,7 @@
             <div class="mb-4 text-center">
                 <div class="flex items-center justify-center space-x-3 mb-2">
                     <div class="w-2 h-2 bg-red-500 rounded-full pulse-dot"></div>
-                    <h1 class="text-3xl font-bold text-white">LIVE MEČEVI</h1>
+                    <h1 class="text-3xl font-bold text-white">MEČEVI UŽIVO</h1>
                     <div class="w-2 h-2 bg-red-500 rounded-full pulse-dot"></div>
                 </div>
                 <p class="text-gray-400 text-sm" id="current-time"></p>
@@ -91,14 +91,14 @@
                                     </div>
                                 </div>
                                 <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-500 text-white animate-pulse ml-2">
-                                    LIVE
+                                    UŽIVO
                                 </span>
                             </div>
 
                             <!-- Players/Teams -->
                             <div class="space-y-2">
                                 <!-- Home -->
-                                <div class="flex items-center justify-between bg-gray-700/50 rounded-lg p-2">
+                                <div class="flex items-center justify-between bg-gray-700/50 rounded-lg p-2 transition-all duration-300 player-row-home">
                                     <div class="flex-1 min-w-0 pr-2">
                                         <p class="text-white font-bold text-sm truncate player-name">
                                             @if($match->league->is_team_based && $match->homeTeam)
@@ -114,7 +114,7 @@
                                 </div>
 
                                 <!-- Away -->
-                                <div class="flex items-center justify-between bg-gray-700/50 rounded-lg p-2">
+                                <div class="flex items-center justify-between bg-gray-700/50 rounded-lg p-2 transition-all duration-300 player-row-away">
                                     <div class="flex-1 min-w-0 pr-2">
                                         <p class="text-white font-bold text-sm truncate player-name">
                                             @if($match->league->is_team_based && $match->awayTeam)
@@ -136,7 +136,7 @@
                             @endphp
                             @if($sets && is_array($sets) && count($sets) > 0)
                                 <div class="mt-3 pt-3 border-t border-gray-700/50">
-                                    <p class="text-[10px] text-gray-400 mb-1.5 text-center font-semibold uppercase tracking-wide">Completed Sets</p>
+                                    <p class="text-[10px] text-gray-400 mb-1.5 text-center font-semibold uppercase tracking-wide">Završeni Setovi</p>
                                     <div class="flex justify-center space-x-1.5 set-history">
                                         @foreach($sets as $index => $set)
                                             <div class="bg-gray-700/30 rounded-md p-1.5 text-center min-w-[50px]">
@@ -168,13 +168,27 @@
                                 @endif
 
                                 @if($match->current_set)
-                                    <div class="text-center">
+                                    <div class="text-center mb-2">
                                         <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold bg-blue-600 text-white current-set">
                                             <span class="w-1 h-1 bg-white rounded-full mr-1 animate-pulse"></span>
                                             Set {{ $match->current_set }}
                                         </span>
                                     </div>
                                 @endif
+                                
+                                <!-- Table and Referee Info -->
+                                <div class="text-center space-y-1">
+                                    @if($match->table)
+                                    <div class="text-[10px] text-gray-400">
+                                        <span class="inline-flex items-center gap-1">
+                                            <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                                            </svg>
+                                            <span class="font-semibold text-blue-400">{{ $match->table->name }}</span>
+                                        </span>
+                                    </div>
+                                    @endif
+                                </div>
                             </div>
                         </div>
                     @endforeach
@@ -187,8 +201,8 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
                         </svg>
                     </div>
-                    <h2 class="text-4xl font-bold text-white mb-4">Nema Live Mečeva</h2>
-                    <p class="text-gray-400 text-xl">Trenutno nema izabranih turnira sa live mečevima.</p>
+                    <h2 class="text-4xl font-bold text-white mb-4">Nema Mečeva Uživo</h2>
+                    <p class="text-gray-400 text-xl">Trenutno nema izabranih turnira sa mečevima uživo.</p>
                 </div>
             @endif
         </div>
@@ -242,16 +256,32 @@
                                 
                                 if (newHomeScore !== currentHomeScore) {
                                     const homeScoreEl = currentMatch.querySelector('.score-home');
+                                    const homeRowEl = currentMatch.querySelector('.player-row-home');
                                     homeScoreEl.textContent = newHomeScore;
                                     homeScoreEl.classList.add('score-animation');
-                                    setTimeout(() => homeScoreEl.classList.remove('score-animation'), 500);
+                                    // Flash entire row green
+                                    homeRowEl.classList.remove('bg-gray-700/50');
+                                    homeRowEl.classList.add('bg-green-500/50');
+                                    setTimeout(() => {
+                                        homeScoreEl.classList.remove('score-animation');
+                                        homeRowEl.classList.remove('bg-green-500/50');
+                                        homeRowEl.classList.add('bg-gray-700/50');
+                                    }, 500);
                                 }
                                 
                                 if (newAwayScore !== currentAwayScore) {
                                     const awayScoreEl = currentMatch.querySelector('.score-away');
+                                    const awayRowEl = currentMatch.querySelector('.player-row-away');
                                     awayScoreEl.textContent = newAwayScore;
                                     awayScoreEl.classList.add('score-animation');
-                                    setTimeout(() => awayScoreEl.classList.remove('score-animation'), 500);
+                                    // Flash entire row green
+                                    awayRowEl.classList.remove('bg-gray-700/50');
+                                    awayRowEl.classList.add('bg-green-500/50');
+                                    setTimeout(() => {
+                                        awayScoreEl.classList.remove('score-animation');
+                                        awayRowEl.classList.remove('bg-green-500/50');
+                                        awayRowEl.classList.add('bg-gray-700/50');
+                                    }, 500);
                                 }
                                 
                                 // Update sets if they exist
@@ -294,7 +324,9 @@
                         location.reload();
                     }
                 })
-                .catch(error => console.error('Error updating matches:', error));
+                .catch(error => {
+                    // Silent error handling
+                });
         }, 5000);
     </script>
 </body>

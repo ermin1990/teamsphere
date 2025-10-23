@@ -38,7 +38,7 @@
                     }
                 })
                 .catch(error => {
-                    console.error('Error updating match data:', error);
+                    // Silent error handling
                 });
         }
         
@@ -146,6 +146,27 @@
 
             <!-- Live Score Display -->
             @livewire('public-live-score', ['match' => $match])
+
+            <!-- Match Info -->
+            <div class="mt-6 flex flex-col items-center gap-3 mb-8">
+                @if($match->table)
+                <div class="flex items-center gap-2 text-sm text-gray-300 bg-gray-700/30 px-4 py-2 rounded-lg">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                    </svg>
+                    <span>Sto: {{ $match->table->name }}</span>
+                </div>
+                @endif
+                
+                @if($match->referee)
+                <div class="flex items-center gap-2 text-sm text-gray-300 bg-gray-700/30 px-4 py-2 rounded-lg">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                    </svg>
+                    <span>Sudija: {{ $match->referee->name }}</span>
+                </div>
+                @endif
+            </div>
 
             <!-- Footer -->
             <div class="text-center mt-8 text-gray-400 text-sm">

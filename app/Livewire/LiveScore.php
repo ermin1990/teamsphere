@@ -556,6 +556,19 @@ class LiveScore extends Component
         if (($this->homeScore >= $winScore || $this->awayScore >= $winScore) && $scoreDiff >= 2) {
             // Automatically end the current set
             $this->endCurrentSet();
+
+            // Force UI update for sets history after automatic set end
+            $this->setsVersion++;
+
+            // Dispatch event to update UI
+            $this->dispatch('sets-updated', [
+                'sets' => $this->sets,
+                'durations' => $this->setDurations,
+                'version' => $this->setsVersion
+            ]);
+
+            // Force component refresh to ensure UI updates
+            $this->dispatch('$refresh');
         }
     }
 
@@ -653,6 +666,9 @@ class LiveScore extends Component
 
         // Check if match is won
         $this->checkMatchWin();
+
+        // Force UI update for sets history
+        $this->setsVersion++;
     }
 
     public function togglePause()
@@ -1153,13 +1169,16 @@ class LiveScore extends Component
         }
 
         // Check if user is a referee for this organization
-        $isReferee = auth()->user()->organizationUsers()
+        $isOrganizationReferee = auth()->user()->organizationUsers()
             ->where('organization_id', $organization->id)
             ->where('role', 'referee')
             ->exists();
 
-        // User can manage live scoring if they are owner or referee
-        $canManageLiveScore = $isOrganizationOwner || $isReferee;
+        // Check if user is specifically assigned as referee for this match
+        $isMatchReferee = $this->match->referee_user_id === auth()->id();
+
+        // User can manage live scoring if they are owner, organization referee, or match referee
+        $canManageLiveScore = $isOrganizationOwner || $isOrganizationReferee || $isMatchReferee;
         
         return view('livewire.live-score', [
             'match' => $this->match,

@@ -83,18 +83,15 @@
                     }
                 })
                 .catch(error => {
-                    console.error('Error updating match details:', error);
+                    // Silent error handling
                 });
         }
 
         function updateSetHistoryTable(sets) {
             const tbody = document.querySelector('#sets-breakdown tbody');
             if (!tbody) {
-                console.log('Set history table body not found');
                 return;
             }
-
-            console.log('Updating set history with', sets.length, 'sets');
 
             // Clear existing rows
             tbody.innerHTML = '';
@@ -114,8 +111,6 @@
                 `;
                 tbody.appendChild(tr);
             });
-
-            console.log('✅ Set history table updated with', sets.length, 'rows');
         }
 
         // Update every 3 seconds
@@ -146,13 +141,34 @@
             </nav>
 
             <!-- Header -->
-            <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-8 border border-gray-700/50 shadow-xl mb-8">
+            <div class="bg-gray-800/50 backdrop-blur-xl rounded-xl p-4 border border-gray-700/50 shadow-xl mb-6">
                 <div class="text-center">
-                    <div class="text-sm text-gray-400 mb-4">{{ $competition->sport->name }} • {{ $competition->name }}</div>
-                    <h1 class="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent mb-2">
+                    <div class="text-xs text-gray-400 mb-2">{{ $competition->sport->name }} • {{ $competition->name }}</div>
+                    <h1 class="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent mb-1">
                         Match Details
                     </h1>
-                    <p class="text-gray-400">Round {{ $match->round }}</p>
+                    <p class="text-sm text-gray-400 mb-3">Round {{ $match->round }}</p>
+                    
+                    <!-- Match Info -->
+                    <div class="flex flex-wrap justify-center gap-2">
+                        @if($match->table)
+                        <div class="flex items-center gap-1.5 text-xs text-gray-300 bg-gray-700/30 px-3 py-1.5 rounded-lg">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                            </svg>
+                            <span>Sto: {{ $match->table->name }}</span>
+                        </div>
+                        @endif
+                        
+                        @if($match->referee)
+                        <div class="flex items-center gap-1.5 text-xs text-gray-300 bg-gray-700/30 px-3 py-1.5 rounded-lg">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                            </svg>
+                            <span>Sudija: {{ $match->referee->name }}</span>
+                        </div>
+                        @endif
+                    </div>
                 </div>
             </div>
 

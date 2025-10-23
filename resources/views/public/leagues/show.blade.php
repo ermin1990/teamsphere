@@ -19,7 +19,6 @@
 
     <script>
         function updateCompetitionMatches() {
-            console.log('Updating competition matches...');
             fetch('{{ route("public.api.live-matches") }}')
                 .then(response => response.json())
                 .then(data => {
@@ -32,17 +31,15 @@
                     }
                 })
                 .catch(error => {
-                    console.error('Error updating competition matches:', error);
+                    // Silent error handling
                 });
         }
 
         function updateLiveMatchesSection(matchesData) {
-            console.log('Updating league live matches section...');
             matchesData.forEach(match => {
                 // Find match by ID in rounds section
                 const roundMatchElements = document.querySelectorAll(`a[href*="/matches/${match.id}"]`);
                 roundMatchElements.forEach(matchElement => {
-                    console.log('Updating match', match.id);
 
                     // Update sets won indicators in white squares
                     const homeSetsSquare = matchElement.querySelector('.flex.items-center.justify-between:first-child .w-8.h-8.rounded.bg-white\\/20 .text-xs.font-bold, .flex.items-center.justify-between:first-child .w-8.h-8.rounded.bg-white\\/20 span');
@@ -88,23 +85,19 @@
 
                     // Update set scores
                     if (match.sets && match.sets.length > 0) {
-                        console.log('Updating set scores for match', match.id, 'sets:', match.sets);
 
                         // Find the players column div
                         const playersColumn = matchElement.querySelector('.space-y-4');
                         if (!playersColumn) {
-                            console.error('Could not find players column for match', match.id);
                             return;
                         }
 
                         // Find all set score containers (both home and away rows)
                         const setContainers = playersColumn.querySelectorAll('.flex.gap-1.ml-4');
-                        console.log('Found set containers:', setContainers.length);
 
                         if (setContainers.length >= 2) {
                             // Home player sets (first container)
                             const homeSetDivs = setContainers[0].querySelectorAll('.w-6.text-center');
-                            console.log('Found home set divs:', homeSetDivs.length, 'Match has sets:', match.sets.length);
                             
                             homeSetDivs.forEach((div, index) => {
                                 const span = div.querySelector('span');
@@ -114,7 +107,6 @@
                                     const set = match.sets[index];
                                     const homeScore = set.home_score ?? 0;
                                     const awayScore = set.away_score ?? 0;
-                                    console.log(`Set ${index + 1}: Home=${homeScore}, Away=${awayScore}`);
                                     span.textContent = homeScore;
                                     span.className = `text-xs px-1 py-0.5 rounded ${homeScore > awayScore ? 'bg-green-900/60 text-green-300 font-bold' : 'text-gray-400'}`;
                                 } else {
@@ -125,7 +117,6 @@
 
                             // Away player sets (second container)
                             const awaySetDivs = setContainers[1].querySelectorAll('.w-6.text-center');
-                            console.log('Found away set divs:', awaySetDivs.length);
                             
                             awaySetDivs.forEach((div, index) => {
                                 const span = div.querySelector('span');
@@ -143,20 +134,13 @@
                                 }
                             });
 
-                            console.log('✅ Successfully updated set scores for match', match.id);
-                        } else {
-                            console.error('Could not find both set containers for match', match.id);
                         }
-                    } else {
-                        console.log('No sets data for match', match.id);
                     }
 
                     // Update current set scores in green boxes
                     const currentScoreContainer = matchElement.querySelector('.flex.flex-col.items-start.justify-center.space-y-1.pl-4');
-                    console.log('Found score container:', currentScoreContainer);
                     if (currentScoreContainer) {
                         const scoreBoxes = currentScoreContainer.querySelectorAll('.w-8.h-8');
-                        console.log('Found score boxes:', scoreBoxes.length, 'for match', match.id);
                         if (match.status === 'in_progress') {
                             // Update home score box - green and glowing for live match
                             if (scoreBoxes[0]) {
@@ -165,7 +149,6 @@
                                 if (homeScoreDiv) {
                                     homeScoreDiv.textContent = match.home_score ?? 0;
                                     homeScoreDiv.className = 'text-sm font-bold text-green-300';
-                                    console.log('Updated home score to:', match.home_score ?? 0);
                                 }
                             }
                             // Update away score box - green and glowing for live match
@@ -175,7 +158,6 @@
                                 if (awayScoreDiv) {
                                     awayScoreDiv.textContent = match.away_score ?? 0;
                                     awayScoreDiv.className = 'text-sm font-bold text-green-300';
-                                    console.log('Updated away score to:', match.away_score ?? 0);
                                 }
                             }
                         } else if (match.status === 'completed') {
@@ -196,7 +178,6 @@
                                     awayScoreDiv.className = 'text-sm font-bold text-transparent';
                                 }
                             }
-                            console.log('✅ Match completed - hiding current set boxes');
                         } else {
                             // Set to inactive state (scheduled/cancelled)
                             if (scoreBoxes[0]) {
@@ -216,8 +197,6 @@
                                 }
                             }
                         }
-                    } else {
-                        console.log('Score container not found for match', match.id);
                     }
                 });
             });
@@ -277,10 +256,6 @@
                             <button onclick="showLeagueTab('matches')" id="matches-tab"
                                     class="tab-button border-b-2 py-2 px-1 text-sm md:text-base font-medium transition-colors border-transparent text-gray-400 hover:text-gray-300">
                                 🎯 Mečevi
-                            </button>
-                            <button onclick="showLeagueTab('settings')" id="settings-tab"
-                                    class="tab-button border-b-2 py-2 px-1 text-sm md:text-base font-medium transition-colors border-transparent text-gray-400 hover:text-gray-300">
-                                ⚙️ Postavke
                             </button>
                         </nav>
                     </div>
@@ -514,39 +489,6 @@
                             <p class="text-gray-400 text-sm md:text-base">Mečevi će se pojaviti kada liga počne.</p>
                         </div>
                         @endif
-                    </div>
-
-                    <!-- Settings Tab Content -->
-                    <div id="settings-content" class="tab-content mt-4 md:mt-6 hidden">
-                        <div class="bg-gray-800/50 backdrop-blur-xl rounded-xl p-3 md:p-5 border border-gray-700/50 shadow-xl">
-                            <h3 class="text-lg md:text-xl font-semibold text-white mb-4">Postavke turnira</h3>
-                            
-                            @auth
-                                @if(auth()->user()->id === $organization->user_id)
-                                    <div class="space-y-4">
-                                        <div class="bg-red-900/20 border border-red-700/50 rounded-lg p-4">
-                                            <h4 class="text-md font-semibold text-red-400 mb-2">Resetovanje lige</h4>
-                                            <p class="text-gray-300 text-sm mb-4">
-                                                Ova akcija će obrisati sve mečeve, rezultate i tabele. Liga će se vratiti u status "draft" i moći ćete je ponovo pokrenuti ispočetka.
-                                            </p>
-                                            <form method="POST" action="{{ route('organizations.competitions.reset', [$organization, $competition]) }}" 
-                                                  onsubmit="return confirm('Da li ste sigurni da želite resetovati ovu ligu? Svi podaci će biti izgubljeni!')">
-                                                @csrf
-                                                @method('POST')
-                                                <button type="submit" 
-                                                        class="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors">
-                                                    🔄 Resetuj ligu
-                                                </button>
-                                            </form>
-                                        </div>
-                                    </div>
-                                @else
-                                    <p class="text-gray-400">Nemate dozvolu za pristup postavkama ove lige.</p>
-                                @endif
-                            @else
-                                <p class="text-gray-400">Morate biti prijavljeni da biste pristupili postavkama.</p>
-                            @endauth
-                        </div>
                     </div>
                 </div>
 

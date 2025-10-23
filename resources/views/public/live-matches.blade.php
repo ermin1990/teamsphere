@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>Live Matches - TeamSphere</title>
+    <title>Mečevi Uživo - TeamSphere</title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
@@ -220,13 +220,13 @@
                         🏠 Home
                     </a>
                     <a href="{{ route('public.live-matches') }}" class="text-blue-400 font-semibold text-sm md:text-base">
-                        📺 Live Matches
+                        📺 Mečevi Uživo
                     </a>
                     <a href="{{ route('display.selector') }}" class="text-gray-300 hover:text-white transition-colors text-sm md:text-base font-medium">
                         📺 Semafor
                     </a>
                     <a href="{{ route('public.leagues.index') }}" class="text-gray-300 hover:text-white transition-colors text-sm md:text-base font-medium">
-                        🏆 Competitions
+                        🏆 Takmičenja
                     </a>
                 </div>
             </nav>
@@ -235,11 +235,11 @@
             <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-8 border border-gray-700/50 shadow-xl mb-8">
                 <div class="text-center">
                     <h1 class="text-4xl font-bold bg-gradient-to-r from-green-400 to-blue-400 bg-clip-text text-transparent mb-2">
-                        🏓 Live Matches
+                        🏓 Mečevi Uživo
                     </h1>
-                    <p class="text-gray-400">Watch live table tennis matches from all leagues</p>
+                    <p class="text-gray-400">Pratite mečeve stonog tenisa uživo iz svih liga</p>
                     <div class="mt-4 text-sm text-gray-500">
-                        Real-time updates • {{ $liveMatches->count() }} live matches
+                        Ažuriranje u realnom vremenu • {{ $liveMatches->count() }} mečeva uživo
                     </div>
                     
                     <!-- Display Screen Link -->
@@ -287,7 +287,8 @@
                             </div>
                             <div class="text-right">
                                 <div class="text-sm text-green-400 font-semibold">
-                                    🔴 {{ $competitionMatches->count() }} LIVE
+                                    🔴 {{ $competitionMatches->count() }} UŽIVO
+                                </span>
                                 </div>
                             </div>
                         </div>
@@ -403,6 +404,16 @@
                                         </div>
 
                                         <!-- Match Status - Removed live indicator -->
+                                        
+                                        <!-- Table Assignment -->
+                                        @if($match->table)
+                                        <div class="mt-2 flex items-center gap-2 text-xs text-gray-400">
+                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                                            </svg>
+                                            <span>Sto: {{ $match->table->name }}</span>
+                                        </div>
+                                        @endif
                                     </div>
 
                                     <!-- Current Set Score Column -->
@@ -442,10 +453,10 @@
                 <!-- No Live Matches -->
                 <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-12 border border-gray-700/50 shadow-xl text-center">
                     <div class="text-6xl mb-4">🏓</div>
-                    <h2 class="text-2xl font-bold text-white mb-4">No Live Matches</h2>
-                    <p class="text-gray-400 mb-6">There are currently no live matches being played. Check back later!</p>
+                    <h2 class="text-2xl font-bold text-white mb-4">Nema Mečeva Uživo</h2>
+                    <p class="text-gray-400 mb-6">Trenutno nema mečeva koji se igraju uživo. Provjerite ponovo kasnije!</p>
                     <div class="text-sm text-gray-500">
-                        Live matches will appear here automatically when games start.
+                        Mečevi uživo će se automatski pojaviti ovdje kada počnu.
                     </div>
                 </div>
             @endif
@@ -466,7 +477,7 @@
             </a>
             <a href="{{ route('public.live-matches') }}" class="flex flex-col items-center text-gray-300 hover:text-white transition-colors text-xs flex-1">
                 <span class="text-lg">📺</span>
-                <span class="mt-1">Live</span>
+                <span class="mt-1">Uživo</span>
             </a>
             <a href="{{ route('display.selector') }}" class="flex flex-col items-center text-gray-300 hover:text-white transition-colors text-xs flex-1">
                 <span class="text-lg">📺</span>

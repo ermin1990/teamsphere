@@ -94,6 +94,15 @@ Route::middleware('auth')->group(function () {
     Route::post('organizations/{organization}/users', [\App\Http\Controllers\OrganizationUserController::class, 'store'])->name('organizations.users.store');
     Route::delete('organizations/{organization}/users/{organizationUser}', [\App\Http\Controllers\OrganizationUserController::class, 'destroy'])->name('organizations.users.destroy');
 
+    // Tables routes (nested under organizations)
+    Route::get('organizations/{organization:slug}/tables', [\App\Http\Controllers\TableController::class, 'index'])->name('organizations.tables.index');
+    Route::get('organizations/{organization:slug}/tables/schedule', [\App\Http\Controllers\TableController::class, 'schedule'])->name('organizations.tables.schedule');
+    Route::get('organizations/{organization:slug}/tables/create', [\App\Http\Controllers\TableController::class, 'create'])->name('organizations.tables.create');
+    Route::post('organizations/{organization:slug}/tables', [\App\Http\Controllers\TableController::class, 'store'])->name('organizations.tables.store');
+    Route::get('organizations/{organization:slug}/tables/{table}/edit', [\App\Http\Controllers\TableController::class, 'edit'])->name('organizations.tables.edit');
+    Route::put('organizations/{organization:slug}/tables/{table}', [\App\Http\Controllers\TableController::class, 'update'])->name('organizations.tables.update');
+    Route::delete('organizations/{organization:slug}/tables/{table}', [\App\Http\Controllers\TableController::class, 'destroy'])->name('organizations.tables.destroy');
+
     // Friendly matches routes (nested under organizations)
     Route::get('organizations/{organization}/friendly-matches', [OrganizationController::class, 'friendlyMatches'])->name('organizations.friendly-matches.index');
     Route::get('organizations/{organization}/friendly-matches/table-tennis', [OrganizationController::class, 'tableTennisFriendly'])->name('organizations.friendly-matches.table-tennis');
@@ -201,6 +210,14 @@ Route::middleware(['auth'])->prefix('referee')->name('referee.')->group(function
     Route::get('/leagues/{league}/matches/{match}/live', [App\Http\Controllers\RefereeController::class, 'liveScore'])->name('match.live');
     Route::put('/leagues/{league}/matches/{match}', [App\Http\Controllers\RefereeController::class, 'updateMatch'])->name('match.update');
     Route::post('/leagues/{league}/matches/{match}/reset', [App\Http\Controllers\RefereeController::class, 'resetMatch'])->name('match.reset');
+    
+    // Competition referee routes
+    Route::get('/competitions/{competition}/matches/{match}', [App\Http\Controllers\RefereeController::class, 'showCompetitionMatch'])->name('competition.match.show');
+    Route::get('/competitions/{competition}/matches/{match}/edit', [App\Http\Controllers\RefereeController::class, 'editCompetitionMatch'])->name('competition.match.edit');
+    Route::get('/competitions/{competition}/matches/{match}/live', [App\Http\Controllers\RefereeController::class, 'liveCompetitionScore'])->name('competition.match.live');
+    Route::put('/competitions/{competition}/matches/{match}', [App\Http\Controllers\RefereeController::class, 'updateCompetitionMatch'])->name('competition.match.update');
+    Route::patch('/competitions/{competition}/matches/{match}/reset', [App\Http\Controllers\RefereeController::class, 'resetCompetitionMatch'])->name('competition.match.reset');
+    
     // Route za startanje lige je sada PATCH u glavnoj LeagueController grupi
 });
 
