@@ -695,8 +695,8 @@ class CompetitionController extends Controller
         // Get the competition through the match
         $competition = $match->competition;
         
-        // Ensure user owns the organization
-        if ($competition->organization->user_id !== auth()->id()) {
+        // Check if user can access this specific match
+        if (!$this->canAccessCompetitionMatch($match, $competition->organization)) {
             abort(403);
         }
 
@@ -1219,8 +1219,8 @@ class CompetitionController extends Controller
      */
     public function editMatch(Request $request, Organization $organization, Competition $competition, CompetitionMatch $match)
     {
-        // Ensure user owns this organization
-        if ($organization->user_id !== auth()->id()) {
+        // Check if user can access this specific match
+        if (!$this->canAccessCompetitionMatch($match, $organization)) {
             abort(403);
         }
 
@@ -1230,8 +1230,9 @@ class CompetitionController extends Controller
         }
 
         $isOwner = $organization->user_id === auth()->id();
+        $isReferee = ($match->referee_user_id === auth()->id());
 
-        return view('organizations.competitions.matches.edit', compact('organization', 'competition', 'match', 'isOwner'));
+        return view('organizations.competitions.matches.edit', compact('organization', 'competition', 'match', 'isOwner', 'isReferee'));
     }
 
     /**
@@ -1239,8 +1240,8 @@ class CompetitionController extends Controller
      */
     public function updateMatch(Request $request, Organization $organization, Competition $competition, CompetitionMatch $match)
     {
-        // Ensure user owns this organization
-        if ($organization->user_id !== auth()->id()) {
+        // Check if user can access this specific match
+        if (!$this->canAccessCompetitionMatch($match, $organization)) {
             abort(403);
         }
 
@@ -1248,6 +1249,8 @@ class CompetitionController extends Controller
         if ($match->competition_id !== $competition->id) {
             abort(404);
         }
+
+        $isOwner = $organization->user_id === auth()->id();
 
         // Validation
         $validated = $request->validate([
@@ -1317,4 +1320,30 @@ class CompetitionController extends Controller
         return redirect()->route('organizations.competitions.show', [$organization, $competition])
             ->with('success', 'Match updated successfully!');
     }
+
+    /**
+     * Check if the current user can access a specific competition match.
+     */
+    private function canAccessCompetitionMatch(CompetitionMatch $match, Organization $organization): bool
+    {
+        $user = auth()->user();
+
+        // Owner can always access matches
+        if ($organization->user_id === $user->id) {
+            return true;
+        }
+
+        // Check if user is assigned as referee for this specific match
+        if ($match->referee_user_id === $user->id) {
+            return true;
+        }
+
+        // Check if user is a player in the competition
+        if ($organization->players()->where('user_id', $user->id)->exists()) {
+            return true;
+        }
+
+        return false;
+    }
 }
+

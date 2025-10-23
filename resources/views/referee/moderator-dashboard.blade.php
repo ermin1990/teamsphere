@@ -29,9 +29,13 @@
         <div class="mb-8">
             <h2 class="text-2xl font-bold text-white mb-6">Moderirani Mečevi</h2>
 
-            @if($moderatedMatches->count() > 0)
+                @if($moderatedMatches->count() > 0)
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     @foreach($moderatedMatches as $match)
+                        @php
+                            $isLeagueMatch = $match instanceof \App\Models\LeagueMatch;
+                            $competition = $isLeagueMatch ? $match->league : $match->competition;
+                        @endphp
                         <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl border border-gray-700/50 shadow-xl p-6 hover:bg-gray-800/70 transition-all duration-200">
                             <div class="flex items-center justify-between mb-4">
                                 <span class="px-2 py-1 text-xs rounded-full
@@ -44,15 +48,24 @@
                             </div>
 
                             <div class="text-center mb-4">
-                                <h3 class="text-lg font-semibold text-white">{{ $match->league->name }}</h3>
-                                <p class="text-sm text-gray-400">{{ $match->league->organization->name }}</p>
-                                <p class="text-xs text-gray-500 mt-1">Round {{ $match->round }}</p>
+                                <h3 class="text-lg font-semibold text-white">
+                                    {{ $competition->name }}
+                                    @if($isLeagueMatch)
+                                        <span class="text-xs text-blue-400 ml-1">(Liga)</span>
+                                    @else
+                                        <span class="text-xs text-purple-400 ml-1">(Turnir)</span>
+                                    @endif
+                                </h3>
+                                <p class="text-sm text-gray-400">{{ $competition->organization->name }}</p>
+                                @if($isLeagueMatch)
+                                    <p class="text-xs text-gray-500 mt-1">Round {{ $match->round }}</p>
+                                @endif
                             </div>
 
                             <div class="space-y-2">
                                 <div class="flex justify-between items-center">
                                     <span class="text-sm text-gray-400">
-                                        @if($match->league->is_team_based)
+                                        @if(($isLeagueMatch && $match->league->is_team_based) || (!$isLeagueMatch && $match->competition->is_team_based))
                                             {{ $match->homeTeam?->name ?? 'TBD' }}
                                         @else
                                             {{ $match->homePlayer?->name ?? 'TBD' }}
@@ -62,7 +75,7 @@
                                 </div>
                                 <div class="flex justify-between items-center">
                                     <span class="text-sm text-gray-400">
-                                        @if($match->league->is_team_based)
+                                        @if(($isLeagueMatch && $match->league->is_team_based) || (!$isLeagueMatch && $match->competition->is_team_based))
                                             {{ $match->awayTeam?->name ?? 'TBD' }}
                                         @else
                                             {{ $match->awayPlayer?->name ?? 'TBD' }}
@@ -73,10 +86,17 @@
                             </div>
 
                             <div class="mt-4 pt-4 border-t border-gray-700">
-                                <a href="{{ route('leagues.matches.show', [$match->league, $match]) }}"
-                                   class="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm py-2 px-4 rounded-lg transition-colors text-center block">
-                                    Pogledaj Meč
-                                </a>
+                                @if($isLeagueMatch)
+                                    <a href="{{ route('referee.match.show', [$match->league, $match]) }}"
+                                       class="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm py-2 px-4 rounded-lg transition-colors text-center block">
+                                        Pogledaj Meč
+                                    </a>
+                                @else
+                                    <a href="{{ route('referee.competition.match.show', [$match->competition, $match]) }}"
+                                       class="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm py-2 px-4 rounded-lg transition-colors text-center block">
+                                        Pogledaj Meč
+                                    </a>
+                                @endif
                             </div>
                         </div>
                     @endforeach
@@ -99,6 +119,10 @@
             @if($assignedMatches->count() > 0)
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     @foreach($assignedMatches as $match)
+                        @php
+                            $isLeagueMatch = $match instanceof \App\Models\LeagueMatch;
+                            $competition = $isLeagueMatch ? $match->league : $match->competition;
+                        @endphp
                         <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl border border-gray-700/50 shadow-xl p-6 hover:bg-gray-800/70 transition-all duration-200">
                             <div class="flex items-center justify-between mb-4">
                                 <span class="px-2 py-1 text-xs rounded-full bg-blue-500/20 text-blue-400">
@@ -108,15 +132,24 @@
                             </div>
 
                             <div class="text-center mb-4">
-                                <h3 class="text-lg font-semibold text-white">{{ $match->league->name }}</h3>
-                                <p class="text-sm text-gray-400">{{ $match->league->organization->name }}</p>
-                                <p class="text-xs text-gray-500 mt-1">Round {{ $match->round }}</p>
+                                <h3 class="text-lg font-semibold text-white">
+                                    {{ $competition->name }}
+                                    @if($isLeagueMatch)
+                                        <span class="text-xs text-blue-400 ml-1">(Liga)</span>
+                                    @else
+                                        <span class="text-xs text-purple-400 ml-1">(Turnir)</span>
+                                    @endif
+                                </h3>
+                                <p class="text-sm text-gray-400">{{ $competition->organization->name }}</p>
+                                @if($isLeagueMatch)
+                                    <p class="text-xs text-gray-500 mt-1">Round {{ $match->round }}</p>
+                                @endif
                             </div>
 
                             <div class="space-y-2">
                                 <div class="flex justify-between items-center">
                                     <span class="text-sm text-gray-400">
-                                        @if($match->league->is_team_based)
+                                        @if(($isLeagueMatch && $match->league->is_team_based) || (!$isLeagueMatch && $match->competition->is_team_based))
                                             {{ $match->homeTeam?->name ?? 'TBD' }}
                                         @else
                                             {{ $match->homePlayer?->name ?? 'TBD' }}
@@ -126,7 +159,7 @@
                                 </div>
                                 <div class="flex justify-between items-center">
                                     <span class="text-sm text-gray-400">
-                                        @if($match->league->is_team_based)
+                                        @if(($isLeagueMatch && $match->league->is_team_based) || (!$isLeagueMatch && $match->competition->is_team_based))
                                             {{ $match->awayTeam?->name ?? 'TBD' }}
                                         @else
                                             {{ $match->awayPlayer?->name ?? 'TBD' }}
@@ -137,14 +170,25 @@
                             </div>
 
                             <div class="mt-4 pt-4 border-t border-gray-700 flex space-x-2">
-                                <a href="{{ route('leagues.matches.show', [$match->league, $match]) }}"
-                                   class="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-sm py-2 px-4 rounded-lg transition-colors text-center">
-                                    Pogledaj Meč
-                                </a>
-                                <a href="{{ route('leagues.matches.edit', [$match->league, $match]) }}"
-                                   class="flex-1 bg-green-600 hover:bg-green-700 text-white text-sm py-2 px-4 rounded-lg transition-colors text-center">
-                                    Upravljaj
-                                </a>
+                                @if($isLeagueMatch)
+                                    <a href="{{ route('referee.match.show', [$match->league, $match]) }}"
+                                       class="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-sm py-2 px-4 rounded-lg transition-colors text-center">
+                                        Pogledaj Meč
+                                    </a>
+                                    <a href="{{ route('referee.match.edit', [$match->league, $match]) }}"
+                                       class="flex-1 bg-green-600 hover:bg-green-700 text-white text-sm py-2 px-4 rounded-lg transition-colors text-center">
+                                        Upravljaj
+                                    </a>
+                                @else
+                                    <a href="{{ route('referee.competition.match.show', [$match->competition, $match]) }}"
+                                       class="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-sm py-2 px-4 rounded-lg transition-colors text-center">
+                                        Pogledaj Meč
+                                    </a>
+                                    <a href="{{ route('referee.competition.match.edit', [$match->competition, $match]) }}"
+                                       class="flex-1 bg-green-600 hover:bg-green-700 text-white text-sm py-2 px-4 rounded-lg transition-colors text-center">
+                                        Upravljaj
+                                    </a>
+                                @endif
                             </div>
                         </div>
                     @endforeach

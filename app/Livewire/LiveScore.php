@@ -27,6 +27,69 @@ class LiveScore extends Component
     /**
      * Recalculate all standings for a tournament group based on completed matches
      */
+
+    /**
+     * Update cached match data
+     */
+    private function updateCachedMatchData($data)
+    {
+        $cachedData = $this->getCachedMatchData();
+        $updatedData = array_merge($cachedData, $data, ['last_sync' => now()]);
+        
+        // Cache for 1 hour (3600 seconds)
+        \Cache::put($this->cacheKey, $updatedData, 3600);
+        
+        return $updatedData;
+    }
+
+    /**
+     * Calculate next server based on current scores
+     */
+    private function calculateNextServer()
+    {
+        $totalPoints = $this->homeScore + $this->awayScore;
+
+        // Table tennis serving rules: players serve 2 points each, then switch
+        // Server switches every 2 points
+        if ($totalPoints % 2 === 0) {
+            // Even number of points - switch server
+            return $this->currentServer === 'home' ? 'away' : 'home';
+        } else {
+            // Odd number of points - same server continues
+            return $this->currentServer;
+        }
+    }
+
+    /**
+     * Check if current set should be completed
+     */
+    private function checkSetCompletion()
+    {
+        $winScore = 11;
+        $scoreDiff = abs($this->homeScore - $this->awayScore);
+
+        if (($this->homeScore >= $winScore || $this->awayScore >= $winScore) && $scoreDiff >= 2) {
+            // Automatically end the current set
+            $this->endCurrentSet();
+            
+            // Force UI update for sets history after automatic set end
+            $this->setsVersion++;
+
+            // Dispatch event to update UI
+            $this->dispatch('sets-updated', [
+                'sets' => $this->sets,
+                'durations' => $this->setDurations,
+                'version' => $this->setsVersion
+            ]);
+
+            // Force component refresh to ensure UI updates
+            $this->dispatch('$refresh');
+        }
+    }
+
+    /**
+     * Recalculate all standings for a tournament group based on completed matches
+     */
     private function recalculateGroupStandings($group)
     {
         $competition = $group->competition;
@@ -209,13 +272,13 @@ class LiveScore extends Component
 
         // Refresh match data to get latest status from database
         $match->refresh();
-        
+
         $this->match = $match;
-        
+
         // If match is scheduled (not started), always reset to initial state
         if ($match && $match->status === 'scheduled') {
             \Log::info('Match is scheduled, resetting to initial state', ['match_id' => $match->id]);
-            
+
             $this->firstServer = null;
             $this->currentServer = null;
             $this->homeScore = 0;
@@ -226,7 +289,7 @@ class LiveScore extends Component
             $this->matchStartTime = null;
             $this->setStartTime = null;
             $this->matchPaused = false;
-            
+
             // Also reset in database to ensure consistency
             $match->update([
                 'first_server' => null,
@@ -238,7 +301,7 @@ class LiveScore extends Component
                 'played_at' => null,
                 'current_set_started_at' => null,
             ]);
-            
+
             \Log::info('Match reset complete', [
                 'match_id' => $match->id,
                 'firstServer' => $this->firstServer,
@@ -250,20 +313,20 @@ class LiveScore extends Component
                 'status' => $match->status,
                 'first_server' => $match->first_server
             ]);
-            
+
             // Load existing match data for in-progress or completed matches
             if ($match && $match->first_server) {
                 $this->firstServer = $match->first_server;
                 $this->currentServer = $match->current_server ?? $match->first_server;
             }
-            
+
             // Load scores and sets data
             $this->homeScore = $match->home_score ?? 0;
             $this->awayScore = $match->away_score ?? 0;
             $this->sets = $match->sets ?? [];
             $this->setDurations = $match->set_durations ?? [];
             $this->currentSet = count($this->sets) + 1;
-            
+
             // Load timing data
             if ($match->played_at) {
                 $this->matchStartTime = $match->played_at;
@@ -271,7 +334,7 @@ class LiveScore extends Component
             if ($match->current_set_started_at) {
                 $this->setStartTime = $match->current_set_started_at;
             }
-            
+
             \Log::info('Existing data loaded', [
                 'match_id' => $match->id,
                 'firstServer' => $this->firstServer,
@@ -413,21 +476,8 @@ class LiveScore extends Component
         $this->startTimers();
     }
 
-    public function addPoint($player)
+    public function addPoint($team)
     {
-        // Get organization for authorization check
-        $organization = $this->match->league ? $this->match->league->organization : $this->match->competition->organization;
-
-        // Debug logging
-        \Log::info('addPoint called', [
-            'player' => $player,
-            'match_id' => $this->match->id,
-            'match_status' => $this->match->status,
-            'is_org_owner' => $organization->user_id === auth()->id(),
-            'user_id' => auth()->id(),
-            'org_user_id' => $organization->user_id
-        ]);
-
         // Save current state for undo functionality
         $this->pointHistory[] = [
             'homeScore' => $this->homeScore,
@@ -436,48 +486,29 @@ class LiveScore extends Component
             'currentServer' => $this->currentServer,
             'sets' => $this->sets,
             'setDurations' => $this->setDurations,
-            'currentSet' => $this->currentSet
+            'currentSet' => $this->currentSet,
         ];
 
-        if ($player === 'home') {
+        // Update scores immediately in database
+        if ($team === 'home') {
             $this->homeScore++;
-        } else {
+        } elseif ($team === 'away') {
             $this->awayScore++;
         }
 
-        // Change server based on score
-        if ($this->homeScore >= 10 && $this->awayScore >= 10) {
-            // When both players are at 10+, change server every point
-            $this->currentServer = $this->currentServer === 'home' ? 'away' : 'home';
-        } else {
-            // Normal rotation: change server every 2 serves
-            $this->serveCount++;
-            if ($this->serveCount % 2 === 0) {
-                $this->currentServer = $this->currentServer === 'home' ? 'away' : 'home';
-            }
-        }
+        // Calculate next server
+        $this->currentServer = $this->calculateNextServer();
 
-        $this->match->update(['current_server' => $this->currentServer]);
+        // Optimized batch update using raw SQL for maximum speed
+        \DB::update(
+            'UPDATE matches SET home_score = ?, away_score = ?, current_server = ?, updated_at = ? WHERE id = ?',
+            [$this->homeScore, $this->awayScore, $this->currentServer, now(), $this->match->id]
+        );
 
-        $this->updateScore();
-        $this->checkSetWin();
-    }
-
-    public function subtractPoint($player)
+        // Check for set completion
+        $this->checkSetCompletion();
+    }    public function subtractPoint($team)
     {
-        // Get organization for authorization check
-        $organization = $this->match->league ? $this->match->league->organization : $this->match->competition->organization;
-
-        // Debug logging
-        \Log::info('subtractPoint called', [
-            'player' => $player,
-            'match_id' => $this->match->id,
-            'match_status' => $this->match->status,
-            'is_org_owner' => $organization->user_id === auth()->id(),
-            'user_id' => auth()->id(),
-            'org_user_id' => $organization->user_id
-        ]);
-
         // Save current state for undo functionality
         $this->pointHistory[] = [
             'homeScore' => $this->homeScore,
@@ -486,31 +517,27 @@ class LiveScore extends Component
             'currentServer' => $this->currentServer,
             'sets' => $this->sets,
             'setDurations' => $this->setDurations,
-            'currentSet' => $this->currentSet
+            'currentSet' => $this->currentSet,
         ];
 
-        if ($player === 'home') {
-            $this->homeScore = max(0, $this->homeScore - 1);
-        } else {
-            $this->awayScore = max(0, $this->awayScore - 1);
+        // Update scores immediately in database (prevent negative scores)
+        if ($team === 'home' && $this->homeScore > 0) {
+            $this->homeScore--;
+        } elseif ($team === 'away' && $this->awayScore > 0) {
+            $this->awayScore--;
         }
 
-        // Change server based on score (reverse logic)
-        if ($this->homeScore >= 10 && $this->awayScore >= 10) {
-            // In deuce, change server every point
-            $this->currentServer = $this->currentServer === 'home' ? 'away' : 'home';
-        } else {
-            // Normal play: change server every 2 points
-            $totalPoints = $this->homeScore + $this->awayScore;
-            if ($totalPoints % 2 === 0) {
-                $this->currentServer = $this->currentServer === 'home' ? 'away' : 'home';
-            }
-        }
+        // Calculate next server
+        $this->currentServer = $this->calculateNextServer();
 
-        $this->match->update(['current_server' => $this->currentServer]);
+        // Optimized batch update using raw SQL for maximum speed
+        \DB::update(
+            'UPDATE matches SET home_score = ?, away_score = ?, current_server = ?, updated_at = ? WHERE id = ?',
+            [$this->homeScore, $this->awayScore, $this->currentServer, now(), $this->match->id]
+        );
 
-        $this->updateScore();
-        $this->checkSetWin();
+        // Check for set completion
+        $this->checkSetCompletion();
     }
 
     public function undoPoint()
@@ -542,10 +569,8 @@ class LiveScore extends Component
 
     private function updateScore()
     {
-        $this->match->update([
-            'home_score' => $this->homeScore,
-            'away_score' => $this->awayScore,
-        ]);
+        // This method is no longer used - scores are updated in batch with server changes
+        // Kept for backward compatibility if needed elsewhere
     }
 
     private function checkSetWin()

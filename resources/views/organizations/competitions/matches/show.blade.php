@@ -140,25 +140,70 @@
                 @if($match->sets && count($match->sets) > 0)
                 <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl">
                     <h3 class="text-lg font-semibold text-white mb-4">Setovi</h3>
-                    <div class="space-y-3">
-                        @foreach($match->sets as $index => $set)
-                        <div class="flex items-center justify-between p-3 bg-gray-700/30 rounded-lg">
-                            <div class="flex items-center space-x-3">
-                                <div class="w-8 h-8 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full flex items-center justify-center">
-                                    <span class="text-white text-sm font-bold">{{ $index + 1 }}</span>
-                                </div>
-                                <div>
-                                    <div class="text-sm font-medium text-white">Set {{ $index + 1 }}</div>
-                                    <div class="text-xs text-gray-400">{{ $set['duration'] ?? 'N/A' }}</div>
-                                </div>
-                            </div>
-                            <div class="text-right">
-                                <div class="text-lg font-bold text-white">
-                                    {{ $set['home_score'] ?? $set['home'] ?? 0 }} - {{ $set['away_score'] ?? $set['away'] ?? 0 }}
-                                </div>
-                            </div>
-                        </div>
-                        @endforeach
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="border-b border-gray-700">
+                                    <th class="text-left py-3 px-2 text-gray-400 font-medium">Set</th>
+                                    <th class="text-center py-3 px-2 text-gray-400 font-medium">
+                                        @if($competition->is_team_based)
+                                            {{ $match->homeTeam?->name ?? 'Home' }}
+                                        @else
+                                            {{ $match->homePlayer?->name ?? 'Home' }}
+                                        @endif
+                                    </th>
+                                    <th class="text-center py-3 px-2 text-gray-400 font-medium">
+                                        @if($competition->is_team_based)
+                                            {{ $match->awayTeam?->name ?? 'Away' }}
+                                        @else
+                                            {{ $match->awayPlayer?->name ?? 'Away' }}
+                                        @endif
+                                    </th>
+                                    <th class="text-center py-3 px-2 text-gray-400 font-medium">Trajanje</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @php
+                                    $sets = $match->sets ?? [];
+                                    $setDurations = $match->set_durations ?? [];
+                                @endphp
+                                @foreach($sets as $setNumber => $set)
+                                <tr class="border-b border-gray-700/50">
+                                    <td class="py-3 px-2 text-white font-medium">Set {{ $setNumber + 1 }}</td>
+                                    <td class="py-3 px-2 text-center">
+                                        @php
+                                            $homeScore = $set['home_score'] ?? $set['home'] ?? 0;
+                                            $awayScore = $set['away_score'] ?? $set['away'] ?? 0;
+                                            $homeWon = $homeScore > $awayScore;
+                                        @endphp
+                                        <span class="{{ $homeWon ? 'text-green-400 font-bold text-lg' : 'text-white' }}">
+                                            {{ $homeScore }}
+                                        </span>
+                                    </td>
+                                    <td class="py-3 px-2 text-center">
+                                        @php
+                                            $awayWon = $awayScore > $homeScore;
+                                        @endphp
+                                        <span class="{{ $awayWon ? 'text-green-400 font-bold text-lg' : 'text-white' }}">
+                                            {{ $awayScore }}
+                                        </span>
+                                    </td>
+                                    <td class="py-3 px-2 text-center text-gray-300">
+                                        @if(is_numeric($setDurations[$setNumber] ?? null))
+                                            @php
+                                                $duration = $setDurations[$setNumber];
+                                                $minutes = floor($duration / 60);
+                                                $seconds = $duration % 60;
+                                                echo sprintf('%02d:%02d', $minutes, $seconds);
+                                            @endphp
+                                        @else
+                                            {{ $setDurations[$setNumber] ?? '00:00' }}
+                                        @endif
+                                    </td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
                     </div>
                 </div>
                 @endif

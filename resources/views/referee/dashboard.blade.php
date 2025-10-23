@@ -149,7 +149,7 @@
                                     $isLeagueMatch = $match instanceof \App\Models\LeagueMatch;
                                     
                                     if ($isLeagueMatch) {
-                                        $routeName = 'leagues.matches.show';
+                                        $routeName = 'referee.match.show';
                                         $routeParams = [$match->league, $match];
                                         $competition = $match->league;
                                     } else {
@@ -157,8 +157,12 @@
                                         $routeParams = [$match->competition, $match];
                                         $competition = $match->competition;
                                     }
+                                    
+                                    // Debug: Log the route being generated
+                                    $generatedRoute = route($routeName, $routeParams);
                                 @endphp
-                                <a href="{{ route($routeName, $routeParams) }}" class="block hover:bg-gray-700/50 transition-colors duration-200">
+                                <!-- Debug: Match ID {{ $match->id }}, Type: {{ $isLeagueMatch ? 'League' : 'Competition' }}, Route: {{ $generatedRoute }} -->
+                                <a href="{{ $generatedRoute }}" class="block hover:bg-gray-700/50 transition-colors duration-200">
                                     <div class="flex items-center justify-between p-3 bg-gray-700/30 rounded-lg">
                                         <div class="flex items-center space-x-3">
                                             <div class="w-8 h-8 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full flex items-center justify-center">
@@ -180,7 +184,7 @@
                                                     @endif
                                                 </div>
                                                 <div class="text-xs text-gray-400">
-                                                    @if($isLeagueMatch && $match->league->is_team_based)
+                                                    @if(($isLeagueMatch && $match->league->is_team_based) || (!$isLeagueMatch && $match->competition->is_team_based))
                                                         {{ $match->homeTeam?->name ?? 'TBD' }} vs {{ $match->awayTeam?->name ?? 'TBD' }}
                                                     @else
                                                         {{ $match->homePlayer?->name ?? 'TBD' }} vs {{ $match->awayPlayer?->name ?? 'TBD' }}
@@ -227,7 +231,7 @@
                                     $isLeagueMatch = $match instanceof \App\Models\LeagueMatch;
                                     
                                     if ($isLeagueMatch) {
-                                        $routeName = 'leagues.matches.show';
+                                        $routeName = 'referee.match.show';
                                         $routeParams = [$match->league, $match];
                                         $competition = $match->league;
                                     } else {
@@ -235,8 +239,12 @@
                                         $routeParams = [$match->competition, $match];
                                         $competition = $match->competition;
                                     }
+                                    
+                                    // Debug: Log the route being generated
+                                    $generatedRoute = route($routeName, $routeParams);
                                 @endphp
-                                <a href="{{ route($routeName, $routeParams) }}" class="block hover:bg-gray-700/50 transition-colors duration-200">
+                                <!-- Debug: Match ID {{ $match->id }}, Type: {{ $isLeagueMatch ? 'League' : 'Competition' }}, Route: {{ $generatedRoute }} -->
+                                <a href="{{ $generatedRoute }}" class="block hover:bg-gray-700/50 transition-colors duration-200">
                                     <div class="flex items-center justify-between p-3 bg-gray-700/30 rounded-lg">
                                         <div class="flex items-center space-x-3">
                                             <div class="w-8 h-8 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center">
@@ -252,7 +260,7 @@
                                                     @endif
                                                 </div>
                                                 <div class="text-xs text-gray-400">
-                                                    @if($isLeagueMatch && $match->league->is_team_based)
+                                                    @if(($isLeagueMatch && $match->league->is_team_based) || (!$isLeagueMatch && $match->competition->is_team_based))
                                                         {{ $match->homeTeam?->name ?? 'TBD' }} vs {{ $match->awayTeam?->name ?? 'TBD' }}
                                                     @else
                                                         {{ $match->homePlayer?->name ?? 'TBD' }} vs {{ $match->awayPlayer?->name ?? 'TBD' }}

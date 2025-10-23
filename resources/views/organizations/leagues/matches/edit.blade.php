@@ -186,6 +186,7 @@
                         </select>
                         <p class="text-xs text-gray-400 mt-1">Assign a referee to oversee this match</p>
                     </div>
+                    @endif
 
                     <!-- Referee Assignment -->
                     <div>
@@ -197,21 +198,33 @@
                                 <span>Sudija Meča</span>
                             </span>
                         </label>
-                        <select name="referee_user_id" id="referee_user_id" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent">
-                            <option value="">Bez sudije</option>
-                            @php
-                                // Get all organization members who can referee
-                                $organizationMembers = \App\Models\User::whereHas('organizationUsers', function($q) use ($organization) {
-                                    $q->where('organization_id', $organization->id);
-                                })->get();
-                            @endphp
-                            @foreach($organizationMembers as $member)
-                                <option value="{{ $member->id }}" {{ $match->referee_user_id == $member->id ? 'selected' : '' }}>
-                                    {{ $member->name }}
-                                </option>
-                            @endforeach
-                        </select>
-                        <p class="text-xs text-gray-400 mt-1">Sudija će imati puna prava za ažuriranje rezultata ovog meča</p>
+                        @if(isset($isReferee) && $isReferee)
+                            <!-- Referee can only view, not edit -->
+                            <div class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white">
+                                @php
+                                    $referee = $match->referee;
+                                @endphp
+                                {{ $referee ? $referee->name : 'Bez sudije' }}
+                            </div>
+                            <input type="hidden" name="referee_user_id" value="{{ $match->referee_user_id }}">
+                            <p class="text-xs text-gray-400 mt-1">Sudija može samo vidjeti dodijeljenog sudiju</p>
+                        @else
+                            <select name="referee_user_id" id="referee_user_id" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                                <option value="">Bez sudije</option>
+                                @php
+                                    // Get all organization members who can referee
+                                    $organizationMembers = \App\Models\User::whereHas('organizationUsers', function($q) use ($organization) {
+                                        $q->where('organization_id', $organization->id);
+                                    })->get();
+                                @endphp
+                                @foreach($organizationMembers as $member)
+                                    <option value="{{ $member->id }}" {{ $match->referee_user_id == $member->id ? 'selected' : '' }}>
+                                        {{ $member->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <p class="text-xs text-gray-400 mt-1">Sudija će imati puna prava za ažuriranje rezultata ovog meča</p>
+                        @endif
                     </div>
 
                     <!-- Table Assignment -->
@@ -240,7 +253,6 @@
                         </select>
                         <p class="text-xs text-gray-400 mt-1">Odaberite sto na kojem će se igrati ovaj meč</p>
                     </div>
-                    @endif
 
                     <!-- Submit Button -->
                     <div class="flex justify-end space-x-4 pt-6 border-t border-gray-700">

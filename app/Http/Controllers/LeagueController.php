@@ -828,15 +828,8 @@ class LeagueController extends Controller
     {
         $organization = $league->organization;
 
-        // Allow access if user owns the organization OR is registered as a player in it OR is a referee
-        $isOwner = $organization->user_id === auth()->id();
-        $isPlayer = $organization->players()->where('user_id', auth()->id())->exists();
-        $isReferee = auth()->user()->organizationUsers()
-            ->where('organization_id', $organization->id)
-            ->where('role', 'referee')
-            ->exists();
-
-        if (!$isOwner && !$isPlayer && !$isReferee) {
+        // Check if user can access this specific match
+        if (!$this->canAccessMatch($match, $organization)) {
             abort(403);
         }
 
@@ -844,6 +837,13 @@ class LeagueController extends Controller
         if ($match->competition_id !== $league->id) {
             abort(404);
         }
+
+        $isOwner = $organization->user_id === auth()->id();
+        $isPlayer = $organization->players()->where('user_id', auth()->id())->exists();
+        $isReferee = auth()->user()->organizationUsers()
+            ->where('organization_id', $organization->id)
+            ->where('role', 'referee')
+            ->exists();
 
         // Load teams with players for team-based leagues
         if ($league->is_team_based) {
@@ -863,8 +863,8 @@ class LeagueController extends Controller
     {
         $organization = $league->organization;
 
-        // Ensure user can manage matches for this organization (owner or referee)
-        if (!$this->canManageMatches($organization)) {
+        // Check if user can access this specific match
+        if (!$this->canAccessMatch($match, $organization)) {
             abort(403);
         }
 
@@ -874,8 +874,9 @@ class LeagueController extends Controller
         }
 
         $isOwner = $organization->user_id === auth()->id();
+        $isReferee = ($match->referee_user_id === auth()->id() || $match->moderator_id === auth()->id());
 
-        return view('organizations.leagues.matches.edit', compact('organization', 'league', 'match', 'isOwner'));
+        return view('organizations.leagues.matches.edit', compact('organization', 'league', 'match', 'isOwner', 'isReferee'));
     }
 
     /**
@@ -885,8 +886,8 @@ class LeagueController extends Controller
     {
         $organization = $league->organization;
 
-        // Ensure user can manage matches for this organization (owner or referee)
-        if (!$this->canManageMatches($organization)) {
+        // Check if user can access this specific match
+        if (!$this->canAccessMatch($match, $organization)) {
             abort(403);
         }
 
@@ -894,6 +895,8 @@ class LeagueController extends Controller
         if ($match->competition_id !== $league->id) {
             abort(404);
         }
+
+        $isOwner = $organization->user_id === auth()->id();
 
         // Validation
         $validated = $request->validate([
@@ -906,20 +909,20 @@ class LeagueController extends Controller
             'table_id' => 'nullable|exists:tables,id',
         ]);
 
-        // Check if user is owner (only owners can assign moderators)
+        // Check if user is owner (only owners can assign referees)
         $isOwner = $organization->user_id === auth()->id();
-        if ($request->filled('moderator_id') && !$isOwner) {
-            abort(403, 'Only organization owners can assign moderators.');
+        if ($request->filled('referee_user_id') && !$isOwner) {
+            abort(403, 'Only organization owners can assign referees.');
         }
 
-        // If moderator_id is provided, ensure they are a referee for this organization
-        if ($request->filled('moderator_id')) {
+        // If referee_user_id is provided, ensure they are a referee for this organization
+        if ($request->filled('referee_user_id')) {
             $isReferee = $organization->organizationUsers()
-                ->where('user_id', $request->moderator_id)
+                ->where('user_id', $request->referee_user_id)
                 ->where('role', 'referee')
                 ->exists();
             if (!$isReferee) {
-                return back()->withErrors(['moderator_id' => 'Selected user is not a referee for this organization.']);
+                return back()->withErrors(['referee_user_id' => 'Selected user is not a referee for this organization.']);
             }
         }
 
@@ -995,8 +998,8 @@ class LeagueController extends Controller
     {
         $organization = $league->organization;
 
-        // Ensure user can manage matches for this organization (owner or referee)
-        if (!$this->canManageMatches($organization)) {
+        // Check if user can access this specific match
+        if (!$this->canAccessMatch($match, $organization)) {
             abort(403);
         }
 
@@ -1023,8 +1026,8 @@ class LeagueController extends Controller
     {
         $organization = $league->organization;
 
-        // Ensure user can manage matches for this organization (owner or referee)
-        if (!$this->canManageMatches($organization)) {
+        // Check if user can access this specific match
+        if (!$this->canAccessMatch($match, $organization)) {
             abort(403);
         }
 
@@ -1100,8 +1103,8 @@ class LeagueController extends Controller
     {
         $organization = $league->organization;
 
-        // Ensure user can manage matches for this organization (owner or referee)
-        if (!$this->canManageMatches($organization)) {
+        // Check if user can access this specific match
+        if (!$this->canAccessMatch($match, $organization)) {
             abort(403);
         }
 
@@ -1172,8 +1175,8 @@ class LeagueController extends Controller
         // Get the league through the match
         $league = $match->league;
         
-        // Ensure user can manage matches for this organization
-        if (!$this->canManageMatches($league->organization)) {
+        // Check if user can access this specific match
+        if (!$this->canAccessMatch($match, $league->organization)) {
             abort(403);
         }
 
@@ -1217,5 +1220,35 @@ class LeagueController extends Controller
             ->where('user_id', $user->id)
             ->where('role', 'referee')
             ->exists();
+    }
+
+    /**
+     * Check if the current user can access a specific match.
+     */
+    private function canAccessMatch(LeagueMatch $match, Organization $organization): bool
+    {
+        $user = auth()->user();
+
+        // Owner can always access matches
+        if ($organization->user_id === $user->id) {
+            return true;
+        }
+
+        // Check if user is assigned as referee for this specific match
+        if ($match->referee_user_id === $user->id) {
+            return true;
+        }
+
+        // Check if user is assigned as moderator for this specific match
+        if ($match->moderator_id === $user->id) {
+            return true;
+        }
+
+        // Check if user is a player in the league
+        if ($organization->players()->where('user_id', $user->id)->exists()) {
+            return true;
+        }
+
+        return false;
     }
 }

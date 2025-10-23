@@ -73,9 +73,9 @@
     @endif
 
     @php
-        $isRefereeForMatch = function($match) use ($isReferee) {
-            if (!$isReferee) return false;
-            return $match->referee_user_id === auth()->id();
+        $isRefereeForMatch = function($match) {
+            // Check if user is organization referee OR assigned to this match
+            return $isReferee || $match->referee_user_id === auth()->id();
         };
     @endphp
 
@@ -831,7 +831,7 @@
                                                         🔴 {{ __('Live') }}
                                                     </span>
                                                     @if($isOwner || $isRefereeForMatch($match))
-                                                    <a href="{{ $isRefereeForMatch($match) ? route('referee.competition.match.live', [$match]) : route('competitions.live-score', [$match->id]) }}" 
+                                                    <a href="{{ $isRefereeForMatch($match) ? route('referee.competition.match.live', [$competition, $match]) : route('competitions.live-score', [$match->id]) }}" 
                                                        class="text-blue-400 hover:text-blue-300 text-[10px] text-center whitespace-nowrap">
                                                         👁️ {{ __('Watch') }}
                                                     </a>

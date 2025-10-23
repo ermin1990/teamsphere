@@ -116,17 +116,17 @@ class RefereeController extends Controller
             ->limit(10)
             ->get();
 
-        // Combine all referee matches
-        $allRefereeMatches = $allModeratorMatches->concat($competitionRefereeMatches);
+        // Combine all referee matches - merge collections to preserve model types
+        $allRefereeMatches = $allModeratorMatches->merge($competitionRefereeMatches);
 
         // Split into recent (completed/forfeited) and upcoming (scheduled/in_progress)
         $moderatorRecentMatches = $allRefereeMatches->filter(function($match) {
             return in_array($match->status, ['completed', 'forfeited']);
-        })->take(5);
+        })->values()->take(5);
 
         $moderatorUpcomingMatches = $allRefereeMatches->filter(function($match) {
             return in_array($match->status, ['scheduled', 'in_progress']);
-        })->take(5);
+        })->values()->take(5);
 
         return view('referee.dashboard', compact('organizations', 'leagues', 'recentMatches', 'totalMatches', 'completedMatches', 'inProgressMatches', 'scheduledMatches', 'moderatorRecentMatches', 'moderatorUpcomingMatches'));
     }
@@ -167,17 +167,17 @@ class RefereeController extends Controller
             ->orderBy('updated_at', 'desc')
             ->get();
 
-        // Combine all referee matches
-        $allRefereeMatches = $allModeratorMatches->concat($competitionRefereeMatches);
+        // Combine all referee matches - merge collections to preserve model types
+        $allRefereeMatches = $allModeratorMatches->merge($competitionRefereeMatches);
 
         // Separate into moderated (completed/forfeited) and assigned (scheduled/in_progress)
         $moderatedMatches = $allRefereeMatches->filter(function($match) {
             return in_array($match->status, ['completed', 'forfeited']);
-        });
+        })->values();
 
         $assignedMatches = $allRefereeMatches->filter(function($match) {
             return in_array($match->status, ['scheduled', 'in_progress']);
-        });
+        })->values();
 
         return view('referee.moderator-dashboard', compact('moderatedMatches', 'assignedMatches'));
     }
@@ -661,6 +661,10 @@ class RefereeController extends Controller
             abort(404, 'Match not found in this competition.');
         }
 
+        // Check if user is owner (for referee assignment permissions)
+        $organization = $competition->organization;
+        $isOwner = $organization->user_id === $user->id;
+
         $request->validate([
             'home_score' => 'nullable|integer|min:0',
             'away_score' => 'nullable|integer|min:0',
@@ -681,6 +685,11 @@ class RefereeController extends Controller
         }
 
         $updateData = $request->only(['home_score', 'away_score', 'status', 'forfeited_by', 'referee_user_id', 'table_id']);
+
+        // Referees cannot change referee assignment - only organization owners can
+        if ($isReferee && !$isOwner) {
+            unset($updateData['referee_user_id']);
+        }
 
         // Set played_at when match is completed or forfeited
         if (in_array($request->status, ['completed', 'forfeited']) && !$match->played_at) {
