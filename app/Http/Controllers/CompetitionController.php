@@ -1414,6 +1414,7 @@ class CompetitionController extends Controller
                     'away_player_id' => $awayPlayerId,
                     'match_number' => $matchNumber++,
                     'round' => 1, // First round of knockout
+                    'phase' => 'knockout', // Set phase to knockout
                     'status' => $isBye ? 'completed' : 'pending',
                     'is_bye' => $isBye,
                     'home_score' => $isBye ? 1 : null,
@@ -1431,6 +1432,7 @@ class CompetitionController extends Controller
                         'away_player_id' => $playoff['away_player_id'] ?? null,
                         'match_number' => $matchNumber++,
                         'round' => 0, // Playoff round
+                        'phase' => 'knockout', // Set phase to knockout
                         'status' => 'pending',
                         'playoff_name' => $playoff['name'] ?? 'Playoff',
                     ]);
