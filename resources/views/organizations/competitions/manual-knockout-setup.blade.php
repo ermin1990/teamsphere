@@ -143,6 +143,9 @@
                 </div>
             </form>
 
+            {{-- Bracket Tree Visualization --}}
+            @include('organizations.competitions.partials.bracket-tree')
+
         </div>
     </div>
 
