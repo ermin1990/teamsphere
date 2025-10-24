@@ -49,7 +49,9 @@ class TournamentBracketService
     }
 
     /**
-     * Advance winners to the next round.
+     * Advance winners to the next round with proper bracket pairing.
+     * Match 1 winner + Match 2 winner → Next Match 1
+     * Match 3 winner + Match 4 winner → Next Match 2, etc.
      */
     public function advanceToNextRound(Competition $competition, int $currentRound): void
     {
@@ -57,6 +59,7 @@ class TournamentBracketService
             ->where('phase', 'knockout')
             ->where('round_number', $currentRound)
             ->whereIn('status', ['completed', 'forfeited'])
+            ->orderBy('match_order')
             ->get();
 
         // Check if all matches in current round are completed
@@ -69,7 +72,7 @@ class TournamentBracketService
             return; // Not all matches completed
         }
 
-        // Get winners
+        // Get winners in order of match_order
         $winners = [];
         foreach ($currentRoundMatches as $match) {
             if ($match->is_bye) {
@@ -92,8 +95,11 @@ class TournamentBracketService
             return;
         }
 
-        // Create next round matches
+        // Create next round matches with proper bracket pairing
+        // Every two winners from consecutive matches get paired in the next round
         $nextRound = $currentRound + 1;
+        $nextMatchOrder = 1;
+        
         for ($i = 0; $i < count($winners); $i += 2) {
             $homePlayer = $winners[$i];
             $awayPlayer = $winners[$i + 1] ?? null;
@@ -106,6 +112,7 @@ class TournamentBracketService
                 'away_player_id' => $awayPlayer,
                 'phase' => 'knockout',
                 'round_number' => $nextRound,
+                'match_order' => $nextMatchOrder++,
                 'status' => $isBye ? 'completed' : 'scheduled',
                 'scheduled_at' => now(),
                 'is_bye' => $isBye,

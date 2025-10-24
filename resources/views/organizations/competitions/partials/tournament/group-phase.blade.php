@@ -32,6 +32,14 @@
                     </span>
                 @endif
             </div>
+            
+            {{-- Reset Button --}}
+            @if($isOwner && $groupMatches->count() > 0)
+                <button type="button" onclick="confirmResetGroupPhase()" 
+                        class="bg-red-600 hover:bg-red-700 text-white text-xs px-4 py-2 rounded-lg transition-colors font-semibold">
+                    🔄 Resetuj grupnu fazu
+                </button>
+            @endif
         </div>
     </div>
 

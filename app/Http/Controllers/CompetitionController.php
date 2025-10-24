@@ -13,6 +13,7 @@ use App\Models\TournamentGroup;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class CompetitionController extends Controller
 {
@@ -847,6 +848,7 @@ class CompetitionController extends Controller
         $roundMatches = CompetitionMatch::where('competition_id', $competition->id)
             ->where('phase', 'knockout')
             ->where('round_number', $currentRound)
+            ->orderBy('match_order')
             ->get();
 
         // Check if all matches are completed
@@ -891,7 +893,8 @@ class CompetitionController extends Controller
             return;
         }
 
-        // Create next round matches
+        // Create next round matches with proper bracket pairing
+        $matchOrder = 1;
         for ($i = 0; $i < count($winners); $i += 2) {
             $isBye = ($winners[$i + 1] ?? null) === null;
             
@@ -901,6 +904,7 @@ class CompetitionController extends Controller
                 'away_player_id' => $winners[$i + 1] ?? null,
                 'phase' => 'knockout',
                 'round_number' => $currentRound + 1,
+                'match_order' => $matchOrder++,
                 'status' => $isBye ? 'completed' : 'scheduled',
                 'scheduled_at' => now(),
                 'played_at' => $isBye ? now() : null,
@@ -1136,6 +1140,7 @@ class CompetitionController extends Controller
                     'away_player_id' => null,
                     'phase' => 'knockout',
                     'round_number' => $roundNumber,
+                    'match_order' => $position,
                     'status' => 'scheduled',
                     'scheduled_at' => null,
                     'played_at' => null,
@@ -1412,8 +1417,8 @@ class CompetitionController extends Controller
                     'competition_id' => $competition->id,
                     'home_player_id' => $homePlayerId,
                     'away_player_id' => $awayPlayerId,
-                    'match_number' => $matchNumber++,
-                    'round' => 1, // First round of knockout
+                    'match_order' => $matchNumber,
+                    'round_number' => 1, // First round of knockout
                     'phase' => 'knockout', // Set phase to knockout
                     'status' => $isBye ? 'completed' : 'pending',
                     'is_bye' => $isBye,
@@ -1421,6 +1426,8 @@ class CompetitionController extends Controller
                     'away_score' => $isBye ? 0 : null,
                     'played_at' => $isBye ? now() : null,
                 ]);
+                
+                $matchNumber++;
             }
 
             // Handle playoff matches if any
@@ -1483,7 +1490,108 @@ class CompetitionController extends Controller
                 ->with('error', 'Grupna faza još nije završena.');
         }
 
-        return view('organizations.competitions.manual-knockout-setup', compact('organization', 'competition'));
+        // Get existing knockout matches if any
+        $existingMatches = \App\Models\CompetitionMatch::where('competition_id', $competition->id)
+            ->where('phase', 'knockout')
+            ->with(['homePlayer', 'awayPlayer'])
+            ->orderBy('round')
+            ->orderBy('id')
+            ->get();
+
+        return view('organizations.competitions.manual-knockout-setup', compact('organization', 'competition', 'existingMatches'));
+    }
+
+    /**
+     * Reset knockout phase - delete all knockout matches
+     */
+    public function resetKnockoutPhase(Request $request, Organization $organization, Competition $competition)
+    {
+        // Ensure user owns this organization
+        if ($organization->user_id !== auth()->id()) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
+
+        try {
+            \DB::beginTransaction();
+
+            // Delete all knockout matches
+            \App\Models\CompetitionMatch::where('competition_id', $competition->id)
+                ->where('phase', 'knockout')
+                ->delete();
+
+            // Update competition status back to group phase if needed
+            if ($competition->current_phase === 'knockout' || $competition->current_phase === 'completed') {
+                $competition->update([
+                    'current_phase' => 'groups',
+                    'status' => 'active',
+                    'knockout_completed_at' => null,
+                ]);
+            }
+
+            \DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Eliminaciona faza je uspješno resetovana'
+            ]);
+
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            \Log::error('Error resetting knockout phase: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Došlo je do greške prilikom resetovanja'
+            ], 500);
+        }
+    }
+
+    /**
+     * Reset group phase - delete all group match results and standings
+     */
+    public function resetGroupPhase(Request $request, Organization $organization, Competition $competition)
+    {
+        // Ensure user owns this organization
+        if ($organization->user_id !== auth()->id()) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
+
+        try {
+            \DB::beginTransaction();
+
+            // Delete all knockout matches
+            \App\Models\CompetitionMatch::where('competition_id', $competition->id)
+                ->where('phase', 'knockout')
+                ->delete();
+
+            // Reset all group matches
+            \App\Models\CompetitionMatch::where('competition_id', $competition->id)
+                ->where('phase', 'group')
+                ->update([
+                    'status' => 'pending',
+                    'home_score' => null,
+                    'away_score' => null,
+                    'winner_id' => null,
+                    'played_at' => null,
+                ]);
+
+            // Delete all standings
+            \App\Models\Standing::where('competition_id', $competition->id)->delete();
+
+            \DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Grupna faza je uspješno resetovana'
+            ]);
+
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            \Log::error('Error resetting group phase: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Došlo je do greške prilikom resetovanja'
+            ], 500);
+        }
     }
 
     /**
@@ -1501,6 +1609,40 @@ class CompetitionController extends Controller
         ]);
 
         return response()->json(['success' => true]);
+    }
+
+    /**
+     * Export tournament to PDF
+     */
+    public function exportPDF(Organization $organization, Competition $competition)
+    {
+        // Load all necessary relationships
+        $competition->load([
+            'sport',
+            'tournamentGroups',
+            'players'
+        ]);
+
+        // Get knockout matches grouped by round
+        $knockoutMatches = CompetitionMatch::where('competition_id', $competition->id)
+            ->where('phase', 'knockout')
+            ->with(['homePlayer', 'awayPlayer'])
+            ->orderBy('round_number')
+            ->orderBy('id')
+            ->get()
+            ->groupBy('round_number');
+
+        // Generate PDF
+        $pdf = Pdf::loadView('pdf.tournament-export', compact('organization', 'competition', 'knockoutMatches'));
+        
+        // Set paper size and orientation
+        $pdf->setPaper('a4', 'portrait');
+        
+        // Generate filename
+        $filename = Str::slug($competition->name) . '-' . now()->format('Y-m-d') . '.pdf';
+        
+        // Download PDF
+        return $pdf->download($filename);
     }
 }
 

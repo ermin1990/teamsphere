@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>{{ $competition->name }} - Izvještaj</title>
+    <style>
+        body {
+            font-family: 'DejaVu Sans', sans-serif;
+            font-size: 10px;
+            color: #1f2937;
+            margin: 20px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #3b82f6;
+        }
+        .header h1 {
+            margin: 0 0 5px 0;
+            font-size: 20px;
+            color: #1e40af;
+        }
+        .header p {
+            margin: 2px 0;
+            font-size: 11px;
+            color: #6b7280;
+        }
+        .section {
+            margin-bottom: 25px;
+            page-break-inside: avoid;
+        }
+        .section-title {
+            background: #3b82f6;
+            color: white;
+            padding: 8px 12px;
+            font-size: 13px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            border-radius: 4px;
+        }
+        .group-container {
+            width: 100%;
+            margin-bottom: 0;
+            padding: 20px 0;
+            page-break-after: always;
+            page-break-inside: avoid;
+        }
+        .group-container:last-child {
+            page-break-after: auto;
+        }
+        .group-title {
+            background: #dbeafe;
+            color: #1e40af;
+            padding: 6px 10px;
+            font-size: 11px;
+            font-weight: bold;
+            border-left: 3px solid #3b82f6;
+            margin-bottom: 8px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 10px;
+        }
+        th {
+            background: #f3f4f6;
+            color: #374151;
+            padding: 6px 8px;
+            text-align: left;
+            font-size: 9px;
+            font-weight: bold;
+            border-bottom: 2px solid #d1d5db;
+        }
+        td {
+            padding: 5px 8px;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 9px;
+        }
+        tr:hover {
+            background: #f9fafb;
+        }
+        .position-1 {
+            background: #d1fae5;
+            font-weight: bold;
+        }
+        .position-2 {
+            background: #fef3c7;
+        }
+        .match-box {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 4px;
+            padding: 8px;
+            margin-bottom: 8px;
+        }
+        .match-header {
+            font-size: 9px;
+            color: #6b7280;
+            margin-bottom: 4px;
+        }
+        .match-player {
+            padding: 4px 6px;
+            margin: 2px 0;
+            border-radius: 3px;
+            font-size: 10px;
+        }
+        .match-home {
+            background: #dbeafe;
+            border-left: 3px solid #3b82f6;
+        }
+        .match-away {
+            background: #fce7f3;
+            border-left: 3px solid #ec4899;
+        }
+        .match-score {
+            font-weight: bold;
+            color: #1f2937;
+            float: right;
+        }
+        .match-winner {
+            background: #d1fae5;
+            border-left-color: #10b981;
+        }
+        .knockout-round {
+            margin-bottom: 20px;
+            page-break-inside: avoid;
+        }
+        .knockout-title {
+            background: #7c3aed;
+            color: white;
+            padding: 8px 12px;
+            font-size: 13px;
+            font-weight: bold;
+            margin-bottom: 12px;
+            border-radius: 6px;
+            border-left: 4px solid #5b21b6;
+        }
+        .knockout-match {
+            background: #f9fafb;
+            border: 2px solid #dbeafe;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 12px;
+            page-break-inside: avoid;
+            border-left: 4px solid #3b82f6;
+        }
+        .knockout-match-title {
+            font-size: 10px;
+            color: #374151;
+            font-weight: bold;
+            margin-bottom: 8px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .knockout-player {
+            padding: 8px 10px;
+            margin: 4px 0;
+            border-radius: 4px;
+            font-size: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: white;
+            border: 1px solid #e5e7eb;
+        }
+        .winner-gold {
+            background: #dcfce7;
+            border-left: 4px solid #16a34a;
+            font-weight: bold;
+        }
+        .winner-silver {
+            background: #fef08a;
+            border-left: 4px solid #d97706;
+        }
+        .match-home {
+            background: #dbeafe;
+            border-left-color: #0284c7;
+        }
+        .match-away {
+            background: #fce7f3;
+            border-left-color: #be185d;
+        }
+        .footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #e5e7eb;
+        }
+        .signature-section {
+            margin-top: 40px;
+            padding: 20px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            background: #f9fafb;
+        }
+        .signature-line {
+            margin-top: 40px;
+            padding-top: 10px;
+            border-top: 1px solid #374151;
+            width: 300px;
+            text-align: center;
+            font-size: 9px;
+        }
+        .page-break {
+            page-break-after: always;
+        }
+        .set-scores {
+            font-size: 8px;
+            color: #6b7280;
+            margin-top: 2px;
+        }
+        /* EXCEL STYLE HORIZONTAL BRACKET */
+        .excel-bracket {
+            width: 100%;
+            margin: 15px 0;
+            page-break-inside: avoid;
+        }
+        .bracket-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 8px;
+            position: relative;
+        }
+        .bracket-round {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+        .bracket-round:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            right: -4px;
+            top: 50%;
+            width: 8px;
+            height: 2px;
+            background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+            border-radius: 1px;
+            z-index: 1;
+        }
+        .round-header {
+            margin-bottom: 12px;
+            text-align: center;
+        }
+        .round-title {
+            font-size: 8px;
+            font-weight: 800;
+            color: #1e293b;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            display: inline-block;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+        .round-matches {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            width: 100%;
+            max-width: 140px;
+        }
+        .match-card {
+            background: white;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 10px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+            overflow: hidden;
+            transition: all 0.2s ease;
+        }
+        .match-card.has-winner {
+            border-color: #10b981;
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.15);
+        }
+        .match-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px 8px;
+            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .match-number {
+            font-size: 7px;
+            font-weight: 700;
+            color: #1d4ed8;
+            background: #dbeafe;
+            padding: 2px 5px;
+            border-radius: 8px;
+        }
+        .match-status {
+            font-size: 7px;
+            font-weight: 600;
+            padding: 2px 4px;
+            border-radius: 6px;
+            min-width: 12px;
+            text-align: center;
+        }
+        .match-status:has-text(✓) {
+            background: #dcfce7;
+            color: #166534;
+        }
+        .match-status:has-text(○) {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        .match-status:has-text(BYE) {
+            background: #f3e8ff;
+            color: #6b21a8;
+        }
+        .match-players {
+            position: relative;
+        }
+        .player {
+            padding: 6px 8px;
+            background: white;
+        }
+        .player.winner {
+            background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+            border-left: 3px solid #10b981;
+        }
+        .player-content {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .medal {
+            font-size: 9px;
+        }
+        .name {
+            flex: 1;
+            font-size: 8px;
+            font-weight: 600;
+            color: #1e293b;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .score {
+            font-size: 9px;
+            font-weight: 700;
+            color: #374151;
+            background: #f3f4f6;
+            padding: 2px 6px;
+            border-radius: 6px;
+            min-width: 16px;
+            text-align: center;
+        }
+        .player.winner .score {
+            background: #065f46;
+            color: white;
+        }
+        .vs-line {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #e2e8f0, transparent);
+            margin: 2px 8px;
+        }
+        .match-sets {
+            padding: 4px 8px;
+            background: #f8fafc;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            gap: 4px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .set {
+            font-size: 7px;
+            color: #64748b;
+            background: white;
+            padding: 1px 3px;
+            border-radius: 3px;
+            border: 1px solid #e2e8f0;
+        }
+    </style>
+</head>
+<body>
+    {{-- Header --}}
+    <div class="header">
+        <h1>{{ $competition->name }}</h1>
+        <p><strong>{{ $organization->name }}</strong></p>
+        <p>Sport: {{ $competition->sport->name ?? 'N/A' }}</p>
+        <p>Datum: {{ $competition->start_date ? $competition->start_date->format('d.m.Y') : 'N/A' }}</p>
+        @if($competition->status === 'completed')
+            <p style="color: #10b981; font-weight: bold;">✓ Završen turnir</p>
+        @endif
+    </div>
+
+    {{-- Group Phase --}}
+    @if($competition->tournamentGroups->count() > 0)
+        <div class="section">
+            <div class="section-title">📋 GRUPNA FAZA</div>
+            
+            @foreach($competition->tournamentGroups as $group)
+                <div class="group-container">
+                    <div class="group-title">Grupa {{ $group->name }}</div>
+                    
+                    {{-- Standings Table --}}
+                    @php
+                        $standings = App\Models\Standing::where('competition_id', $competition->id)
+                            ->where('tournament_group_id', $group->id)
+                            ->with('player')
+                            ->orderBy('points', 'desc')
+                            ->orderByRaw('(sets_won - sets_lost) desc')
+                            ->orderByRaw('(points_won - points_lost) desc')
+                            ->get();
+                    @endphp
+                    
+                    @if($standings->count() > 0)
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Igrač</th>
+                                    <th>M</th>
+                                    <th>P</th>
+                                    <th>G</th>
+                                    <th>I</th>
+                                    <th>Bod</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($standings as $standing)
+                                    <tr class="@if($standing->position <= ($competition->players_advancing_per_group ?? 2)) position-{{ $standing->position }} @endif">
+                                        <td>{{ $standing->position }}</td>
+                                        <td>{{ $standing->player->name ?? 'N/A' }}</td>
+                                        <td>{{ $standing->played }}</td>
+                                        <td>{{ $standing->won }}</td>
+                                        <td>{{ $standing->lost }}</td>
+                                        <td>{{ $standing->sets_won }}-{{ $standing->sets_lost }}</td>
+                                        <td><strong>{{ $standing->points }}</strong></td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    @endif
+                    
+                    {{-- Group Matches --}}
+                    @php
+                        $groupMatches = App\Models\CompetitionMatch::where('competition_id', $competition->id)
+                            ->where('tournament_group_id', $group->id)
+                            ->with(['homePlayer', 'awayPlayer'])
+                            ->orderBy('id')
+                            ->get();
+                    @endphp
+                    
+                    @if($groupMatches->count() > 0)
+                        <div style="margin-top: 10px;">
+                            <strong style="font-size: 9px; color: #6b7280;">Mečevi:</strong>
+                            @foreach($groupMatches as $match)
+                                <div class="match-box">
+                                    <div class="match-header">
+                                        Meč {{ $loop->iteration }}
+                                        @if($match->status === 'completed')
+                                            <span style="color: #10b981;">✓</span>
+                                        @endif
+                                    </div>
+                                    <div class="match-player match-home @if($match->winner_id == $match->home_player_id) match-winner @endif">
+                                        {{ $match->homePlayer->name ?? 'TBD' }}
+                                        @if($match->home_score !== null)
+                                            <span class="match-score">{{ $match->home_score }}</span>
+                                        @endif
+                                    </div>
+                                    @if($match->sets && is_array($match->sets))
+                                        <div class="set-scores">
+                                            Setovi: 
+                                            @foreach($match->sets as $set)
+                                                {{ $set['home'] ?? 0 }}-{{ $set['away'] ?? 0 }}@if(!$loop->last), @endif
+                                            @endforeach
+                                        </div>
+                                    @endif
+                                    <div class="match-player match-away @if($match->winner_id == $match->away_player_id) match-winner @endif">
+                                        {{ $match->awayPlayer->name ?? 'TBD' }}
+                                        @if($match->away_score !== null)
+                                            <span class="match-score">{{ $match->away_score }}</span>
+                                        @endif
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
+            @endforeach
+        </div>
+    @endif
+
+    {{-- Page break before knockout phase --}}
+    @if($knockoutMatches->count() > 0)
+        <div class="page-break"></div>
+    @endif
+
+    {{-- Knockout Phase - Excel Style Horizontal Bracket --}}
+    @if($knockoutMatches->count() > 0)
+        @php
+            $matchesByRound = $knockoutMatches;
+            $totalRounds = (int) $matchesByRound->keys()->max();
+
+            if (!function_exists('getRoundNamePDF')) {
+                function getRoundNamePDF($roundNum, $totalRounds) {
+                    $roundNum = (int) $roundNum;
+                    $totalRounds = (int) $totalRounds;
+                    $roundsFromFinal = $totalRounds - $roundNum;
+
+                    if ($roundNum == 0) return 'Playoff';
+                    if ($roundsFromFinal == 0) return 'FINALE';
+                    if ($roundsFromFinal == 1) return 'Polufinale';
+                    if ($roundsFromFinal == 2) return 'Četvrtfinale';
+                    if ($roundsFromFinal == 3) return 'Osmina';
+                    if ($roundsFromFinal == 4) return 'Šesnaest.';
+
+                    return "Runda $roundNum";
+                }
+            }
+        @endphp
+
+        <div class="page-break"></div>
+
+        <div class="section">
+            <div class="section-title">🏆 ELIMINACIONA FAZA - ŽDRIJEB</div>
+
+            <div class="excel-bracket">
+                <table class="bracket-table">
+                    <thead>
+                        <tr>
+                            @foreach($matchesByRound as $roundNum => $matches)
+                                <th class="round-header">{{ getRoundNamePDF($roundNum, $totalRounds) }}</th>
+                            @endforeach
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @php
+                            $maxMatchesInRound = collect($matchesByRound)->map->count()->max();
+                        @endphp
+
+                        @for($row = 0; $row < $maxMatchesInRound; $row++)
+                            <tr>
+                                @foreach($matchesByRound as $roundNum => $matches)
+                                    @php
+                                        $match = $matches->get($row);
+                                    @endphp
+
+                                    @if($match)
+                                        @php
+                                            $homePos = null;
+                                            $awayPos = null;
+
+                                            if ($match->homePlayer) {
+                                                $hs = App\Models\Standing::where('competition_id', $competition->id)
+                                                    ->where('player_id', $match->home_player_id)
+                                                    ->first();
+                                                if ($hs) {
+                                                    $homePos = $hs->position;
+                                                }
+                                            }
+
+                                            if ($match->awayPlayer) {
+                                                $as = App\Models\Standing::where('competition_id', $competition->id)
+                                                    ->where('player_id', $match->away_player_id)
+                                                    ->first();
+                                                if ($as) {
+                                                    $awayPos = $as->position;
+                                                }
+                                            }
+
+                                            $homeIsWinner = $match->winner_id && $match->winner_id == $match->home_player_id;
+                                            $awayIsWinner = $match->winner_id && $match->winner_id == $match->away_player_id;
+
+                                            $homeMedal = $homePos === 1 ? '🥇' : ($homePos === 2 ? '🥈' : null);
+                                            $awayMedal = $awayPos === 1 ? '🥇' : ($awayPos === 2 ? '🥈' : null);
+
+                                            $homeName = optional($match->homePlayer)->name
+                                                ?? optional($match->homeTeam)->name
+                                                ?? data_get($match, 'home_placeholder_name')
+                                                ?? data_get($match, 'home_placeholder')
+                                                ?? 'N/A';
+
+                                            $awayName = optional($match->awayPlayer)->name
+                                                ?? optional($match->awayTeam)->name
+                                                ?? data_get($match, 'away_placeholder_name')
+                                                ?? data_get($match, 'away_placeholder')
+                                                ?? ($match->is_bye ? 'BYE' : 'N/A');
+
+                                            $homeScoreDisplay = $match->home_score !== null ? $match->home_score : '—';
+                                            $awayScoreDisplay = $match->away_score !== null ? $match->away_score : '—';
+
+                                            $matchNumber = str_pad($match->match_order ?? $loop->parent->iteration, 2, '0', STR_PAD_LEFT);
+                                        @endphp
+
+                                        <td class="match-cell {{ $homeIsWinner || $awayIsWinner ? 'has-winner' : '' }}">
+                                            <div class="match-info">
+                                                <div class="match-header">
+                                                    <span class="match-number">M{{ $matchNumber }}</span>
+                                                </div>
+
+                                                <div class="player home {{ $homeIsWinner ? 'winner' : '' }}">
+                                                    <div class="player-content">
+                                                        @if($homeMedal)
+                                                            <span class="medal">{{ $homeMedal }}</span>
+                                                        @endif
+                                                        <span class="name">{{ $homeName }}</span>
+                                                        <span class="score">{{ $homeScoreDisplay }}</span>
+                                                    </div>
+                                                </div>
+
+                                                <div class="vs-separator">vs</div>
+
+                                                <div class="player away {{ $awayIsWinner ? 'winner' : '' }}">
+                                                    <div class="player-content">
+                                                        @if($awayMedal)
+                                                            <span class="medal">{{ $awayMedal }}</span>
+                                                        @endif
+                                                        <span class="name">{{ $awayName }}</span>
+                                                        <span class="score">{{ $awayScoreDisplay }}</span>
+                                                    </div>
+                                                </div>
+
+                                                @if($match->sets && is_array($match->sets) && count($match->sets))
+                                                    <div class="sets-info">
+                                                        @foreach($match->sets as $set)
+                                                            <span class="set-score">{{ $set['home'] ?? 0 }}-{{ $set['away'] ?? 0 }}</span>
+                                                        @endforeach
+                                                    </div>
+                                                @endif
+                                            </div>
+                                        </td>
+                                    @else
+                                        <td class="empty-cell"></td>
+                                    @endif
+                                @endforeach
+                            </tr>
+                        @endfor
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    @endif    {{-- Old detailed knockout phase removed --}}
+
+    {{-- Signature Section --}}
+    <div class="signature-section">
+        <p style="margin: 0 0 10px 0; font-size: 10px; font-weight: bold;">Potvrda ispravnosti rezultata:</p>
+        <p style="margin: 5px 0; font-size: 9px; color: #6b7280;">
+            Potvrđujem da su svi rezultati tačno uneseni i da je takmičenje sprovedeno u skladu sa pravilima.
+        </p>
+        <div style="margin-top: 50px; display: flex; justify-content: space-between;">
+            <div style="width: 45%;">
+                <div class="signature-line">
+                    Potpis odgovornog lica
+                </div>
+            </div>
+            <div style="width: 45%;">
+                <div class="signature-line">
+                    Datum: _________________
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Footer --}}
+    <div class="footer">
+        <p style="margin: 0; font-size: 8px; color: #9ca3af;">Generisano: {{ now()->format('d.m.Y H:i') }} | {{ config('app.name') }}</p>
+    </div>
+</body>
+</html>

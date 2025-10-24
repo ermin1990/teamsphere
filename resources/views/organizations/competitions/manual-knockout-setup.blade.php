@@ -140,9 +140,6 @@
                 </div>
             </form>
 
-            {{-- Bracket Tree Visualization --}}
-            @include('organizations.competitions.partials.bracket-tree')
-
         </div>
     </div>
 
@@ -153,6 +150,9 @@
         let playoffMatchCount = 0;
         let qualifiedPlayersData = [];
         let selectedSlot = null;
+        
+        // Existing matches from database
+        const existingMatches = @json($existingMatches ?? []);
 
         // Initialize on page load
         document.addEventListener('DOMContentLoaded', function() {
@@ -176,8 +176,15 @@
             const totalQualified = qualifiedPlayersData.length;
             generateKnockoutSlots(totalQualified);
             
-            // Auto-apply JOOLA suggestion
-            applyJoolaSuggestion();
+            // Load existing matches or auto-apply JOOLA suggestion
+            console.log('Existing matches:', existingMatches);
+            if (existingMatches && existingMatches.length > 0) {
+                console.log('Loading existing matches...');
+                loadExistingMatches();
+            } else {
+                console.log('Applying JOOLA suggestion...');
+                applyJoolaSuggestion();
+            }
         });
 
         // Generate knockout match slots
@@ -429,6 +436,46 @@
             console.log('Applied JOOLA suggestion');
         }
 
+        // Load existing matches from database
+        function loadExistingMatches() {
+            console.log('Loading existing matches:', existingMatches);
+            
+            existingMatches.forEach((match, index) => {
+                const matchIndex = index + 1;
+                console.log(`Match ${matchIndex}:`, match);
+                
+                if (match.home_player_id) {
+                    const playerData = qualifiedPlayersData.find(p => p.id == match.home_player_id);
+                    console.log('Home player data:', playerData);
+                    if (playerData) {
+                        const player = {
+                            id: playerData.id,
+                            name: playerData.name,
+                            group: playerData.group,
+                            position: playerData.position
+                        };
+                        assignPlayerToSlot(player, matchIndex, 'home');
+                    }
+                }
+                
+                if (match.away_player_id) {
+                    const playerData = qualifiedPlayersData.find(p => p.id == match.away_player_id);
+                    console.log('Away player data:', playerData);
+                    if (playerData) {
+                        const player = {
+                            id: playerData.id,
+                            name: playerData.name,
+                            group: playerData.group,
+                            position: playerData.position
+                        };
+                        assignPlayerToSlot(player, matchIndex, 'away');
+                    }
+                }
+            });
+            
+            console.log('Loaded existing matches, knockoutPlayers:', knockoutPlayers);
+        }
+
         function assignPlayerToSlot(player, matchIndex, position) {
             const slot = document.querySelector(`.knockout-slot[data-match="${matchIndex}"][data-position="${position}"]`);
             if (!slot) return;
@@ -568,3 +615,5 @@
     </script>
 
 </x-app-layout>
+
+```

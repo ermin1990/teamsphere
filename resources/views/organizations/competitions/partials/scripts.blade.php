@@ -3,7 +3,8 @@
     let currentMatchId = null;
     let setScoreCount = 0;
 
-    function openQuickResultModal(matchId, homeName, awayName) {
+    window.openQuickResultModal = function(matchId, homeName, awayName) {
+        console.log('Opening quick result modal for match:', matchId, homeName, 'vs', awayName);
         currentMatchId = matchId;
 
         document.getElementById('homePlayerName').textContent = homeName;
@@ -20,14 +21,14 @@
         form.action = `/competitions/matches/${matchId}/quick-result`;
         
         document.getElementById('quickResultModal').classList.remove('hidden');
-    }
+    };
 
-    function closeQuickResultModal() {
+    window.closeQuickResultModal = function() {
         document.getElementById('quickResultModal').classList.add('hidden');
         currentMatchId = null;
-    }
+    };
 
-    function addSetScore() {
+    window.addSetScore = function() {
         setScoreCount++;
         const container = document.getElementById('setScoresContainer');
         const setDiv = document.createElement('div');
@@ -46,10 +47,10 @@
             </button>
         `;
         container.appendChild(setDiv);
-    }
+    };
 
     // Knockout Phase Functions
-    function autoGenerateBracket() {
+    window.autoGenerateBracket = function() {
         if (!confirm('Da li želite da automatski generišete eliminacionu fazu prema JOOLA pravilima?\n\nOvo će kreirati parove na osnovu plasmana iz grupne faze.')) {
             return;
         }
@@ -84,14 +85,14 @@
             btn.disabled = false;
             btn.innerHTML = originalText;
         });
-    }
+    };
 
     let knockoutPlayers = [];
     let knockoutMatchCount = 0;
     let playoffMatchCount = 0;
     let qualifiedPlayersData = []; // Store all qualified players with their positions
 
-    function showManualKnockoutSetup() {
+    window.showManualKnockoutSetup = function() {
         knockoutPlayers = [];
         knockoutMatchCount = 0;
         playoffMatchCount = 0;
@@ -126,13 +127,13 @@
         
         // Show modal
         document.getElementById('manualKnockoutModal').classList.remove('hidden');
-    }
+    };
 
-    function closeManualKnockoutModal() {
+    window.closeManualKnockoutModal = function() {
         document.getElementById('manualKnockoutModal').classList.add('hidden');
-    }
+    };
 
-    function applyJoolaSuggestion() {
+    window.applyJoolaSuggestion = function() {
         // Clear current assignments
         knockoutPlayers = [];
         
@@ -255,7 +256,7 @@
         // This means: 1-8, 2-7, 3-6, 4-5 for 8 players
         // For 16: 1-16, 2-15, 3-14, 4-13, 5-12, 6-11, 7-10, 8-9
         let matchIndex = 1;
-        const halfBracket = nextPowerOf2 / 2;
+        // halfBracket already declared above, reusing
         
         for (let i = 0; i < halfBracket; i++) {
             // JOOLA pairing formula: position i pairs with position (totalSlots - 1 - i)
@@ -289,7 +290,7 @@
             console.log(`  Match ${i+1}: ${homeLabel} ${homeDesc} vs ${awayLabel} ${awayDesc}`);
         }
         console.log('\nAssigned players:', knockoutPlayers);
-    }
+    };
     
     // Helper: Get opponent bracket index for first round
     // JOOLA System: A vs H, B vs G, C vs F, D vs E
@@ -298,7 +299,7 @@
         return totalSlots - 1 - index;
     }
 
-    function assignPlayerToSlot(player, matchIndex, position) {
+    window.assignPlayerToSlot = function(player, matchIndex, position) {
         const slot = document.querySelector(`.knockout-slot[data-match="${matchIndex}"][data-position="${position}"]`);
         if (!slot) return;
         
@@ -323,9 +324,9 @@
         if (playerElement) {
             playerElement.classList.add('opacity-50', 'pointer-events-none');
         }
-    }
+    };
 
-    function generateKnockoutSlots(playerCount) {
+    window.generateKnockoutSlots = function(playerCount) {
         const container = document.getElementById('knockoutMatchesContainer');
         container.innerHTML = '';
         
@@ -363,11 +364,11 @@
             `;
             container.appendChild(matchDiv);
         }
-    }
+    };
 
     let selectedSlot = null;
 
-    function toggleSlotSelection(slotElement) {
+    window.toggleSlotSelection = function(slotElement) {
         // If clicking the same slot again, deselect it
         if (selectedSlot === slotElement) {
             slotElement.classList.remove('ring-2', 'ring-blue-500', 'ring-green-500');
@@ -388,9 +389,9 @@
             slotElement.classList.add('ring-2', 'ring-blue-500'); // Blue for empty slots
         }
         selectedSlot = slotElement;
-    }
+    };
 
-    function selectPlayerForKnockout(playerId, playerName, element) {
+    window.selectPlayerForKnockout = function(playerId, playerName, element) {
         if (!selectedSlot) {
             alert('Prvo odaberite poziciju u eliminacionoj fazi (kliknite na prazan slot)');
             return;
@@ -449,9 +450,9 @@
         element.classList.add('opacity-50', 'pointer-events-none');
         
         selectedSlot = null;
-    }
+    };
 
-    function addPlayoffMatch() {
+    window.addPlayoffMatch = function() {
         playoffMatchCount++;
         const container = document.getElementById('knockoutMatchesContainer');
         
@@ -485,14 +486,14 @@
             </div>
         `;
         container.appendChild(matchDiv);
-    }
+    };
 
-    function removePlayoffMatch(button) {
+    window.removePlayoffMatch = function(button) {
         const matchDiv = button.closest('[data-playoff-index]');
         matchDiv.remove();
-    }
+    };
 
-    function saveManualKnockout() {
+    window.saveManualKnockout = function() {
         // Validate all main bracket slots are filled
         const totalSlots = knockoutMatchCount * 2;
         const mainBracketPlayers = knockoutPlayers.filter(p => !p.isPlayoff);
@@ -556,7 +557,75 @@
             btn.disabled = false;
             btn.innerHTML = originalText;
         });
-    }
+    };
+
+    // Reset Group Phase
+    window.confirmResetGroupPhase = function() {
+        if (confirm('⚠️ Da li ste sigurni da želite resetovati grupnu fazu?\n\nOvo će:\n- Obrisati sve rezultate grupnih mečeva\n- Resetovati tabele\n- Obrisati knockout fazu\n\nOva akcija se ne može poništiti!')) {
+            const btn = event.target;
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '⏳ Resetujem...';
+            
+            fetch(`/organizations/{{ $organization->id }}/competitions/{{ $competition->id }}/reset-group-phase`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.reload();
+                } else {
+                    alert('Greška: ' + (data.message || 'Nepoznata greška'));
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Došlo je do greške prilikom resetovanja grupne faze');
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            });
+        }
+    };
+
+    // Reset Knockout Phase
+    window.confirmResetKnockoutPhase = function() {
+        if (confirm('⚠️ Da li ste sigurni da želite resetovati eliminacionu fazu?\n\nOvo će:\n- Obrisati sve mečeve eliminacione faze\n- Obrisati sve rezultate\n- Vrati turnir u grupnu fazu\n\nOva akcija se ne može poništiti!')) {
+            const btn = event.target;
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '⏳ Resetujem...';
+            
+            fetch(`/organizations/{{ $organization->id }}/competitions/{{ $competition->id }}/reset-knockout-phase`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.reload();
+                } else {
+                    alert('Greška: ' + (data.message || 'Nepoznata greška'));
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Došlo je do greške prilikom resetovanja eliminacione faze');
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            });
+        }
+    };
 
     // Close modal on Escape key
     document.addEventListener('keydown', function(e) {

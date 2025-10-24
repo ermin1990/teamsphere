@@ -182,6 +182,7 @@ class JOOLABracketService
         $bracketSize = $bracket['bracket_size'];
         
         // Generate first round matches
+        $matchOrder = 1;
         for ($i = 0; $i < $bracketSize / 2; $i++) {
             $homePos = $i;
             $awayPos = $bracketSize - 1 - $i;
@@ -202,6 +203,7 @@ class JOOLABracketService
                 'away_player_id' => $awayPlayer,
                 'phase' => 'knockout',
                 'round_number' => 1,
+                'match_order' => $matchOrder++,
                 'status' => $isBye ? 'completed' : 'scheduled',
                 'is_bye' => $isBye,
                 'home_score' => $isBye ? 1 : 0,

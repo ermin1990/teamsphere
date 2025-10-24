@@ -142,6 +142,9 @@ Route::middleware('auth')->group(function () {
     Route::post('organizations/{organization}/competitions/{competition}/generate-next-round', [CompetitionController::class, 'generateNextRound'])->name('organizations.competitions.generate-next-round');
     Route::post('organizations/{organization}/competitions/{competition}/save-manual-bracket', [CompetitionController::class, 'saveManualBracket'])->name('organizations.competitions.save-manual-bracket');
     Route::post('organizations/{organization}/competitions/{competition}/toggle-manual-mode', [CompetitionController::class, 'toggleManualMode'])->name('organizations.competitions.toggle-manual-mode');
+    Route::post('organizations/{organization}/competitions/{competition}/reset-group-phase', [CompetitionController::class, 'resetGroupPhase'])->name('organizations.competitions.reset-group-phase');
+    Route::post('organizations/{organization}/competitions/{competition}/reset-knockout-phase', [CompetitionController::class, 'resetKnockoutPhase'])->name('organizations.competitions.reset-knockout-phase');
+    Route::get('organizations/{organization}/competitions/{competition}/export-pdf', [CompetitionController::class, 'exportPDF'])->name('organizations.competitions.export-pdf');
     Route::delete('organizations/{organization}/competitions/{competition}', [CompetitionController::class, 'destroy'])->name('organizations.competitions.destroy');
 
     // League routes

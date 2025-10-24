@@ -22,12 +22,17 @@
     };
 @endphp
 
+{{-- Knockout Phase Section (ABOVE Group Phase) --}}
+@if($knockoutMatches && $knockoutMatches->flatten()->count() > 0)
+    @include('organizations.competitions.partials.tournament.knockout-phase', [
+        'organization' => $organization,
+        'competition' => $competition,
+        'isOwner' => $isOwner,
+        'isRefereeForMatch' => $isRefereeForMatch
+    ])
+@endif
+
 {{-- Group Phase Section --}}
 @if($competition->tournamentGroups->count() > 0)
     @include('organizations.competitions.partials.tournament.group-phase')
-@endif
-
-{{-- Knockout Phase Section --}}
-@if($knockoutMatches->count() > 0)
-    @include('organizations.competitions.partials.tournament.knockout-phase')
 @endif
