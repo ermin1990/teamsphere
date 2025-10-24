@@ -73,7 +73,7 @@
     @endif
 
     @php
-        $isRefereeForMatch = function($match) {
+        $isRefereeForMatch = function($match) use ($isReferee) {
             // Check if user is organization referee OR assigned to this match
             return $isReferee || $match->referee_user_id === auth()->id();
         };
@@ -841,7 +841,7 @@
                                                         ✓ {{ __('FT') }}
                                                     </span>
                                                     @if($isOwner || $isRefereeForMatch($match))
-                                                    <a href="{{ $isRefereeForMatch($match) ? route('referee.competition.match.edit', [$match]) : route('organizations.competitions.matches.edit', [$organization, $competition, $match]) }}" 
+                                                    <a href="{{ $isRefereeForMatch($match) ? route('referee.competition.match.edit', [$competition, $match]) : route('organizations.competitions.matches.edit', [$organization, $competition, $match]) }}" 
                                                        class="text-blue-400 hover:text-blue-300 text-[10px] text-center whitespace-nowrap">
                                                         ✏️ {{ __('Edit') }}
                                                     </a>

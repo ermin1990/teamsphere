@@ -43,32 +43,25 @@ class RefereeController extends Controller
     {
         $user = Auth::user();
 
-        // Get organizations where user is referee
-        $organizationUsers = $user->organizationUsers()->where('role', 'referee')->with('organization')->get();
+        // Get organizations where user is referee with eager loaded leagues and matches
+        $organizationUsers = $user->organizationUsers()
+            ->where('role', 'referee')
+            ->with(['organization.leagues.sport', 'organization.leagues.matches' => function($query) {
+                $query->with(['homeTeam', 'awayTeam', 'homePlayer', 'awayPlayer'])
+                      ->where('scheduled_at', '>=', now()->subDays(7))
+                      ->orderBy('scheduled_at', 'desc')
+                      ->limit(10);
+            }])
+            ->get();
 
-        // Get organizations
+        // Get organizations and leagues
         $organizations = $organizationUsers->pluck('organization');
+        $leagues = $organizations->pluck('leagues')->flatten();
 
-        // Get leagues from those organizations
-        $leagues = collect();
-        foreach ($organizationUsers as $orgUser) {
-            $orgLeagues = $orgUser->organization->leagues()->with(['sport', 'matches'])->get();
-            $leagues = $leagues->merge($orgLeagues);
-        }
+        // Get recent matches from all leagues (already loaded with eager loading)
+        $recentMatches = $leagues->pluck('matches')->flatten()->sortByDesc('scheduled_at')->take(10);
 
-        // Get recent matches that need referee attention
-        $recentMatches = collect();
-        foreach ($leagues as $league) {
-            $leagueMatches = $league->matches()
-                ->with(['homeTeam', 'awayTeam', 'homePlayer', 'awayPlayer'])
-                ->where('scheduled_at', '>=', now()->subDays(7))
-                ->orderBy('scheduled_at', 'desc')
-                ->limit(10)
-                ->get();
-            $recentMatches = $recentMatches->merge($leagueMatches);
-        }
-
-        // Calculate statistics
+        // Calculate statistics using already loaded data
         $totalMatches = $leagues->sum(function($league) {
             return $league->matches->count();
         });
@@ -189,15 +182,14 @@ class RefereeController extends Controller
     {
         $user = Auth::user();
 
-        // Get organizations where user is referee
-        $organizationUsers = $user->organizationUsers()->where('role', 'referee')->with('organization')->get();
+        // Get organizations where user is referee with eager loaded leagues
+        $organizationUsers = $user->organizationUsers()
+            ->where('role', 'referee')
+            ->with(['organization.leagues.sport', 'organization.leagues.matches'])
+            ->get();
 
         // Get leagues from those organizations
-        $leagues = collect();
-        foreach ($organizationUsers as $orgUser) {
-            $orgLeagues = $orgUser->organization->leagues()->with(['sport', 'matches'])->get();
-            $leagues = $leagues->merge($orgLeagues);
-        }
+        $leagues = $organizationUsers->pluck('organization')->pluck('leagues')->flatten();
 
         return view('referee.leagues', compact('leagues'));
     }
@@ -672,6 +664,9 @@ class RefereeController extends Controller
             'forfeited_by' => 'nullable|in:home,away',
             'referee_user_id' => 'nullable|exists:users,id',
             'table_id' => 'nullable|exists:tables,id',
+            'sets' => 'nullable|array',
+            'sets.*.home_score' => 'nullable|integer|min:0',
+            'sets.*.away_score' => 'nullable|integer|min:0',
         ]);
 
         // Check if table belongs to this organization
@@ -684,7 +679,7 @@ class RefereeController extends Controller
             }
         }
 
-        $updateData = $request->only(['home_score', 'away_score', 'status', 'forfeited_by', 'referee_user_id', 'table_id']);
+        $updateData = $request->only(['home_score', 'away_score', 'status', 'forfeited_by', 'referee_user_id', 'table_id', 'sets']);
 
         // Referees cannot change referee assignment - only organization owners can
         if ($isReferee && !$isOwner) {
@@ -697,6 +692,20 @@ class RefereeController extends Controller
         }
 
         $match->update($updateData);
+
+        // Update standings if match belongs to a tournament group and results changed
+        if ($match->tournamentGroup && 
+            (isset($updateData['home_score']) || isset($updateData['away_score']) || 
+             in_array($updateData['status'], ['completed', 'forfeited']) ||
+             ($updateData['status'] === 'cancelled' && (($updateData['home_score'] ?? 0) > 0 || ($updateData['away_score'] ?? 0) > 0)))) {
+            // Refresh match to get updated values
+            $match->refresh();
+            // Update TournamentGroup standings
+            $match->tournamentGroup->updateStandings($match);
+            // Recalculate Eloquent standings in database
+            $groupService = app(\App\Services\TournamentGroupService::class);
+            $groupService->recalculateGroupStandings($match->tournamentGroup);
+        }
 
         return redirect()->route('referee.competition.match.show', [$competition, $match])
             ->with('success', 'Match result updated successfully.');
