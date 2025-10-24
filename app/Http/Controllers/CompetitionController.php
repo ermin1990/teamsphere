@@ -181,7 +181,15 @@ class CompetitionController extends Controller
 
         $organization->load('players');
 
-        return view('organizations.competitions.show', compact('organization', 'competition', 'isOwner', 'isPlayer', 'isReferee'));
+        // Get knockout matches separately
+        $knockoutMatches = \App\Models\CompetitionMatch::where('competition_id', $competition->id)
+            ->whereNull('tournament_group_id')
+            ->with(['homePlayer', 'awayPlayer'])
+            ->orderBy('round')
+            ->orderBy('id')
+            ->get();
+
+        return view('organizations.competitions.show', compact('organization', 'competition', 'isOwner', 'isPlayer', 'isReferee', 'knockoutMatches'));
     }
 
     /**
@@ -1363,51 +1371,82 @@ class CompetitionController extends Controller
     {
         // Ensure user owns this organization
         if ($organization->user_id !== auth()->id()) {
-            return response()->json(['success' => false, 'message' => 'Unauthorized']);
+            return redirect()->back()->with('error', 'Unauthorized');
         }
 
-        if (!$competition->manual_knockout_selection) {
-            return response()->json(['success' => false, 'message' => 'Manual knockout selection is not enabled']);
+        // Validate that competition belongs to organization
+        if ($competition->organization_id !== $organization->id) {
+            return redirect()->back()->with('error', 'Competition not found');
         }
 
-        $request->validate([
-            'matches' => 'required|array',
-            'matches.*.home_player_id' => 'nullable|exists:players,id',
-            'matches.*.away_player_id' => 'nullable|exists:players,id',
-        ]);
-
-        $matches = $request->matches;
-
-        // Update each match with the assigned players
-        foreach ($matches as $matchId => $players) {
-            $match = CompetitionMatch::find($matchId);
-            if (!$match || $match->competition_id !== $competition->id) {
-                continue;
-            }
-
-            $updateData = [];
-            if (isset($players['home'])) {
-                $updateData['home_player_id'] = $players['home'];
-            }
-            if (isset($players['away'])) {
-                $updateData['away_player_id'] = $players['away'];
-            }
-
-            // Check if this creates a bye match
-            $isBye = (!isset($players['away']) || !$players['away']) && isset($players['home']) && $players['home'];
-            $updateData['is_bye'] = $isBye;
-
-            if ($isBye) {
-                $updateData['status'] = 'completed';
-                $updateData['home_score'] = 1;
-                $updateData['away_score'] = 0;
-                $updateData['played_at'] = now();
-            }
-
-            $match->update($updateData);
+        // Parse bracket data from hidden input
+        $bracketDataJson = $request->input('bracket_data');
+        if (!$bracketDataJson) {
+            return redirect()->back()->with('error', 'Bracket data is missing');
         }
 
-        return response()->json(['success' => true]);
+        $bracketData = json_decode($bracketDataJson, true);
+        if (!$bracketData || !isset($bracketData['matches'])) {
+            return redirect()->back()->with('error', 'Invalid bracket data format');
+        }
+
+        try {
+            \DB::beginTransaction();
+
+            // Delete existing knockout matches (if any)
+            \App\Models\CompetitionMatch::where('competition_id', $competition->id)
+                ->whereNull('tournament_group_id')
+                ->delete();
+
+            $matchNumber = 1;
+            
+            // Create knockout matches from bracket data
+            foreach ($bracketData['matches'] as $matchNum => $playerIds) {
+                $homePlayerId = $playerIds['home_player_id'] ?? null;
+                $awayPlayerId = $playerIds['away_player_id'] ?? null;
+
+                // Check if this is a BYE match (no away player)
+                $isBye = $homePlayerId && !$awayPlayerId;
+
+                $match = \App\Models\CompetitionMatch::create([
+                    'competition_id' => $competition->id,
+                    'home_player_id' => $homePlayerId,
+                    'away_player_id' => $awayPlayerId,
+                    'match_number' => $matchNumber++,
+                    'round' => 1, // First round of knockout
+                    'status' => $isBye ? 'completed' : 'pending',
+                    'is_bye' => $isBye,
+                    'home_score' => $isBye ? 1 : null,
+                    'away_score' => $isBye ? 0 : null,
+                    'played_at' => $isBye ? now() : null,
+                ]);
+            }
+
+            // Handle playoff matches if any
+            if (isset($bracketData['playoffMatches']) && is_array($bracketData['playoffMatches'])) {
+                foreach ($bracketData['playoffMatches'] as $playoff) {
+                    \App\Models\CompetitionMatch::create([
+                        'competition_id' => $competition->id,
+                        'home_player_id' => $playoff['home_player_id'] ?? null,
+                        'away_player_id' => $playoff['away_player_id'] ?? null,
+                        'match_number' => $matchNumber++,
+                        'round' => 0, // Playoff round
+                        'status' => 'pending',
+                        'playoff_name' => $playoff['name'] ?? 'Playoff',
+                    ]);
+                }
+            }
+
+            \DB::commit();
+
+            return redirect()->route('organizations.competitions.show', [$organization, $competition])
+                ->with('success', 'Eliminaciona faza je uspješno kreirana!');
+
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            \Log::error('Error saving manual bracket: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Greška pri čuvanju: ' . $e->getMessage());
+        }
     }
 
     /**

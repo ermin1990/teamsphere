@@ -3,31 +3,31 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             
             {{-- Header --}}
-            <div class="mb-6">
+            <div class="mb-4">
                 <div class="flex items-center justify-between">
                     <div>
-                        <h1 class="text-3xl font-bold text-white mb-2">🎯 Ručno postavljanje eliminacione faze</h1>
-                        <p class="text-gray-400">{{ $competition->name }} - {{ $organization->name }}</p>
+                        <h1 class="text-2xl font-bold text-white mb-1">🎯 Ručno postavljanje eliminacione faze</h1>
+                        <p class="text-sm text-gray-400">{{ $competition->name }} - {{ $organization->name }}</p>
                     </div>
                     <a href="{{ route('organizations.competitions.show', [$organization, $competition]) }}" 
-                       class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors">
+                       class="bg-gray-600 hover:bg-gray-700 text-white px-3 py-1.5 rounded-lg transition-colors text-sm">
                         ← Nazad na turnir
                     </a>
                 </div>
             </div>
 
             {{-- JOOLA System Info --}}
-            <div class="mb-6 bg-blue-600/20 border border-blue-500/50 rounded-lg p-4">
-                <div class="flex items-start space-x-3">
-                    <svg class="w-6 h-6 text-blue-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="mb-4 bg-blue-600/20 border border-blue-500/50 rounded-lg p-3">
+                <div class="flex items-start space-x-2">
+                    <svg class="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
                     <div class="flex-1">
-                        <p class="text-base text-blue-300 font-semibold mb-3">JOOLA Turnirski Sistem</p>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-blue-300">
+                        <p class="text-sm text-blue-300 font-semibold mb-2">JOOLA Turnirski Sistem</p>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs text-blue-300">
                             <div>
-                                <p class="font-semibold mb-2">Automatska pravila:</p>
-                                <ul class="space-y-1 text-xs">
+                                <p class="font-semibold mb-1.5">Automatska pravila:</p>
+                                <ul class="space-y-0.5 text-xs">
                                     <li>✓ <strong>Grupa 1 pobjednik</strong> → Pozicija A (seedovan)</li>
                                     <li>✓ <strong>Grupa 2 pobjednik</strong> → Pozicija B (seedovan, suprotna strana)</li>
                                     <li>✓ <strong>Ostali pobjednici</strong> → Raspoređeni na C, D, E... pozicije</li>
@@ -36,8 +36,8 @@
                                 </ul>
                             </div>
                             <div>
-                                <p class="font-semibold mb-2">Kako koristiti:</p>
-                                <ul class="space-y-1 text-xs">
+                                <p class="font-semibold mb-1.5">Kako koristiti:</p>
+                                <ul class="space-y-0.5 text-xs">
                                     <li>• <strong>Prihvati prijedlog</strong> - Resetuj na JOOLA parove</li>
                                     <li>• <strong>Ručna izmjena</strong> - Klikni prazan slot (plavi okvir)</li>
                                     <li>• <strong>Odabir igrača</strong> - Klikni igrača sa lijeve strane</li>
@@ -58,9 +58,9 @@
                     
                     {{-- Available Players --}}
                     <div class="lg:col-span-1">
-                        <div class="bg-gray-800/50 backdrop-blur-xl rounded-xl border border-gray-700/50 shadow-xl p-4 sticky top-4">
-                            <h3 class="text-lg font-semibold text-white mb-4">Dostupni igrači</h3>
-                            <div id="availablePlayers" class="space-y-2 max-h-[calc(100vh-250px)] overflow-y-auto pr-2">
+                        <div class="bg-gray-800/50 backdrop-blur-xl rounded-xl border border-gray-700/50 shadow-xl p-3 sticky top-4">
+                            <h3 class="text-sm font-semibold text-white mb-3">Dostupni igrači</h3>
+                            <div id="availablePlayers" class="space-y-1.5 max-h-[calc(100vh-250px)] overflow-y-auto pr-2">
                                 @php
                                     $qualifiedPlayers = collect();
                                     foreach($competition->tournamentGroups as $group) {
@@ -85,18 +85,15 @@
                                 @endphp
                                 
                                 @foreach($qualifiedPlayers as $qualified)
-                                    <div class="player-item flex items-center p-3 bg-gray-700/30 rounded-lg border border-gray-600/30 hover:bg-gray-600/50 cursor-pointer transition-all"
+                                    <div class="player-item flex items-center p-2 bg-gray-700/30 rounded-lg border border-gray-600/30 hover:bg-gray-600/50 cursor-pointer transition-all"
                                          data-player-id="{{ $qualified['player']->id }}"
                                          data-player-name="{{ $qualified['player']->name }}"
                                          data-player-group="{{ $qualified['group'] }}"
                                          data-player-position="{{ $qualified['position'] }}"
                                          onclick="selectPlayerForKnockout({{ $qualified['player']->id }}, '{{ $qualified['player']->name }}', '{{ $qualified['group'] }}', {{ $qualified['position'] }}, this)">
-                                        <div class="flex items-center space-x-3 flex-1">
-                                            <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
-                                                <span class="text-white font-bold text-sm">{{ substr($qualified['player']->name, 0, 2) }}</span>
-                                            </div>
+                                        <div class="flex items-center space-x-2 flex-1">
                                             <div class="min-w-0 flex-1">
-                                                <div class="text-white font-medium truncate">{{ $qualified['player']->name }}</div>
+                                                <div class="text-white text-sm font-medium truncate">{{ $qualified['player']->name }}</div>
                                                 <div class="text-xs text-gray-400">{{ $qualified['group'] }}-{{ $qualified['position'] }}</div>
                                             </div>
                                         </div>
@@ -108,32 +105,32 @@
 
                     {{-- Knockout Bracket Slots --}}
                     <div class="lg:col-span-3">
-                        <div class="bg-gray-800/50 backdrop-blur-xl rounded-xl border border-gray-700/50 shadow-xl p-6">
-                            <div class="flex items-center justify-between mb-6">
-                                <h3 class="text-xl font-semibold text-white">Mečevi eliminacione faze</h3>
-                                <div class="flex space-x-3">
+                        <div class="bg-gray-800/50 backdrop-blur-xl rounded-xl border border-gray-700/50 shadow-xl p-4">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-base font-semibold text-white">Mečevi eliminacione faze</h3>
+                                <div class="flex space-x-2">
                                     <button type="button" onclick="applyJoolaSuggestion()" 
-                                            class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors font-semibold">
+                                            class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg transition-colors font-semibold text-sm">
                                         ✓ Prihvati JOOLA prijedlog
                                     </button>
                                     <button type="button" onclick="addPlayoffMatch()" 
-                                            class="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-lg transition-colors">
+                                            class="bg-yellow-600 hover:bg-yellow-700 text-white px-3 py-1.5 rounded-lg transition-colors text-sm">
                                         ➕ Dodaj Playoff meč
                                     </button>
                                 </div>
                             </div>
                             
-                            <div id="knockoutMatchesContainer" class="space-y-4 mb-6">
+                            <div id="knockoutMatchesContainer" class="space-y-3 mb-4">
                                 {{-- Matches will be dynamically generated --}}
                             </div>
 
-                            <div class="flex justify-between items-center pt-6 border-t border-gray-700">
+                            <div class="flex justify-between items-center pt-4 border-t border-gray-700">
                                 <a href="{{ route('organizations.competitions.show', [$organization, $competition]) }}" 
-                                   class="px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors">
+                                   class="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors text-sm">
                                     Odustani
                                 </a>
                                 <button type="button" onclick="saveManualKnockout()" 
-                                        class="px-8 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors font-semibold text-lg">
+                                        class="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors font-semibold text-sm">
                                     💾 Sačuvaj i generiši eliminacionu fazu
                                 </button>
                             </div>
@@ -199,24 +196,24 @@
             
             for (let i = 1; i <= knockoutMatchCount; i++) {
                 const matchDiv = document.createElement('div');
-                matchDiv.className = 'bg-gray-700/30 rounded-xl p-4 border border-gray-600/30';
+                matchDiv.className = 'bg-gray-700/30 rounded-lg p-3 border border-gray-600/30';
                 matchDiv.dataset.matchIndex = i;
                 matchDiv.innerHTML = `
-                    <div class="flex items-center justify-between mb-3">
-                        <h5 class="text-white font-semibold">Meč ${i}</h5>
-                        <span class="text-sm text-gray-400">${roundName}</span>
+                    <div class="flex items-center justify-between mb-2">
+                        <h5 class="text-white font-semibold text-sm">Meč ${i}</h5>
+                        <span class="text-xs text-gray-400">${roundName}</span>
                     </div>
-                    <div class="space-y-3">
-                        <div class="flex items-center space-x-3 p-3 bg-gray-600/30 rounded-lg min-h-[60px] knockout-slot cursor-pointer hover:bg-gray-600/50 transition-colors" 
+                    <div class="space-y-2">
+                        <div class="flex items-center space-x-2 p-2 bg-gray-600/30 rounded-lg min-h-[44px] knockout-slot cursor-pointer hover:bg-gray-600/50 transition-colors" 
                              data-match="${i}" data-position="home" 
                              onclick="toggleSlotSelection(this)">
-                            <span class="text-gray-400 text-sm">Klikni za odabir igrača...</span>
+                            <span class="text-gray-400 text-xs">Klikni za odabir...</span>
                         </div>
-                        <div class="text-center text-gray-500 text-sm font-semibold">VS</div>
-                        <div class="flex items-center space-x-3 p-3 bg-gray-600/30 rounded-lg min-h-[60px] knockout-slot cursor-pointer hover:bg-gray-600/50 transition-colors" 
+                        <div class="text-center text-gray-500 text-xs font-semibold">VS</div>
+                        <div class="flex items-center space-x-2 p-2 bg-gray-600/30 rounded-lg min-h-[44px] knockout-slot cursor-pointer hover:bg-gray-600/50 transition-colors" 
                              data-match="${i}" data-position="away" 
                              onclick="toggleSlotSelection(this)">
-                            <span class="text-gray-400 text-sm">Klikni za odabir igrača...</span>
+                            <span class="text-gray-400 text-xs">Klikni za odabir...</span>
                         </div>
                     </div>
                 `;
@@ -236,7 +233,7 @@
                 slot.classList.remove('ring-2', 'ring-blue-500', 'ring-green-500');
             });
             
-            const hasPlayer = slotElement.querySelector('.font-bold');
+            const hasPlayer = slotElement.querySelector('.font-bold') || slotElement.querySelector('.font-medium');
             if (hasPlayer) {
                 slotElement.classList.add('ring-2', 'ring-green-500');
             } else {
@@ -244,6 +241,16 @@
             }
             selectedSlot = slotElement;
         }
+        
+        // Select slot from bracket tree visualization
+        window.selectSlotFromTree = function(matchNumber, position) {
+            const slot = document.querySelector(`.knockout-slot[data-match="${matchNumber}"][data-position="${position}"]`);
+            if (slot) {
+                toggleSlotSelection(slot);
+                // Scroll to the slot in the main form
+                slot.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        };
 
         // Select player for knockout position
         function selectPlayerForKnockout(playerId, playerName, group, position, element) {
@@ -276,16 +283,26 @@
             const match = selectedSlot.dataset.match;
             const positionSlot = selectedSlot.dataset.position;
             
+            // Determine if player is winner or runner-up and set color
+            const isWinner = position === 1;
+            const borderColor = isWinner ? 'border-l-4 border-l-green-500' : 'border-l-4 border-l-yellow-500';
+            const bgColor = isWinner ? 'bg-green-500/10' : 'bg-yellow-500/10';
+            const icon = isWinner ? '🥇' : '🥈';
+            
             selectedSlot.innerHTML = `
-                <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
-                    <span class="text-white font-bold">${playerName.substring(0, 2)}</span>
-                </div>
-                <div class="flex-1">
-                    <div class="text-white font-semibold">${playerName}</div>
+                <div class="flex-1 ${borderColor} ${bgColor} pl-2 py-1 rounded">
+                    <div class="text-white font-medium text-sm">${icon} ${playerName}</div>
                     <div class="text-xs text-gray-400">${group}-${position}</div>
                 </div>
             `;
             selectedSlot.classList.remove('ring-2', 'ring-blue-500', 'ring-green-500');
+            
+            // Add data attribute for bracket tree detection
+            if (isWinner) {
+                selectedSlot.classList.add('has-winner');
+            } else {
+                selectedSlot.classList.add('has-runner-up');
+            }
             
             knockoutPlayers.push({
                 playerId: playerId,
@@ -305,7 +322,7 @@
             
             document.querySelectorAll('.knockout-slot').forEach(slot => {
                 if (!slot.dataset.match.startsWith('playoff-')) {
-                    slot.innerHTML = '<span class="text-gray-400 text-sm">Klikni za odabir igrača...</span>';
+                    slot.innerHTML = '<span class="text-gray-400 text-xs">Klikni za odabir...</span>';
                     slot.classList.remove('ring-2', 'ring-blue-500', 'ring-green-500');
                 }
             });
@@ -416,15 +433,25 @@
             const slot = document.querySelector(`.knockout-slot[data-match="${matchIndex}"][data-position="${position}"]`);
             if (!slot) return;
             
+            // Determine if player is winner or runner-up and set color
+            const isWinner = player.position === 1;
+            const borderColor = isWinner ? 'border-l-4 border-l-green-500' : 'border-l-4 border-l-yellow-500';
+            const bgColor = isWinner ? 'bg-green-500/10' : 'bg-yellow-500/10';
+            const icon = isWinner ? '🥇' : '🥈';
+            
             slot.innerHTML = `
-                <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
-                    <span class="text-white font-bold">${player.name.substring(0, 2)}</span>
-                </div>
-                <div class="flex-1">
-                    <div class="text-white font-semibold">${player.name}</div>
+                <div class="flex-1 ${borderColor} ${bgColor} pl-2 py-1 rounded">
+                    <div class="text-white font-medium text-sm">${icon} ${player.name}</div>
                     <div class="text-xs text-gray-400">${player.group}-${player.position}</div>
                 </div>
             `;
+            
+            // Add data attribute for bracket tree detection
+            if (isWinner) {
+                slot.classList.add('has-winner');
+            } else {
+                slot.classList.add('has-runner-up');
+            }
             
             knockoutPlayers.push({
                 playerId: player.id,
@@ -445,31 +472,31 @@
             const container = document.getElementById('knockoutMatchesContainer');
             
             const matchDiv = document.createElement('div');
-            matchDiv.className = 'bg-yellow-600/20 rounded-xl p-4 border-2 border-yellow-500/50 mt-4';
+            matchDiv.className = 'bg-yellow-600/20 rounded-lg p-3 border-2 border-yellow-500/50 mt-3';
             matchDiv.dataset.playoffIndex = playoffMatchCount;
             matchDiv.innerHTML = `
-                <div class="flex items-center justify-between mb-3">
-                    <h5 class="text-yellow-400 font-semibold">🏆 Playoff Meč ${playoffMatchCount}</h5>
-                    <button type="button" onclick="removePlayoffMatch(this)" class="text-red-400 hover:text-red-300 text-sm">
+                <div class="flex items-center justify-between mb-2">
+                    <h5 class="text-yellow-400 font-semibold text-sm">🏆 Playoff Meč ${playoffMatchCount}</h5>
+                    <button type="button" onclick="removePlayoffMatch(this)" class="text-red-400 hover:text-red-300 text-xs">
                         ❌ Ukloni
                     </button>
                 </div>
-                <div class="mb-3">
+                <div class="mb-2">
                     <input type="text" placeholder="Naziv (npr. Meč za 3. mjesto)" 
-                           class="w-full px-3 py-2 bg-gray-600/50 border border-gray-500 rounded-lg text-white"
+                           class="w-full px-2 py-1.5 bg-gray-600/50 border border-gray-500 rounded-lg text-white text-sm"
                            id="playoff-name-${playoffMatchCount}">
                 </div>
-                <div class="space-y-3">
-                    <div class="flex items-center space-x-3 p-3 bg-gray-600/30 rounded-lg min-h-[60px] knockout-slot cursor-pointer hover:bg-gray-600/50 transition-colors" 
+                <div class="space-y-2">
+                    <div class="flex items-center space-x-2 p-2 bg-gray-600/30 rounded-lg min-h-[44px] knockout-slot cursor-pointer hover:bg-gray-600/50 transition-colors" 
                          data-match="playoff-${playoffMatchCount}" data-position="home" 
                          onclick="toggleSlotSelection(this)">
-                        <span class="text-gray-400 text-sm">Klikni za odabir igrača...</span>
+                        <span class="text-gray-400 text-xs">Klikni za odabir...</span>
                     </div>
-                    <div class="text-center text-gray-500 text-sm font-semibold">VS</div>
-                    <div class="flex items-center space-x-3 p-3 bg-gray-600/30 rounded-lg min-h-[60px] knockout-slot cursor-pointer hover:bg-gray-600/50 transition-colors" 
+                    <div class="text-center text-gray-500 text-xs font-semibold">VS</div>
+                    <div class="flex items-center space-x-2 p-2 bg-gray-600/30 rounded-lg min-h-[44px] knockout-slot cursor-pointer hover:bg-gray-600/50 transition-colors" 
                          data-match="playoff-${playoffMatchCount}" data-position="away" 
                          onclick="toggleSlotSelection(this)">
-                        <span class="text-gray-400 text-sm">Klikni za odabir igrača...</span>
+                        <span class="text-gray-400 text-xs">Klikni za odabir...</span>
                     </div>
                 </div>
             `;
@@ -490,8 +517,25 @@
                 return;
             }
 
+            // Organize players by match number
+            const matchesData = {};
+            knockoutPlayers.forEach(player => {
+                if (!player.isPlayoff) {
+                    const matchNum = player.match;
+                    if (!matchesData[matchNum]) {
+                        matchesData[matchNum] = {};
+                    }
+                    
+                    if (player.position === 'home') {
+                        matchesData[matchNum].home_player_id = player.playerId;
+                    } else if (player.position === 'away') {
+                        matchesData[matchNum].away_player_id = player.playerId;
+                    }
+                }
+            });
+
             const bracketData = {
-                matches: knockoutPlayers,
+                matches: matchesData,
                 playoffMatches: []
             };
 
@@ -511,6 +555,7 @@
                 }
             });
 
+            console.log('Saving bracket data:', bracketData);
             document.getElementById('bracketDataInput').value = JSON.stringify(bracketData);
             
             const btn = event.target;
