@@ -107,15 +107,23 @@ class KnockoutBracketService
      */
     public function generateMatchesFromBracket(Competition $competition, array $bracket, int $roundNumber = 1): void
     {
+        $this->matchOrder = 1;
+        $this->generateMatchesRecursive($competition, $bracket, $roundNumber);
+    }
+    
+    private $matchOrder = 1;
+
+    private function generateMatchesRecursive(Competition $competition, array $bracket, int $roundNumber = 1): void
+    {
         if (isset($bracket['matches'])) {
             $this->createMatchesForRound($competition, $bracket['matches'], $roundNumber);
         } else {
             // Handle sub-brackets recursively
             if (isset($bracket['left'])) {
-                $this->generateMatchesFromBracket($competition, $bracket['left'], $roundNumber);
+                $this->generateMatchesRecursive($competition, $bracket['left'], $roundNumber);
             }
             if (isset($bracket['right'])) {
-                $this->generateMatchesFromBracket($competition, $bracket['right'], $roundNumber);
+                $this->generateMatchesRecursive($competition, $bracket['right'], $roundNumber);
             }
         }
     }
@@ -131,6 +139,7 @@ class KnockoutBracketService
             } else {
                 $this->createRegularMatch($competition, $matchData, $roundNumber);
             }
+            $this->matchOrder++;
         }
     }
 
@@ -145,6 +154,7 @@ class KnockoutBracketService
             'away_player_id' => null,
             'phase' => 'knockout',
             'round_number' => $roundNumber,
+            'match_order' => $this->matchOrder,
             'status' => 'completed',
             'home_score' => 1,
             'away_score' => 0,
@@ -164,6 +174,7 @@ class KnockoutBracketService
             'away_player_id' => $matchData['player2_id'],
             'phase' => 'knockout',
             'round_number' => $roundNumber,
+            'match_order' => $this->matchOrder,
             'status' => 'scheduled',
             'scheduled_at' => now(),
         ]);

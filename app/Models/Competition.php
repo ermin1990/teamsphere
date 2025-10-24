@@ -297,7 +297,7 @@ class Competition extends Model
     }
 
     /**
-     * Generate matches for all tournament groups.
+     * Generate matches for all tournament groups using Berger system.
      */
     public function generateGroupMatches()
     {
@@ -305,8 +305,11 @@ class Competition extends Model
             return;
         }
 
-        $groupService = app(TournamentGroupService::class);
-        $groupService->generateGroupMatches($this);
+        $bracketService = app(\App\Services\TournamentBracketService::class);
+
+        foreach ($this->tournamentGroups as $group) {
+            $bracketService->generateGroupMatches($this, $group);
+        }
     }
 
     /**
@@ -318,12 +321,9 @@ class Competition extends Model
             return;
         }
 
-        $bracketService = app(KnockoutBracketService::class);
-        $advancingPlayers = $bracketService->getAdvancingPlayers($this);
-
         // Only generate knockout bracket automatically if manual selection is disabled
         if (!$this->manual_knockout_selection) {
-            $this->generateKnockoutBracket($advancingPlayers);
+            $this->generateKnockoutBracket();
         }
 
         $this->update([
@@ -333,17 +333,14 @@ class Competition extends Model
     }
 
     /**
-     * Generate knockout bracket for this competition.
+     * Generate knockout bracket for this competition using JOOLA system.
      */
-    public function generateKnockoutBracket(array $playerIds = null)
+    public function generateKnockoutBracket()
     {
-        $bracketService = app(KnockoutBracketService::class);
-        $bracket = $bracketService->generateBracket($this, $playerIds);
-
-        $this->update(['knockout_bracket' => $bracket]);
-
-        // Generate matches from bracket
-        $bracketService->generateMatchesFromBracket($this, $bracket, 1);
+        $bracketService = app(\App\Services\TournamentBracketService::class);
+        $bracketService->generateJOOLAEliminationBracket($this);
+        
+        $this->update(['knockout_started_at' => now()]);
     }
 
     /**
