@@ -136,10 +136,12 @@ Route::middleware('auth')->group(function () {
     Route::post('organizations/{organization}/competitions/{competition}/complete', [CompetitionController::class, 'completeTournament'])->name('organizations.competitions.complete');
     Route::post('organizations/{organization}/competitions/{competition}/reset', [CompetitionController::class, 'reset'])->name('organizations.competitions.reset');
     Route::post('organizations/{organization}/competitions/{competition}/update-match-players', [CompetitionController::class, 'updateMatchPlayers'])->name('organizations.competitions.update-match-players');
+    Route::get('organizations/{organization}/competitions/{competition}/manual-knockout-setup', [CompetitionController::class, 'manualKnockoutSetup'])->name('organizations.competitions.manual-knockout-setup');
     Route::post('organizations/{organization}/competitions/{competition}/auto-generate-bracket', [CompetitionController::class, 'autoGenerateBracket'])->name('organizations.competitions.auto-generate-bracket');
     Route::post('organizations/{organization}/competitions/{competition}/generate-manual-knockout', [CompetitionController::class, 'generateManualKnockout'])->name('organizations.competitions.generate-manual-knockout');
     Route::post('organizations/{organization}/competitions/{competition}/generate-next-round', [CompetitionController::class, 'generateNextRound'])->name('organizations.competitions.generate-next-round');
-    Route::get('organizations/{organization}/competitions/{competition}/available-players', [CompetitionController::class, 'getAvailablePlayers'])->name('organizations.competitions.available-players');
+    Route::post('organizations/{organization}/competitions/{competition}/save-manual-bracket', [CompetitionController::class, 'saveManualBracket'])->name('organizations.competitions.save-manual-bracket');
+    Route::post('organizations/{organization}/competitions/{competition}/toggle-manual-mode', [CompetitionController::class, 'toggleManualMode'])->name('organizations.competitions.toggle-manual-mode');
     Route::delete('organizations/{organization}/competitions/{competition}', [CompetitionController::class, 'destroy'])->name('organizations.competitions.destroy');
 
     // League routes
