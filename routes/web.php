@@ -139,6 +139,12 @@ Route::middleware('auth')->group(function () {
     Route::post('organizations/{organization}/competitions/{competition}/update-match-players', [CompetitionController::class, 'updateMatchPlayers'])->name('organizations.competitions.update-match-players');
     Route::delete('organizations/{organization}/competitions/{competition}', [CompetitionController::class, 'destroy'])->name('organizations.competitions.destroy');
 
+    // Knockout phase routes
+    Route::get('organizations/{organization}/competitions/{competition}/knockout-setup', [CompetitionController::class, 'manualKnockoutSetup'])->name('organizations.competitions.knockout-setup');
+    Route::post('organizations/{organization}/competitions/{competition}/auto-generate-knockout', [CompetitionController::class, 'autoGenerateKnockout'])->name('organizations.competitions.auto-generate-knockout');
+    Route::post('organizations/{organization}/competitions/{competition}/save-manual-knockout', [CompetitionController::class, 'saveManualKnockout'])->name('organizations.competitions.save-manual-knockout');
+    Route::post('organizations/{organization}/competitions/{competition}/advance-knockout-round', [CompetitionController::class, 'advanceKnockoutRound'])->name('organizations.competitions.advance-knockout-round');
+
     // League routes
     Route::get('leagues/create/{organization}', [LeagueController::class, 'create'])->name('leagues.create');
     Route::get('leagues/{league}', [LeagueController::class, 'show'])->name('leagues.show');

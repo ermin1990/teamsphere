@@ -22,13 +22,29 @@
                 @endif
             </div>
             
-            {{-- Reset Button --}}
-            @if($isOwner && $groupMatches->count() > 0)
-                <button type="button" onclick="confirmResetGroupPhase()" 
-                        class="bg-red-600 hover:bg-red-700 text-white text-xs px-4 py-2 rounded-lg transition-colors font-semibold">
-                    🔄 Resetuj grupnu fazu
-                </button>
-            @endif
+            <div class="flex gap-2">
+                {{-- Knockout buttons (show when groups are completed) --}}
+                @if($isOwner && $allGroupMatchesCompleted && $knockoutMatches->count() === 0)
+                    <a href="{{ route('organizations.competitions.knockout-setup', [$organization, $competition]) }}"
+                       class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-4 py-2 rounded-lg transition-colors font-semibold">
+                        🎯 Ručno Postavi Knockout
+                    </a>
+                    <form method="POST" action="{{ route('organizations.competitions.auto-generate-knockout', [$organization, $competition]) }}" style="display: inline;">
+                        @csrf
+                        <button type="submit" class="bg-green-600 hover:bg-green-700 text-white text-xs px-4 py-2 rounded-lg transition-colors font-semibold">
+                            ⚡ Automatski Generiši
+                        </button>
+                    </form>
+                @endif
+            
+                {{-- Reset Button --}}
+                @if($isOwner && $groupMatches->count() > 0)
+                    <button type="button" onclick="confirmResetGroupPhase()" 
+                            class="bg-red-600 hover:bg-red-700 text-white text-xs px-4 py-2 rounded-lg transition-colors font-semibold">
+                        🔄 Resetuj grupnu fazu
+                    </button>
+                @endif
+            </div>
         </div>
     </div>
 

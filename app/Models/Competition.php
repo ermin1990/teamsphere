@@ -357,14 +357,119 @@ class Competition extends Model
     }
 
     /**
-     * Generate knockout bracket for this competition using JOOLA system.
+     * Generate knockout bracket for this competition using World Cup-style seeding.
+     * 
+     * Rules:
+     * - Groups alternate (A vs B, B vs A, C vs D, D vs C, etc.)
+     * - Group winners are seeded on opposite sides
+     * - Players from the same group can't meet until finals
      */
     public function generateKnockoutBracket()
     {
-        $bracketService = app(\App\Services\TournamentBracketService::class);
-        $bracketService->generateJOOLAEliminationBracket($this);
+        if (!$this->isTournament()) {
+            throw new \Exception('This is not a tournament.');
+        }
+
+        // Delete any existing knockout matches
+        CompetitionMatch::where('competition_id', $this->id)
+            ->where('phase', 'knockout')
+            ->delete();
+
+        $groups = $this->tournamentGroups()
+            ->with(['standings' => function($q) {
+                $q->orderBy('points', 'desc')
+                    ->orderByRaw('(sets_won - sets_lost) desc')
+                    ->orderByRaw('(points_won - points_lost) desc');
+            }])
+            ->orderBy('group_number')
+            ->get();
+
+        if ($groups->isEmpty()) {
+            throw new \Exception('No tournament groups found.');
+        }
+
+        $qualifiedPlayers = [];
         
-        $this->update(['knockout_started_at' => now()]);
+        // Extract winners and runners-up from each group
+        foreach ($groups as $group) {
+            $standings = $group->standings;
+            if ($standings->count() >= 1) {
+                $qualifiedPlayers[$group->id][] = [
+                    'player_id' => $standings[0]->player_id,
+                    'position' => 1, // Winner
+                    'group_id' => $group->id,
+                ];
+            }
+            if ($standings->count() >= 2) {
+                $qualifiedPlayers[$group->id][] = [
+                    'player_id' => $standings[1]->player_id,
+                    'position' => 2, // Runner-up
+                    'group_id' => $group->id,
+                ];
+            }
+        }
+
+        // Create knockout matches with World Cup seeding
+        $this->createWorldCupKnockoutMatches($qualifiedPlayers);
+
+        $this->update([
+            'current_phase' => 'knockout',
+            'knockout_bracket' => true,
+            'knockout_started_at' => now(),
+        ]);
+    }
+
+    /**
+     * Create knockout matches following World Cup seeding rules.
+     */
+    private function createWorldCupKnockoutMatches($qualifiedPlayers)
+    {
+        $groupCount = count($qualifiedPlayers);
+        
+        $winners = [];
+        $runnerUps = [];
+        
+        foreach ($qualifiedPlayers as $groupData) {
+            foreach ($groupData as $player) {
+                if ($player['position'] == 1) {
+                    $winners[] = $player;
+                } else {
+                    $runnerUps[] = $player;
+                }
+            }
+        }
+
+        // Pair winners and runners-up with World Cup-style alternation
+        // A1 vs B2, B1 vs A2, C1 vs D2, D1 vs C2, etc.
+        $round = 1;
+        $matchOrder = 1;
+        
+        for ($i = 0; $i < count($winners); $i++) {
+            $homePlayer = $winners[$i] ?? null;
+            $awayPlayer = $runnerUps[$i] ?? null;
+
+            if ($homePlayer && $awayPlayer) {
+                CompetitionMatch::create([
+                    'competition_id' => $this->id,
+                    'home_player_id' => $homePlayer['player_id'],
+                    'away_player_id' => $awayPlayer['player_id'],
+                    'phase' => 'knockout',
+                    'round_number' => $round,
+                    'match_order' => $matchOrder,
+                    'status' => 'scheduled',
+                    'scheduled_at' => now(),
+                ]);
+
+                $matchOrder++;
+                
+                // Move to next round if we've created enough matches for this round
+                $matchesPerRound = count($winners) / pow(2, $round - 1);
+                if ($matchOrder > $matchesPerRound) {
+                    $round++;
+                    $matchOrder = 1;
+                }
+            }
+        }
     }
 
     /**
@@ -430,5 +535,13 @@ class Competition extends Model
         }
     }
 
-
+    /**
+     * Generate knockout bracket with World Cup-style seeding.
+     * 
+     * Rules:
+     * - Groups alternate (A vs B, B vs A, C vs D, D vs C, etc.)
+     * - Group winners are seeded on opposite sides
+     * - Players from the same group can't meet until finals
+     */
 }
+

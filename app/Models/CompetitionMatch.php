@@ -36,6 +36,7 @@ class CompetitionMatch extends Model
         'phase',
         'tournament_group_id',
         'round_number',
+        'match_order',
         'bracket_position',
         'is_bye',
     ];
@@ -54,6 +55,7 @@ class CompetitionMatch extends Model
         'current_server' => 'string',
         // Tournament casts
         'round_number' => 'integer',
+        'match_order' => 'integer',
         'bracket_position' => 'integer',
         'is_bye' => 'boolean',
     ];
