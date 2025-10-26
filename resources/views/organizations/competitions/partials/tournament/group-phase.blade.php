@@ -15,17 +15,6 @@
                     <span class="px-3 py-1 text-xs rounded-full bg-green-600/20 text-green-400">
                         ✓ Završeno
                     </span>
-                    @if($isOwner && $knockoutMatches->count() === 0)
-                        {{-- Show buttons to generate knockout bracket --}}
-                        <button type="button" onclick="autoGenerateBracket()" 
-                                class="ml-2 bg-green-600 hover:bg-green-700 text-white text-xs px-4 py-2 rounded-lg transition-colors font-semibold">
-                            🔄 Automatski generiši eliminacionu fazu
-                        </button>
-                        <a href="{{ route('organizations.competitions.manual-knockout-setup', [$organization, $competition]) }}" 
-                           class="inline-flex items-center bg-orange-600 hover:bg-orange-700 text-white text-xs px-4 py-2 rounded-lg transition-colors font-semibold">
-                            🎯 Ručno postavi eliminacionu fazu
-                        </a>
-                    @endif
                 @else
                     <span class="px-3 py-1 text-xs rounded-full bg-yellow-600/20 text-yellow-400">
                         ⏳ U toku

@@ -123,6 +123,8 @@ Route::middleware('auth')->group(function () {
     Route::get('organizations/{organization}/competitions/{competition}', [CompetitionController::class, 'show'])->name('organizations.competitions.show');
     Route::patch('organizations/{organization}/competitions/{competition}', [CompetitionController::class, 'update'])->name('organizations.competitions.update');
     Route::post('organizations/{organization}/competitions/{competition}/add-player', [CompetitionController::class, 'addPlayer'])->name('organizations.competitions.add-player');
+    Route::get('organizations/{organization}/competitions/{competition}/bulk-import', [CompetitionController::class, 'showBulkImport'])->name('organizations.competitions.bulk-import');
+    Route::post('organizations/{organization}/competitions/{competition}/bulk-import-players', [CompetitionController::class, 'bulkImportPlayers'])->name('organizations.competitions.bulk-import-players');
     Route::delete('organizations/{organization}/competitions/{competition}/players/{player}', [CompetitionController::class, 'removePlayer'])->name('organizations.competitions.remove-player');
     Route::get('organizations/{organization}/competitions/{competition}/manage-players', [CompetitionController::class, 'managePlayers'])->name('organizations.competitions.manage-players');
     Route::get('organizations/{organization}/competitions/{competition}/setup-groups', [CompetitionController::class, 'setupGroups'])->name('organizations.competitions.setup-groups');
@@ -131,20 +133,10 @@ Route::middleware('auth')->group(function () {
     Route::post('organizations/{organization}/competitions/{competition}/settings', [CompetitionController::class, 'updateSettings'])->name('organizations.competitions.update-settings');
     Route::post('organizations/{organization}/competitions/{competition}/start', [CompetitionController::class, 'startCompetition'])->name('organizations.competitions.start');
     Route::post('organizations/{organization}/competitions/{competition}/generate-groups', [CompetitionController::class, 'generateGroups'])->name('organizations.competitions.generate-groups');
-    Route::post('organizations/{organization}/competitions/{competition}/advance-groups', [CompetitionController::class, 'advanceFromGroups'])->name('organizations.competitions.advance-groups');
     Route::post('organizations/{organization}/competitions/{competition}/groups/{group}/advance', [CompetitionController::class, 'advanceGroupPlayers'])->name('organizations.competitions.groups.advance');
     Route::post('organizations/{organization}/competitions/{competition}/complete', [CompetitionController::class, 'completeTournament'])->name('organizations.competitions.complete');
     Route::post('organizations/{organization}/competitions/{competition}/reset', [CompetitionController::class, 'reset'])->name('organizations.competitions.reset');
     Route::post('organizations/{organization}/competitions/{competition}/update-match-players', [CompetitionController::class, 'updateMatchPlayers'])->name('organizations.competitions.update-match-players');
-    Route::get('organizations/{organization}/competitions/{competition}/manual-knockout-setup', [CompetitionController::class, 'manualKnockoutSetup'])->name('organizations.competitions.manual-knockout-setup');
-    Route::post('organizations/{organization}/competitions/{competition}/auto-generate-bracket', [CompetitionController::class, 'autoGenerateBracket'])->name('organizations.competitions.auto-generate-bracket');
-    Route::post('organizations/{organization}/competitions/{competition}/generate-manual-knockout', [CompetitionController::class, 'generateManualKnockout'])->name('organizations.competitions.generate-manual-knockout');
-    Route::post('organizations/{organization}/competitions/{competition}/generate-next-round', [CompetitionController::class, 'generateNextRound'])->name('organizations.competitions.generate-next-round');
-    Route::post('organizations/{organization}/competitions/{competition}/save-manual-bracket', [CompetitionController::class, 'saveManualBracket'])->name('organizations.competitions.save-manual-bracket');
-    Route::post('organizations/{organization}/competitions/{competition}/toggle-manual-mode', [CompetitionController::class, 'toggleManualMode'])->name('organizations.competitions.toggle-manual-mode');
-    Route::post('organizations/{organization}/competitions/{competition}/reset-group-phase', [CompetitionController::class, 'resetGroupPhase'])->name('organizations.competitions.reset-group-phase');
-    Route::post('organizations/{organization}/competitions/{competition}/reset-knockout-phase', [CompetitionController::class, 'resetKnockoutPhase'])->name('organizations.competitions.reset-knockout-phase');
-    Route::get('organizations/{organization}/competitions/{competition}/export-pdf', [CompetitionController::class, 'exportPDF'])->name('organizations.competitions.export-pdf');
     Route::delete('organizations/{organization}/competitions/{competition}', [CompetitionController::class, 'destroy'])->name('organizations.competitions.destroy');
 
     // League routes

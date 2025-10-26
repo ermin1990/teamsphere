@@ -53,7 +53,7 @@ class AddPlayerToCompetition extends Component
             });
         }
 
-        return $query->paginate(20);
+        return $query->paginate(10);
     }
 
     public function addSelectedPlayers()

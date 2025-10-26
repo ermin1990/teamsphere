@@ -147,7 +147,7 @@
                     <h1 class="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent mb-1">
                         Match Details
                     </h1>
-                    <p class="text-sm text-gray-400 mb-3">Round {{ $match->round }}</p>
+                    <p class="text-sm text-gray-400 mb-3">Round {{ $match->round_number ?? $match->round }}</p>
                     
                     <!-- Match Info -->
                     <div class="flex flex-wrap justify-center gap-2">

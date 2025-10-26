@@ -182,6 +182,10 @@
                     <div class="bg-gray-800/50 backdrop-blur-xl rounded-xl p-5 border border-gray-700/50 shadow-xl">
                         <h3 class="text-base font-bold text-white mb-3">{{ __('Quick Actions') }}</h3>
                         <div class="space-y-2">
+                            <a href="{{ route('organizations.competitions.bulk-import', [$organization, $competition]) }}"
+                               class="block w-full bg-purple-600 hover:bg-purple-700 text-white text-center text-sm px-4 py-2 rounded-lg transition-colors flex items-center justify-center">
+                                📄 {{ __('Bulk Import Players') }}
+                            </a>
                             <a href="{{ route('organizations.competitions.show', [$organization, $competition]) }}"
                                class="block w-full bg-gray-600 hover:bg-gray-700 text-white text-center text-sm px-4 py-2 rounded-lg transition-colors">
                                 ← {{ __('Back to Competition') }}

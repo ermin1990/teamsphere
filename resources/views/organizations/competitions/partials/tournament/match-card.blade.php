@@ -12,7 +12,7 @@
                     <span class="text-white text-xs truncate">{{ $match->homePlayer->name ?? 'TBD' }}</span>
                 </div>
                 <span class="text-lg font-bold ml-2 flex-shrink-0
-                    @if($match->status === 'completed' && $match->home_score > $match->away_score) text-green-400
+                    @if($match->status === 'completed' && $match->home_score > $match->away_score && $match->homePlayer) text-green-400
                     @elseif($match->status === 'completed') text-gray-500
                     @else text-white @endif">
                     {{ $match->status !== 'scheduled' ? ($match->home_score ?? 0) : '-' }}
@@ -28,7 +28,7 @@
                     <span class="text-white text-xs truncate">{{ $match->awayPlayer->name ?? 'TBD' }}</span>
                 </div>
                 <span class="text-lg font-bold ml-2 flex-shrink-0
-                    @if($match->status === 'completed' && $match->away_score > $match->home_score) text-green-400
+                    @if($match->status === 'completed' && $match->away_score > $match->home_score && $match->awayPlayer) text-green-400
                     @elseif($match->status === 'completed') text-gray-500
                     @else text-white @endif">
                     {{ $match->status !== 'scheduled' ? ($match->away_score ?? 0) : '-' }}

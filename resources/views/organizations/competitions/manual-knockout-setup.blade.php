@@ -38,11 +38,13 @@
                             <div>
                                 <p class="font-semibold mb-1.5">Kako koristiti:</p>
                                 <ul class="space-y-0.5 text-xs">
-                                    <li>• <strong>Prihvati prijedlog</strong> - Resetuj na JOOLA parove</li>
-                                    <li>• <strong>Ručna izmjena</strong> - Klikni prazan slot (plavi okvir)</li>
-                                    <li>• <strong>Odabir igrača</strong> - Klikni igrača sa lijeve strane</li>
-                                    <li>• <strong>Zamjena</strong> - Klikni popunjen slot (zeleni okvir), pa izaberi drugog</li>
-                                    <li>• <strong>Playoff mečevi</strong> - Dodaj mečeve za razigravanje (3. mjesto, itd.)</li>
+                                    <li>• <strong>Prihvati prijedlog</strong> - Automatski rasporedi po JOOLA sistemu</li>
+                                    <li>• <strong>Odabir pozicije</strong> - Klikni na slot (plavi ili zeleni okvir)</li>
+                                    <li>• <strong>Dodaj igrača</strong> - Klikni igrača sa lijeve strane</li>
+                                    <li>• <strong>Zamijeni igrača</strong> - Klikni slot sa igračem, pa izaberi drugog</li>
+                                    <li>• <strong>Ukloni igrača</strong> - Klikni ❌ dugme pored imena</li>
+                                    <li>• <strong>BYE pozicije</strong> - Prazni slotovi = automatsko pobjednički status</li>
+                                    <li>• <strong>Playoff mečevi</strong> - Dodaj mečeve za 3. mjesto, itd.</li>
                                 </ul>
                             </div>
                         </div>
@@ -214,13 +216,13 @@
                         <div class="flex items-center space-x-2 p-2 bg-gray-600/30 rounded-lg min-h-[44px] knockout-slot cursor-pointer hover:bg-gray-600/50 transition-colors" 
                              data-match="${i}" data-position="home" 
                              onclick="toggleSlotSelection(this)">
-                            <span class="text-gray-400 text-xs">Klikni za odabir...</span>
+                            <span class="text-gray-400 text-xs">Klikni za odabir (ili ostavi prazno za BYE)</span>
                         </div>
                         <div class="text-center text-gray-500 text-xs font-semibold">VS</div>
                         <div class="flex items-center space-x-2 p-2 bg-gray-600/30 rounded-lg min-h-[44px] knockout-slot cursor-pointer hover:bg-gray-600/50 transition-colors" 
                              data-match="${i}" data-position="away" 
                              onclick="toggleSlotSelection(this)">
-                            <span class="text-gray-400 text-xs">Klikni za odabir...</span>
+                            <span class="text-gray-400 text-xs">Klikni za odabir (ili ostavi prazno za BYE)</span>
                         </div>
                     </div>
                 `;
@@ -262,23 +264,26 @@
         // Select player for knockout position
         function selectPlayerForKnockout(playerId, playerName, group, position, element) {
             if (!selectedSlot) {
-                alert('Prvo odaberite poziciju u eliminacionoj fazi (kliknite na prazan slot)');
+                alert('Prvo odaberite poziciju u eliminacionoj fazi (kliknite na slot - plavi ili zeleni okvir)');
                 return;
             }
 
+            // Remove player from previous assignment if exists
             const existingAssignment = knockoutPlayers.find(p => p.playerId === playerId);
             if (existingAssignment) {
                 knockoutPlayers = knockoutPlayers.filter(p => p.playerId !== playerId);
                 const oldSlot = document.querySelector(`.knockout-slot[data-match="${existingAssignment.match}"][data-position="${existingAssignment.position}"]`);
-                if (oldSlot && !oldSlot.dataset.match.startsWith('playoff-')) {
-                    oldSlot.innerHTML = '<span class="text-gray-400 text-sm">Klikni za odabir igrača...</span>';
+                if (oldSlot) {
+                    oldSlot.innerHTML = '<span class="text-gray-400 text-xs">Klikni za odabir...</span>';
+                    oldSlot.classList.remove('has-winner', 'has-runner-up');
                 }
             }
             
             const slotMatch = selectedSlot.dataset.match;
             const slotPosition = selectedSlot.dataset.position;
-            const existingInSlot = knockoutPlayers.find(p => p.match == slotMatch && p.position === slotPosition);
             
+            // Remove player currently in selected slot
+            const existingInSlot = knockoutPlayers.find(p => p.match == slotMatch && p.position === slotPosition);
             if (existingInSlot) {
                 const oldPlayerElement = document.querySelector(`#availablePlayers .player-item[data-player-id="${existingInSlot.playerId}"]`);
                 if (oldPlayerElement) {
@@ -301,6 +306,11 @@
                     <div class="text-white font-medium text-sm">${icon} ${playerName}</div>
                     <div class="text-xs text-gray-400">${group}-${position}</div>
                 </div>
+                <button type="button" onclick="clearSlot('${match}', '${positionSlot}'); event.stopPropagation();" 
+                        class="text-red-400 hover:text-red-300 text-xs px-2 py-1 rounded transition-colors"
+                        title="Ukloni igrača">
+                    ❌
+                </button>
             `;
             selectedSlot.classList.remove('ring-2', 'ring-blue-500', 'ring-green-500');
             
@@ -316,24 +326,49 @@
                 playerName: playerName,
                 match: match,
                 position: positionSlot,
-                isPlayoff: false
+                isPlayoff: match.toString().startsWith('playoff-')
             });
 
             element.classList.add('opacity-50', 'pointer-events-none');
             selectedSlot = null;
         }
 
+        // Clear a slot
+        function clearSlot(match, position) {
+            const slot = document.querySelector(`.knockout-slot[data-match="${match}"][data-position="${position}"]`);
+            if (!slot) return;
+            
+            // Find and remove player from knockoutPlayers
+            const existingPlayer = knockoutPlayers.find(p => p.match == match && p.position === position);
+            if (existingPlayer) {
+                knockoutPlayers = knockoutPlayers.filter(p => !(p.match == match && p.position === position));
+                
+                // Re-enable player in available list
+                const playerElement = document.querySelector(`#availablePlayers .player-item[data-player-id="${existingPlayer.playerId}"]`);
+                if (playerElement) {
+                    playerElement.classList.remove('opacity-50', 'pointer-events-none');
+                }
+            }
+            
+            // Clear slot UI
+            slot.innerHTML = '<span class="text-gray-400 text-xs">Klikni za odabir...</span>';
+            slot.classList.remove('has-winner', 'has-runner-up', 'ring-2', 'ring-blue-500', 'ring-green-500');
+        }
+
         // Apply JOOLA suggestion
         function applyJoolaSuggestion() {
+            // Clear all existing assignments
             knockoutPlayers = [];
             
+            // Reset all slots (except playoff)
             document.querySelectorAll('.knockout-slot').forEach(slot => {
                 if (!slot.dataset.match.startsWith('playoff-')) {
                     slot.innerHTML = '<span class="text-gray-400 text-xs">Klikni za odabir...</span>';
-                    slot.classList.remove('ring-2', 'ring-blue-500', 'ring-green-500');
+                    slot.classList.remove('ring-2', 'ring-blue-500', 'ring-green-500', 'has-winner', 'has-runner-up');
                 }
             });
             
+            // Re-enable all players
             document.querySelectorAll('#availablePlayers .player-item').forEach(el => {
                 el.classList.remove('opacity-50', 'pointer-events-none');
             });
@@ -433,7 +468,7 @@
                 }
             }
             
-            console.log('Applied JOOLA suggestion');
+            console.log('Applied JOOLA suggestion with editable slots');
         }
 
         // Load existing matches from database
@@ -491,6 +526,11 @@
                     <div class="text-white font-medium text-sm">${icon} ${player.name}</div>
                     <div class="text-xs text-gray-400">${player.group}-${player.position}</div>
                 </div>
+                <button type="button" onclick="clearSlot('${matchIndex}', '${position}'); event.stopPropagation();" 
+                        class="text-red-400 hover:text-red-300 text-xs px-2 py-1 rounded transition-colors"
+                        title="Ukloni igrača">
+                    ❌
+                </button>
             `;
             
             // Add data attribute for bracket tree detection
@@ -518,6 +558,23 @@
             playoffMatchCount++;
             const container = document.getElementById('knockoutMatchesContainer');
             
+            // Count existing playoff matches to determine the next number
+            const existingPlayoffNames = Array.from(document.querySelectorAll('[id^="playoff-name-"]'))
+                .map(input => input.value)
+                .filter(name => name && name.includes('Playoff Meč'));
+            
+            let nextNumber = 1;
+            if (existingPlayoffNames.length > 0) {
+                // Find the highest number used
+                const numbers = existingPlayoffNames.map(name => {
+                    const match = name.match(/Playoff Meč(?: (\d+))?/);
+                    return match && match[1] ? parseInt(match[1]) : 1;
+                });
+                nextNumber = Math.max(...numbers) + 1;
+            }
+            
+            const defaultName = nextNumber === 1 ? 'Playoff Meč' : `Playoff Meč ${nextNumber}`;
+            
             const matchDiv = document.createElement('div');
             matchDiv.className = 'bg-yellow-600/20 rounded-lg p-3 border-2 border-yellow-500/50 mt-3';
             matchDiv.dataset.playoffIndex = playoffMatchCount;
@@ -531,7 +588,7 @@
                 <div class="mb-2">
                     <input type="text" placeholder="Naziv (npr. Meč za 3. mjesto)" 
                            class="w-full px-2 py-1.5 bg-gray-600/50 border border-gray-500 rounded-lg text-white text-sm"
-                           id="playoff-name-${playoffMatchCount}">
+                           id="playoff-name-${playoffMatchCount}" value="${defaultName}">
                 </div>
                 <div class="space-y-2">
                     <div class="flex items-center space-x-2 p-2 bg-gray-600/30 rounded-lg min-h-[44px] knockout-slot cursor-pointer hover:bg-gray-600/50 transition-colors" 
@@ -559,19 +616,27 @@
             const totalSlots = knockoutMatchCount * 2;
             const mainBracketPlayers = knockoutPlayers.filter(p => !p.isPlayoff);
             
-            if (mainBracketPlayers.length < totalSlots) {
-                alert(`Molimo popunite sve pozicije u eliminacionoj fazi (${mainBracketPlayers.length}/${totalSlots})`);
+            // Allow saving with empty slots (BYE positions)
+            if (mainBracketPlayers.length === 0) {
+                alert('Molimo dodajte bar jednog igrača u eliminacionu fazu');
                 return;
             }
 
             // Organize players by match number
             const matchesData = {};
+            
+            // Initialize all matches with null values
+            for (let i = 1; i <= knockoutMatchCount; i++) {
+                matchesData[i] = {
+                    home_player_id: null,
+                    away_player_id: null
+                };
+            }
+            
+            // Fill in assigned players
             knockoutPlayers.forEach(player => {
                 if (!player.isPlayoff) {
                     const matchNum = player.match;
-                    if (!matchesData[matchNum]) {
-                        matchesData[matchNum] = {};
-                    }
                     
                     if (player.position === 'home') {
                         matchesData[matchNum].home_player_id = player.playerId;

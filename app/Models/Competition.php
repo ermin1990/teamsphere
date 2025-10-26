@@ -285,6 +285,30 @@ class Competition extends Model
         return $groups;
     }
 
+    /**
+     * Initialize standings for a group.
+     */
+    private function initializeGroupStandings(array $playerIds): array
+    {
+        $standings = [];
+        
+        foreach ($playerIds as $playerId) {
+            $standings[] = [
+                'player_id' => $playerId,
+                'played' => 0,
+                'won' => 0,
+                'drawn' => 0,
+                'lost' => 0,
+                'points' => 0,
+                'sets_won' => 0,
+                'sets_lost' => 0,
+                'points_won' => 0,
+                'points_lost' => 0,
+            ];
+        }
+        
+        return $standings;
+    }
 
 
         /**
@@ -371,23 +395,9 @@ class Competition extends Model
             return; // Not enough participants
         }
 
-        // Generate round-robin matches (each participant plays every other participant once)
-        $round = 1;
-        for ($i = 0; $i < count($participantIds); $i++) {
-            for ($j = $i + 1; $j < count($participantIds); $j++) {
-                CompetitionMatch::create([
-                    'competition_id' => $this->id,
-                    'home_team_id' => $this->is_team_based ? $participantIds[$i] : null,
-                    'away_team_id' => $this->is_team_based ? $participantIds[$j] : null,
-                    'home_player_id' => !$this->is_team_based ? $participantIds[$i] : null,
-                    'away_player_id' => !$this->is_team_based ? $participantIds[$j] : null,
-                    'round' => $round,
-                    'status' => 'scheduled',
-                    'scheduled_at' => $this->start_date?->addDays($round - 1),
-                ]);
-                $round++;
-            }
-        }
+        // Use Berger schedule service to generate round-robin matches
+        $bergerService = app(\App\Services\BergerScheduleService::class);
+        $bergerService->generateLeagueMatches($this, $participantIds);
     }
 
     /**
