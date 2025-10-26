@@ -187,8 +187,7 @@ class CompetitionController extends Controller
             ->with('homePlayer', 'awayPlayer')
             ->orderBy('round_number')
             ->orderBy('match_order')
-            ->get()
-            ->groupBy('round_number');
+            ->get();
 
         return view('organizations.competitions.show', compact('organization', 'competition', 'isOwner', 'isPlayer', 'isReferee', 'knockoutMatches'));
     }
