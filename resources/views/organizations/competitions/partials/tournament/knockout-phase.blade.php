@@ -28,6 +28,7 @@
             @endphp
 
             @foreach($groupedByRound as $round => $roundMatches)
+                @if(is_iterable($roundMatches))
                 <div class="flex flex-col justify-around min-h-[400px] gap-4">
                     {{-- Round title --}}
                     <div class="text-center mb-4">
@@ -113,6 +114,7 @@
                         @endforeach
                     </div>
                 </div>
+            @endif
             @endforeach
         </div>
     </div>
