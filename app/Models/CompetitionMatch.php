@@ -121,9 +121,18 @@ class CompetitionMatch extends Model
      */
     public function getWinnerAttribute()
     {
-        // Handle bye matches
+        // Handle bye matches FIRST - they are auto-completed but have no scores
         if ($this->is_bye) {
-            return $this->home_player_id ? $this->homePlayer : $this->homeTeam;
+            // Bye match can have player in either home or away position
+            if ($this->home_player_id) {
+                return $this->homePlayer;
+            } elseif ($this->away_player_id) {
+                return $this->awayPlayer;
+            } elseif ($this->home_team_id) {
+                return $this->homeTeam;
+            } elseif ($this->away_team_id) {
+                return $this->awayTeam;
+            }
         }
 
         // Handle forfeited matches
@@ -135,7 +144,7 @@ class CompetitionMatch extends Model
             }
         }
 
-        // Handle completed matches
+        // Handle completed matches with scores
         if ($this->status === 'completed') {
             if (($this->home_score ?? 0) > ($this->away_score ?? 0)) {
                 return $this->home_team_id ? $this->homeTeam : $this->homePlayer;
@@ -145,6 +154,14 @@ class CompetitionMatch extends Model
         }
 
         return null;
+    }
+
+    /**
+     * Get the winner of this match (method version).
+     */
+    public function getWinner()
+    {
+        return $this->winner;
     }
 
     /**

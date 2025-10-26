@@ -1,4 +1,4 @@
-{{-- Scripts - Placeholder --}}
+
 <script>
     let currentMatchId = null;
     let setScoreCount = 0;
@@ -61,3 +61,4 @@
         }
     });
 </script>
+<?php /**PATH C:\Users\ermin\Projekti\teamsphere\resources\views/organizations/competitions/partials/scripts.blade.php ENDPATH**/ ?>

@@ -448,15 +448,18 @@ class Competition extends Model
             $homePlayer = $winners[$i] ?? null;
             $awayPlayer = $runnerUps[$i] ?? null;
 
-            if ($homePlayer && $awayPlayer) {
+            if ($homePlayer || $awayPlayer) {
+                $isBye = ($homePlayer && !$awayPlayer) || (!$homePlayer && $awayPlayer);
+                
                 CompetitionMatch::create([
                     'competition_id' => $this->id,
-                    'home_player_id' => $homePlayer['player_id'],
-                    'away_player_id' => $awayPlayer['player_id'],
+                    'home_player_id' => $homePlayer['player_id'] ?? null,
+                    'away_player_id' => $awayPlayer['player_id'] ?? null,
                     'phase' => 'knockout',
                     'round_number' => $round,
                     'match_order' => $matchOrder,
-                    'status' => 'scheduled',
+                    'status' => $isBye ? 'completed' : 'scheduled',
+                    'is_bye' => $isBye,
                     'scheduled_at' => now(),
                 ]);
 
@@ -543,5 +546,79 @@ class Competition extends Model
      * - Group winners are seeded on opposite sides
      * - Players from the same group can't meet until finals
      */
+
+    /**
+     * Advance to next knockout round by creating matches from winners.
+     */
+    public function advanceKnockoutRound($currentRound)
+    {
+        // Get all completed matches from the current round
+        $completedMatches = CompetitionMatch::where('competition_id', $this->id)
+            ->where('phase', 'knockout')
+            ->where('round_number', $currentRound)
+            ->where('status', 'completed')
+            ->orderBy('match_order')
+            ->get();
+
+        if ($completedMatches->isEmpty()) {
+            throw new \Exception('No completed matches found in round ' . $currentRound);
+        }
+
+        // Check if all matches in current round are completed
+        $totalMatches = CompetitionMatch::where('competition_id', $this->id)
+            ->where('phase', 'knockout')
+            ->where('round_number', $currentRound)
+            ->count();
+
+        if ($completedMatches->count() !== $totalMatches) {
+            throw new \Exception('Not all matches in round ' . $currentRound . ' are completed yet');
+        }
+
+        // Get winners from each match
+        $winners = [];
+        foreach ($completedMatches as $match) {
+            $winner = $match->getWinner();
+            if ($winner) {
+                $winners[] = $winner->id;
+            }
+        }
+
+        if (empty($winners)) {
+            throw new \Exception('No winners found');
+        }
+
+        // If only 1 winner, tournament is completed
+        if (count($winners) === 1) {
+            $this->completeTournament();
+            return;
+        }
+
+        // Create next round matches by pairing winners
+        $nextRound = $currentRound + 1;
+        $matchOrder = 1;
+
+        for ($i = 0; $i < count($winners); $i += 2) {
+            // Check if we have both players or just one (bye)
+            $homePlayerId = $winners[$i] ?? null;
+            $awayPlayerId = $winners[$i + 1] ?? null;
+            
+            if ($homePlayerId || $awayPlayerId) {
+                $isBye = ($homePlayerId && !$awayPlayerId) || (!$homePlayerId && $awayPlayerId);
+                
+                CompetitionMatch::create([
+                    'competition_id' => $this->id,
+                    'home_player_id' => $homePlayerId,
+                    'away_player_id' => $awayPlayerId,
+                    'phase' => 'knockout',
+                    'round_number' => $nextRound,
+                    'match_order' => $matchOrder++,
+                    'status' => $isBye ? 'completed' : 'scheduled',
+                    'is_bye' => $isBye,
+                    'scheduled_at' => now(),
+                ]);
+            }
+        }
+    }
 }
+
 

@@ -1,22 +1,31 @@
-<x-app-layout>
+<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginal9ac128a9029c0e4701924bd2d73d7f54 = $attributes; } ?>
+<?php $component = App\View\Components\AppLayout::resolve([] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('app-layout'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\App\View\Components\AppLayout::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes([]); ?>
     <div class="py-8">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             
-            {{-- Header --}}
+            
             <div class="mb-4">
                 <div class="flex items-center justify-between">
                     <div>
                         <h1 class="text-2xl font-bold text-white mb-1">🎯 Ručno postavljanje eliminacione faze</h1>
-                        <p class="text-sm text-gray-400">{{ $competition->name }} - {{ $organization->name }}</p>
+                        <p class="text-sm text-gray-400"><?php echo e($competition->name); ?> - <?php echo e($organization->name); ?></p>
                     </div>
-                    <a href="{{ route('organizations.competitions.show', [$organization, $competition]) }}" 
+                    <a href="<?php echo e(route('organizations.competitions.show', [$organization, $competition])); ?>" 
                        class="bg-gray-600 hover:bg-gray-700 text-white px-3 py-1.5 rounded-lg transition-colors text-sm">
                         ← Nazad na turnir
                     </a>
                 </div>
             </div>
 
-            {{-- Instructions --}}
+            
             <div class="mb-4 bg-blue-600/20 border border-blue-500/50 rounded-lg p-3">
                 <div class="flex items-start space-x-2">
                     <svg class="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -35,18 +44,18 @@
                 </div>
             </div>
 
-            <form id="manualKnockoutForm" method="POST" action="{{ route('organizations.competitions.save-manual-knockout', [$organization, $competition]) }}">
-                @csrf
+            <form id="manualKnockoutForm" method="POST" action="<?php echo e(route('organizations.competitions.save-manual-knockout', [$organization, $competition])); ?>">
+                <?php echo csrf_field(); ?>
                 <input type="hidden" name="bracket_data" id="bracketDataInput">
 
                 <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
                     
-                    {{-- Available Players --}}
+                    
                     <div class="lg:col-span-1">
                         <div class="bg-gray-800/50 backdrop-blur-xl rounded-xl border border-gray-700/50 shadow-xl p-3 sticky top-4">
                             <h3 class="text-sm font-semibold text-white mb-3">Igrači iz grupa</h3>
                             <div id="availablePlayers" class="space-y-1.5 max-h-[calc(100vh-250px)] overflow-y-auto pr-2">
-                                @php
+                                <?php
                                     $qualifiedPlayers = collect();
                                     foreach($competition->tournamentGroups as $group) {
                                         $standings = App\Models\Standing::where('competition_id', $competition->id)
@@ -65,25 +74,25 @@
                                             }
                                         }
                                     }
-                                @endphp
+                                ?>
                                 
-                                @foreach($qualifiedPlayers as $qualified)
+                                <?php $__currentLoopData = $qualifiedPlayers; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $qualified): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                     <div class="player-item flex items-center justify-between p-2 bg-gray-700/30 rounded-lg border border-gray-600/30 hover:bg-gray-600/50 cursor-pointer transition-all"
-                                         data-player-id="{{ $qualified['player']->id }}"
-                                         data-player-name="{{ $qualified['player']->name }}"
-                                         data-player-info="{{ $qualified['group'] }} - Pozicija {{ $qualified['position'] }}"
+                                         data-player-id="<?php echo e($qualified['player']->id); ?>"
+                                         data-player-name="<?php echo e($qualified['player']->name); ?>"
+                                         data-player-info="<?php echo e($qualified['group']); ?> - Pozicija <?php echo e($qualified['position']); ?>"
                                          onclick="selectPlayerForAssignment(this)">
                                         <div class="flex-1 min-w-0">
-                                            <div class="text-white text-sm font-medium truncate">{{ $qualified['player']->name }}</div>
-                                            <div class="text-xs text-gray-400">{{ $qualified['group'] }} - Pozicija {{ $qualified['position'] }}</div>
+                                            <div class="text-white text-sm font-medium truncate"><?php echo e($qualified['player']->name); ?></div>
+                                            <div class="text-xs text-gray-400"><?php echo e($qualified['group']); ?> - Pozicija <?php echo e($qualified['position']); ?></div>
                                         </div>
                                     </div>
-                                @endforeach
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                             </div>
                         </div>
                     </div>
 
-                    {{-- Knockout Bracket Slots --}}
+                    
                     <div class="lg:col-span-3">
                         <div class="bg-gray-800/50 backdrop-blur-xl rounded-xl border border-gray-700/50 shadow-xl p-4">
                             <div class="flex items-center justify-between mb-4">
@@ -102,11 +111,11 @@
                             </div>
                             
                             <div id="knockoutMatchesContainer" class="space-y-3 mb-4">
-                                {{-- Matches will be dynamically generated --}}
+                                
                             </div>
 
                             <div class="flex justify-between items-center pt-4 border-t border-gray-700">
-                                <a href="{{ route('organizations.competitions.show', [$organization, $competition]) }}" 
+                                <a href="<?php echo e(route('organizations.competitions.show', [$organization, $competition])); ?>" 
                                    class="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors text-sm">
                                     Odustani
                                 </a>
@@ -124,7 +133,7 @@
         </div>
     </div>
 
-    {{-- Scripts --}}
+    
     <script>
         let selectedPlayer = null;
         let knockoutMatches = [];
@@ -320,6 +329,16 @@
         }
     </script>
 
-</x-app-layout>
+ <?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginal9ac128a9029c0e4701924bd2d73d7f54)): ?>
+<?php $attributes = $__attributesOriginal9ac128a9029c0e4701924bd2d73d7f54; ?>
+<?php unset($__attributesOriginal9ac128a9029c0e4701924bd2d73d7f54); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginal9ac128a9029c0e4701924bd2d73d7f54)): ?>
+<?php $component = $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54; ?>
+<?php unset($__componentOriginal9ac128a9029c0e4701924bd2d73d7f54); ?>
+<?php endif; ?>
 
 ```
+<?php /**PATH C:\Users\ermin\Projekti\teamsphere\resources\views/organizations/competitions/manual-knockout-setup.blade.php ENDPATH**/ ?>

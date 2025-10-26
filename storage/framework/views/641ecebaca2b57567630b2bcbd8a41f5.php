@@ -1,9 +1,9 @@
-{{-- Quick Result Modal --}}
-{{-- Quick Result Modal --}}
+
+
 <div id="quickResultModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
     <div class="bg-gray-800 rounded-2xl p-6 max-w-lg w-full border border-gray-700 shadow-xl">
         <div class="flex items-center justify-between mb-6">
-            <h3 class="text-xl font-semibold text-white">⚡ {{ __('Quick Result Entry') }}</h3>
+            <h3 class="text-xl font-semibold text-white">⚡ <?php echo e(__('Quick Result Entry')); ?></h3>
             <button onclick="closeQuickResultModal()" class="text-gray-400 hover:text-white">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
@@ -12,7 +12,7 @@
         </div>
 
         <form id="quickResultForm" method="POST">
-            @csrf
+            <?php echo csrf_field(); ?>
             <input type="hidden" id="quickMatchId" name="match_id">
             <div class="space-y-6">
                 <!-- Match Info -->
@@ -41,12 +41,13 @@
 
                 <!-- Set Scores (Optional) -->
                 <div>
-                    <label class="block text-sm font-medium text-gray-400 mb-3">{{ __('Set Scores (Optional)') }}</label>
+                    <label class="block text-sm font-medium text-gray-400 mb-3"><?php echo e(__('Set Scores (Optional)')); ?></label>
                     <div id="setScoresContainer" class="space-y-2">
                         <!-- Set score inputs will be dynamically added here -->
                     </div>
                     <button type="button" onclick="addSetScore()" class="mt-2 text-blue-400 hover:text-blue-300 text-sm">
-                        + {{ __('Add Set Score') }}
+                        + <?php echo e(__('Add Set Score')); ?>
+
                     </button>
                 </div>
 
@@ -54,11 +55,13 @@
                     <button type="button" 
                             onclick="closeQuickResultModal()"
                             class="flex-1 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors">
-                        {{ __('Cancel') }}
+                        <?php echo e(__('Cancel')); ?>
+
                     </button>
                     <button type="submit" 
                             class="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors">
-                        {{ __('Save Result') }}
+                        <?php echo e(__('Save Result')); ?>
+
                     </button>
                 </div>
             </div>
@@ -66,7 +69,7 @@
     </div>
 </div>
 
-{{-- Add Match Modal --}}
+
 <div id="addMatchModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
     <div class="bg-gray-800 rounded-2xl p-6 max-w-md w-full border border-gray-700 shadow-xl">
         <div class="flex items-center justify-between mb-6">
@@ -79,7 +82,7 @@
         </div>
 
         <form id="addMatchForm" onsubmit="event.preventDefault(); addNewMatch();">
-            @csrf
+            <?php echo csrf_field(); ?>
             <div class="space-y-4">
                 <!-- Match Name -->
                 <div>
@@ -129,3 +132,4 @@
     </div>
 </div>
 
+<?php /**PATH C:\Users\ermin\Projekti\teamsphere\resources\views/organizations/competitions/partials/modals.blade.php ENDPATH**/ ?>

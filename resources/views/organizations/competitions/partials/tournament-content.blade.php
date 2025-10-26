@@ -5,9 +5,8 @@
         ->where('phase', 'knockout')
         ->with(['homePlayer', 'awayPlayer'])
         ->orderBy('round_number')
-        ->orderBy('id')
-        ->get()
-        ->groupBy('round_number');
+        ->orderBy('match_order')
+        ->get();
 
     $groupMatches = App\Models\CompetitionMatch::where('competition_id', $competition->id)
         ->whereNotNull('tournament_group_id')
@@ -23,8 +22,9 @@
 @endphp
 
 {{-- Knockout Phase Section (ABOVE Group Phase) --}}
-@if($knockoutMatches && $knockoutMatches->flatten()->count() > 0)
+@if($knockoutMatches && $knockoutMatches->count() > 0)
     @include('organizations.competitions.partials.tournament.knockout-phase', [
+        'knockoutMatches' => $knockoutMatches,
         'organization' => $organization,
         'competition' => $competition,
         'isOwner' => $isOwner,
