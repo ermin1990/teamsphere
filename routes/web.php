@@ -114,6 +114,7 @@ Route::middleware('auth')->group(function () {
     // Player details route (override the resource show route)
     Route::get('organizations/{organization}/players/{player}', [PlayerController::class, 'show'])->name('organizations.players.show');
 
+    Route::get('organizations/{organization}/competitions/{competition}/matches/{match}', [CompetitionController::class, 'showMatch'])->name('organizations.competitions.matches.show');
     Route::get('organizations/{organization}/competitions/{competition}/matches/{match}/edit', [CompetitionController::class, 'editMatch'])->name('organizations.competitions.matches.edit');
     Route::put('organizations/{organization}/competitions/{competition}/matches/{match}', [CompetitionController::class, 'updateMatch'])->name('organizations.competitions.matches.update');
 

@@ -138,8 +138,9 @@
                                     </div>
 
                                     {{-- Actions --}}
-                                    @if($match->status === 'scheduled' || $match->status === 'pending')
+                                    @if(!$match->is_bye)
                                         <div class="mt-3 flex gap-1 text-xs">
+                                            @if($match->status === 'scheduled' || $match->status === 'pending')
                                                 <button type="button"
                                                     onclick="openQuickResultModal({{ json_encode((string)($match->id ?? '')) }}, {{ json_encode($match->homePlayer->name ?? 'TBD') }}, {{ json_encode($match->awayPlayer->name ?? 'TBD') }})"
                                                     class="bg-blue-600 hover:bg-blue-700 text-white px-1.5 py-0.5 rounded text-xs transition-colors">
@@ -149,10 +150,25 @@
                                                    class="bg-purple-600 hover:bg-purple-700 text-white px-1.5 py-0.5 rounded text-xs transition-colors text-center inline-block">
                                                     ✏️
                                                 </a>
-                                                <a href="{{ route('leagues.live-score', ['match' => $match->id]) }}"
+                                                <a href="{{ route('competitions.live-score', ['match' => $match->id]) }}"
                                                    class="bg-red-600 hover:bg-red-700 text-white px-1.5 py-0.5 rounded text-xs transition-colors text-center inline-block">
-                                                    🔴
+                                                    🔴 Live
                                                 </a>
+                                            @elseif($match->status === 'completed')
+                                                <button type="button"
+                                                    onclick="openQuickEditModal({{ json_encode((string)($match->id ?? '')) }}, {{ json_encode($match->homePlayer->name ?? 'TBD') }}, {{ json_encode($match->awayPlayer->name ?? 'TBD') }}, {{ json_encode($match->home_score ?? 0) }}, {{ json_encode($match->away_score ?? 0) }}, {{ json_encode($match->sets ?? []) }})"
+                                                    class="bg-blue-600 hover:bg-blue-700 text-white px-1.5 py-0.5 rounded text-xs transition-colors">
+                                                    ⚡
+                                                </button>
+                                                <a href="{{ route('organizations.competitions.matches.edit', [$organization, $competition, $match]) }}"
+                                                   class="bg-purple-600 hover:bg-purple-700 text-white px-1.5 py-0.5 rounded text-xs transition-colors text-center inline-block">
+                                                    ✏️
+                                                </a>
+                                                <a href="{{ route('organizations.competitions.matches.show', [$organization, $competition, $match]) }}"
+                                                   class="bg-gray-600 hover:bg-gray-700 text-white px-1.5 py-0.5 rounded text-xs transition-colors text-center inline-block">
+                                                    👁️
+                                                </a>
+                                            @endif
                                         </div>
                                     @endif
                                 </div>
@@ -313,7 +329,48 @@ function openQuickResultModal(matchId, homePlayer, awayPlayer) {
     document.getElementById('awayScore').value = '';
     currentSets = [];
     document.getElementById('setsList').innerHTML = '';
-    document.getElementById('setsContainer').classList.add('hidden');
+    document.getElementById('setsContainer').classList.remove('hidden'); // Show sets container immediately
+    document.getElementById('quickResultModal').classList.remove('hidden');
+}
+
+function openQuickEditModal(matchId, homePlayer, awayPlayer, homeScore, awayScore, sets) {
+    // Fallback for null/undefined matchId
+    if (matchId === null || matchId === undefined) matchId = '';
+    matchId = String(matchId);
+    console.log('Opening edit modal with:', { matchId, homePlayer, awayPlayer, homeScore, awayScore, sets });
+    
+    // Set basic match info
+    document.getElementById('quickMatchId').value = matchId;
+    document.getElementById('homePlayerName').textContent = homePlayer;
+    document.getElementById('awayPlayerName').textContent = awayPlayer;
+    document.getElementById('homeScore').value = homeScore || '';
+    document.getElementById('awayScore').value = awayScore || '';
+    
+    // Clear existing sets
+    currentSets = [];
+    document.getElementById('setsList').innerHTML = '';
+    
+    // Load existing sets
+    if (sets && Array.isArray(sets) && sets.length > 0) {
+        sets.forEach((set, index) => {
+            const setNumber = index + 1;
+            const setDiv = document.createElement('div');
+            setDiv.className = 'flex gap-2 items-center';
+            setDiv.innerHTML = `
+                <span class="text-gray-400 text-sm w-12">Set ${setNumber}:</span>
+                <input type="number" name="sets[${setNumber}][home]" min="0" max="21" value="${set.home || set.home_score || 0}"
+                       class="flex-1 bg-gray-700 border border-gray-600 rounded px-2 py-1 text-white text-center text-sm">
+                <span class="text-gray-400">-</span>
+                <input type="number" name="sets[${setNumber}][away]" min="0" max="21" value="${set.away || set.away_score || 0}"
+                       class="flex-1 bg-gray-700 border border-gray-600 rounded px-2 py-1 text-white text-center text-sm">
+                <button type="button" onclick="removeSet(${index})" class="text-red-400 hover:text-red-300 text-sm px-2">×</button>
+            `;
+            document.getElementById('setsList').appendChild(setDiv);
+            currentSets.push(setNumber);
+        });
+    }
+    
+    document.getElementById('setsContainer').classList.remove('hidden');
     document.getElementById('quickResultModal').classList.remove('hidden');
 }
 
@@ -379,8 +436,8 @@ function saveQuickResult() {
     // Collect set data
     const sets = [];
     currentSets.forEach((setNum, index) => {
-        const homeSetScore = document.querySelector(`input[name="sets[${setNum}][home]"]`).value;
-        const awaySetScore = document.querySelector(`input[name="sets[${setNum}][away]"]`).value;
+        const homeSetScore = document.querySelector(`input[name="sets[${setNum}][home]"]`)?.value;
+        const awaySetScore = document.querySelector(`input[name="sets[${setNum}][away]"]`)?.value;
         if (homeSetScore && awaySetScore) {
             sets.push({
                 home: parseInt(homeSetScore),
@@ -423,14 +480,20 @@ function saveQuickResult() {
     awayScoreField.value = awayScore;
     form.appendChild(awayScoreField);
 
-    // Add sets data if any
-    if (sets.length > 0) {
-        const setsField = document.createElement('input');
-        setsField.type = 'hidden';
-        setsField.name = 'sets';
-        setsField.value = JSON.stringify(sets);
-        form.appendChild(setsField);
-    }
+    // Add sets data as individual fields (not JSON string)
+    sets.forEach((set, index) => {
+        const homeSetField = document.createElement('input');
+        homeSetField.type = 'hidden';
+        homeSetField.name = `sets[${index}][home]`;
+        homeSetField.value = set.home;
+        form.appendChild(homeSetField);
+
+        const awaySetField = document.createElement('input');
+        awaySetField.type = 'hidden';
+        awaySetField.name = `sets[${index}][away]`;
+        awaySetField.value = set.away;
+        form.appendChild(awaySetField);
+    });
 
     document.body.appendChild(form);
     form.submit();

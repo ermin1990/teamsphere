@@ -809,6 +809,110 @@ class CompetitionController extends Controller
     }
 
     /**
+     * Show match details.
+     */
+    public function showMatch(Organization $organization, Competition $competition, CompetitionMatch $match)
+    {
+        // Check if user can access this specific match
+        if (!$this->canAccessCompetitionMatch($match, $organization)) {
+            abort(403);
+        }
+
+        // Ensure match belongs to competition
+        if ($match->competition_id !== $competition->id) {
+            abort(404);
+        }
+
+        $isOwner = $organization->user_id === auth()->id();
+        
+        // Load relationships
+        $match->load(['homePlayer', 'awayPlayer', 'homeTeam', 'awayTeam', 'tournamentGroup']);
+
+        return view('organizations.competitions.matches.show', compact('organization', 'competition', 'match', 'isOwner'));
+    }
+
+    /**
+     * Show edit form for a match.
+     */
+    public function editMatch(Organization $organization, Competition $competition, CompetitionMatch $match)
+    {
+        // Check if user can access this specific match
+        if (!$this->canAccessCompetitionMatch($match, $organization)) {
+            abort(403);
+        }
+
+        // Ensure match belongs to competition
+        if ($match->competition_id !== $competition->id) {
+            abort(404);
+        }
+
+        $isOwner = $organization->user_id === auth()->id();
+
+        return view('organizations.competitions.matches.edit', compact('organization', 'competition', 'match', 'isOwner'));
+    }
+
+    /**
+     * Update match results.
+     */
+    public function updateMatch(Request $request, Organization $organization, Competition $competition, CompetitionMatch $match)
+    {
+        // Check if user can access this specific match
+        if (!$this->canAccessCompetitionMatch($match, $organization)) {
+            abort(403);
+        }
+
+        // Ensure match belongs to competition
+        if ($match->competition_id !== $competition->id) {
+            abort(404);
+        }
+
+        // Validation
+        $validated = $request->validate([
+            'status' => 'required|in:scheduled,in_progress,completed,forfeited,cancelled',
+            'home_score' => 'nullable|integer|min:0|max:7',
+            'away_score' => 'nullable|integer|min:0|max:7',
+            'sets' => 'nullable|array',
+            'sets.*.home' => 'required_with:sets|integer|min:0',
+            'sets.*.away' => 'required_with:sets|integer|min:0',
+            'forfeited_by' => 'nullable|in:home,away',
+        ]);
+
+        // Prepare update data
+        $updateData = ['status' => $validated['status']];
+
+        if ($validated['status'] === 'scheduled') {
+            // Reset everything
+            $updateData['home_score'] = 0;
+            $updateData['away_score'] = 0;
+            $updateData['sets'] = [];
+            $updateData['forfeited_by'] = null;
+            $updateData['played_at'] = null;
+        } elseif ($validated['status'] === 'completed') {
+            $updateData['home_score'] = $validated['home_score'] ?? 0;
+            $updateData['away_score'] = $validated['away_score'] ?? 0;
+            $updateData['sets'] = $validated['sets'] ?? [];
+            $updateData['played_at'] = $match->played_at ?? now();
+        } elseif ($validated['status'] === 'forfeited') {
+            $updateData['forfeited_by'] = $validated['forfeited_by'];
+            $updateData['played_at'] = now();
+        }
+
+        $match->update($updateData);
+
+        // Update standings if tournament
+        if ($competition->type === 'tournament' && $match->tournamentGroup && $validated['status'] === 'completed') {
+            $match->refresh();
+            $match->tournamentGroup->updateStandings($match);
+            $groupService = app(\App\Services\TournamentGroupService::class);
+            $groupService->recalculateGroupStandings($match->tournamentGroup);
+        }
+
+        return redirect()
+            ->route('organizations.competitions.show', [$organization, $competition])
+            ->with('success', 'Match updated successfully!');
+    }
+
+    /**
      * Delete the competition.
      */
     public function destroy(Request $request, Organization $organization, Competition $competition)

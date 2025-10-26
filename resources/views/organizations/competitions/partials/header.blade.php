@@ -13,7 +13,10 @@
                 @elseif($competition->status === 'completed') bg-blue-500/20 text-blue-400
                 @else bg-red-500/20 text-red-400 @endif"
             >
-                {{ ucfirst($competition->status) }}
+                @if($competition->status === 'active') Aktivno
+                @elseif($competition->status === 'draft') Nacrt
+                @elseif($competition->status === 'completed') Završeno
+                @else {{ ucfirst($competition->status) }} @endif
             </span>
             @if($competition->type === 'tournament')
             <span class="px-3 py-1 text-sm rounded-full bg-purple-500/20 text-purple-400">
