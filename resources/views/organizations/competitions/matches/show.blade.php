@@ -186,7 +186,7 @@
                             </thead>
                             <tbody>
                                 @php
-                                    $sets = $match->sets ?? [];
+                                    $sets = $match->sets ? json_decode($match->sets, true) : [];
                                     $setDurations = $match->set_durations ?? [];
                                 @endphp
                                 @foreach($sets as $setNumber => $set)

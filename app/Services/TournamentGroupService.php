@@ -142,6 +142,9 @@ class TournamentGroupService
             $standing->position = $index + 1;
             $standing->save();
         }
+
+        // Check if group is completed after recalculating standings
+        $group->checkGroupCompletion();
     }
 
     /**

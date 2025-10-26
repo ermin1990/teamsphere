@@ -27,15 +27,43 @@ class KnockoutBracketService
     {
         $totalPlayers = count($playerIds);
         $bracketSize = $this->getNextPowerOfTwo($totalPlayers);
-
-        // Add byes if necessary
         $byesNeeded = $bracketSize - $totalPlayers;
-        $byePlayers = array_fill(0, $byesNeeded, null);
 
-        $allPlayers = array_merge($playerIds, $byePlayers);
+        // Sort players for seeding (Joola: 1 vs N, 2 vs N-1, ...)
+        // If you want to shuffle, use shuffle($playerIds) here
+        // For now, keep as is for predictable bracket
 
-        // Shuffle players for fair bracket
-        shuffle($allPlayers);
+        // Distribute byes as evenly as possible
+        $allPlayers = [];
+        $byeIndexes = [];
+        if ($byesNeeded > 0) {
+            // Calculate bye positions (spread them out)
+            $step = $bracketSize / $byesNeeded;
+            for ($i = 0; $i < $byesNeeded; $i++) {
+                $byeIndexes[] = (int) round($i * $step);
+            }
+        }
+
+        $p = 0;
+        for ($i = 0; $i < $bracketSize; $i++) {
+            if (in_array($i, $byeIndexes)) {
+                $allPlayers[] = null;
+            } else {
+                $allPlayers[] = $playerIds[$p++] ?? null;
+            }
+        }
+
+        // Ensure all players are included
+        foreach ($playerIds as $id) {
+            if (!in_array($id, $allPlayers, true)) {
+                for ($i = 0; $i < $bracketSize; $i++) {
+                    if ($allPlayers[$i] === null) {
+                        $allPlayers[$i] = $id;
+                        break;
+                    }
+                }
+            }
+        }
 
         return [
             'players' => $allPlayers,

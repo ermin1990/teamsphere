@@ -191,7 +191,7 @@ class TournamentGroup extends Model
     /**
      * Check if all matches in the group are completed.
      */
-    private function checkGroupCompletion()
+    public function checkGroupCompletion()
     {
         $totalPlayers = count($this->player_ids ?? []);
         $requiredMatches = ($totalPlayers * ($totalPlayers - 1)) / 2; // Round-robin formula

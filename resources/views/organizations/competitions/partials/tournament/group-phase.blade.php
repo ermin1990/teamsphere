@@ -29,11 +29,26 @@
                        class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-4 py-2 rounded-lg transition-colors font-semibold">
                         🎯 Ručno Postavi Knockout
                     </a>
-                    <form method="POST" action="{{ route('organizations.competitions.auto-generate-knockout', [$organization, $competition]) }}" style="display: inline;">
+                    <form id="autoGenerateKnockoutForm" method="POST" action="{{ route('organizations.competitions.auto-generate-knockout', [$organization, $competition]) }}" style="display: inline;">
                         @csrf
-                        <button type="submit" class="bg-green-600 hover:bg-green-700 text-white text-xs px-4 py-2 rounded-lg transition-colors font-semibold">
-                            ⚡ Automatski Generiši
-                        </button>
+                        <div class="flex gap-2 items-center">
+                            <div class="flex items-center gap-2">
+                                <label for="knockoutMatchesInput" class="text-gray-300 text-xs whitespace-nowrap">
+                                    Mečeva u 1. rundi:
+                                </label>
+                                <input type="number" 
+                                       id="knockoutMatchesInput" 
+                                       name="knockout_matches_count" 
+                                       min="1" 
+                                       max="31" 
+                                       value="{{ $competition->knockout_matches_count ?? 8 }}"
+                                       class="w-16 px-2 py-1 bg-gray-700 border border-gray-600 rounded text-white text-center text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                       placeholder="8">
+                            </div>
+                            <button type="submit" id="autoGenerateBtn" class="bg-green-600 hover:bg-green-700 text-white text-xs px-4 py-2 rounded-lg transition-colors font-semibold" onclick="submitAutoGenerateForm(event)">
+                                ⚡ Automatski Generiši
+                            </button>
+                        </div>
                     </form>
                 @endif
             
@@ -134,3 +149,40 @@
         </div>
     </div>
 </div>
+
+<script>
+function submitAutoGenerateForm(event) {
+    event.preventDefault();
+    
+    const btn = document.getElementById('autoGenerateBtn');
+    const form = document.getElementById('autoGenerateKnockoutForm');
+    const originalText = btn.textContent;
+    
+    // Disable button and show loading
+    btn.disabled = true;
+    btn.textContent = '⏳ Generiši...';
+    btn.classList.add('opacity-50', 'cursor-not-allowed');
+    
+    // Submit form
+    setTimeout(() => {
+        form.submit();
+    }, 300);
+}
+
+function confirmResetGroupPhase() {
+    if (confirm('Da li si siguran? Ovo će obrisati svu grupnu fazu.')) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '{{ route("organizations.competitions.reset-groups", [$organization, $competition]) }}';
+        
+        const csrfToken = document.createElement('input');
+        csrfToken.type = 'hidden';
+        csrfToken.name = '_token';
+        csrfToken.value = '{{ csrf_token() }}';
+        form.appendChild(csrfToken);
+        
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+</script>

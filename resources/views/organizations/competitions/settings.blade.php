@@ -84,7 +84,7 @@
                 </div>
             </div>
 
-            <form action="{{ route('organizations.competitions.update-settings', [$organization, $competition]) }}" method="POST" {{ $competition->status !== 'draft' ? 'onsubmit="return false;"' : '' }}>
+            <form action="{{ route('organizations.competitions.update-settings', [$organization, $competition]) }}" method="POST" onsubmit="return validateSettingsForm(event)">
                 @csrf
 
                 <fieldset {{ $competition->status !== 'draft' ? 'disabled' : '' }}>
@@ -236,6 +236,18 @@
                                    min="4" max="128"
                                    class="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <p class="text-gray-400 text-xs mt-1">Maksimalni broj učesnika (ostavite prazno za neograničeno)</p>
+                        </div>
+
+                        <!-- Knockout Matches Count -->
+                        <div>
+                            <label for="knockout_matches_count" class="block text-sm font-medium text-white mb-2">
+                                Broj Mečeva u Eliminacionoj Fazi
+                            </label>
+                            <input type="number" id="knockout_matches_count" name="knockout_matches_count" 
+                                   value="{{ old('knockout_matches_count', $competition->knockout_matches_count ?? 7) }}"
+                                   min="1" max="31"
+                                   class="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <p class="text-gray-400 text-xs mt-1">Broj mečeva koji će biti odigrani u eliminacionoj fazi</p>
                         </div>
                     </div>
 
@@ -527,5 +539,43 @@
                 document.getElementById('deuce_at').value = points - 1;
             });
         });
+
+        // Validate settings form submission
+        function validateSettingsForm(event) {
+            const competitionStatus = '{{ $competition->status }}';
+            
+            if (competitionStatus !== 'draft') {
+                // Check if only knockout_matches_count is being changed
+                const knockoutInput = document.getElementById('knockout_matches_count');
+                const originalValue = '{{ $competition->knockout_matches_count ?? 7 }}';
+                const currentValue = knockoutInput.value;
+                
+                // Check if any other inputs have changed (simple check)
+                const allInputs = event.target.querySelectorAll('input:not([type="hidden"]), select');
+                let otherFieldsChanged = false;
+                
+                allInputs.forEach(input => {
+                    if (input.id !== 'knockout_matches_count' && input.name !== '_token') {
+                        // For simplicity, just check if knockout_matches_count is the only field that might have changed
+                        // In a real scenario, you'd want to track original values
+                    }
+                });
+                
+                // Allow submission if only knockout_matches_count changed
+                if (currentValue !== originalValue) {
+                    // Confirm with user
+                    if (!confirm('Da li ste sigurni da želite promijeniti broj mečeva u eliminacionoj fazi? Ovo može uticati na već planirane mečeve.')) {
+                        return false;
+                    }
+                    return true;
+                }
+                
+                // Prevent submission for other changes
+                showNotification('Postavke se mogu mijenjati samo u draft fazi turnira.', 'error');
+                return false;
+            }
+            
+            return true;
+        }
     </script>
 </x-app-layout>

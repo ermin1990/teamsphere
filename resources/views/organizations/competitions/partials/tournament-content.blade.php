@@ -25,10 +25,15 @@
 @php
     $tournamentWinner = null;
     if($knockoutMatches && $knockoutMatches->count() > 0) {
-        // Find the final match (highest round number)
-        $finalMatch = $knockoutMatches->where('status', 'completed')->sortByDesc('round_number')->first();
-        if($finalMatch && $finalMatch->getWinner()) {
-            $tournamentWinner = $finalMatch->getWinner();
+        $maxRound = $knockoutMatches->max('round_number');
+        $finalRoundMatches = $knockoutMatches->where('round_number', $maxRound);
+
+        // If there's only 1 match in the final round and it's completed, show the winner
+        if($finalRoundMatches->count() === 1) {
+            $finalMatch = $finalRoundMatches->first();
+            if($finalMatch->status === 'completed' && $finalMatch->getWinner()) {
+                $tournamentWinner = $finalMatch->getWinner();
+            }
         }
     }
 @endphp

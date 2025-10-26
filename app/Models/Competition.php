@@ -40,6 +40,7 @@ class Competition extends Model
         'knockout_bracket',
         'groups_completed_at',
         'knockout_completed_at',
+        'knockout_matches_count',
         // Match settings
         'sets_to_win',
         'points_per_set',
@@ -69,6 +70,7 @@ class Competition extends Model
         'knockout_bracket' => 'array',
         'groups_completed_at' => 'datetime',
         'knockout_completed_at' => 'datetime',
+        'knockout_matches_count' => 'integer',
         // Match settings casts
         'sets_to_win' => 'integer',
         'points_per_set' => 'integer',
@@ -357,12 +359,12 @@ class Competition extends Model
     }
 
     /**
-     * Generate knockout bracket for this competition using World Cup-style seeding.
+     * Generate knockout bracket for this competition using JOOLA rules.
      * 
-     * Rules:
-     * - Groups alternate (A vs B, B vs A, C vs D, D vs C, etc.)
-     * - Group winners are seeded on opposite sides
-     * - Players from the same group can't meet until finals
+     * JOOLA Rules:
+     * - Number of matches in knockout phase is predefined (knockout_matches_count)
+     * - Players are seeded based on group performance
+     * - Matches are created to reach the final with the specified number of matches
      */
     public function generateKnockoutBracket()
     {
@@ -370,17 +372,12 @@ class Competition extends Model
             throw new \Exception('This is not a tournament.');
         }
 
-        // Delete any existing knockout matches
-        CompetitionMatch::where('competition_id', $this->id)
-            ->where('phase', 'knockout')
-            ->delete();
+        if (!$this->knockout_matches_count) {
+            throw new \Exception('Number of knockout matches must be specified.');
+        }
 
+        // Get tournament groups with standings
         $groups = $this->tournamentGroups()
-            ->with(['standings' => function($q) {
-                $q->orderBy('points', 'desc')
-                    ->orderByRaw('(sets_won - sets_lost) desc')
-                    ->orderByRaw('(points_won - points_lost) desc');
-            }])
             ->orderBy('group_number')
             ->get();
 
@@ -388,29 +385,8 @@ class Competition extends Model
             throw new \Exception('No tournament groups found.');
         }
 
-        $qualifiedPlayers = [];
-        
-        // Extract winners and runners-up from each group
-        foreach ($groups as $group) {
-            $standings = $group->standings;
-            if ($standings->count() >= 1) {
-                $qualifiedPlayers[$group->id][] = [
-                    'player_id' => $standings[0]->player_id,
-                    'position' => 1, // Winner
-                    'group_id' => $group->id,
-                ];
-            }
-            if ($standings->count() >= 2) {
-                $qualifiedPlayers[$group->id][] = [
-                    'player_id' => $standings[1]->player_id,
-                    'position' => 2, // Runner-up
-                    'group_id' => $group->id,
-                ];
-            }
-        }
-
-        // Create knockout matches with World Cup seeding
-        $this->createWorldCupKnockoutMatches($qualifiedPlayers);
+        // Use JOOLA-specific logic instead of generic qualified players
+        $this->createJOOLAKnockoutMatches($groups);
 
         $this->update([
             'current_phase' => 'knockout',
@@ -420,58 +396,195 @@ class Competition extends Model
     }
 
     /**
-     * Create knockout matches following World Cup seeding rules.
+     * Create knockout matches using JOOLA rules.
+     *
+     * JOOLA Rules (generalized for any number of groups):
+     * - Winners of first 2 groups (by name) are fixed in positions 1-2
+     * - Other group winners are drawn for remaining positions
+     * - Runners-up are drawn with restrictions (avoid same group as winners in top positions)
+     * - Pairings: 1 vs last, 2 vs second-to-last, 3 vs third-to-last, etc.
+     *
+     * @param \Illuminate\Database\Eloquent\Collection $groups Tournament groups with standings loaded
      */
-    private function createWorldCupKnockoutMatches($qualifiedPlayers)
+    private function createJOOLAKnockoutMatches($groups)
     {
-        $groupCount = count($qualifiedPlayers);
+        $totalGroups = $groups->count();
+        $playersPerGroup = $this->players_advancing_per_group ?? 2;
+        $totalPlayers = $totalGroups * $playersPerGroup;
         
+        // Sort groups by name for consistent ordering
+        $sortedGroups = $groups->sortBy('name')->values();
+        
+        // Extract advancing players from each group
+        $advancingPlayers = [];
+
+        foreach ($sortedGroups as $group) {
+            // Use Standing models instead of standings array
+            $standings = $group->standings()
+                ->orderBy('position')
+                ->get()
+                ->map(function ($standing) {
+                    return [
+                        'player_id' => $standing->player_id,
+                        'points' => $standing->points,
+                        'sets_won' => $standing->sets_won,
+                        'sets_lost' => $standing->sets_lost,
+                    ];
+                });
+
+            for ($i = 0; $i < min($playersPerGroup, count($standings)); $i++) {
+                $advancingPlayers[$group->name][] = [
+                    'player_id' => $standings[$i]['player_id'],
+                    'group' => $group->name,
+                    'position' => $i + 1,
+                    'points' => $standings[$i]['points']
+                ];
+            }
+        }
+
+        // Separate winners (position 1) and other advancing players
         $winners = [];
-        $runnerUps = [];
-        
-        foreach ($qualifiedPlayers as $groupData) {
-            foreach ($groupData as $player) {
-                if ($player['position'] == 1) {
-                    $winners[] = $player;
-                } else {
-                    $runnerUps[] = $player;
+        $otherAdvancing = [];
+
+        foreach ($advancingPlayers as $groupName => $players) {
+            if (!empty($players)) {
+                $winners[$groupName] = array_shift($players); // First player is winner
+                $otherAdvancing = array_merge($otherAdvancing, $players); // Rest are other advancing
+            }
+        }
+
+        // Initialize bracket positions
+        $bracketPositions = array_fill(1, $totalPlayers, null);
+
+        // Fixed positions for first 2 groups' winners
+        if (isset($winners[$sortedGroups[0]->name])) {
+            $bracketPositions[1] = $winners[$sortedGroups[0]->name]['player_id'];
+            unset($winners[$sortedGroups[0]->name]);
+        }
+        if ($totalGroups >= 2 && isset($winners[$sortedGroups[1]->name])) {
+            $bracketPositions[2] = $winners[$sortedGroups[1]->name]['player_id'];
+            unset($winners[$sortedGroups[1]->name]);
+        }
+
+        // Draw remaining winners for positions 3 to totalGroups
+        $remainingWinners = array_values($winners);
+        shuffle($remainingWinners);
+
+        for ($i = 0; $i < count($remainingWinners) && $i < ($totalGroups - 2); $i++) {
+            $bracketPositions[3 + $i] = $remainingWinners[$i]['player_id'];
+        }
+
+        // Draw other advancing players for remaining positions with restrictions
+        // Avoid same group as winners in positions 1 to totalGroups where possible
+        $usedGroups = [];
+        for ($pos = 1; $pos <= $totalGroups; $pos++) {
+            if ($bracketPositions[$pos]) {
+                foreach ($sortedGroups as $group) {
+                    $standings = $group->standings()
+                        ->orderBy('position')
+                        ->get()
+                        ->map(function ($standing) {
+                            return [
+                                'player_id' => $standing->player_id,
+                                'points' => $standing->points,
+                                'sets_won' => $standing->sets_won,
+                                'sets_lost' => $standing->sets_lost,
+                            ];
+                        });
+
+                    if (count($standings) >= 1 && $standings[0]['player_id'] == $bracketPositions[$pos]) {
+                        $usedGroups[] = $group->name;
+                        break;
+                    }
                 }
             }
         }
 
-        // Pair winners and runners-up with World Cup-style alternation
-        // A1 vs B2, B1 vs A2, C1 vs D2, D1 vs C2, etc.
-        $round = 1;
+        // Filter other advancing players to prefer avoiding same group conflicts
+        $availableOthers = [];
+        $conflictedOthers = [];
+        foreach ($otherAdvancing as $player) {
+            if (!in_array($player['group'], $usedGroups)) {
+                $availableOthers[] = $player;
+            } else {
+                $conflictedOthers[] = $player;
+            }
+        }
+
+        // Combine available and conflicted if needed
+        $allAvailableOthers = array_merge($availableOthers, $conflictedOthers);
+        shuffle($allAvailableOthers);
+
+        for ($i = 0; $i < count($allAvailableOthers) && ($totalGroups + 1 + $i) <= $totalPlayers; $i++) {
+            $bracketPositions[$totalGroups + 1 + $i] = $allAvailableOthers[$i]['player_id'];
+        }
+
+        // Create matches: pair position 1 vs last, 2 vs second-to-last, etc.
+        $matches = [];
+        for ($i = 1; $i <= floor($totalPlayers / 2); $i++) {
+            $homePos = $i;
+            $awayPos = $totalPlayers - $i + 1;
+            
+            if ($homePos < $awayPos) {
+                $matches[] = [
+                    'home' => $homePos,
+                    'away' => $awayPos,
+                ];
+            }
+        }
+
         $matchOrder = 1;
-        
-        for ($i = 0; $i < count($winners); $i++) {
-            $homePlayer = $winners[$i] ?? null;
-            $awayPlayer = $runnerUps[$i] ?? null;
+        foreach ($matches as $pairing) {
+            $homePlayerId = $bracketPositions[$pairing['home']] ?? null;
+            $awayPlayerId = $bracketPositions[$pairing['away']] ?? null;
 
-            if ($homePlayer || $awayPlayer) {
-                $isBye = ($homePlayer && !$awayPlayer) || (!$homePlayer && $awayPlayer);
-                
-                CompetitionMatch::create([
-                    'competition_id' => $this->id,
-                    'home_player_id' => $homePlayer['player_id'] ?? null,
-                    'away_player_id' => $awayPlayer['player_id'] ?? null,
-                    'phase' => 'knockout',
-                    'round_number' => $round,
-                    'match_order' => $matchOrder,
-                    'status' => $isBye ? 'completed' : 'scheduled',
-                    'is_bye' => $isBye,
-                    'scheduled_at' => now(),
-                ]);
-
-                $matchOrder++;
-                
-                // Move to next round if we've created enough matches for this round
-                $matchesPerRound = count($winners) / pow(2, $round - 1);
-                if ($matchOrder > $matchesPerRound) {
-                    $round++;
-                    $matchOrder = 1;
+            // Find group and position info for home player
+            $homeGroup = null;
+            $homePosition = null;
+            if ($homePlayerId) {
+                foreach ($advancingPlayers as $groupName => $players) {
+                    foreach ($players as $player) {
+                        if ($player['player_id'] == $homePlayerId) {
+                            $homeGroup = $groupName;
+                            $homePosition = $player['position'];
+                            break 2;
+                        }
+                    }
                 }
             }
+
+            // Find group and position info for away player
+            $awayGroup = null;
+            $awayPosition = null;
+            if ($awayPlayerId) {
+                foreach ($advancingPlayers as $groupName => $players) {
+                    foreach ($players as $player) {
+                        if ($player['player_id'] == $awayPlayerId) {
+                            $awayGroup = $groupName;
+                            $awayPosition = $player['position'];
+                            break 2;
+                        }
+                    }
+                }
+            }
+
+            $isBye = ($homePlayerId && !$awayPlayerId) || (!$homePlayerId && $awayPlayerId);
+
+            CompetitionMatch::create([
+                'competition_id' => $this->id,
+                'phase' => 'knockout',
+                'round_number' => 1,
+                'match_order' => $matchOrder++,
+                'home_player_id' => $homePlayerId,
+                'away_player_id' => $awayPlayerId,
+                'status' => $isBye ? 'completed' : 'pending',
+                'is_bye' => $isBye,
+                'scheduled_at' => now(),
+                'home_player_group' => $homeGroup,
+                'home_player_position' => $homePosition,
+                'away_player_group' => $awayGroup,
+                'away_player_position' => $awayPosition,
+            ]);
         }
     }
 
@@ -574,12 +687,23 @@ class Competition extends Model
             throw new \Exception('Not all matches in round ' . $currentRound . ' are completed yet');
         }
 
-        // Get winners from each match
+        // Get winners from each match with their group info, sorted by match_order
         $winners = [];
-        foreach ($completedMatches as $match) {
+        foreach ($completedMatches->sortBy('match_order') as $match) {
             $winner = $match->getWinner();
             if ($winner) {
-                $winners[] = $winner->id;
+                // Determine the group of the winner
+                $winnerGroup = null;
+                if ($match->home_player_id == $winner->id) {
+                    $winnerGroup = $match->home_player_group;
+                } elseif ($match->away_player_id == $winner->id) {
+                    $winnerGroup = $match->away_player_group;
+                }
+                
+                $winners[] = [
+                    'player_id' => $winner->id,
+                    'group' => $winnerGroup
+                ];
             }
         }
 
@@ -593,30 +717,39 @@ class Competition extends Model
             return;
         }
 
-        // Create next round matches by pairing winners
+        // Pair winners: 1st vs 2nd, 3rd vs 4th, etc.
+        $pairedWinners = [];
+        $winnersCount = count($winners);
+        
+        for ($i = 0; $i < $winnersCount; $i += 2) {
+            if ($i + 1 < $winnersCount) {
+                $pairedWinners[] = [
+                    'home' => $winners[$i]['player_id'],
+                    'home_group' => $winners[$i]['group'],
+                    'away' => $winners[$i + 1]['player_id'],
+                    'away_group' => $winners[$i + 1]['group']
+                ];
+            }
+        }
+
+        // Create next round matches with group info preserved
         $nextRound = $currentRound + 1;
         $matchOrder = 1;
 
-        for ($i = 0; $i < count($winners); $i += 2) {
-            // Check if we have both players or just one (bye)
-            $homePlayerId = $winners[$i] ?? null;
-            $awayPlayerId = $winners[$i + 1] ?? null;
-            
-            if ($homePlayerId || $awayPlayerId) {
-                $isBye = ($homePlayerId && !$awayPlayerId) || (!$homePlayerId && $awayPlayerId);
-                
-                CompetitionMatch::create([
-                    'competition_id' => $this->id,
-                    'home_player_id' => $homePlayerId,
-                    'away_player_id' => $awayPlayerId,
-                    'phase' => 'knockout',
-                    'round_number' => $nextRound,
-                    'match_order' => $matchOrder++,
-                    'status' => $isBye ? 'completed' : 'scheduled',
-                    'is_bye' => $isBye,
-                    'scheduled_at' => now(),
-                ]);
-            }
+        foreach ($pairedWinners as $pair) {
+            CompetitionMatch::create([
+                'competition_id' => $this->id,
+                'home_player_id' => $pair['home'],
+                'away_player_id' => $pair['away'],
+                'phase' => 'knockout',
+                'round_number' => $nextRound,
+                'match_order' => $matchOrder++,
+                'status' => 'scheduled',
+                'is_bye' => false,
+                'scheduled_at' => now(),
+                'home_player_group' => $pair['home_group'],
+                'away_player_group' => $pair['away_group'],
+            ]);
         }
     }
 }

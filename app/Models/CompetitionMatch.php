@@ -39,6 +39,11 @@ class CompetitionMatch extends Model
         'match_order',
         'bracket_position',
         'is_bye',
+        // Player group info
+        'home_player_group',
+        'home_player_position',
+        'away_player_group',
+        'away_player_position',
     ];
 
     protected $casts = [
@@ -58,6 +63,9 @@ class CompetitionMatch extends Model
         'match_order' => 'integer',
         'bracket_position' => 'integer',
         'is_bye' => 'boolean',
+        // Player group info casts
+        'home_player_position' => 'integer',
+        'away_player_position' => 'integer',
     ];
 
     /**

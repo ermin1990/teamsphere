@@ -147,8 +147,11 @@
                         </div>
 
                         <div id="sets-container" class="space-y-3">
-                            @if($match->sets && count($match->sets) > 0)
-                                @foreach($match->sets as $index => $set)
+                            @php
+                                $setsArray = $match->sets ? json_decode($match->sets, true) : [];
+                            @endphp
+                            @if($setsArray && count($setsArray) > 0)
+                                @foreach($setsArray as $index => $set)
                                     <div class="set-row flex items-center space-x-4 p-3 bg-gray-700/50 rounded-lg">
                                         <span class="text-sm font-medium text-gray-300 w-16">Set {{ $index + 1 }}:</span>
                                         <input type="number" name="sets[{{ $index }}][home_score]" value="{{ $set['home_score'] ?? $set['home'] ?? 0 }}"
@@ -247,7 +250,10 @@
     </div>
 
     <script>
-        let setCount = {{ count($match->sets ?? []) }};
+        @php
+            $setsArray = $match->sets ? json_decode($match->sets, true) : [];
+        @endphp
+        let setCount = {{ count($setsArray) }};
 
         document.getElementById('add-set').addEventListener('click', function() {
             const container = document.getElementById('sets-container');

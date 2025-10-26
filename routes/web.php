@@ -146,6 +146,8 @@ Route::middleware('auth')->group(function () {
     Route::post('organizations/{organization}/competitions/{competition}/save-manual-knockout', [CompetitionController::class, 'saveManualKnockout'])->name('organizations.competitions.save-manual-knockout');
     Route::post('organizations/{organization}/competitions/{competition}/advance-knockout-round', [CompetitionController::class, 'advanceKnockoutRound'])->name('organizations.competitions.advance-knockout-round');
     Route::post('organizations/{organization}/competitions/{competition}/reset-knockout', [CompetitionController::class, 'resetKnockout'])->name('organizations.competitions.reset-knockout');
+    Route::post('organizations/{organization}/competitions/{competition}/reset-groups', [CompetitionController::class, 'resetGroups'])->name('organizations.competitions.reset-groups');
+    Route::post('organizations/{organization}/competitions/{competition}/update-knockout-count', [CompetitionController::class, 'updateKnockoutCount'])->name('organizations.competitions.update-knockout-count');
 
     // League routes
     Route::get('leagues/create/{organization}', [LeagueController::class, 'create'])->name('leagues.create');

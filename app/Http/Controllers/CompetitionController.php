@@ -92,6 +92,7 @@ class CompetitionController extends Controller
             'group_count' => $request->group_count ?: 4,
             'players_per_group' => $request->players_per_group ?: 4,
             'players_advancing_per_group' => $request->players_advancing_per_group ?: 2,
+            'knockout_matches_count' => $request->knockout_matches_count ?: 7,
             'advancement_method' => 'automatic',
             'current_phase' => 'groups',
         ]);
@@ -490,7 +491,11 @@ class CompetitionController extends Controller
             abort(403);
         }
 
-        if ($competition->status !== 'draft') {
+        // Allow knockout_matches_count to be updated even during active competitions
+        $isUpdatingKnockoutCountOnly = $request->has('knockout_matches_count') &&
+            count($request->all()) === 1; // Only knockout_matches_count is being updated
+
+        if ($competition->status !== 'draft' && !$isUpdatingKnockoutCountOnly) {
             return back()->with('error', 'Cannot change settings after competition has started.');
         }
 
@@ -509,6 +514,7 @@ class CompetitionController extends Controller
             'players_per_group' => ['nullable', 'integer', 'min:3', 'max:8'],
             'players_advancing_per_group' => ['nullable', 'integer', 'min:1', 'max:4'],
             'max_participants' => ['nullable', 'integer', 'min:4', 'max:128'],
+            'knockout_matches_count' => ['nullable', 'integer', 'min:1', 'max:31'],
         ]);
 
         $competition->update([
@@ -526,6 +532,7 @@ class CompetitionController extends Controller
             'players_per_group' => $request->players_per_group,
             'players_advancing_per_group' => $request->players_advancing_per_group,
             'max_participants' => $request->max_participants,
+            'knockout_matches_count' => $request->knockout_matches_count,
         ]);
 
         return redirect()
@@ -1129,7 +1136,7 @@ class CompetitionController extends Controller
     }
 
     /**
-     * Automatically generate knockout bracket (World Cup style seeding).
+     * Automatically generate knockout bracket (JOOLA rules).
      */
     public function autoGenerateKnockout(Request $request, Organization $organization, Competition $competition)
     {
@@ -1145,15 +1152,40 @@ class CompetitionController extends Controller
             return back()->with('error', 'This is not a tournament.');
         }
 
+        // Update knockout_matches_count if provided
+        if ($request->has('knockout_matches_count')) {
+            $validated = $request->validate([
+                'knockout_matches_count' => ['required', 'integer', 'min:1', 'max:31'],
+            ]);
+            
+            $competition->update([
+                'knockout_matches_count' => $validated['knockout_matches_count'],
+            ]);
+        }
+
+        // Check if knockout_matches_count is set (either from request or existing)
+        if (!$competition->fresh()->knockout_matches_count) {
+            return back()->with('error', 'Number of knockout matches must be configured before generating the bracket.');
+        }
+
         // Check if all groups are completed
         $incompleteGroups = $competition->tournamentGroups()->where('is_completed', false)->count();
         if ($incompleteGroups > 0) {
-            return back()->with('error', "Cannot generate knockout bracket. {$incompleteGroups} group(s) are not completed yet.");
+            return back()->with('error', "Ne možeš generisati knockout fazu. {$incompleteGroups} grupa još nije završena. Svi mečevi u grupnoj fazi moraju biti odigrani prije nego što generiš knockout fazu.");
+        }
+
+        // Check if there are already knockout matches - prevent regeneration if groups are not complete
+        $existingKnockoutMatches = CompetitionMatch::where('competition_id', $competition->id)
+            ->where('phase', 'knockout')
+            ->count();
+        
+        if ($existingKnockoutMatches > 0 && $incompleteGroups == 0) {
+            return back()->with('error', 'Knockout faza već postoji. Prvo koristi "Resetuj" dugme da obrišeš postojeću knockout fazu ako želiš regenerisati.');
         }
 
         try {
             $competition->generateKnockoutBracket();
-            return back()->with('success', 'Knockout bracket generated successfully using World Cup seeding system!');
+            return back()->with('success', 'Knockout bracket generated successfully using JOOLA rules!');
         } catch (\Exception $e) {
             return back()->with('error', 'Error generating knockout bracket: ' . $e->getMessage());
         }
@@ -1293,21 +1325,136 @@ class CompetitionController extends Controller
         }
 
         try {
+            \Log::info('Resetting knockout phase', [
+                'competition_id' => $competition->id,
+                'user_id' => auth()->id(),
+                'organization_id' => $organization->id
+            ]);
+
             // Delete all knockout matches
             CompetitionMatch::where('competition_id', $competition->id)
                 ->where('phase', 'knockout')
                 ->delete();
 
-            // Reset competition knockout fields
+            // Reset competition knockout fields and phase
             $competition->update([
-                'current_phase' => 'groups', // Reset to groups phase
+                'current_phase' => 'groups', // Reset to groups phase so knockout can be regenerated
                 'knockout_bracket' => null,
                 'knockout_completed_at' => null,
+                'knockout_started_at' => null,
             ]);
 
-            return back()->with('success', 'Knockout phase has been reset successfully!');
+            \Log::info('Knockout phase reset successfully', [
+                'competition_id' => $competition->id
+            ]);
+
+            return back()->with('success', 'Knockout faza je resetovana! Sada možeš ponovo regenerisati knockout bracket.');
         } catch (\Exception $e) {
-            return back()->with('error', 'Error resetting knockout phase: ' . $e->getMessage());
+            \Log::error('Error resetting knockout phase', [
+                'competition_id' => $competition->id,
+                'error' => $e->getMessage()
+            ]);
+            return back()->with('error', 'Greška pri resetovanju knockout faze: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Reset groups phase.
+     */
+    public function resetGroups(Request $request, Organization $organization, Competition $competition)
+    {
+        if ($organization->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        if ($competition->organization_id !== $organization->id) {
+            abort(404);
+        }
+
+        if (!$competition->isTournament()) {
+            return back()->with('error', 'This is not a tournament.');
+        }
+
+        // PREVENT resetting if groups are not complete (matches still in progress)
+        $completedGroups = $competition->tournamentGroups()->where('is_completed', true)->count();
+        if ($completedGroups > 0) {
+            return back()->with('error', 'Ne možeš resetovati grupnu fazu dok su grupe u toku! Prvo završi sve grupne mečeve ili obriši cijelo takmičenje.');
+        }
+
+        try {
+            \Log::info('Resetting groups phase', [
+                'competition_id' => $competition->id,
+                'user_id' => auth()->id(),
+                'organization_id' => $organization->id
+            ]);
+
+            // Delete all group phase matches
+            CompetitionMatch::where('competition_id', $competition->id)
+                ->where('phase', 'group')
+                ->delete();
+
+            // Delete all standings
+            Standing::where('competition_id', $competition->id)->delete();
+
+            // Reset group completion status
+            $competition->tournamentGroups()->update([
+                'is_completed' => false,
+                'completed_at' => null,
+                'standings' => []
+            ]);
+
+            // Reset competition phase and related fields
+            $competition->update([
+                'current_phase' => 'groups',
+                'groups_completed_at' => null,
+                'knockout_bracket' => null,
+                'knockout_completed_at' => null,
+                'knockout_started_at' => null,
+            ]);
+
+            \Log::info('Groups phase reset successfully', [
+                'competition_id' => $competition->id
+            ]);
+
+            return back()->with('success', 'Grupna faza je resetovana! Sada možete ponovo generisati grupe i mečeve.');
+        } catch (\Exception $e) {
+            \Log::error('Error resetting groups phase', [
+                'competition_id' => $competition->id,
+                'error' => $e->getMessage()
+            ]);
+            return back()->with('error', 'Greška pri resetovanju grupne faze: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Update knockout matches count.
+     */
+    public function updateKnockoutCount(Request $request, Organization $organization, Competition $competition)
+    {
+        if ($organization->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        if ($competition->organization_id !== $organization->id) {
+            abort(404);
+        }
+
+        if (!$competition->isTournament()) {
+            return back()->with('error', 'This is not a tournament.');
+        }
+
+        try {
+            $validated = $request->validate([
+                'knockout_matches_count' => ['required', 'integer', 'min:1', 'max:31'],
+            ]);
+
+            $competition->update([
+                'knockout_matches_count' => $validated['knockout_matches_count'],
+            ]);
+
+            return back()->with('success', 'Knockout matches count updated successfully!');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Error updating knockout count: ' . $e->getMessage());
         }
     }
 }

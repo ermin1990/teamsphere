@@ -81,7 +81,8 @@ class BergerScheduleService
                     'away_player_id' => $matchData['away_player_id'],
                     'round_number' => $matchData['round'],
                     'status' => 'scheduled',
-                    'phase' => 'groups',
+                    'phase' => 'group',
+                    'scheduled_at' => now(),
                 ]);
             }
         }

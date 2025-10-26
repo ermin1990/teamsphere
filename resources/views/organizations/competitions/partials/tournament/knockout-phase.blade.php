@@ -9,9 +9,20 @@
 @if($knockoutMatches && $knockoutMatches->count() > 0)
 <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 mb-6">
     <div class="flex items-center justify-between mb-6">
-        <h3 class="text-2xl font-bold text-white">🏆 Knockout Faza</h3>
+        <div class="flex items-center gap-4">
+            <h3 class="text-2xl font-bold text-white">🏆 Knockout Faza</h3>
+            @if($isOwner)
+                <div class="bg-blue-600/20 border border-blue-500/50 rounded-lg px-3 py-1 flex items-center gap-2">
+                    <span class="text-sm text-gray-300">Mečeva:</span>
+                    <span class="text-sm font-semibold text-blue-400">{{ $competition->knockout_matches_count ?? 'Nije postavljeno' }}</span>
+                    <button type="button" onclick="openEditKnockoutCountModal({{ $competition->knockout_matches_count ?? 0 }})" class="text-blue-400 hover:text-blue-300 ml-1">
+                        ✏️
+                    </button>
+                </div>
+            @endif
+        </div>
         
-        @if($isOwner && $knockoutMatches->count() > 0)
+        @if($isOwner)
             <div class="flex gap-2">
                 {{-- Check if current round is complete and show advance button --}}
                 @php
@@ -37,6 +48,21 @@
                         class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors">
                     🔄 Resetuj
                 </button>
+
+                {{-- Debug button without confirm --}}
+                <button type="button" onclick="directResetKnockout()"
+                        class="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg transition-colors text-sm">
+                    🔄 Resetuj (bez confirm)
+                </button>
+                
+                <form id="regenerateKnockoutForm" method="POST" action="{{ route('organizations.competitions.auto-generate-knockout', [$organization, $competition]) }}" style="display: inline;">
+                    @csrf
+                    <input type="hidden" name="knockout_matches_count" value="{{ $competition->knockout_matches_count ?? 8 }}">
+                    <button type="submit" onclick="return confirm('Da li želiš regenerisati knockout bracket?')" 
+                            class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors">
+                        🎯 Regeneriši
+                    </button>
+                </form>
             </div>
         @endif
     </div>
@@ -103,6 +129,9 @@
                                         <span class="text-white text-sm font-medium">
                                             @if($match->homePlayer)
                                                 {{ $match->homePlayer->name }}
+                                                @if($match->home_player_group && $match->home_player_position)
+                                                    <span class="text-gray-400 text-xs">({{ $match->home_player_group }}{{ $match->home_player_position }})</span>
+                                                @endif
                                             @else
                                                 TBD
                                             @endif
@@ -124,6 +153,9 @@
                                         <span class="text-white text-sm font-medium">
                                             @if($match->awayPlayer)
                                                 {{ $match->awayPlayer->name }}
+                                                @if($match->away_player_group && $match->away_player_position)
+                                                    <span class="text-gray-400 text-xs">({{ $match->away_player_group }}{{ $match->away_player_position }})</span>
+                                                @endif
                                             @else
                                                 TBD
                                             @endif
@@ -183,23 +215,42 @@
 
 @else
 <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 mb-6 text-center">
-    <p class="text-gray-300">Knockout faza još nije kreirana</p>
+    <p class="text-gray-300">Knockout faza je resetovana - možete regenerisati bracket</p>
     @if($isOwner)
-        <div class="mt-4 flex gap-3 justify-center">
-            <a href="{{ route('organizations.competitions.knockout-setup', [$organization, $competition]) }}"
-               class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
-                🎯 Ručno Postavi
-            </a>
-            <form method="POST" action="{{ route('organizations.competitions.auto-generate-knockout', [$organization, $competition]) }}" style="display: inline;">
-                @csrf
-                <button type="submit" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors">
-                    ⚡ Automatski Generiši
-                </button>
-            </form>
-        </div>
+        {{-- Warning if knockout_matches_count not set --}}
+        @if(!$competition->knockout_matches_count)
+            <div class="mt-4 bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-3 text-yellow-400 inline-block text-sm">
+                <p>⚠️ Prvo trebate postaviti <strong>Broj mečeva u eliminacionoj fazi</strong></p>
+            </div>
+        @endif
     @endif
 </div>
 @endif
+
+<!-- Edit Knockout Count Modal -->
+<div id="editKnockoutCountModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center">
+    <div class="bg-gray-800 rounded-lg max-w-sm w-full p-6 mx-4">
+        <h3 class="text-lg font-semibold text-white mb-4">Uredi Broj Mečeva</h3>
+        
+        <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-300 mb-2">Broj mečeva u eliminacionoj fazi</label>
+            <input type="number" id="editKnockoutCount" min="1" max="31" 
+                   class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <p class="text-xs text-gray-400 mt-1">Broj igrača koji će nastaviti u eliminacionu fazu</p>
+        </div>
+        
+        <div class="flex gap-3">
+            <button type="button" onclick="closeEditKnockoutCountModal()" 
+                    class="flex-1 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors">
+                Odustani
+            </button>
+            <button type="button" onclick="saveKnockoutCount()" 
+                    class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
+                💾 Sačuvaj
+            </button>
+        </div>
+    </div>
+</div>
 
 @once
     {{-- Quick Result Modal --}}
@@ -272,11 +323,15 @@
 
 <script>
 function confirmResetKnockout() {
+    console.log('confirmResetKnockout called');
     if (confirm('Da li si siguran? Ovo će obrisati svu knockout fazu.')) {
+        console.log('User confirmed, creating form');
         // Create and submit a form to reset knockout
         const form = document.createElement('form');
         form.method = 'POST';
         form.action = '{{ route("organizations.competitions.reset-knockout", [$organization, $competition]) }}';
+        
+        console.log('Form action:', form.action);
         
         // Add CSRF token
         const csrfToken = document.createElement('input');
@@ -286,8 +341,48 @@ function confirmResetKnockout() {
         form.appendChild(csrfToken);
         
         document.body.appendChild(form);
+        console.log('Submitting form...');
         form.submit();
+    } else {
+        console.log('User cancelled');
     }
+}
+
+function directResetKnockout() {
+    console.log('Direct reset called');
+    // Create and submit a form to reset knockout without confirm
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '{{ route("organizations.competitions.reset-knockout", [$organization, $competition]) }}';
+    
+    // Add CSRF token
+    const csrfToken = document.createElement('input');
+    csrfToken.type = 'hidden';
+    csrfToken.name = '_token';
+    csrfToken.value = '{{ csrf_token() }}';
+    form.appendChild(csrfToken);
+    
+    console.log('Submitting form to:', form.action);
+    document.body.appendChild(form);
+    form.submit();
+}
+
+function submitAutoGenerateForm(event) {
+    event.preventDefault();
+    
+    const btn = document.getElementById('autoGenerateBtn');
+    const form = document.getElementById('autoGenerateKnockoutForm');
+    
+    // Show loading state
+    const originalText = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = '⏳ Generiši...';
+    btn.classList.add('opacity-50', 'cursor-not-allowed');
+    
+    // Submit form
+    setTimeout(() => {
+        form.submit();
+    }, 300);
 }
 
 function confirmAdvanceRound(currentRound) {
@@ -498,5 +593,53 @@ function saveQuickResult() {
     document.body.appendChild(form);
     form.submit();
 }
+
+// Knockout count modal functions
+function openEditKnockoutCountModal(currentCount) {
+    const input = document.getElementById('editKnockoutCount');
+    input.value = currentCount || 7;
+    document.getElementById('editKnockoutCountModal').classList.remove('hidden');
+    input.focus();
+    input.select();
+}
+
+function closeEditKnockoutCountModal() {
+    document.getElementById('editKnockoutCountModal').classList.add('hidden');
+}
+
+function saveKnockoutCount() {
+    const newCount = document.getElementById('editKnockoutCount').value;
+    
+    if (!newCount || newCount < 1 || newCount > 31) {
+        alert('Broj meceva mora biti izmedu 1 i 31');
+        return;
+    }
+    
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '{{ route("organizations.competitions.update-knockout-count", [$organization, $competition]) }}';
+    
+    const csrfToken = document.createElement('input');
+    csrfToken.type = 'hidden';
+    csrfToken.name = '_token';
+    csrfToken.value = '{{ csrf_token() }}';
+    form.appendChild(csrfToken);
+    
+    const countField = document.createElement('input');
+    countField.type = 'hidden';
+    countField.name = 'knockout_matches_count';
+    countField.value = newCount;
+    form.appendChild(countField);
+    
+    document.body.appendChild(form);
+    form.submit();
+}
+
+// ESC key listener for modal
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+        closeEditKnockoutCountModal();
+    }
+});
 </script>
 

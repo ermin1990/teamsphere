@@ -6,6 +6,14 @@
         @include('organizations.competitions.partials.success-message')
     @endif
 
+    @if(session('error'))
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 py-4">
+            <div class="bg-red-500/10 border border-red-500/20 rounded-lg p-4">
+                <p class="text-red-400">❌ {{ session('error') }}</p>
+            </div>
+        </div>
+    @endif
+
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             

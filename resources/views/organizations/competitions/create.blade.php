@@ -190,6 +190,24 @@
                             @enderror
                         </div>
 
+                        <!-- Knockout Matches Count -->
+                        <div>
+                            <label for="knockout_matches_count" class="block text-sm font-medium text-white mb-2">
+                                Broj Mečeva u Eliminacionoj Fazi <span class="text-red-400">*</span>
+                            </label>
+                            <input type="number"
+                                   id="knockout_matches_count"
+                                   name="knockout_matches_count"
+                                   value="{{ old('knockout_matches_count', 7) }}"
+                                   min="1"
+                                   max="31"
+                                   class="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200">
+                            <p class="mt-1 text-xs text-gray-400">Koliko mečeva će biti odigrano u eliminacionoj fazi (1-31)</p>
+                            @error('knockout_matches_count')
+                                <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
+                            @enderror
+                        </div>
+
                         <!-- Advancement Method -->
                         <div>
                             <label for="advancement_method" class="block text-sm font-medium text-white mb-2">
@@ -295,6 +313,7 @@
                 document.getElementById('group_count').required = true;
                 document.getElementById('players_per_group').required = true;
                 document.getElementById('players_advancing_per_group').required = true;
+                document.getElementById('knockout_matches_count').required = true;
                 document.getElementById('advancement_method').required = true;
                 // Set is_team_based to 0 for tournaments
                 document.getElementById('individual_based').checked = true;
@@ -306,6 +325,7 @@
                 document.getElementById('group_count').required = false;
                 document.getElementById('players_per_group').required = false;
                 document.getElementById('players_advancing_per_group').required = false;
+                document.getElementById('knockout_matches_count').required = false;
                 document.getElementById('advancement_method').required = false;
                 // Set is_team_based to 0 for knockout
                 document.getElementById('individual_based').checked = true;
@@ -317,6 +337,7 @@
                 document.getElementById('group_count').required = false;
                 document.getElementById('players_per_group').required = false;
                 document.getElementById('players_advancing_per_group').required = false;
+                document.getElementById('knockout_matches_count').required = false;
                 document.getElementById('advancement_method').required = false;
             }
         }
