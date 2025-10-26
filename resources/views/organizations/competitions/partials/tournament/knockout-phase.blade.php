@@ -27,14 +27,14 @@
                 $totalRounds = $groupedByRound->keys()->max();
             @endphp
 
-            @foreach($groupedByRound as $round => $matches)
+            @foreach($groupedByRound as $round => $roundMatches)
                 <div class="flex flex-col justify-around min-h-[400px] gap-4">
                     {{-- Round title --}}
                     <div class="text-center mb-4">
                         <div class="bg-blue-600/20 border border-blue-500 rounded-lg px-3 py-2">
                             <div class="text-blue-300 font-semibold text-sm">
                                 @php
-                                    $matchCount = $matches->count();
+                                    $matchCount = $roundMatches->count();
                                     if ($matchCount == 1) echo 'Finale';
                                     elseif ($matchCount == 2) echo 'Polufinale';
                                     elseif ($matchCount == 4) echo 'Četvrtfinale';
@@ -47,7 +47,7 @@
 
                     {{-- Matches in round --}}
                     <div class="space-y-3">
-                        @foreach($matches as $match)
+                        @foreach($roundMatches as $match)
                             <div class="w-56 bg-gray-700/30 rounded-lg border border-gray-600/50 overflow-hidden hover:border-blue-500/50 transition-all">
                                 {{-- Match header --}}
                                 <div class="bg-gray-800/50 px-3 py-2 border-b border-gray-600/30">
