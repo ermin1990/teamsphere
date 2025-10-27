@@ -14,7 +14,7 @@ return new class extends Migration
         // MATCHES TABLE - Most frequently queried table
         Schema::table('matches', function (Blueprint $table) {
             // Status is used in almost every match query
-            $table->index('status', 'idx_matches_status');
+            // $table->index('status', 'idx_matches_status'); // Commented out as index already exists
             
             // League/Competition filtering
             $table->index('league_id', 'idx_matches_league_id');
@@ -285,7 +285,7 @@ return new class extends Migration
     {
         // MATCHES TABLE
         Schema::table('matches', function (Blueprint $table) {
-            $table->dropIndex('idx_matches_status');
+            // $table->dropIndex('idx_matches_status'); // Commented out as index already exists
             $table->dropIndex('idx_matches_league_id');
             $table->dropIndex('idx_matches_competition_id');
             $table->dropIndex('idx_matches_round');

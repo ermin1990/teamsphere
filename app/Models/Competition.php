@@ -132,6 +132,7 @@ class Competition extends Model
         return $this->belongsToMany(Player::class, 'competition_player', 'competition_id', 'player_id')
                     ->withPivot('joined_at')
                     ->withTimestamps()
+                    ->orderBy('competition_player.joined_at')
                     ->withCasts([
                         'joined_at' => 'datetime'
                     ]);

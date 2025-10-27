@@ -18,23 +18,25 @@ class TournamentGroupService
         $playersPerGroup = $competition->players_per_group;
 
         $groups = [];
-        $playerIndex = 0;
-
         for ($i = 0; $i < $groupCount; $i++) {
-            $groupPlayers = [];
-
-            for ($j = 0; $j < $playersPerGroup; $j++) {
-                if ($playerIndex < $players->count()) {
-                    $groupPlayers[] = $players[$playerIndex]->id;
-                    $playerIndex++;
-                }
-            }
-
             $groups[] = [
                 'name' => 'Grupa ' . chr(65 + $i), // A, B, C, etc.
-                'player_ids' => $groupPlayers,
-                'standings' => $this->initializeGroupStandings($groupPlayers),
+                'player_ids' => [],
+                'standings' => [],
             ];
+        }
+
+        // Assign players to groups in alternating order to balance groups
+        $playerIndex = 0;
+        foreach ($players as $player) {
+            $groupIndex = $playerIndex % $groupCount;
+            $groups[$groupIndex]['player_ids'][] = $player->id;
+            $playerIndex++;
+        }
+
+        // Initialize standings for each group, preserving the order (seeding)
+        foreach ($groups as &$group) {
+            $group['standings'] = $this->initializeGroupStandings($group['player_ids']);
         }
 
         return $groups;

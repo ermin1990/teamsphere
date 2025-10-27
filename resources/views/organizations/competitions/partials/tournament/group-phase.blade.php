@@ -32,21 +32,8 @@
                     <form id="autoGenerateKnockoutForm" method="POST" action="{{ route('organizations.competitions.auto-generate-knockout', [$organization, $competition]) }}" style="display: inline;">
                         @csrf
                         <div class="flex gap-2 items-center">
-                            <div class="flex items-center gap-2">
-                                <label for="knockoutMatchesInput" class="text-gray-300 text-xs whitespace-nowrap">
-                                    Mečeva u 1. rundi:
-                                </label>
-                                <input type="number" 
-                                       id="knockoutMatchesInput" 
-                                       name="knockout_matches_count" 
-                                       min="1" 
-                                       max="31" 
-                                       value="{{ $competition->knockout_matches_count ?? 8 }}"
-                                       class="w-16 px-2 py-1 bg-gray-700 border border-gray-600 rounded text-white text-center text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                       placeholder="8">
-                            </div>
-                            <button type="submit" id="autoGenerateBtn" class="bg-green-600 hover:bg-green-700 text-white text-xs px-4 py-2 rounded-lg transition-colors font-semibold" onclick="submitAutoGenerateForm(event)">
-                                ⚡ Automatski Generiši
+                            <button type="submit" id="autoGenerateBtn" class="bg-gray-600 text-gray-400 text-xs px-4 py-2 rounded-lg cursor-not-allowed font-semibold" disabled title="Trenutno nije u funkciji">
+                                ⚡ Automatski Generiši (nedostupno)
                             </button>
                         </div>
                     </form>
@@ -75,6 +62,7 @@
                         ->orderBy('points', 'desc')
                         ->orderByRaw('(sets_won - sets_lost) desc')
                         ->orderByRaw('(points_won - points_lost) desc')
+                        ->orderBy('id')
                         ->get();
                 @endphp
                 
