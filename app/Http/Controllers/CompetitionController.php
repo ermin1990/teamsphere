@@ -87,12 +87,11 @@ class CompetitionController extends Controller
             'is_team_based' => (bool) ($request->input('is_team_based', 0)),
             'status' => 'draft',
             'is_active' => true,
-            // Tournament fields - use defaults if not provided
-            'max_participants' => $request->max_participants ?: 16,
+            // Tournament fields - use defaults if not provided, but keep flexible
+            'max_participants' => $request->max_participants, // Optional - can be null
             'group_count' => $request->group_count ?: 4,
             'players_per_group' => $request->players_per_group ?: 4,
             'players_advancing_per_group' => $request->players_advancing_per_group ?: 2,
-            'knockout_matches_count' => $request->knockout_matches_count ?: 7,
             'advancement_method' => 'automatic',
             'current_phase' => 'groups',
         ]);
@@ -491,11 +490,7 @@ class CompetitionController extends Controller
             abort(403);
         }
 
-        // Allow knockout_matches_count to be updated even during active competitions
-        $isUpdatingKnockoutCountOnly = $request->has('knockout_matches_count') &&
-            count($request->all()) === 1; // Only knockout_matches_count is being updated
-
-        if ($competition->status !== 'draft' && !$isUpdatingKnockoutCountOnly) {
+        if ($competition->status !== 'draft') {
             return back()->with('error', 'Cannot change settings after competition has started.');
         }
 
@@ -514,7 +509,6 @@ class CompetitionController extends Controller
             'players_per_group' => ['nullable', 'integer', 'min:3', 'max:8'],
             'players_advancing_per_group' => ['nullable', 'integer', 'min:1', 'max:4'],
             'max_participants' => ['nullable', 'integer', 'min:4', 'max:128'],
-            'knockout_matches_count' => ['nullable', 'integer', 'min:1', 'max:31'],
         ]);
 
         $competition->update([
@@ -532,7 +526,6 @@ class CompetitionController extends Controller
             'players_per_group' => $request->players_per_group,
             'players_advancing_per_group' => $request->players_advancing_per_group,
             'max_participants' => $request->max_participants,
-            'knockout_matches_count' => $request->knockout_matches_count,
         ]);
 
         return redirect()
@@ -1031,37 +1024,55 @@ class CompetitionController extends Controller
             return back()->with('error', 'Please provide player names.');
         }
 
-        // Parse players from text (one per line, comma-separated, or semicolon-separated)
-        $playerNames = [];
+        // Parse players from text (format: "Name, Club;")
+        $playersData = [];
         $lines = explode("\n", $playersText);
         
-        foreach ($lines as $line) {
+        foreach ($lines as $lineNumber => $line) {
             $line = trim($line);
             if (empty($line)) continue;
             
-            // Split by comma or semicolon
-            $names = preg_split('/[,;]/', $line);
-            foreach ($names as $name) {
-                $name = trim($name);
-                if (!empty($name)) {
-                    $playerNames[] = $name;
-                }
+            // Each line should end with semicolon
+            if (!str_ends_with($line, ';')) {
+                $errors[] = "Line " . ($lineNumber + 1) . ": Must end with ';'";
+                continue;
             }
+            
+            // Remove trailing semicolon
+            $line = rtrim($line, ';');
+            
+            // Split by comma to get name and club
+            $parts = explode(',', $line, 2);
+            
+            if (count($parts) !== 2) {
+                $errors[] = "Line " . ($lineNumber + 1) . ": Format must be 'Name, Club'";
+                continue;
+            }
+            
+            $name = trim($parts[0]);
+            $club = trim($parts[1]);
+            
+            if (empty($name)) {
+                $errors[] = "Line " . ($lineNumber + 1) . ": Player name is required";
+                continue;
+            }
+            
+            $playersData[] = [
+                'name' => $name,
+                'club' => $club,
+            ];
         }
 
-        if (empty($playerNames)) {
-            return back()->with('error', 'No valid player names found.');
+        if (empty($playersData)) {
+            return back()->with('error', 'No valid player data found.');
         }
-
-        // Remove duplicates while preserving order
-        $playerNames = array_unique($playerNames);
 
         // Check max participants limit for tournaments
         if ($competition->isTournament() && $competition->max_participants) {
             $currentCount = $competition->players()->count();
-            $newCount = $currentCount + count($playerNames);
+            $newCount = $currentCount + count($playersData);
             if ($newCount > $competition->max_participants) {
-                return back()->with('error', "Adding these players would exceed the maximum participants limit of {$competition->max_participants}. Current: {$currentCount}, Adding: " . count($playerNames) . ", Total: {$newCount}");
+                return back()->with('error', "Adding these players would exceed the maximum participants limit of {$competition->max_participants}. Current: {$currentCount}, Adding: " . count($playersData) . ", Total: {$newCount}");
             }
         }
 
@@ -1069,7 +1080,10 @@ class CompetitionController extends Controller
         $skipped = 0;
         $errors = [];
 
-        foreach ($playerNames as $playerName) {
+        foreach ($playersData as $playerData) {
+            $playerName = $playerData['name'];
+            $playerClub = $playerData['club'];
+            
             try {
                 // Check if player already exists in organization
                 $existingPlayer = Player::where('organization_id', $organization->id)
@@ -1082,14 +1096,21 @@ class CompetitionController extends Controller
                         $skipped++;
                         continue;
                     }
+                    
+                    // Update club/position if provided
+                    if (!empty($playerClub) && $existingPlayer->position !== $playerClub) {
+                        $existingPlayer->update(['position' => $playerClub]);
+                    }
+                    
                     // Add existing player to competition
                     $competition->players()->attach($existingPlayer->id);
                     $imported++;
                 } else {
-                    // Create new player
+                    // Create new player with club
                     $player = Player::create([
                         'organization_id' => $organization->id,
                         'name' => $playerName,
+                        'position' => $playerClub, // Club name stored in position field
                         'is_active' => true,
                     ]);
                     
@@ -1152,21 +1173,7 @@ class CompetitionController extends Controller
             return back()->with('error', 'This is not a tournament.');
         }
 
-        // Update knockout_matches_count if provided
-        if ($request->has('knockout_matches_count')) {
-            $validated = $request->validate([
-                'knockout_matches_count' => ['required', 'integer', 'min:1', 'max:31'],
-            ]);
-            
-            $competition->update([
-                'knockout_matches_count' => $validated['knockout_matches_count'],
-            ]);
-        }
 
-        // Check if knockout_matches_count is set (either from request or existing)
-        if (!$competition->fresh()->knockout_matches_count) {
-            return back()->with('error', 'Number of knockout matches must be configured before generating the bracket.');
-        }
 
         // Check if all groups are completed
         $incompleteGroups = $competition->tournamentGroups()->where('is_completed', false)->count();
@@ -1423,38 +1430,6 @@ class CompetitionController extends Controller
                 'error' => $e->getMessage()
             ]);
             return back()->with('error', 'Greška pri resetovanju grupne faze: ' . $e->getMessage());
-        }
-    }
-
-    /**
-     * Update knockout matches count.
-     */
-    public function updateKnockoutCount(Request $request, Organization $organization, Competition $competition)
-    {
-        if ($organization->user_id !== auth()->id()) {
-            abort(403);
-        }
-
-        if ($competition->organization_id !== $organization->id) {
-            abort(404);
-        }
-
-        if (!$competition->isTournament()) {
-            return back()->with('error', 'This is not a tournament.');
-        }
-
-        try {
-            $validated = $request->validate([
-                'knockout_matches_count' => ['required', 'integer', 'min:1', 'max:31'],
-            ]);
-
-            $competition->update([
-                'knockout_matches_count' => $validated['knockout_matches_count'],
-            ]);
-
-            return back()->with('success', 'Knockout matches count updated successfully!');
-        } catch (\Exception $e) {
-            return back()->with('error', 'Error updating knockout count: ' . $e->getMessage());
         }
     }
 }

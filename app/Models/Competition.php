@@ -40,7 +40,6 @@ class Competition extends Model
         'knockout_bracket',
         'groups_completed_at',
         'knockout_completed_at',
-        'knockout_matches_count',
         // Match settings
         'sets_to_win',
         'points_per_set',
@@ -70,7 +69,6 @@ class Competition extends Model
         'knockout_bracket' => 'array',
         'groups_completed_at' => 'datetime',
         'knockout_completed_at' => 'datetime',
-        'knockout_matches_count' => 'integer',
         // Match settings casts
         'sets_to_win' => 'integer',
         'points_per_set' => 'integer',
@@ -362,18 +360,14 @@ class Competition extends Model
      * Generate knockout bracket for this competition using JOOLA rules.
      * 
      * JOOLA Rules:
-     * - Number of matches in knockout phase is predefined (knockout_matches_count)
      * - Players are seeded based on group performance
-     * - Matches are created to reach the final with the specified number of matches
+     * - Number of knockout matches is calculated dynamically based on advancing players
+     * - Matches are created to reach the final
      */
     public function generateKnockoutBracket()
     {
         if (!$this->isTournament()) {
             throw new \Exception('This is not a tournament.');
-        }
-
-        if (!$this->knockout_matches_count) {
-            throw new \Exception('Number of knockout matches must be specified.');
         }
 
         // Get tournament groups with standings

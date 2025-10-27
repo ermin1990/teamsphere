@@ -238,17 +238,6 @@
                             <p class="text-gray-400 text-xs mt-1">Maksimalni broj učesnika (ostavite prazno za neograničeno)</p>
                         </div>
 
-                        <!-- Knockout Matches Count -->
-                        <div>
-                            <label for="knockout_matches_count" class="block text-sm font-medium text-white mb-2">
-                                Broj Mečeva u Eliminacionoj Fazi
-                            </label>
-                            <input type="number" id="knockout_matches_count" name="knockout_matches_count" 
-                                   value="{{ old('knockout_matches_count', $competition->knockout_matches_count ?? 7) }}"
-                                   min="1" max="31"
-                                   class="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <p class="text-gray-400 text-xs mt-1">Broj mečeva koji će biti odigrani u eliminacionoj fazi</p>
-                        </div>
                     </div>
 
                     <!-- Manual Knockout Selection -->

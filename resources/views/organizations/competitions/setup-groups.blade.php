@@ -98,6 +98,9 @@
                                             </div>
                                             <div>
                                                 <p class="text-white font-medium">{{ $player->name }}</p>
+                                                @if($player->position)
+                                                    <p class="text-xs text-gray-400">({{ $player->position }})</p>
+                                                @endif
                                             </div>
                                         </div>
                                         <button type="button" 

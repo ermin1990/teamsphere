@@ -11,15 +11,6 @@
     <div class="flex items-center justify-between mb-6">
         <div class="flex items-center gap-4">
             <h3 class="text-2xl font-bold text-white">🏆 Knockout Faza</h3>
-            @if($isOwner)
-                <div class="bg-blue-600/20 border border-blue-500/50 rounded-lg px-3 py-1 flex items-center gap-2">
-                    <span class="text-sm text-gray-300">Mečeva:</span>
-                    <span class="text-sm font-semibold text-blue-400">{{ $competition->knockout_matches_count ?? 'Nije postavljeno' }}</span>
-                    <button type="button" onclick="openEditKnockoutCountModal({{ $competition->knockout_matches_count ?? 0 }})" class="text-blue-400 hover:text-blue-300 ml-1">
-                        ✏️
-                    </button>
-                </div>
-            @endif
         </div>
         
         @if($isOwner)
@@ -226,31 +217,6 @@
     @endif
 </div>
 @endif
-
-<!-- Edit Knockout Count Modal -->
-<div id="editKnockoutCountModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center">
-    <div class="bg-gray-800 rounded-lg max-w-sm w-full p-6 mx-4">
-        <h3 class="text-lg font-semibold text-white mb-4">Uredi Broj Mečeva</h3>
-        
-        <div class="mb-4">
-            <label class="block text-sm font-medium text-gray-300 mb-2">Broj mečeva u eliminacionoj fazi</label>
-            <input type="number" id="editKnockoutCount" min="1" max="31" 
-                   class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <p class="text-xs text-gray-400 mt-1">Broj igrača koji će nastaviti u eliminacionu fazu</p>
-        </div>
-        
-        <div class="flex gap-3">
-            <button type="button" onclick="closeEditKnockoutCountModal()" 
-                    class="flex-1 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors">
-                Odustani
-            </button>
-            <button type="button" onclick="saveKnockoutCount()" 
-                    class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
-                💾 Sačuvaj
-            </button>
-        </div>
-    </div>
-</div>
 
 @once
     {{-- Quick Result Modal --}}
@@ -594,52 +560,5 @@ function saveQuickResult() {
     form.submit();
 }
 
-// Knockout count modal functions
-function openEditKnockoutCountModal(currentCount) {
-    const input = document.getElementById('editKnockoutCount');
-    input.value = currentCount || 7;
-    document.getElementById('editKnockoutCountModal').classList.remove('hidden');
-    input.focus();
-    input.select();
-}
-
-function closeEditKnockoutCountModal() {
-    document.getElementById('editKnockoutCountModal').classList.add('hidden');
-}
-
-function saveKnockoutCount() {
-    const newCount = document.getElementById('editKnockoutCount').value;
-    
-    if (!newCount || newCount < 1 || newCount > 31) {
-        alert('Broj meceva mora biti izmedu 1 i 31');
-        return;
-    }
-    
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = '{{ route("organizations.competitions.update-knockout-count", [$organization, $competition]) }}';
-    
-    const csrfToken = document.createElement('input');
-    csrfToken.type = 'hidden';
-    csrfToken.name = '_token';
-    csrfToken.value = '{{ csrf_token() }}';
-    form.appendChild(csrfToken);
-    
-    const countField = document.createElement('input');
-    countField.type = 'hidden';
-    countField.name = 'knockout_matches_count';
-    countField.value = newCount;
-    form.appendChild(countField);
-    
-    document.body.appendChild(form);
-    form.submit();
-}
-
-// ESC key listener for modal
-document.addEventListener('keydown', function(event) {
-    if (event.key === 'Escape') {
-        closeEditKnockoutCountModal();
-    }
-});
 </script>
 

@@ -71,6 +71,9 @@
                                 <h3 class="text-xl font-bold text-white">
                                     {{ $match->homePlayer->name ?? 'TBD' }}
                                 </h3>
+                                @if($match->homePlayer && $match->homePlayer->position)
+                                    <p class="text-sm text-gray-400 mt-1">({{ $match->homePlayer->position }})</p>
+                                @endif
                                 @if($match->status === 'forfeited')
                                     @if($match->forfeited_by === 'home')
                                         <div class="text-red-400 mt-2 text-center">
@@ -123,6 +126,9 @@
                                 <h3 class="text-xl font-bold text-white">
                                     {{ $match->awayPlayer->name ?? 'TBD' }}
                                 </h3>
+                                @if($match->awayPlayer && $match->awayPlayer->position)
+                                    <p class="text-sm text-gray-400 mt-1">({{ $match->awayPlayer->position }})</p>
+                                @endif
                                 @if($match->status === 'forfeited')
                                     @if($match->forfeited_by === 'away')
                                         <div class="text-red-400 mt-2 text-center">
@@ -186,7 +192,7 @@
                             </thead>
                             <tbody>
                                 @php
-                                    $sets = $match->sets ? json_decode($match->sets, true) : [];
+                                    $sets = $match->sets ?? [];
                                     $setDurations = $match->set_durations ?? [];
                                 @endphp
                                 @foreach($sets as $setNumber => $set)
@@ -412,7 +418,7 @@
                 <div class="flex justify-center space-x-4">
                     <a href="{{ route('organizations.competitions.show', [$organization, $competition]) }}"
                        class="bg-gray-700/50 hover:bg-gray-600/50 text-white px-6 py-3 rounded-lg font-medium transition-all duration-200">
-                        ← Povratak na konkurenciju
+                        ← Povratak na takmičenje
                     </a>
                 </div>
 

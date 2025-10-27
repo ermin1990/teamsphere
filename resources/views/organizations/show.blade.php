@@ -389,7 +389,7 @@
                                         </div>
                                         <div class="flex-1">
                                             <h4 class="text-white font-semibold">{{ $player->name }}</h4>
-                                            <p class="text-gray-400 text-sm">{{ $player->position ?: 'Nema pozicije' }}</p>
+                                            <p class="text-gray-400 text-sm">{{ $player->position ?: 'Nema kluba' }}</p>
                                         </div>
                                         @if($player->jersey_number)
                                             <div class="bg-gradient-to-r from-orange-500 to-red-500 text-white px-2 py-1 rounded-lg text-xs font-bold">

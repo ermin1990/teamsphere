@@ -67,7 +67,11 @@
                                             </div>
                                             <div class="min-w-0 flex-1">
                                                 <p class="text-white font-medium truncate">{{ $player->name }}</p>
-                                                <p class="text-gray-400 text-xs truncate">{{ $player->email }}</p>
+                                                @if($player->position)
+                                                    <p class="text-gray-400 text-xs truncate">({{ $player->position }})</p>
+                                                @elseif($player->email)
+                                                    <p class="text-gray-400 text-xs truncate">{{ $player->email }}</p>
+                                                @endif
                                             </div>
                                         </div>
                                         @livewire('remove-player-from-competition', ['organization' => $organization, 'competition' => $competition, 'player' => $player], key('remove-player-' . $player->id))

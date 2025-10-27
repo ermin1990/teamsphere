@@ -1,5 +1,11 @@
 {{-- Match Card Component --}}
-<div class="bg-gray-700/20 rounded-lg p-2 hover:bg-gray-700/40 transition-all border border-gray-600/10">
+@php
+    $isCompleted = $match->status === 'completed';
+    $matchUrl = $isCompleted ? route('organizations.competitions.matches.show', [$organization, $competition, $match]) : null;
+@endphp
+
+<div class="bg-gray-700/20 rounded-lg p-2 {{ $isCompleted ? 'hover:bg-gray-700/50 hover:border-blue-500/30 cursor-pointer' : 'hover:bg-gray-700/40' }} transition-all border border-gray-600/10 {{ $isCompleted ? 'group' : '' }}"
+     @if($isCompleted) onclick="window.location.href='{{ $matchUrl }}'" @endif>
     <div class="flex items-center justify-between gap-2">
         <!-- Players and Scores -->
         <div class="flex-1 min-w-0">
@@ -9,7 +15,12 @@
                     <div class="w-5 h-5 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
                         <span class="text-white font-bold text-[9px]">{{ substr($match->homePlayer->name ?? 'TBD', 0, 2) }}</span>
                     </div>
-                    <span class="text-white text-xs truncate">{{ $match->homePlayer->name ?? 'TBD' }}</span>
+                    <span class="text-white text-xs truncate">
+                        {{ $match->homePlayer->name ?? 'TBD' }}
+                        @if($match->homePlayer && $match->homePlayer->position)
+                            <span class="text-gray-400 text-[10px]">({{ $match->homePlayer->position }})</span>
+                        @endif
+                    </span>
                 </div>
                 <span class="text-lg font-bold ml-2 flex-shrink-0
                     @if($match->status === 'completed' && $match->home_score > $match->away_score && $match->homePlayer) text-green-400
@@ -25,7 +36,12 @@
                     <div class="w-5 h-5 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
                         <span class="text-white font-bold text-[9px]">{{ substr($match->awayPlayer->name ?? 'TBD', 0, 2) }}</span>
                     </div>
-                    <span class="text-white text-xs truncate">{{ $match->awayPlayer->name ?? 'TBD' }}</span>
+                    <span class="text-white text-xs truncate">
+                        {{ $match->awayPlayer->name ?? 'TBD' }}
+                        @if($match->awayPlayer && $match->awayPlayer->position)
+                            <span class="text-gray-400 text-[10px]">({{ $match->awayPlayer->position }})</span>
+                        @endif
+                    </span>
                 </div>
                 <span class="text-lg font-bold ml-2 flex-shrink-0
                     @if($match->status === 'completed' && $match->away_score > $match->home_score && $match->awayPlayer) text-green-400
@@ -79,11 +95,14 @@
                 </a>
                 @endif
             @elseif($match->status === 'completed')
-                <span class="text-[10px] bg-gray-600/20 text-gray-400 px-2 py-1 rounded text-center whitespace-nowrap">
-                    ✓ {{ __('FT') }}
-                </span>
+                <a href="{{ $matchUrl }}" 
+                   onclick="event.stopPropagation()"
+                   class="text-[10px] bg-gray-600/20 text-gray-400 px-2 py-1 rounded text-center whitespace-nowrap hover:bg-gray-600/40 hover:text-gray-300 transition-colors block">
+                    👁️ Detalji
+                </a>
                 @if($isOwner || $isRefereeForMatch($match))
                 <a href="{{ $isRefereeForMatch($match) ? route('referee.competition.match.edit', [$match]) : route('organizations.competitions.matches.edit', [$organization, $competition, $match]) }}" 
+                   onclick="event.stopPropagation()"
                    class="text-blue-400 hover:text-blue-300 text-[10px] text-center whitespace-nowrap">
                     ✏️ {{ __('Edit') }}
                 </a>
