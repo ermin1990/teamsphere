@@ -48,6 +48,14 @@
     <?php echo $__env->make('organizations.competitions.partials.modals', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
     <?php echo $__env->make('organizations.competitions.partials.scripts', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
+    <?php if(session('scroll_position')): ?>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                window.scrollTo(0, <?php echo e(session('scroll_position')); ?>);
+            });
+        </script>
+    <?php endif; ?>
+
  <?php echo $__env->renderComponent(); ?>
 <?php endif; ?>
 <?php if (isset($__attributesOriginal9ac128a9029c0e4701924bd2d73d7f54)): ?>

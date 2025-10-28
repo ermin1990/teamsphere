@@ -14,6 +14,7 @@
         <form id="quickResultForm" method="POST">
             <?php echo csrf_field(); ?>
             <input type="hidden" id="quickMatchId" name="match_id">
+            <input type="hidden" id="scrollPosition" name="scroll_position">
             <div class="space-y-6">
                 <!-- Match Info -->
                 <div class="bg-gray-700/30 rounded-lg p-4">

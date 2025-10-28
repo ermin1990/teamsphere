@@ -21,6 +21,10 @@
         // Set match ID in hidden input
         document.getElementById('quickMatchId').value = matchId;
 
+        // Set scroll position
+        const scrollPosition = window.pageYOffset || document.documentElement.scrollTop;
+        document.getElementById('scrollPosition').value = scrollPosition;
+
         document.getElementById('homePlayerName').textContent = homeName;
         document.getElementById('awayPlayerName').textContent = awayName;
         document.getElementById('homeInitials').textContent = (homeName || 'TBD').substring(0, 2).toUpperCase();
