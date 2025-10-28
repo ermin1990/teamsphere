@@ -95,7 +95,7 @@ class CompetitionController extends Controller
             'points_for_draw' => 1,
             'points_for_loss' => 0,
             'has_tiebreak' => false,
-            'tiebreak_points' => null,
+            'tiebreak_points' => 7,
             'manual_knockout_selection' => true,
         ]);
 
