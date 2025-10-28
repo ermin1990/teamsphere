@@ -101,10 +101,10 @@
                             </label>
                             <select id="sets_to_win" name="sets_to_win" required
                                     class="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                <option value="1" {{ old('sets_to_win', $competition->sets_to_win ?? 2) == 1 ? 'selected' : '' }}>1 (Najbolji od 1)</option>
-                                <option value="2" {{ old('sets_to_win', $competition->sets_to_win ?? 2) == 2 ? 'selected' : '' }}>2 (Najbolji od 3)</option>
-                                <option value="3" {{ old('sets_to_win', $competition->sets_to_win ?? 2) == 3 ? 'selected' : '' }}>3 (Najbolji od 5)</option>
-                                <option value="4" {{ old('sets_to_win', $competition->sets_to_win ?? 2) == 4 ? 'selected' : '' }}>4 (Najbolji od 7)</option>
+                                <option value="1" {{ old('sets_to_win', $competition->sets_to_win ?? 3) == 1 ? 'selected' : '' }}>1 (Najbolji od 1)</option>
+                                <option value="2" {{ old('sets_to_win', $competition->sets_to_win ?? 3) == 2 ? 'selected' : '' }}>2 (Najbolji od 3)</option>
+                                <option value="3" {{ old('sets_to_win', $competition->sets_to_win ?? 3) == 3 ? 'selected' : '' }}>3 (Najbolji od 5)</option>
+                                <option value="4" {{ old('sets_to_win', $competition->sets_to_win ?? 3) == 4 ? 'selected' : '' }}>4 (Najbolji od 7)</option>
                             </select>
                             <p class="text-gray-400 text-xs mt-1">Broj setova koji igrač treba da osvoji za pobjedu u meču</p>
                         </div>
@@ -193,13 +193,13 @@
                         <!-- Number of Groups -->
                         <div>
                             <label for="group_count" class="block text-sm font-medium text-white mb-2">
-                                Broj Grupa <span class="text-red-400">*</span>
+                                Broj Grupa
                             </label>
                             <input type="number" id="group_count" name="group_count" 
-                                   value="{{ old('group_count', $competition->group_count ?? 4) }}"
-                                   min="2" max="16" required
+                                   value="{{ old('group_count', $competition->group_count) }}"
+                                   min="2" max="16"
                                    class="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <p class="text-gray-400 text-xs mt-1">Broj grupa u grupnoj fazi turnira</p>
+                            <p class="text-gray-400 text-xs mt-1">Broj grupa u grupnoj fazi turnira (ostavite prazno za automatsko)</p>
                         </div>
 
                         <!-- Players per Group -->
@@ -244,7 +244,7 @@
                     <div class="mt-6">
                         <label class="flex items-center space-x-3 cursor-pointer">
                             <input type="checkbox" id="manual_knockout_selection" name="manual_knockout_selection" value="1"
-                                   {{ old('manual_knockout_selection', $competition->manual_knockout_selection ?? false) ? 'checked' : '' }}
+                                   {{ old('manual_knockout_selection', $competition->manual_knockout_selection ?? true) ? 'checked' : '' }}
                                    class="w-5 h-5 bg-gray-700 border-gray-600 rounded text-blue-600 focus:ring-blue-500">
                             <div>
                                 <span class="text-white font-medium">Ručno Odabiranje za Eliminacionu Faz</span>
