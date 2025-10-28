@@ -1,4 +1,13 @@
-<x-app-layout>
+<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginal9ac128a9029c0e4701924bd2d73d7f54 = $attributes; } ?>
+<?php $component = App\View\Components\AppLayout::resolve([] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('app-layout'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\App\View\Components\AppLayout::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes([]); ?>
     <div class="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 py-8">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             
@@ -7,36 +16,36 @@
                 <div class="flex items-center justify-between">
                     <div>
                         <h1 class="text-3xl font-bold text-white mb-2">Postavi Grupe Turnira</h1>
-                        <p class="text-gray-300">{{ $competition->name }}</p>
+                        <p class="text-gray-300"><?php echo e($competition->name); ?></p>
                     </div>
-                    <a href="{{ route('organizations.competitions.show', [$organization, $competition]) }}" 
+                    <a href="<?php echo e(route('organizations.competitions.show', [$organization, $competition])); ?>" 
                        class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors">
                         Nazad
                     </a>
                 </div>
             </div>
 
-            @if(session('success'))
+            <?php if(session('success')): ?>
             <div class="mb-6 bg-green-500/10 border border-green-500/20 rounded-lg p-4">
-                <p class="text-green-400">{{ session('success') }}</p>
+                <p class="text-green-400"><?php echo e(session('success')); ?></p>
             </div>
-            @endif
+            <?php endif; ?>
 
-            @if(session('error'))
+            <?php if(session('error')): ?>
             <div class="mb-6 bg-red-500/10 border border-red-500/20 rounded-lg p-4">
-                <p class="text-red-400">{{ session('error') }}</p>
+                <p class="text-red-400"><?php echo e(session('error')); ?></p>
             </div>
-            @endif
+            <?php endif; ?>
 
-            @if($errors->any())
+            <?php if($errors->any()): ?>
             <div class="mb-6 bg-red-500/10 border border-red-500/20 rounded-lg p-4">
                 <ul class="list-disc list-inside text-red-400">
-                    @foreach($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                    @endforeach
+                    <?php $__currentLoopData = $errors->all(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $error): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                    <li><?php echo e($error); ?></li>
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                 </ul>
             </div>
-            @endif
+            <?php endif; ?>
 
             <!-- Info Box -->
             <div class="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4 mb-6">
@@ -49,15 +58,15 @@
                         <ul class="text-blue-300 text-sm space-y-1">
                             <li>• Povucite igrače sa liste s lijeva na grupe s desna</li>
                             <li>• Ili pretražite i kliknite dugme "Dodaj u Grupu"</li>
-                            <li>• Svaka grupa bi trebala imati 2-{{ $competition->players_per_group }} igrača</li>
+                            <li>• Svaka grupa bi trebala imati 2-<?php echo e($competition->players_per_group); ?> igrača</li>
                             <li>• Kliknite "Shuffle" da nasumično rasporedite nedodijeljene igrače</li>
                         </ul>
                     </div>
                 </div>
             </div>
 
-            <form id="groupsForm" action="{{ route('organizations.competitions.save-groups', [$organization, $competition]) }}" method="POST">
-                @csrf
+            <form id="groupsForm" action="<?php echo e(route('organizations.competitions.save-groups', [$organization, $competition])); ?>" method="POST">
+                <?php echo csrf_field(); ?>
 
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     
@@ -86,21 +95,21 @@
 
                             <!-- Players List -->
                             <div id="availablePlayers" class="space-y-2 max-h-[600px] overflow-y-auto">
-                                @foreach($availablePlayers as $player)
+                                <?php $__currentLoopData = $availablePlayers; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $player): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                 <div class="player-item bg-gray-700/30 rounded-lg p-3 cursor-move hover:bg-gray-700/50 transition-colors" 
-                                     data-player-id="{{ $player->id }}"
-                                     data-player-name="{{ $player->name }}"
+                                     data-player-id="<?php echo e($player->id); ?>"
+                                     data-player-name="<?php echo e($player->name); ?>"
                                      draggable="true">
                                     <div class="flex items-center justify-between">
                                         <div class="flex items-center space-x-3">
                                             <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                                                <span class="text-white font-bold text-sm">{{ substr($player->name, 0, 2) }}</span>
+                                                <span class="text-white font-bold text-sm"><?php echo e(substr($player->name, 0, 2)); ?></span>
                                             </div>
                                             <div>
-                                                <p class="text-white font-medium">{{ $player->name }}</p>
-                                                @if($player->position)
-                                                    <p class="text-xs text-gray-400">({{ $player->position }})</p>
-                                                @endif
+                                                <p class="text-white font-medium"><?php echo e($player->name); ?></p>
+                                                <?php if($player->position): ?>
+                                                    <p class="text-xs text-gray-400">(<?php echo e($player->position); ?>)</p>
+                                                <?php endif; ?>
                                             </div>
                                         </div>
                                         <button type="button" 
@@ -109,7 +118,7 @@
                                         </button>
                                     </div>
                                 </div>
-                                @endforeach
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                             </div>
                         </div>
                     </div>
@@ -139,35 +148,36 @@
                         </div>
                         
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="groupsContainer">
-                            @foreach($groups as $index => $group)
+                            <?php $__currentLoopData = $groups; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $group): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                             <div class="group-container bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl"
-                                 data-group-index="{{ $index }}">
+                                 data-group-index="<?php echo e($index); ?>">
                                 <div class="flex items-center justify-between mb-4">
                                     <h3 class="text-xl font-semibold text-white">
-                                        Grupa {{ $group['name'] }}
+                                        Grupa <?php echo e($group['name']); ?>
+
                                     </h3>
                                     <span class="group-count text-sm px-3 py-1 rounded-full bg-gray-700">
-                                        <span class="current-count">{{ count($group['players']) }}</span> igrača
+                                        <span class="current-count"><?php echo e(count($group['players'])); ?></span> igrača
                                     </span>
                                 </div>
 
                                 <div class="group-dropzone min-h-[300px] border-2 border-dashed border-gray-600 rounded-lg p-4 space-y-2"
-                                     data-group-number="{{ $group['number'] }}">
-                                    @foreach($group['players'] as $player)
+                                     data-group-number="<?php echo e($group['number']); ?>">
+                                    <?php $__currentLoopData = $group['players']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $player): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                     <div class="player-item bg-gray-700/30 rounded-lg p-3 cursor-move hover:bg-gray-700/50 transition-colors" 
-                                         data-player-id="{{ $player['id'] }}"
-                                         data-player-name="{{ $player['name'] }}"
+                                         data-player-id="<?php echo e($player['id']); ?>"
+                                         data-player-name="<?php echo e($player['name']); ?>"
                                          draggable="true">
                                         <div class="flex items-center justify-between">
                                             <div class="flex items-center space-x-3">
                                                 <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                                                    <span class="text-white font-bold text-sm">{{ substr($player['name'], 0, 2) }}</span>
+                                                    <span class="text-white font-bold text-sm"><?php echo e(substr($player['name'], 0, 2)); ?></span>
                                                 </div>
                                                 <div>
-                                                    <p class="text-white font-medium">{{ $player['name'] }}</p>
-                                                    @if(isset($player['position']) && $player['position'])
-                                                        <p class="text-xs text-gray-400">({{ $player['position'] }})</p>
-                                                    @endif
+                                                    <p class="text-white font-medium"><?php echo e($player['name']); ?></p>
+                                                    <?php if(isset($player['position']) && $player['position']): ?>
+                                                        <p class="text-xs text-gray-400">(<?php echo e($player['position']); ?>)</p>
+                                                    <?php endif; ?>
                                                 </div>
                                             </div>
                                             <button type="button" 
@@ -176,7 +186,7 @@
                                             </button>
                                         </div>
                                     </div>
-                                    @endforeach
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                 </div>
 
                                 <button type="button" 
@@ -184,7 +194,7 @@
                                     Očisti Grupu
                                 </button>
                             </div>
-                            @endforeach
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                         </div>
 
                         <!-- Save Button -->
@@ -210,10 +220,10 @@
     </div>
 
     <script>
-        const playersPerGroup = {{ $competition->players_per_group }};
-        let groupCount = {{ count($groups) }};
+        const playersPerGroup = <?php echo e($competition->players_per_group); ?>;
+        let groupCount = <?php echo e(count($groups)); ?>;
         let draggedElement = null;
-        let nextGroupNumber = {{ count($groups) + 1 }};
+        let nextGroupNumber = <?php echo e(count($groups) + 1); ?>;
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
@@ -720,4 +730,14 @@
             }, 3000);
         }
     </script>
-</x-app-layout>
+ <?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginal9ac128a9029c0e4701924bd2d73d7f54)): ?>
+<?php $attributes = $__attributesOriginal9ac128a9029c0e4701924bd2d73d7f54; ?>
+<?php unset($__attributesOriginal9ac128a9029c0e4701924bd2d73d7f54); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginal9ac128a9029c0e4701924bd2d73d7f54)): ?>
+<?php $component = $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54; ?>
+<?php unset($__componentOriginal9ac128a9029c0e4701924bd2d73d7f54); ?>
+<?php endif; ?>
+<?php /**PATH C:\Users\ermin\Projekti\teamsphere\resources\views/organizations/competitions/setup-groups.blade.php ENDPATH**/ ?>

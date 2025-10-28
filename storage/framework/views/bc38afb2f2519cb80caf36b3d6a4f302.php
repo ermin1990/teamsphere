@@ -15,6 +15,14 @@
         <?php echo $__env->make('organizations.competitions.partials.success-message', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
     <?php endif; ?>
 
+    <?php if(session('error')): ?>
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 py-4">
+            <div class="bg-red-500/10 border border-red-500/20 rounded-lg p-4">
+                <p class="text-red-400">❌ <?php echo e(session('error')); ?></p>
+            </div>
+        </div>
+    <?php endif; ?>
+
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             

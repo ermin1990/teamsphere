@@ -255,6 +255,12 @@
         @endphp
         let setCount = {{ count($setsArray) }};
 
+        // Save scroll position before form submission
+        document.querySelector('form').addEventListener('submit', function() {
+            const scrollPosition = window.pageYOffset || document.documentElement.scrollTop;
+            sessionStorage.setItem('scrollPosition', scrollPosition);
+        });
+
         document.getElementById('add-set').addEventListener('click', function() {
             const container = document.getElementById('sets-container');
             const setRow = document.createElement('div');

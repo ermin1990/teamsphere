@@ -14,8 +14,10 @@
                 <?php elseif($competition->status === 'completed'): ?> bg-blue-500/20 text-blue-400
                 <?php else: ?> bg-red-500/20 text-red-400 <?php endif; ?>"
             >
-                <?php echo e(ucfirst($competition->status)); ?>
-
+                <?php if($competition->status === 'active'): ?> Aktivno
+                <?php elseif($competition->status === 'draft'): ?> Nacrt
+                <?php elseif($competition->status === 'completed'): ?> Završeno
+                <?php else: ?> <?php echo e(ucfirst($competition->status)); ?> <?php endif; ?>
             </span>
             <?php if($competition->type === 'tournament'): ?>
             <span class="px-3 py-1 text-sm rounded-full bg-purple-500/20 text-purple-400">

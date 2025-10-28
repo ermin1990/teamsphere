@@ -3,7 +3,7 @@
 <div id="quickResultModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
     <div class="bg-gray-800 rounded-2xl p-6 max-w-lg w-full border border-gray-700 shadow-xl">
         <div class="flex items-center justify-between mb-6">
-            <h3 class="text-xl font-semibold text-white">⚡ <?php echo e(__('Quick Result Entry')); ?></h3>
+            <h3 class="text-xl font-semibold text-white">⚡ Brzi unos rezultata</h3>
             <button onclick="closeQuickResultModal()" class="text-gray-400 hover:text-white">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
@@ -41,13 +41,12 @@
 
                 <!-- Set Scores (Optional) -->
                 <div>
-                    <label class="block text-sm font-medium text-gray-400 mb-3"><?php echo e(__('Set Scores (Optional)')); ?></label>
+                    <label class="block text-sm font-medium text-gray-400 mb-3">Rezultati setova (Opcionalno)</label>
                     <div id="setScoresContainer" class="space-y-2">
                         <!-- Set score inputs will be dynamically added here -->
                     </div>
                     <button type="button" onclick="addSetScore()" class="mt-2 text-blue-400 hover:text-blue-300 text-sm">
-                        + <?php echo e(__('Add Set Score')); ?>
-
+                        + Dodaj rezultat seta
                     </button>
                 </div>
 
@@ -55,13 +54,11 @@
                     <button type="button" 
                             onclick="closeQuickResultModal()"
                             class="flex-1 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors">
-                        <?php echo e(__('Cancel')); ?>
-
+                        Odustani
                     </button>
                     <button type="submit" 
                             class="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors">
-                        <?php echo e(__('Save Result')); ?>
-
+                        Sačuvaj rezultat
                     </button>
                 </div>
             </div>

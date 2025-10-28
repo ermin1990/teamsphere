@@ -32,11 +32,11 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
                     <div class="flex-1">
-                        <p class="text-sm text-blue-300 font-semibold mb-2">Jednostavno ručno postavljanje</p>
+                        <p class="text-sm text-blue-300 font-semibold mb-2">Postavljanje ždrijeba</p>
                         <div class="text-xs text-blue-300 space-y-1">
-                            <p>• <strong>Unesite broj mečeva</strong> i kliknite "Generiši mečeve"</p>
-                            <p>• <strong>Kliknite na igrača</strong> sa lijeve strane</p>
-                            <p>• <strong>Kliknite na poziciju</strong> u meču gdje želite da taj igrač bude</p>
+                            <p>• <strong>Povucite igrača</strong> sa lijeve strane na željenu poziciju u meču (desktop)</p>
+                            <p>• Ili <strong>kliknite na igrača</strong> pa na poziciju u meču (mobilni uređaji)</p>
+                            <p>• Mečevi su podijeljeni na dvije strane ždrijeba</p>
                             <p>• Pored svakog igrača piše <strong>iz koje grupe i sa koje pozicije</strong> dolazi</p>
                             <p>• Možete ostaviti prazne pozicije (automatski prolaz)</p>
                         </div>
@@ -81,6 +81,7 @@
                                          data-player-id="<?php echo e($qualified['player']->id); ?>"
                                          data-player-name="<?php echo e($qualified['player']->name); ?>"
                                          data-player-info="<?php echo e($qualified['group']); ?> - Pozicija <?php echo e($qualified['position']); ?>"
+                                         draggable="true"
                                          onclick="selectPlayerForAssignment(this)">
                                         <div class="flex-1 min-w-0">
                                             <div class="text-white text-sm font-medium truncate"><?php echo e($qualified['player']->name); ?></div>
@@ -110,8 +111,16 @@
                                 </div>
                             </div>
                             
-                            <div id="knockoutMatchesContainer" class="space-y-3 mb-4">
-                                
+                            <div id="knockoutMatchesContainer" class="mb-4">
+                                <div id="topBracket" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 md:gap-4 mb-4 md:mb-6">
+                                    <!-- Top half matches -->
+                                </div>
+                                <div class="flex items-center justify-center mb-4 md:mb-6">
+                                    <div class="w-full max-w-md h-px bg-gradient-to-r from-transparent via-blue-500 to-transparent"></div>
+                                </div>
+                                <div id="bottomBracket" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 md:gap-4">
+                                    <!-- Bottom half matches -->
+                                </div>
                             </div>
 
                             <div class="flex justify-between items-center pt-4 border-t border-gray-700">
@@ -135,13 +144,78 @@
 
     
     <script>
+        let draggedPlayer = null;
         let selectedPlayer = null;
-        let knockoutMatches = [];
 
         // Initialize when page loads
         document.addEventListener('DOMContentLoaded', function() {
             generateMatches();
+            initializeDragAndDrop();
         });
+
+        function initializeDragAndDrop() {
+            document.querySelectorAll('.player-item').forEach(player => {
+                player.addEventListener('dragstart', handleDragStart);
+            });
+        }
+
+        function handleDragStart(e) {
+            draggedPlayer = {
+                id: this.dataset.playerId,
+                name: this.dataset.playerName,
+                info: this.dataset.playerInfo,
+                element: this
+            };
+            e.dataTransfer.effectAllowed = 'move';
+        }
+
+        function allowDrop(e) {
+            e.preventDefault();
+            e.currentTarget.style.borderColor = 'rgb(59, 130, 246)';
+        }
+
+        function handleDragLeave(e) {
+            e.currentTarget.style.borderColor = '';
+        }
+
+        function dropPlayer(e, matchIndex, position) {
+            e.preventDefault();
+            e.currentTarget.style.borderColor = '';
+
+            if (!draggedPlayer) return;
+
+            // Check if player is already assigned somewhere
+            const existingAssignment = knockoutMatches.find(m => 
+                (m.home && m.home.id === draggedPlayer.id) || 
+                (m.away && m.away.id === draggedPlayer.id)
+            );
+            
+            if (existingAssignment) {
+                // Remove from old position
+                if (existingAssignment.home && existingAssignment.home.id === draggedPlayer.id) {
+                    existingAssignment.home = null;
+                    updateSlotUI(knockoutMatches.indexOf(existingAssignment), 'home', null);
+                }
+                if (existingAssignment.away && existingAssignment.away.id === draggedPlayer.id) {
+                    existingAssignment.away = null;
+                    updateSlotUI(knockoutMatches.indexOf(existingAssignment), 'away', null);
+                }
+            }
+            
+            // Assign to new position
+            knockoutMatches[matchIndex][position] = {
+                id: draggedPlayer.id,
+                name: draggedPlayer.name,
+                info: draggedPlayer.info
+            };
+            
+            // Update UI
+            updateSlotUI(matchIndex, position, draggedPlayer);
+            
+            // Mark player as used
+            draggedPlayer.element.classList.add('opacity-50', 'bg-blue-600/20');
+            draggedPlayer = null;
+        }
 
         // Generate matches based on user input
         function generateMatches() {
@@ -151,9 +225,13 @@
                 return;
             }
             
-            const container = document.getElementById('knockoutMatchesContainer');
-            container.innerHTML = '';
+            const topContainer = document.getElementById('topBracket');
+            const bottomContainer = document.getElementById('bottomBracket');
+            topContainer.innerHTML = '';
+            bottomContainer.innerHTML = '';
             knockoutMatches = [];
+            
+            const halfCount = Math.ceil(matchCount / 2);
             
             for (let i = 0; i < matchCount; i++) {
                 knockoutMatches.push({
@@ -163,28 +241,39 @@
                 });
                 
                 const matchDiv = document.createElement('div');
-                matchDiv.className = 'bg-gray-700/30 rounded-lg p-3 border border-gray-600/30';
+                matchDiv.className = 'bg-gray-700/30 rounded-lg p-2 md:p-3 border border-gray-600/30';
                 matchDiv.innerHTML = `
-                    <div class="flex items-center justify-between mb-2">
-                        <h5 class="text-white font-semibold text-sm">Meč ${i + 1}</h5>
+                    <div class="flex items-center justify-between mb-1 md:mb-2">
+                        <h5 class="text-white font-semibold text-xs md:text-sm">Meč ${i + 1}</h5>
                     </div>
-                    <div class="space-y-2">
-                        <div class="match-slot p-2 bg-gray-600/30 rounded-lg min-h-[50px] border-2 border-transparent hover:border-blue-500/50 cursor-pointer transition-all flex items-center" 
+                    <div class="space-y-1 md:space-y-2">
+                        <div class="match-slot p-1.5 md:p-2 bg-gray-600/30 rounded-lg min-h-[40px] md:min-h-[50px] border-2 border-transparent hover:border-blue-500/50 cursor-pointer transition-all flex items-center" 
                              data-match-index="${i}" 
                              data-position="home" 
+                             ondrop="dropPlayer(event, ${i}, 'home')"
+                             ondragover="allowDrop(event)"
+                             ondragleave="handleDragLeave(event)"
                              onclick="assignPlayerToSlot(${i}, 'home')">
                             <span class="text-gray-400 text-xs">Kliknite da dodate igrača</span>
                         </div>
                         <div class="text-center text-gray-500 text-xs font-semibold">VS</div>
-                        <div class="match-slot p-2 bg-gray-600/30 rounded-lg min-h-[50px] border-2 border-transparent hover:border-blue-500/50 cursor-pointer transition-all flex items-center" 
+                        <div class="match-slot p-1.5 md:p-2 bg-gray-600/30 rounded-lg min-h-[40px] md:min-h-[50px] border-2 border-transparent hover:border-blue-500/50 cursor-pointer transition-all flex items-center" 
                              data-match-index="${i}" 
                              data-position="away" 
+                             ondrop="dropPlayer(event, ${i}, 'away')"
+                             ondragover="allowDrop(event)"
+                             ondragleave="handleDragLeave(event)"
                              onclick="assignPlayerToSlot(${i}, 'away')">
                             <span class="text-gray-400 text-xs">Kliknite da dodate igrača</span>
                         </div>
                     </div>
                 `;
-                container.appendChild(matchDiv);
+                
+                if (i < halfCount) {
+                    topContainer.appendChild(matchDiv);
+                } else {
+                    bottomContainer.appendChild(matchDiv);
+                }
             }
             
             // Clear all player selections
@@ -260,12 +349,12 @@
             if (player) {
                 slot.innerHTML = `
                     <div class="flex-1">
-                        <div class="text-white font-medium text-sm">${player.name}</div>
-                        <div class="text-xs text-gray-400">${player.info}</div>
+                        <div class="text-white font-medium text-xs md:text-sm truncate">${player.name}</div>
+                        <div class="text-xs text-gray-400 truncate">${player.info}</div>
                     </div>
                     <button type="button" 
                             onclick="clearSlot(${matchIndex}, '${position}'); event.stopPropagation();" 
-                            class="text-red-400 hover:text-red-300 ml-2 px-2 py-1"
+                            class="text-red-400 hover:text-red-300 ml-1 md:ml-2 px-1 md:px-2 py-0.5 md:py-1 text-xs md:text-sm"
                             title="Ukloni igrača">
                         ❌
                     </button>

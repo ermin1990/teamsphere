@@ -3,6 +3,17 @@
     let currentMatchId = null;
     let setScoreCount = 0;
 
+    // Restore scroll position on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        // Check for saved scroll position from match editing
+        const scrollPosition = sessionStorage.getItem('scrollPosition');
+        if (scrollPosition) {
+            window.scrollTo(0, parseInt(scrollPosition));
+            // Clear the saved position after restoring
+            sessionStorage.removeItem('scrollPosition');
+        }
+    });
+
     window.openQuickResultModal = function(matchId, homeName, awayName) {
         console.log('Opening quick result modal for match:', matchId, homeName, 'vs', awayName);
         currentMatchId = matchId;

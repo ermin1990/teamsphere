@@ -29,11 +29,13 @@
                        class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-4 py-2 rounded-lg transition-colors font-semibold">
                         🎯 Ručno Postavi Knockout
                     </a>
-                    <form method="POST" action="<?php echo e(route('organizations.competitions.auto-generate-knockout', [$organization, $competition])); ?>" style="display: inline;">
+                    <form id="autoGenerateKnockoutForm" method="POST" action="<?php echo e(route('organizations.competitions.auto-generate-knockout', [$organization, $competition])); ?>" style="display: inline;">
                         <?php echo csrf_field(); ?>
-                        <button type="submit" class="bg-green-600 hover:bg-green-700 text-white text-xs px-4 py-2 rounded-lg transition-colors font-semibold">
-                            ⚡ Automatski Generiši
-                        </button>
+                        <div class="flex gap-2 items-center">
+                            <button type="submit" id="autoGenerateBtn" class="bg-gray-600 text-gray-400 text-xs px-4 py-2 rounded-lg cursor-not-allowed font-semibold" disabled title="Trenutno nije u funkciji">
+                                ⚡ Automatski Generiši (nedostupno)
+                            </button>
+                        </div>
                     </form>
                 <?php endif; ?>
             
@@ -60,6 +62,7 @@
                         ->orderBy('points', 'desc')
                         ->orderByRaw('(sets_won - sets_lost) desc')
                         ->orderByRaw('(points_won - points_lost) desc')
+                        ->orderBy('id')
                         ->get();
                 ?>
                 
@@ -95,9 +98,15 @@
                             </thead>
                             <tbody>
                                 <?php $__empty_1 = true; $__currentLoopData = $standings; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $standing): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
-                                <tr class="border-b border-gray-700/30 hover:bg-gray-700/30 transition-colors">
+                                <tr class="border-b border-gray-700/30 hover:bg-gray-700/30 transition-colors <?php echo e($index < $competition->players_advancing_per_group ? 'bg-green-900/30' : ''); ?>">
                                     <td class="py-2 pr-2 text-gray-400 font-mono"><?php echo e($index + 1); ?></td>
-                                    <td class="py-2 text-white font-medium"><?php echo e($standing->player->name); ?></td>
+                                    <td class="py-2 text-white font-medium">
+                                        <?php echo e($standing->player->name); ?>
+
+                                        <?php if($standing->player->position): ?>
+                                            <span class="text-gray-400 text-xs">(<?php echo e($standing->player->position); ?>)</span>
+                                        <?php endif; ?>
+                                    </td>
                                     <td class="py-2 px-1 text-center text-gray-300"><?php echo e($standing->played); ?></td>
                                     <td class="py-2 px-1 text-center text-green-400"><?php echo e($standing->won); ?></td>
                                     <td class="py-2 px-1 text-center text-red-400"><?php echo e($standing->lost); ?></td>
@@ -135,4 +144,40 @@
         </div>
     </div>
 </div>
-<?php /**PATH C:\Users\ermin\Projekti\teamsphere\resources\views/organizations/competitions/partials/tournament/group-phase.blade.php ENDPATH**/ ?>
+
+<script>
+function submitAutoGenerateForm(event) {
+    event.preventDefault();
+    
+    const btn = document.getElementById('autoGenerateBtn');
+    const form = document.getElementById('autoGenerateKnockoutForm');
+    const originalText = btn.textContent;
+    
+    // Disable button and show loading
+    btn.disabled = true;
+    btn.textContent = '⏳ Generiši...';
+    btn.classList.add('opacity-50', 'cursor-not-allowed');
+    
+    // Submit form
+    setTimeout(() => {
+        form.submit();
+    }, 300);
+}
+
+function confirmResetGroupPhase() {
+    if (confirm('Da li si siguran? Ovo će obrisati svu grupnu fazu.')) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '<?php echo e(route("organizations.competitions.reset-groups", [$organization, $competition])); ?>';
+        
+        const csrfToken = document.createElement('input');
+        csrfToken.type = 'hidden';
+        csrfToken.name = '_token';
+        csrfToken.value = '<?php echo e(csrf_token()); ?>';
+        form.appendChild(csrfToken);
+        
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+</script><?php /**PATH C:\Users\ermin\Projekti\teamsphere\resources\views/organizations/competitions/partials/tournament/group-phase.blade.php ENDPATH**/ ?>

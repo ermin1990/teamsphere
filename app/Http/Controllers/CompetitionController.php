@@ -371,30 +371,37 @@ class CompetitionController extends Controller
         // Load players and any existing groups
         $competition->load(['players', 'tournamentGroups']);
         
-        // Prepare empty groups structure
+        // Prepare groups structure - use existing groups or create one default group
         $groups = [];
-        for ($i = 0; $i < $competition->group_count; $i++) {
+        $assignedPlayerIds = [];
+        
+        if ($competition->tournamentGroups->count() > 0) {
+            // Use existing groups
+            foreach ($competition->tournamentGroups as $group) {
+                $groups[] = [
+                    'name' => $group->name,
+                    'number' => $group->group_number,
+                    'players' => $competition->players
+                        ->whereIn('id', $group->player_ids)
+                        ->values()
+                        ->toArray(),
+                ];
+                // Collect assigned player IDs
+                $assignedPlayerIds = array_merge($assignedPlayerIds, $group->player_ids);
+            }
+        } else {
+            // Create one default group
             $groups[] = [
-                'name' => chr(65 + $i), // A, B, C, etc.
-                'number' => $i + 1,
+                'name' => 'A',
+                'number' => 1,
                 'players' => []
             ];
         }
 
-        // If groups already exist, populate them
-        if ($competition->tournamentGroups->count() > 0) {
-            foreach ($competition->tournamentGroups as $group) {
-                $groupIndex = $group->group_number - 1;
-                if (isset($groups[$groupIndex])) {
-                    $groups[$groupIndex]['players'] = $competition->players
-                        ->whereIn('id', $group->player_ids)
-                        ->values()
-                        ->toArray();
-                }
-            }
-        }
+        // Get available players (not assigned to any group)
+        $availablePlayers = $competition->players->whereNotIn('id', $assignedPlayerIds);
 
-        return view('organizations.competitions.setup-groups', compact('organization', 'competition', 'groups'));
+        return view('organizations.competitions.setup-groups', compact('organization', 'competition', 'groups', 'availablePlayers'));
     }
 
     /**
@@ -412,50 +419,93 @@ class CompetitionController extends Controller
         }
 
         $request->validate([
-            'groups' => ['required', 'array'],
+            'groups' => ['required', 'array', 'min:1'],
             'groups.*' => ['required', 'array'],
             'groups.*.players' => ['required', 'array', 'min:2', 'max:' . $competition->players_per_group],
             'groups.*.players.*' => ['exists:players,id'],
         ]);
 
-        // Delete existing groups
-        $competition->tournamentGroups()->delete();
-
-        // Delete existing standings for this competition
-        Standing::where('competition_id', $competition->id)->delete();
-
-        // Create new groups
+        // Get existing groups
+        $existingGroups = $competition->tournamentGroups->keyBy('group_number');
+        
+        // Process each group from the request
+        $processedGroupNumbers = [];
         $groupService = app(\App\Services\TournamentGroupService::class);
+        
         foreach ($request->groups as $index => $groupData) {
-            $group = TournamentGroup::create([
-                'competition_id' => $competition->id,
-                'name' => chr(65 + $index),
-                'group_number' => $index + 1,
-                'player_ids' => $groupData['players'],
-                'standings' => $groupService->initializeGroupStandings($groupData['players']),
-            ]);
-
-            // Create Standing records for each player in the group
-            foreach ($groupData['players'] as $playerId) {
-                Standing::create([
-                    'competition_id' => $competition->id,
-                    'tournament_group_id' => $group->id,
-                    'player_id' => $playerId,
-                    'played' => 0,
-                    'won' => 0,
-                    'drawn' => 0,
-                    'lost' => 0,
-                    'points' => 0,
-                    'sets_won' => 0,
-                    'sets_lost' => 0,
-                    'points_won' => 0,
-                    'points_lost' => 0,
-                    'goals_for' => 0,
-                    'goals_against' => 0,
-                    'goal_difference' => 0,
+            $groupNumber = $index + 1;
+            $processedGroupNumbers[] = $groupNumber;
+            
+            if (isset($existingGroups[$groupNumber])) {
+                // Update existing group
+                $group = $existingGroups[$groupNumber];
+                $group->update([
+                    'player_ids' => $groupData['players'],
+                    'standings' => $groupService->initializeGroupStandings($groupData['players']),
                 ]);
+                
+                // Update or create standings for this group
+                Standing::where('competition_id', $competition->id)
+                    ->where('tournament_group_id', $group->id)
+                    ->delete(); // Delete old standings
+                
+                // Create new standings
+                foreach ($groupData['players'] as $playerId) {
+                    Standing::create([
+                        'competition_id' => $competition->id,
+                        'tournament_group_id' => $group->id,
+                        'player_id' => $playerId,
+                        'played' => 0,
+                        'won' => 0,
+                        'drawn' => 0,
+                        'lost' => 0,
+                        'points' => 0,
+                        'sets_won' => 0,
+                        'sets_lost' => 0,
+                        'points_won' => 0,
+                        'points_lost' => 0,
+                        'goals_for' => 0,
+                        'goals_against' => 0,
+                        'goal_difference' => 0,
+                    ]);
+                }
+            } else {
+                // Create new group
+                $group = TournamentGroup::create([
+                    'competition_id' => $competition->id,
+                    'name' => chr(65 + $index),
+                    'group_number' => $groupNumber,
+                    'player_ids' => $groupData['players'],
+                    'standings' => $groupService->initializeGroupStandings($groupData['players']),
+                ]);
+
+                // Create Standing records for each player in the group
+                foreach ($groupData['players'] as $playerId) {
+                    Standing::create([
+                        'competition_id' => $competition->id,
+                        'tournament_group_id' => $group->id,
+                        'player_id' => $playerId,
+                        'played' => 0,
+                        'won' => 0,
+                        'drawn' => 0,
+                        'lost' => 0,
+                        'points' => 0,
+                        'sets_won' => 0,
+                        'sets_lost' => 0,
+                        'points_won' => 0,
+                        'points_lost' => 0,
+                        'goals_for' => 0,
+                        'goals_against' => 0,
+                        'goal_difference' => 0,
+                    ]);
+                }
             }
         }
+        
+        // Delete groups that are no longer in the request
+        $competition->tournamentGroups()
+            ->whereNotIn('group_number', $processedGroupNumbers)
+            ->delete();
 
         return redirect()
             ->route('organizations.competitions.show', [$organization, $competition])

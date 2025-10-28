@@ -9,9 +9,11 @@
 <?php if($knockoutMatches && $knockoutMatches->count() > 0): ?>
 <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 mb-6">
     <div class="flex items-center justify-between mb-6">
-        <h3 class="text-2xl font-bold text-white">🏆 Knockout Faza</h3>
+        <div class="flex items-center gap-4">
+            <h3 class="text-2xl font-bold text-white">🏆 Knockout Faza</h3>
+        </div>
         
-        <?php if($isOwner && $knockoutMatches->count() > 0): ?>
+        <?php if($isOwner): ?>
             <div class="flex gap-2">
                 
                 <?php
@@ -37,6 +39,21 @@
                         class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors">
                     🔄 Resetuj
                 </button>
+
+                
+                <button type="button" onclick="directResetKnockout()"
+                        class="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg transition-colors text-sm">
+                    🔄 Resetuj (bez confirm)
+                </button>
+                
+                <form id="regenerateKnockoutForm" method="POST" action="<?php echo e(route('organizations.competitions.auto-generate-knockout', [$organization, $competition])); ?>" style="display: inline;">
+                    <?php echo csrf_field(); ?>
+                    <input type="hidden" name="knockout_matches_count" value="<?php echo e($competition->knockout_matches_count ?? 8); ?>">
+                    <button type="submit" onclick="return confirm('Da li želiš regenerisati knockout bracket?')" 
+                            class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors">
+                        🎯 Regeneriši
+                    </button>
+                </form>
             </div>
         <?php endif; ?>
     </div>
@@ -104,6 +121,9 @@
                                             <?php if($match->homePlayer): ?>
                                                 <?php echo e($match->homePlayer->name); ?>
 
+                                                <?php if($match->home_player_group && $match->home_player_position): ?>
+                                                    <span class="text-gray-400 text-xs">(<?php echo e($match->home_player_group); ?><?php echo e($match->home_player_position); ?>)</span>
+                                                <?php endif; ?>
                                             <?php else: ?>
                                                 TBD
                                             <?php endif; ?>
@@ -127,6 +147,9 @@
                                             <?php if($match->awayPlayer): ?>
                                                 <?php echo e($match->awayPlayer->name); ?>
 
+                                                <?php if($match->away_player_group && $match->away_player_position): ?>
+                                                    <span class="text-gray-400 text-xs">(<?php echo e($match->away_player_group); ?><?php echo e($match->away_player_position); ?>)</span>
+                                                <?php endif; ?>
                                             <?php else: ?>
                                                 TBD
                                             <?php endif; ?>
@@ -142,8 +165,9 @@
                                     </div>
 
                                     
-                                    <?php if($match->status === 'scheduled' || $match->status === 'pending'): ?>
+                                    <?php if(!$match->is_bye): ?>
                                         <div class="mt-3 flex gap-1 text-xs">
+                                            <?php if($match->status === 'scheduled' || $match->status === 'pending'): ?>
                                                 <button type="button"
                                                     onclick="openQuickResultModal(<?php echo e(json_encode((string)($match->id ?? ''))); ?>, <?php echo e(json_encode($match->homePlayer->name ?? 'TBD')); ?>, <?php echo e(json_encode($match->awayPlayer->name ?? 'TBD')); ?>)"
                                                     class="bg-blue-600 hover:bg-blue-700 text-white px-1.5 py-0.5 rounded text-xs transition-colors">
@@ -153,10 +177,25 @@
                                                    class="bg-purple-600 hover:bg-purple-700 text-white px-1.5 py-0.5 rounded text-xs transition-colors text-center inline-block">
                                                     ✏️
                                                 </a>
-                                                <a href="<?php echo e(route('leagues.live-score', ['match' => $match->id])); ?>"
+                                                <a href="<?php echo e(route('competitions.live-score', ['match' => $match->id])); ?>"
                                                    class="bg-red-600 hover:bg-red-700 text-white px-1.5 py-0.5 rounded text-xs transition-colors text-center inline-block">
-                                                    🔴
+                                                    🔴 Live
                                                 </a>
+                                            <?php elseif($match->status === 'completed'): ?>
+                                                <button type="button"
+                                                    onclick="openQuickEditModal(<?php echo e(json_encode((string)($match->id ?? ''))); ?>, <?php echo e(json_encode($match->homePlayer->name ?? 'TBD')); ?>, <?php echo e(json_encode($match->awayPlayer->name ?? 'TBD')); ?>, <?php echo e(json_encode($match->home_score ?? 0)); ?>, <?php echo e(json_encode($match->away_score ?? 0)); ?>, <?php echo e(json_encode($match->sets ?? [])); ?>)"
+                                                    class="bg-blue-600 hover:bg-blue-700 text-white px-1.5 py-0.5 rounded text-xs transition-colors">
+                                                    ⚡
+                                                </button>
+                                                <a href="<?php echo e(route('organizations.competitions.matches.edit', [$organization, $competition, $match])); ?>"
+                                                   class="bg-purple-600 hover:bg-purple-700 text-white px-1.5 py-0.5 rounded text-xs transition-colors text-center inline-block">
+                                                    ✏️
+                                                </a>
+                                                <a href="<?php echo e(route('organizations.competitions.matches.show', [$organization, $competition, $match])); ?>"
+                                                   class="bg-gray-600 hover:bg-gray-700 text-white px-1.5 py-0.5 rounded text-xs transition-colors text-center inline-block">
+                                                    👁️
+                                                </a>
+                                            <?php endif; ?>
                                         </div>
                                     <?php endif; ?>
                                 </div>
@@ -171,25 +210,19 @@
 
 <?php else: ?>
 <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 mb-6 text-center">
-    <p class="text-gray-300">Knockout faza još nije kreirana</p>
+    <p class="text-gray-300">Knockout faza je resetovana - možete regenerisati bracket</p>
     <?php if($isOwner): ?>
-        <div class="mt-4 flex gap-3 justify-center">
-            <a href="<?php echo e(route('organizations.competitions.knockout-setup', [$organization, $competition])); ?>"
-               class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
-                🎯 Ručno Postavi
-            </a>
-            <form method="POST" action="<?php echo e(route('organizations.competitions.auto-generate-knockout', [$organization, $competition])); ?>" style="display: inline;">
-                <?php echo csrf_field(); ?>
-                <button type="submit" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors">
-                    ⚡ Automatski Generiši
-                </button>
-            </form>
-        </div>
+        
+        <?php if(!$competition->knockout_matches_count): ?>
+            <div class="mt-4 bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-3 text-yellow-400 inline-block text-sm">
+                <p>⚠️ Prvo trebate postaviti <strong>Broj mečeva u eliminacionoj fazi</strong></p>
+            </div>
+        <?php endif; ?>
     <?php endif; ?>
 </div>
 <?php endif; ?>
 
-<?php if (! $__env->hasRenderedOnce('1afeb0b0-38e6-4bb1-925d-7ca559a0496f')): $__env->markAsRenderedOnce('1afeb0b0-38e6-4bb1-925d-7ca559a0496f'); ?>
+<?php if (! $__env->hasRenderedOnce('2919d7e9-baad-45c8-a737-f1a8187b5740')): $__env->markAsRenderedOnce('2919d7e9-baad-45c8-a737-f1a8187b5740'); ?>
     
     <div id="quickResultModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
         <div class="flex items-center justify-center min-h-screen p-4">
@@ -260,11 +293,15 @@
 
 <script>
 function confirmResetKnockout() {
+    console.log('confirmResetKnockout called');
     if (confirm('Da li si siguran? Ovo će obrisati svu knockout fazu.')) {
+        console.log('User confirmed, creating form');
         // Create and submit a form to reset knockout
         const form = document.createElement('form');
         form.method = 'POST';
         form.action = '<?php echo e(route("organizations.competitions.reset-knockout", [$organization, $competition])); ?>';
+        
+        console.log('Form action:', form.action);
         
         // Add CSRF token
         const csrfToken = document.createElement('input');
@@ -274,8 +311,48 @@ function confirmResetKnockout() {
         form.appendChild(csrfToken);
         
         document.body.appendChild(form);
+        console.log('Submitting form...');
         form.submit();
+    } else {
+        console.log('User cancelled');
     }
+}
+
+function directResetKnockout() {
+    console.log('Direct reset called');
+    // Create and submit a form to reset knockout without confirm
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '<?php echo e(route("organizations.competitions.reset-knockout", [$organization, $competition])); ?>';
+    
+    // Add CSRF token
+    const csrfToken = document.createElement('input');
+    csrfToken.type = 'hidden';
+    csrfToken.name = '_token';
+    csrfToken.value = '<?php echo e(csrf_token()); ?>';
+    form.appendChild(csrfToken);
+    
+    console.log('Submitting form to:', form.action);
+    document.body.appendChild(form);
+    form.submit();
+}
+
+function submitAutoGenerateForm(event) {
+    event.preventDefault();
+    
+    const btn = document.getElementById('autoGenerateBtn');
+    const form = document.getElementById('autoGenerateKnockoutForm');
+    
+    // Show loading state
+    const originalText = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = '⏳ Generiši...';
+    btn.classList.add('opacity-50', 'cursor-not-allowed');
+    
+    // Submit form
+    setTimeout(() => {
+        form.submit();
+    }, 300);
 }
 
 function confirmAdvanceRound(currentRound) {
@@ -317,7 +394,48 @@ function openQuickResultModal(matchId, homePlayer, awayPlayer) {
     document.getElementById('awayScore').value = '';
     currentSets = [];
     document.getElementById('setsList').innerHTML = '';
-    document.getElementById('setsContainer').classList.add('hidden');
+    document.getElementById('setsContainer').classList.remove('hidden'); // Show sets container immediately
+    document.getElementById('quickResultModal').classList.remove('hidden');
+}
+
+function openQuickEditModal(matchId, homePlayer, awayPlayer, homeScore, awayScore, sets) {
+    // Fallback for null/undefined matchId
+    if (matchId === null || matchId === undefined) matchId = '';
+    matchId = String(matchId);
+    console.log('Opening edit modal with:', { matchId, homePlayer, awayPlayer, homeScore, awayScore, sets });
+    
+    // Set basic match info
+    document.getElementById('quickMatchId').value = matchId;
+    document.getElementById('homePlayerName').textContent = homePlayer;
+    document.getElementById('awayPlayerName').textContent = awayPlayer;
+    document.getElementById('homeScore').value = homeScore || '';
+    document.getElementById('awayScore').value = awayScore || '';
+    
+    // Clear existing sets
+    currentSets = [];
+    document.getElementById('setsList').innerHTML = '';
+    
+    // Load existing sets
+    if (sets && Array.isArray(sets) && sets.length > 0) {
+        sets.forEach((set, index) => {
+            const setNumber = index + 1;
+            const setDiv = document.createElement('div');
+            setDiv.className = 'flex gap-2 items-center';
+            setDiv.innerHTML = `
+                <span class="text-gray-400 text-sm w-12">Set ${setNumber}:</span>
+                <input type="number" name="sets[${setNumber}][home]" min="0" max="21" value="${set.home || set.home_score || 0}"
+                       class="flex-1 bg-gray-700 border border-gray-600 rounded px-2 py-1 text-white text-center text-sm">
+                <span class="text-gray-400">-</span>
+                <input type="number" name="sets[${setNumber}][away]" min="0" max="21" value="${set.away || set.away_score || 0}"
+                       class="flex-1 bg-gray-700 border border-gray-600 rounded px-2 py-1 text-white text-center text-sm">
+                <button type="button" onclick="removeSet(${index})" class="text-red-400 hover:text-red-300 text-sm px-2">×</button>
+            `;
+            document.getElementById('setsList').appendChild(setDiv);
+            currentSets.push(setNumber);
+        });
+    }
+    
+    document.getElementById('setsContainer').classList.remove('hidden');
     document.getElementById('quickResultModal').classList.remove('hidden');
 }
 
@@ -383,8 +501,8 @@ function saveQuickResult() {
     // Collect set data
     const sets = [];
     currentSets.forEach((setNum, index) => {
-        const homeSetScore = document.querySelector(`input[name="sets[${setNum}][home]"]`).value;
-        const awaySetScore = document.querySelector(`input[name="sets[${setNum}][away]"]`).value;
+        const homeSetScore = document.querySelector(`input[name="sets[${setNum}][home]"]`)?.value;
+        const awaySetScore = document.querySelector(`input[name="sets[${setNum}][away]"]`)?.value;
         if (homeSetScore && awaySetScore) {
             sets.push({
                 home: parseInt(homeSetScore),
@@ -427,18 +545,25 @@ function saveQuickResult() {
     awayScoreField.value = awayScore;
     form.appendChild(awayScoreField);
 
-    // Add sets data if any
-    if (sets.length > 0) {
-        const setsField = document.createElement('input');
-        setsField.type = 'hidden';
-        setsField.name = 'sets';
-        setsField.value = JSON.stringify(sets);
-        form.appendChild(setsField);
-    }
+    // Add sets data as individual fields (not JSON string)
+    sets.forEach((set, index) => {
+        const homeSetField = document.createElement('input');
+        homeSetField.type = 'hidden';
+        homeSetField.name = `sets[${index}][home]`;
+        homeSetField.value = set.home;
+        form.appendChild(homeSetField);
+
+        const awaySetField = document.createElement('input');
+        awaySetField.type = 'hidden';
+        awaySetField.name = `sets[${index}][away]`;
+        awaySetField.value = set.away;
+        form.appendChild(awaySetField);
+    });
 
     document.body.appendChild(form);
     form.submit();
 }
+
 </script>
 
 <?php /**PATH C:\Users\ermin\Projekti\teamsphere\resources\views/organizations/competitions/partials/tournament/knockout-phase.blade.php ENDPATH**/ ?>
