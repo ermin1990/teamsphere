@@ -16,7 +16,24 @@
     </div>
 
     <!-- Setup Steps -->
-    <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div class="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="bg-gray-800/50 rounded-lg p-4">
+            <div class="flex items-center mb-2">
+                <div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center mr-3">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    </svg>
+                </div>
+                <h4 class="text-white font-semibold">Postavke</h4>
+            </div>
+            <p class="text-gray-400 text-sm mb-3">Konfigurišite pravila i podešavanja takmičenja</p>
+            <a href="<?php echo e(route('organizations.competitions.settings', [$organization, $competition])); ?>"
+               class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-3 py-2 rounded transition-colors inline-block">
+                Namjesti Postavke
+            </a>
+        </div>
+
         <div class="bg-gray-800/50 rounded-lg p-4">
             <div class="flex items-center mb-2">
                 <div class="w-8 h-8 rounded-full <?php echo e($competition->players->count() > 0 ? 'bg-green-600' : 'bg-gray-600'); ?> flex items-center justify-center mr-3">
@@ -25,7 +42,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                         </svg>
                     <?php else: ?>
-                        <span class="text-white font-bold text-sm">1</span>
+                        <span class="text-white font-bold text-sm">2</span>
                     <?php endif; ?>
                 </div>
                 <h4 class="text-white font-semibold">Dodaj Igrače</h4>
@@ -79,7 +96,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
                         <?php else: ?>
-                            <span class="text-white font-bold text-sm"><?php echo e($competition->type === 'tournament' ? '3' : '2'); ?></span>
+                            <span class="text-white font-bold text-sm"><?php echo e($competition->type === 'tournament' ? '4' : '3'); ?></span>
                         <?php endif; ?>
                     </div>
                     <h4 class="text-white font-semibold"><?php echo e(__('Start Competition')); ?></h4>
