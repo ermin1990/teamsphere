@@ -53,17 +53,9 @@ class CompetitionController extends Controller
                 'sport_id' => ['required', 'exists:sports,id'],
                 'type' => ['required', 'in:tournament'],
                 'start_date' => ['required', 'date'],
-                // Temporarily simplified validation
-                // 'description' => ['nullable', 'string', 'max:1000'],
-                // 'end_date' => ['nullable', 'date', 'after:start_date'],
-                // 'max_teams' => ['nullable', 'integer', 'min:2', 'max:100'],
-                // 'is_team_based' => ['nullable', 'in:0,1'],
                 // Tournament specific validation
-                // 'max_participants' => ['required_if:type,tournament', 'integer', 'min:4', 'max:128'],
-                // 'group_count' => ['required_if:type,tournament', 'integer', 'min:2', 'max:16'],
-                // 'players_per_group' => ['required_if:type,tournament', 'integer', 'min:3', 'max:8'],
-                // 'players_advancing_per_group' => ['required_if:type,tournament', 'integer', 'min:1', 'max:4'],
-                // 'advancement_method' => ['required_if:type,tournament', 'in:automatic,manual'],
+                'players_advancing_per_group' => ['required_if:type,tournament', 'integer', 'min:1', 'max:4'],
+                'advancement_method' => ['required_if:type,tournament', 'in:automatic,manual'],
             ]);
         } catch (\Illuminate\Validation\ValidationException $e) {
             // Log validation errors for debugging
@@ -94,6 +86,17 @@ class CompetitionController extends Controller
             'players_advancing_per_group' => $request->players_advancing_per_group ?: 2,
             'advancement_method' => 'automatic',
             'current_phase' => 'groups',
+            // Match settings defaults
+            'sets_to_win' => 3,
+            'points_per_set' => 11,
+            'deuce_at' => 10,
+            'must_win_by_two' => true,
+            'points_for_win' => 2,
+            'points_for_draw' => 1,
+            'points_for_loss' => 0,
+            'has_tiebreak' => false,
+            'tiebreak_points' => null,
+            'manual_knockout_selection' => true,
         ]);
 
         // Clear organization cache
