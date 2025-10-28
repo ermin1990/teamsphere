@@ -802,7 +802,13 @@ class CompetitionController extends Controller
             'sets' => 'nullable|array',
             'sets.*.home' => 'required_with:sets|integer|min:0',
             'sets.*.away' => 'required_with:sets|integer|min:0',
+            'scroll_position' => 'nullable|integer|min:0',
         ]);
+
+        // Save scroll position to session
+        if ($request->has('scroll_position')) {
+            session(['scroll_position' => $request->scroll_position]);
+        }
 
         // Update match with results
         $match->update([
@@ -825,9 +831,7 @@ class CompetitionController extends Controller
         }
 
         return back()->with('success', 'Match result saved successfully!');
-    }
-
-    /**
+    }    /**
      * Check if user can access a competition match.
      */
     private function canAccessCompetitionMatch(CompetitionMatch $match, Organization $organization)

@@ -39,4 +39,12 @@
     @include('organizations.competitions.partials.modals')
     @include('organizations.competitions.partials.scripts')
 
+    @if(session('scroll_position'))
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                window.scrollTo(0, {{ session('scroll_position') }});
+            });
+        </script>
+    @endif
+
 </x-app-layout>
