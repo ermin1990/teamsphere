@@ -190,30 +190,6 @@
                     <h3 class="text-xl font-semibold text-white mb-4">Postavke Turnira</h3>
                     
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <!-- Number of Groups -->
-                        <div>
-                            <label for="group_count" class="block text-sm font-medium text-white mb-2">
-                                Broj Grupa
-                            </label>
-                            <input type="number" id="group_count" name="group_count" 
-                                   value="{{ old('group_count', $competition->group_count) }}"
-                                   min="2" max="16"
-                                   class="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <p class="text-gray-400 text-xs mt-1">Broj grupa u grupnoj fazi turnira (ostavite prazno za automatsko)</p>
-                        </div>
-
-                        <!-- Players per Group -->
-                        <div>
-                            <label for="players_per_group" class="block text-sm font-medium text-white mb-2">
-                                Igrača po Grupi <span class="text-red-400">*</span>
-                            </label>
-                            <input type="number" id="players_per_group" name="players_per_group" 
-                                   value="{{ old('players_per_group', $competition->players_per_group ?? 4) }}"
-                                   min="3" max="8" required
-                                   class="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <p class="text-gray-400 text-xs mt-1">Maksimalni broj igrača u svakoj grupi</p>
-                        </div>
-
                         <!-- Players Advancing per Group -->
                         <div>
                             <label for="players_advancing_per_group" class="block text-sm font-medium text-white mb-2">
@@ -225,19 +201,6 @@
                                    class="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <p class="text-gray-400 text-xs mt-1">Broj igrača koji prolaze u eliminacionu fazu iz svake grupe</p>
                         </div>
-
-                        <!-- Max Participants -->
-                        <div>
-                            <label for="max_participants" class="block text-sm font-medium text-white mb-2">
-                                Maksimalni Broj Učesnika
-                            </label>
-                            <input type="number" id="max_participants" name="max_participants" 
-                                   value="{{ old('max_participants', $competition->max_participants) }}"
-                                   min="4" max="128"
-                                   class="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <p class="text-gray-400 text-xs mt-1">Maksimalni broj učesnika (ostavite prazno za neograničeno)</p>
-                        </div>
-
                     </div>
 
                     <!-- Manual Knockout Selection -->
@@ -265,7 +228,6 @@
                                 <ul class="text-purple-300 text-xs mt-2 space-y-1">
                                     <li>• Grupna faza: Igrači se dijele u grupe i igraju mečeve unutar grupa</li>
                                     <li>• Eliminaciona faza: Najbolji igrači iz svake grupe nastavljaju dalje</li>
-                                    <li>• Maksimalni učesnici: Ograničava ukupan broj prijavljenih igrača</li>
                                     <li>• Ručno odabiranje: Za slučajeve kada pravila za prolazak nisu jasna</li>
                                 </ul>
                             </div>

@@ -558,10 +558,7 @@ class CompetitionController extends Controller
             'has_tiebreak' => ['boolean'],
             'tiebreak_points' => ['nullable', 'integer', 'min:5', 'max:15'],
             // Tournament-specific validation
-            'group_count' => ['nullable', 'integer', 'min:2', 'max:16'],
-            'players_per_group' => ['nullable', 'integer', 'min:3', 'max:8'],
             'players_advancing_per_group' => ['nullable', 'integer', 'min:1', 'max:4'],
-            'max_participants' => ['nullable', 'integer', 'min:4', 'max:128'],
         ]);
 
         $competition->update([
@@ -575,10 +572,7 @@ class CompetitionController extends Controller
             'has_tiebreak' => $request->boolean('has_tiebreak'),
             'tiebreak_points' => $request->tiebreak_points,
             // Tournament-specific updates
-            'group_count' => $request->group_count,
-            'players_per_group' => $request->players_per_group,
             'players_advancing_per_group' => $request->players_advancing_per_group,
-            'max_participants' => $request->max_participants,
         ]);
 
         return redirect()
