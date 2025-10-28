@@ -103,7 +103,7 @@
                                     class="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
                                 <option value="1" {{ old('sets_to_win', $competition->sets_to_win ?? 3) == 1 ? 'selected' : '' }}>1 (Najbolji od 1)</option>
                                 <option value="2" {{ old('sets_to_win', $competition->sets_to_win ?? 3) == 2 ? 'selected' : '' }}>2 (Najbolji od 3)</option>
-                                <option value="3" {{ old('sets_to_win', $competition->sets_to_win ?? 3) == 3 ? 'selected' : '' }}>3 (Najbolji od 5)</option>
+                                <option value="3" {{ old('sets_to_win', $competition->sets_to_win ?? 3) == 3 ? 'selected' : '' }}>3 (Najbolji od 5) - Standard</option>
                                 <option value="4" {{ old('sets_to_win', $competition->sets_to_win ?? 3) == 4 ? 'selected' : '' }}>4 (Najbolji od 7)</option>
                             </select>
                             <p class="text-gray-400 text-xs mt-1">Broj setova koji igrač treba da osvoji za pobjedu u meču</p>
