@@ -21,10 +21,9 @@ class LeagueController extends Controller
      */
     public function create(Organization $organization)
     {
-        // Ensure user owns this organization
-        if ($organization->user_id !== auth()->id()) {
-            abort(403);
-        }
+        // Use policy for authorization
+
+        $this->authorize('update', $organization);
 
         $sports = Sport::active()->get();
 
@@ -38,17 +37,32 @@ class LeagueController extends Controller
     {
         $organization = $league->organization;
 
-        // Allow access if user owns the organization OR is registered as a player in it OR is a referee
-        $isOwner = $organization->user_id === auth()->id();
-        $isPlayer = $organization->players()->where('user_id', auth()->id())->exists();
-        $isReferee = auth()->user()->organizationUsers()
-            ->where('organization_id', $organization->id)
-            ->where('role', 'referee')
-            ->exists();
+        // Use the policy for authorization
 
-        if (!$isOwner && !$isPlayer && !$isReferee) {
-            abort(403);
-        }
+
+        $this->authorize('view', $organization);
+
+
+
+        // Set variables for the view
+
+
+        $isOwner = $organization->user_id === auth()->id();
+
+
+        $isPlayer = $organization->players()->where('user_id', auth()->id())->exists();
+
+
+        $isReferee = $organization->users()
+
+
+            ->where('users.id', auth()->id())
+
+
+            ->where('organization_user.role', 'referee')
+
+
+            ->exists();
 
         $league->load('sport', 'teams.players', 'matches.homeTeam', 'matches.awayTeam', 'matches.homePlayer', 'matches.awayPlayer', 'players', 'standings');
         $organization->load('players');
@@ -63,10 +77,10 @@ class LeagueController extends Controller
     {
         $organization = $league->organization;
 
-        // Ensure user owns this organization
-        if ($organization->user_id !== auth()->id()) {
-            abort(403);
-        }
+        // Use policy for authorization
+
+
+        $this->authorize('update', $organization);
 
         // Ensure team belongs to league
         if ($team->competition_id !== $league->id) {
@@ -90,10 +104,10 @@ class LeagueController extends Controller
     {
         $organization = $league->organization;
 
-        // Ensure user owns this organization
-        if ($organization->user_id !== auth()->id()) {
-            abort(403);
-        }
+        // Use policy for authorization
+
+
+        $this->authorize('update', $organization);
 
         // Ensure team belongs to league
         if ($team->competition_id !== $league->id) {
@@ -117,10 +131,10 @@ class LeagueController extends Controller
     {
         $organization = $league->organization;
 
-        // Ensure user owns this organization
-        if ($organization->user_id !== auth()->id()) {
-            abort(403);
-        }
+        // Use policy for authorization
+
+
+        $this->authorize('update', $organization);
 
         // Ensure team belongs to league
         if ($team->competition_id !== $league->id) {
@@ -161,10 +175,10 @@ class LeagueController extends Controller
     {
         $organization = $league->organization;
 
-        // Ensure user owns this organization
-        if ($organization->user_id !== auth()->id()) {
-            abort(403);
-        }
+        // Use policy for authorization
+
+
+        $this->authorize('update', $organization);
 
         // Ensure team belongs to league
         if ($team->competition_id !== $league->id) {
@@ -194,10 +208,10 @@ class LeagueController extends Controller
     {
         $organization = $league->organization;
 
-        // Ensure user owns this organization
-        if ($organization->user_id !== auth()->id()) {
-            abort(403);
-        }
+        // Use policy for authorization
+
+
+        $this->authorize('update', $organization);
 
         // Ensure league is individual-based
         if ($league->is_team_based) {
@@ -238,10 +252,10 @@ class LeagueController extends Controller
     {
         $organization = $league->organization;
 
-        // Ensure user owns this organization
-        if ($organization->user_id !== auth()->id()) {
-            abort(403);
-        }
+        // Use policy for authorization
+
+
+        $this->authorize('update', $organization);
 
         // Ensure league is team-based
         if (!$league->is_team_based) {
@@ -260,10 +274,9 @@ class LeagueController extends Controller
      */
     public function store(Request $request, Organization $organization)
     {
-        // Ensure user owns this organization
-        if ($organization->user_id !== auth()->id()) {
-            abort(403);
-        }
+        // Use policy for authorization
+
+        $this->authorize('update', $organization);
 
         // Check if organization can create more leagues
         if (!$organization->canCreateMoreLeagues()) {
@@ -310,10 +323,10 @@ class LeagueController extends Controller
     {
         $organization = $league->organization;
 
-        // Ensure user owns this organization
-        if ($organization->user_id !== auth()->id()) {
-            abort(403);
-        }
+        // Use policy for authorization
+
+
+        $this->authorize('update', $organization);
 
         // Handle public visibility toggle (can be changed anytime)
         if ($request->has('is_public')) {
@@ -374,10 +387,10 @@ class LeagueController extends Controller
     {
         $organization = $league->organization;
 
-        // Ensure user owns this organization
-        if ($organization->user_id !== auth()->id()) {
-            abort(403);
-        }
+        // Use policy for authorization
+
+
+        $this->authorize('update', $organization);
 
         // Delete the league
         $league->delete();
@@ -404,10 +417,10 @@ class LeagueController extends Controller
     {
         $organization = $league->organization;
 
-        // Ensure user owns this organization
-        if ($organization->user_id !== auth()->id()) {
-            abort(403);
-        }
+        // Use policy for authorization
+
+
+        $this->authorize('update', $organization);
 
         // Ensure league is team-based
         if (!$league->is_team_based) {
@@ -446,10 +459,10 @@ class LeagueController extends Controller
     {
         $organization = $league->organization;
 
-        // Ensure user owns this organization
-        if ($organization->user_id !== auth()->id()) {
-            abort(403);
-        }
+        // Use policy for authorization
+
+
+        $this->authorize('update', $organization);
 
         // Ensure league is in draft status
         if ($league->status !== 'draft') {
@@ -497,10 +510,10 @@ class LeagueController extends Controller
     {
         $organization = $league->organization;
 
-        // Ensure user owns this organization
-        if ($organization->user_id !== auth()->id()) {
-            abort(403);
-        }
+        // Use policy for authorization
+
+
+        $this->authorize('update', $organization);
 
         // Ensure league is in draft status
         if ($league->status !== 'draft') {
@@ -1142,10 +1155,10 @@ class LeagueController extends Controller
     {
         $organization = $league->organization;
 
-        // Ensure user owns this organization
-        if ($organization->user_id !== auth()->id()) {
-            abort(403);
-        }
+        // Use policy for authorization
+
+
+        $this->authorize('update', $organization);
 
         try {
             // Delete all existing matches

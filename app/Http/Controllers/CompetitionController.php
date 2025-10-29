@@ -22,10 +22,9 @@ class CompetitionController extends Controller
      */
     public function create(Organization $organization)
     {
-        // Ensure user owns this organization
-        if ($organization->user_id !== auth()->id()) {
-            abort(403);
-        }
+        // Use policy for authorization
+
+        $this->authorize('update', $organization);
 
         $sports = Sport::active()->get();
 
@@ -37,10 +36,9 @@ class CompetitionController extends Controller
      */
     public function store(Request $request, Organization $organization)
     {
-        // Ensure user owns this organization
-        if ($organization->user_id !== auth()->id()) {
-            abort(403);
-        }
+        // Use policy for authorization
+
+        $this->authorize('update', $organization);
 
         // Check if user can create more competitions
         if (!auth()->user()->canCreateMoreCompetitions($organization->id)) {
@@ -112,17 +110,16 @@ class CompetitionController extends Controller
      */
     public function show(Organization $organization, Competition $competition)
     {
-        // Allow access if user owns the organization OR is registered as a player in it OR is a referee
+        // Use the policy for authorization
+        $this->authorize('view', $organization);
+
+        // Set variables for the view
         $isOwner = $organization->user_id === auth()->id();
         $isPlayer = $organization->players()->where('user_id', auth()->id())->exists();
-        $isReferee = auth()->user()->organizationUsers()
-            ->where('organization_id', $organization->id)
-            ->where('role', 'referee')
+        $isReferee = $organization->users()
+            ->where('users.id', auth()->id())
+            ->where('organization_user.role', 'referee')
             ->exists();
-
-        if (!$isOwner && !$isPlayer && !$isReferee) {
-            abort(403);
-        }
 
         // Ensure competition belongs to organization
         if ($competition->organization_id !== $organization->id) {
@@ -211,10 +208,9 @@ class CompetitionController extends Controller
      */
     public function update(Request $request, Organization $organization, Competition $competition)
     {
-        // Ensure user owns this organization
-        if ($organization->user_id !== auth()->id()) {
-            abort(403);
-        }
+        // Use policy for authorization
+
+        $this->authorize('update', $organization);
 
         // Ensure competition belongs to organization
         if ($competition->organization_id !== $organization->id) {
@@ -245,10 +241,9 @@ class CompetitionController extends Controller
      */
     public function managePlayers(Organization $organization, Competition $competition)
     {
-        // Ensure user owns this organization
-        if ($organization->user_id !== auth()->id()) {
-            abort(403);
-        }
+        // Use policy for authorization
+
+        $this->authorize('update', $organization);
 
         // Ensure competition belongs to organization
         if ($competition->organization_id !== $organization->id) {
@@ -273,10 +268,9 @@ class CompetitionController extends Controller
      */
     public function addPlayer(Request $request, Organization $organization, Competition $competition)
     {
-        // Ensure user owns this organization
-        if ($organization->user_id !== auth()->id()) {
-            abort(403);
-        }
+        // Use policy for authorization
+
+        $this->authorize('update', $organization);
 
         // Ensure competition belongs to organization
         if ($competition->organization_id !== $organization->id) {
@@ -318,10 +312,9 @@ class CompetitionController extends Controller
      */
     public function removePlayer(Request $request, Organization $organization, Competition $competition, Player $player)
     {
-        // Ensure user owns this organization
-        if ($organization->user_id !== auth()->id()) {
-            abort(403);
-        }
+        // Use policy for authorization
+
+        $this->authorize('update', $organization);
 
         // Ensure competition belongs to organization
         if ($competition->organization_id !== $organization->id) {
@@ -349,10 +342,9 @@ class CompetitionController extends Controller
      */
     public function setupGroups(Request $request, Organization $organization, Competition $competition)
     {
-        // Ensure user owns this organization
-        if ($organization->user_id !== auth()->id()) {
-            abort(403);
-        }
+        // Use policy for authorization
+
+        $this->authorize('update', $organization);
 
         // Ensure competition belongs to organization
         if ($competition->organization_id !== $organization->id) {
@@ -412,10 +404,9 @@ class CompetitionController extends Controller
      */
     public function saveGroups(Request $request, Organization $organization, Competition $competition)
     {
-        // Ensure user owns this organization
-        if ($organization->user_id !== auth()->id()) {
-            abort(403);
-        }
+        // Use policy for authorization
+
+        $this->authorize('update', $organization);
 
         if (!$competition->isTournament()) {
             return back()->with('error', 'This is not a tournament.');
@@ -520,10 +511,9 @@ class CompetitionController extends Controller
      */
     public function showSettings(Request $request, Organization $organization, Competition $competition)
     {
-        // Ensure user owns this organization
-        if ($organization->user_id !== auth()->id()) {
-            abort(403);
-        }
+        // Use policy for authorization
+
+        $this->authorize('update', $organization);
 
         // Ensure competition belongs to organization
         if ($competition->organization_id !== $organization->id) {
@@ -538,10 +528,9 @@ class CompetitionController extends Controller
      */
     public function updateSettings(Request $request, Organization $organization, Competition $competition)
     {
-        // Ensure user owns this organization
-        if ($organization->user_id !== auth()->id()) {
-            abort(403);
-        }
+        // Use policy for authorization
+
+        $this->authorize('update', $organization);
 
         if ($competition->status !== 'draft') {
             return back()->with('error', 'Cannot change settings after competition has started.');
@@ -585,10 +574,9 @@ class CompetitionController extends Controller
      */
     public function startCompetition(Request $request, Organization $organization, Competition $competition)
     {
-        // Ensure user owns this organization
-        if ($organization->user_id !== auth()->id()) {
-            abort(403);
-        }
+        // Use policy for authorization
+
+        $this->authorize('update', $organization);
 
         if ($competition->status !== 'draft') {
             return back()->with('error', 'Competition has already started.');
@@ -625,10 +613,9 @@ class CompetitionController extends Controller
      */
     public function generateGroups(Request $request, Organization $organization, Competition $competition)
     {
-        // Ensure user owns this organization
-        if ($organization->user_id !== auth()->id()) {
-            abort(403);
-        }
+        // Use policy for authorization
+
+        $this->authorize('update', $organization);
 
         if (!$competition->isTournament()) {
             return back()->with('error', 'This is not a tournament.');
@@ -650,10 +637,9 @@ class CompetitionController extends Controller
      */
     public function advanceFromGroups(Request $request, Organization $organization, Competition $competition)
     {
-        // Ensure user owns this organization
-        if ($organization->user_id !== auth()->id()) {
-            abort(403);
-        }
+        // Use policy for authorization
+
+        $this->authorize('update', $organization);
 
         if (!$competition->isTournament()) {
             return back()->with('error', 'This is not a tournament.');
@@ -675,10 +661,9 @@ class CompetitionController extends Controller
      */
     public function generateKnockoutBracket(Request $request, Organization $organization, Competition $competition)
     {
-        // Ensure user owns this organization
-        if ($organization->user_id !== auth()->id()) {
-            abort(403);
-        }
+        // Use policy for authorization
+
+        $this->authorize('update', $organization);
 
         if (!$competition->isTournament()) {
             return back()->with('error', 'This is not a tournament.');
@@ -732,10 +717,9 @@ class CompetitionController extends Controller
      */
     public function completeTournament(Request $request, Organization $organization, Competition $competition)
     {
-        // Ensure user owns this organization
-        if ($organization->user_id !== auth()->id()) {
-            abort(403);
-        }
+        // Use policy for authorization
+
+        $this->authorize('update', $organization);
 
         if (!$competition->isTournament()) {
             return back()->with('error', 'This is not a tournament.');
@@ -751,10 +735,9 @@ class CompetitionController extends Controller
      */
     public function reset(Request $request, Organization $organization, Competition $competition)
     {
-        // Ensure user owns this organization
-        if ($organization->user_id !== auth()->id()) {
-            abort(403);
-        }
+        // Use policy for authorization
+
+        $this->authorize('update', $organization);
 
         // Ensure competition belongs to organization
         if ($competition->organization_id !== $organization->id) {
@@ -968,10 +951,9 @@ class CompetitionController extends Controller
      */
     public function destroy(Request $request, Organization $organization, Competition $competition)
     {
-        // Ensure user owns this organization
-        if ($organization->user_id !== auth()->id()) {
-            abort(403);
-        }
+        // Use policy for authorization
+
+        $this->authorize('update', $organization);
 
         // Ensure competition belongs to organization
         if ($competition->organization_id !== $organization->id) {
@@ -1026,10 +1008,9 @@ class CompetitionController extends Controller
      */
     public function showBulkImport(Request $request, Organization $organization, Competition $competition)
     {
-        // Ensure user owns this organization
-        if ($organization->user_id !== auth()->id()) {
-            abort(403);
-        }
+        // Use policy for authorization
+
+        $this->authorize('update', $organization);
 
         // Ensure competition belongs to organization
         if ($competition->organization_id !== $organization->id) {
@@ -1051,10 +1032,9 @@ class CompetitionController extends Controller
      */
     public function bulkImportPlayers(Request $request, Organization $organization, Competition $competition)
     {
-        // Ensure user owns this organization
-        if ($organization->user_id !== auth()->id()) {
-            abort(403);
-        }
+        // Use policy for authorization
+
+        $this->authorize('update', $organization);
 
         // Ensure competition belongs to organization
         if ($competition->organization_id !== $organization->id) {
@@ -1190,9 +1170,9 @@ class CompetitionController extends Controller
      */
     public function manualKnockoutSetup(Request $request, Organization $organization, Competition $competition)
     {
-        if ($organization->user_id !== auth()->id()) {
-            abort(403);
-        }
+        // Use policy for authorization
+
+        $this->authorize('update', $organization);
 
         if ($competition->organization_id !== $organization->id) {
             abort(404);
@@ -1212,9 +1192,9 @@ class CompetitionController extends Controller
      */
     public function autoGenerateKnockout(Request $request, Organization $organization, Competition $competition)
     {
-        if ($organization->user_id !== auth()->id()) {
-            abort(403);
-        }
+        // Use policy for authorization
+
+        $this->authorize('update', $organization);
 
         if ($competition->organization_id !== $organization->id) {
             abort(404);
@@ -1254,9 +1234,9 @@ class CompetitionController extends Controller
      */
     public function saveManualKnockout(Request $request, Organization $organization, Competition $competition)
     {
-        if ($organization->user_id !== auth()->id()) {
-            abort(403);
-        }
+        // Use policy for authorization
+
+        $this->authorize('update', $organization);
 
         if ($competition->organization_id !== $organization->id) {
             abort(404);
@@ -1347,9 +1327,9 @@ class CompetitionController extends Controller
      */
     public function advanceKnockoutRound(Request $request, Organization $organization, Competition $competition)
     {
-        if ($organization->user_id !== auth()->id()) {
-            abort(403);
-        }
+        // Use policy for authorization
+
+        $this->authorize('update', $organization);
 
         if ($competition->organization_id !== $organization->id) {
             abort(404);
@@ -1370,9 +1350,9 @@ class CompetitionController extends Controller
      */
     public function resetKnockout(Request $request, Organization $organization, Competition $competition)
     {
-        if ($organization->user_id !== auth()->id()) {
-            abort(403);
-        }
+        // Use policy for authorization
+
+        $this->authorize('update', $organization);
 
         if ($competition->organization_id !== $organization->id) {
             abort(404);
@@ -1421,9 +1401,9 @@ class CompetitionController extends Controller
      */
     public function resetGroups(Request $request, Organization $organization, Competition $competition)
     {
-        if ($organization->user_id !== auth()->id()) {
-            abort(403);
-        }
+        // Use policy for authorization
+
+        $this->authorize('update', $organization);
 
         if ($competition->organization_id !== $organization->id) {
             abort(404);

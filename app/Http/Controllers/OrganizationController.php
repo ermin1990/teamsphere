@@ -61,10 +61,9 @@ class OrganizationController extends Controller
      */
     public function edit(Organization $organization)
     {
-        // Ensure user owns this organization
-        if ($organization->user_id !== auth()->id()) {
-            abort(403);
-        }
+        // Use policy for authorization
+
+        $this->authorize('update', $organization);
 
         return view('organizations.edit', compact('organization'));
     }
@@ -74,10 +73,9 @@ class OrganizationController extends Controller
      */
     public function update(Request $request, Organization $organization)
     {
-        // Ensure user owns this organization
-        if ($organization->user_id !== auth()->id()) {
-            abort(403);
-        }
+        // Use policy for authorization
+
+        $this->authorize('update', $organization);
 
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -99,10 +97,9 @@ class OrganizationController extends Controller
      */
     public function destroy(Organization $organization)
     {
-        // Ensure user owns this organization
-        if ($organization->user_id !== auth()->id()) {
-            abort(403);
-        }
+        // Use policy for authorization
+
+        $this->authorize('update', $organization);
 
         // Check if organization has leagues
         if ($organization->leagues()->count() > 0) {
@@ -135,10 +132,9 @@ class OrganizationController extends Controller
      */
     public function tableTennisFriendly(Organization $organization)
     {
-        // Ensure user owns this organization
-        if ($organization->user_id !== auth()->id()) {
-            abort(403);
-        }
+        // Use policy for authorization
+
+        $this->authorize('update', $organization);
 
         return view('organizations.friendly-matches.table-tennis', compact('organization'));
     }

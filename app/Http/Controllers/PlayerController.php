@@ -15,10 +15,8 @@ class PlayerController extends Controller
      */
     public function index(Organization $organization)
     {
-        // Ensure user owns this organization
-        if ($organization->user_id !== auth()->id()) {
-            abort(403);
-        }
+        // Use policy for authorization
+        $this->authorize('update', $organization);
 
         $players = $organization->players()->active()->get();
 
@@ -30,10 +28,8 @@ class PlayerController extends Controller
      */
     public function create(Organization $organization)
     {
-        // Ensure user owns this organization
-        if ($organization->user_id !== auth()->id()) {
-            abort(403);
-        }
+        // Use policy for authorization
+        $this->authorize('update', $organization);
 
         return view('organizations.players.create', compact('organization'));
     }
@@ -43,10 +39,8 @@ class PlayerController extends Controller
      */
     public function store(Request $request, Organization $organization)
     {
-        // Ensure user owns this organization
-        if ($organization->user_id !== auth()->id()) {
-            abort(403);
-        }
+        // Use policy for authorization
+        $this->authorize('update', $organization);
 
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -96,9 +90,12 @@ class PlayerController extends Controller
      */
     public function show(Organization $organization, Player $player)
     {
-        // Ensure user owns this organization and player belongs to it
-        if ($organization->user_id !== auth()->id() || $player->organization_id !== $organization->id) {
-            abort(403);
+        // Use policy for authorization
+        $this->authorize('update', $organization);
+        
+        // Ensure player belongs to organization
+        if ($player->organization_id !== $organization->id) {
+            abort(404);
         }
 
         // Učitaj sve odigrane mečeve u kojima je igrač učestvovao u ovoj organizaciji
@@ -112,9 +109,12 @@ class PlayerController extends Controller
      */
     public function edit(Organization $organization, Player $player)
     {
-        // Ensure user owns this organization and player belongs to it
-        if ($organization->user_id !== auth()->id() || $player->organization_id !== $organization->id) {
-            abort(403);
+        // Use policy for authorization
+        $this->authorize('update', $organization);
+        
+        // Ensure player belongs to organization
+        if ($player->organization_id !== $organization->id) {
+            abort(404);
         }
 
         return view('organizations.players.edit', compact('organization', 'player'));
@@ -125,9 +125,12 @@ class PlayerController extends Controller
      */
     public function update(Request $request, Organization $organization, Player $player)
     {
-        // Ensure user owns this organization and player belongs to it
-        if ($organization->user_id !== auth()->id() || $player->organization_id !== $organization->id) {
-            abort(403);
+        // Use policy for authorization
+        $this->authorize('update', $organization);
+        
+        // Ensure player belongs to organization
+        if ($player->organization_id !== $organization->id) {
+            abort(404);
         }
 
         $request->validate([
@@ -179,9 +182,12 @@ class PlayerController extends Controller
      */
     public function destroy(Organization $organization, Player $player)
     {
-        // Ensure user owns this organization and player belongs to it
-        if ($organization->user_id !== auth()->id() || $player->organization_id !== $organization->id) {
-            abort(403);
+        // Use policy for authorization
+        $this->authorize('update', $organization);
+        
+        // Ensure player belongs to organization
+        if ($player->organization_id !== $organization->id) {
+            abort(404);
         }
 
         $player->delete();
