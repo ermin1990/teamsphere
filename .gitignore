@@ -19,6 +19,8 @@
 /storage/*.key
 /storage/pail
 /storage/framework/views
+database/database.sqlite
+database/database.sqlite.backup
 /vendor
 Homestead.json
 Homestead.yaml
