@@ -18,7 +18,7 @@ $dotenv->load();
 // Database configurations
 $sqliteConfig = [
     'driver' => 'sqlite',
-    'database' => database_path('database.sqlite'),
+    'database' => __DIR__ . '/database/database.sqlite',
 ];
 
 $mysqlConfig = [
@@ -68,15 +68,18 @@ foreach ($tables as $table) {
     $columns = [];
     $result = $sqlite->query("PRAGMA table_info($table)");
     while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
-        $columnType = convertSqliteTypeToMySQL($row['type']);
+        $columnType = convertSqliteTypeToMySQL($row['type'], $row['pk']);
         $columns[] = "`{$row['name']}` $columnType" .
                     ($row['notnull'] ? ' NOT NULL' : ' NULL') .
                     ($row['dflt_value'] !== null ? " DEFAULT {$row['dflt_value']}" : '') .
-                    ($row['pk'] ? ' AUTO_INCREMENT PRIMARY KEY' : '');
+                    ($row['pk'] ? ' PRIMARY KEY' : '');
     }
 
     // Create table in MySQL
-    $createTableSQL = "CREATE TABLE IF NOT EXISTS `$table` (" . implode(', ', $columns) . ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci";
+    $dropTableSQL = "DROP TABLE IF EXISTS `$table`";
+    $mysql->exec($dropTableSQL);
+    
+    $createTableSQL = "CREATE TABLE `$table` (" . implode(', ', $columns) . ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci";
     $mysql->exec($createTableSQL);
 
     // Get data from SQLite
@@ -151,13 +154,19 @@ echo "   5. Optionally, backup and remove the SQLite file\n";
 /**
  * Convert SQLite column types to MySQL equivalents
  */
-function convertSqliteTypeToMySQL($sqliteType) {
+function convertSqliteTypeToMySQL($sqliteType, $isPrimaryKey = false) {
     $type = strtolower($sqliteType);
 
     if (strpos($type, 'integer') !== false) {
-        return 'INT(11)';
-    } elseif (strpos($type, 'varchar') !== false || strpos($type, 'text') !== false) {
-        return 'TEXT';
+        return $isPrimaryKey ? 'INT(11) AUTO_INCREMENT' : 'INT(11)';
+    } elseif (strpos($type, 'varchar') !== false) {
+        // Extract length if specified, e.g., varchar(255)
+        if (preg_match('/varchar\((\d+)\)/', $type, $matches)) {
+            return 'VARCHAR(' . $matches[1] . ')';
+        }
+        return $isPrimaryKey ? 'VARCHAR(255)' : 'TEXT';
+    } elseif (strpos($type, 'text') !== false) {
+        return $isPrimaryKey ? 'VARCHAR(255)' : 'TEXT';
     } elseif (strpos($type, 'real') !== false || strpos($type, 'float') !== false || strpos($type, 'double') !== false) {
         return 'DECIMAL(10,2)';
     } elseif (strpos($type, 'boolean') !== false) {
@@ -172,6 +181,6 @@ function convertSqliteTypeToMySQL($sqliteType) {
         return 'BLOB';
     } else {
         // Default to VARCHAR for unknown types
-        return 'VARCHAR(255)';
+        return $isPrimaryKey ? 'VARCHAR(255)' : 'VARCHAR(255)';
     }
 }
