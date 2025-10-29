@@ -45,6 +45,14 @@ class OrganizationController extends Controller
 
         $organization->load(['leagues', 'competitions.sport', 'players', 'user']);
 
+        // Set variables for the view
+        $isOwner = $organization->user_id === auth()->id();
+        $isPlayer = $organization->players()->where('user_id', auth()->id())->exists();
+        $isReferee = $organization->users()
+            ->where('users.id', auth()->id())
+            ->where('organization_user.role', 'referee')
+            ->exists();
+
         return view('organizations.show', compact('organization', 'isOwner', 'isPlayer', 'isReferee'));
     }
 
