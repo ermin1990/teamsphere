@@ -19,9 +19,29 @@ $envContent = file_get_contents(__DIR__ . '/../.env.production');
 $lines = explode("\n", $envContent);
 $env = [];
 foreach ($lines as $line) {
-    if (strpos($line, '=') !== false && !str_starts_with(trim($line), '#')) {
-        list($key, $value) = explode('=', $line, 2);
-        $env[trim($key)] = trim($value);
+    $line = trim($line);
+    
+    // Skip empty lines and comments
+    if (empty($line) || str_starts_with($line, '#')) {
+        continue;
+    }
+    
+    // Parse key=value pairs
+    if (strpos($line, '=') !== false) {
+        // Split only on first = to handle values with = in them (like APP_KEY)
+        $parts = explode('=', $line, 2);
+        if (count($parts) === 2) {
+            $key = trim($parts[0]);
+            $value = trim($parts[1]);
+            
+            // Remove surrounding quotes if present
+            if ((str_starts_with($value, '"') && str_ends_with($value, '"')) ||
+                (str_starts_with($value, "'") && str_ends_with($value, "'"))) {
+                $value = substr($value, 1, -1);
+            }
+            
+            $env[$key] = $value;
+        }
     }
 }
 
