@@ -26,10 +26,10 @@ Upload all project files to your shared hosting via FTP, EXCEPT:
    ```
 
 ### Step 3: Run Migration
-1. Upload `migrate.php` to your public_html/web root directory
+1. Upload `migrate.php` to your `public/` directory (it should be at `public/migrate.php`)
 2. Open your browser and go to: `https://yourdomain.com/migrate.php`
 3. Wait for migration to complete
-4. **IMPORTANT**: Delete `migrate.php` immediately after migration!
+4. **IMPORTANT**: Delete `public/migrate.php` immediately after migration!
 
 ### Step 4: Final Setup
 1. Ensure file permissions are correct (755 for directories, 644 for files)

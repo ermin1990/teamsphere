@@ -2,8 +2,8 @@
 
 ## Files to Upload via FTP:
 1. **All project files** (except `.env` and `database/database.sqlite`)
-2. **`.env.production`** → rename to `.env` on server
-3. **`migrate.php`** → run once via browser, then DELETE
+2. **`.env.production`** → rename to `.env` in project root
+3. **`public/migrate.php`** → run once via browser, then DELETE
 
 ## Step-by-Step:
 
@@ -27,7 +27,7 @@ DB_PASSWORD=your_password
 ### 3. Run Migration
 ```bash
 # Open in browser: https://yourdomain.com/migrate.php
-# Wait for completion, then DELETE migrate.php
+# Wait for completion, then DELETE public/migrate.php
 ```
 
 ### 4. Test Application
@@ -37,7 +37,7 @@ DB_PASSWORD=your_password
 ```
 
 ## ⚠️ Security Checklist:
-- [ ] Delete `migrate.php` after migration
+- [ ] Delete `public/migrate.php` after migration
 - [ ] Verify `.env` permissions (644)
 - [ ] Check file permissions (755 folders, 644 files)
 - [ ] Test database connection

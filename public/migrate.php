@@ -10,12 +10,12 @@ echo "<h1>TeamSphere MySQL Migration</h1>";
 echo "<pre>";
 
 // Check if .env.production exists
-if (!file_exists(__DIR__ . '/.env.production')) {
-    die("❌ ERROR: .env.production file not found. Please upload it first.\n");
+if (!file_exists(__DIR__ . '/../.env.production')) {
+    die("❌ ERROR: .env.production file not found. Please upload it to the project root first.\n");
 }
 
 // Load production environment
-$envContent = file_get_contents(__DIR__ . '/.env.production');
+$envContent = file_get_contents(__DIR__ . '/../.env.production');
 $lines = explode("\n", $envContent);
 $env = [];
 foreach ($lines as $line) {
@@ -40,7 +40,7 @@ $mysqlConfig = [
 echo "📋 MySQL Config: {$mysqlConfig['host']}:{$mysqlConfig['port']}/{$mysqlConfig['database']}\n";
 
 // Check SQLite database exists
-$sqlitePath = __DIR__ . '/database/database.sqlite';
+$sqlitePath = __DIR__ . '/../database/database.sqlite';
 if (!file_exists($sqlitePath)) {
     die("❌ ERROR: SQLite database not found at: $sqlitePath\n");
 }
