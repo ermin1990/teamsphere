@@ -148,18 +148,25 @@ class CompetitionController extends Controller
             throw $e;
         }
 
+        file_put_contents($logFile, "Starting tournament checks...\n", FILE_APPEND);
+
         // Generate group matches if tournament is active but no matches exist
         if ($competition->isTournament() && $competition->status === 'active' && $competition->tournamentGroups()->count() > 0) {
+            file_put_contents($logFile, "Checking group matches...\n", FILE_APPEND);
             $existingMatches = \App\Models\CompetitionMatch::where('competition_id', $competition->id)
                 ->whereNotNull('tournament_group_id')
                 ->count();
             if ($existingMatches === 0) {
+                file_put_contents($logFile, "Generating group matches...\n", FILE_APPEND);
                 $competition->generateGroupMatches();
             }
         }
 
+        file_put_contents($logFile, "Checking standings...\n", FILE_APPEND);
+
         // Ensure standings exist for tournament groups
         if ($competition->isTournament() && $competition->tournamentGroups()->count() > 0) {
+            file_put_contents($logFile, "Processing tournament groups...\n", FILE_APPEND);
             foreach ($competition->tournamentGroups as $group) {
                 $existingStandings = \App\Models\Standing::where('competition_id', $competition->id)
                     ->where('tournament_group_id', $group->id)
@@ -188,6 +195,8 @@ class CompetitionController extends Controller
             }
         }
 
+        file_put_contents($logFile, "Loading relationships...\n", FILE_APPEND);
+
         $competition->load([
             'sport',
             'teams.players',
@@ -201,8 +210,10 @@ class CompetitionController extends Controller
             'tournamentGroups.standings.team'
         ]);
 
+        file_put_contents($logFile, "Loading organization players...\n", FILE_APPEND);
         $organization->load('players');
 
+        file_put_contents($logFile, "Loading knockout matches...\n", FILE_APPEND);
         // Load knockout matches
         $knockoutMatches = \App\Models\CompetitionMatch::where('competition_id', $competition->id)
             ->where('phase', 'knockout')
@@ -210,6 +221,9 @@ class CompetitionController extends Controller
             ->orderBy('round_number')
             ->orderBy('match_order')
             ->get();
+
+        file_put_contents($logFile, "Returning view...\n", FILE_APPEND);
+        file_put_contents($logFile, "=== SUCCESS ===\n\n", FILE_APPEND);
 
         // Debug
         \Log::info('Knockout matches loaded', [
