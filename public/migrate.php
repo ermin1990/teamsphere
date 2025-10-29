@@ -109,64 +109,82 @@ echo "📋 Found tables: " . implode(', ', $tables) . "\n\n";
 foreach ($tables as $table) {
     echo "🔄 Migrating table: $table\n";
 
-    // Get table structure
-    $columns = [];
-    $result = $sqlite->query("PRAGMA table_info($table)");
-    while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
-        $columnType = convertSqliteTypeToMySQL($row['type'], $row['pk'], $row['dflt_value']);
-        $columns[] = "`{$row['name']}` $columnType" .
-                    ($row['notnull'] ? ' NOT NULL' : ' NULL') .
-                    ($row['dflt_value'] !== null ? " DEFAULT {$row['dflt_value']}" : '') .
-                    ($row['pk'] ? ' PRIMARY KEY' : '');
-    }
+    try {
+        // Check if table already exists and has data
+        $checkTable = $mysql->query("SHOW TABLES LIKE '$table'");
+        $tableExists = $checkTable->rowCount() > 0;
 
-    // Create table in MySQL
-    $dropTableSQL = "DROP TABLE IF EXISTS `$table`";
-    $mysql->exec($dropTableSQL);
-
-    $createTableSQL = "CREATE TABLE `$table` (" . implode(', ', $columns) . ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci";
-    $mysql->exec($createTableSQL);
-
-    // Get data from SQLite
-    $data = $sqlite->query("SELECT * FROM $table")->fetchAll(PDO::FETCH_ASSOC);
-
-    if (!empty($data)) {
-        // Prepare INSERT statement
-        $columnsList = array_keys($data[0]);
-        $placeholders = str_repeat('?,', count($columnsList) - 1) . '?';
-
-        $insertSQL = "INSERT INTO `$table` (`" . implode('`, `', $columnsList) . "`) VALUES ($placeholders)";
-        $stmt = $mysql->prepare($insertSQL);
-
-    // Insert data in batches
-    $batchSize = 25; // Even smaller batch size for shared hosting
-    $totalInserted = 0;
-    $totalBatches = ceil(count($data) / $batchSize);
-
-    for ($i = 0; $i < count($data); $i += $batchSize) {
-        $batch = array_slice($data, $i, $batchSize);
-        $currentBatch = floor($i / $batchSize) + 1;
-
-        try {
-            foreach ($batch as $row) {
-                $values = array_values($row);
-                $stmt->execute($values);
-                $totalInserted++;
+        if ($tableExists) {
+            $countResult = $mysql->query("SELECT COUNT(*) as count FROM `$table`");
+            $rowCount = $countResult->fetch(PDO::FETCH_ASSOC)['count'];
+            if ($rowCount > 0) {
+                echo "   ⏭️  Table already has $rowCount rows, skipping...\n\n";
+                continue;
             }
-            echo "   ✅ Batch $currentBatch/$totalBatches completed ($totalInserted rows)\n";
-        } catch (PDOException $e) {
-            echo "   ❌ Error in batch $currentBatch: " . $e->getMessage() . "\n";
-            // Continue with next batch instead of stopping
-            continue;
         }
 
-        // Add small delay to prevent overwhelming the server
-        usleep(10000); // 10ms delay
-    }
+        // Get table structure
+        $columns = [];
+        $result = $sqlite->query("PRAGMA table_info($table)");
+        while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
+            $columnType = convertSqliteTypeToMySQL($row['type'], $row['pk'], $row['dflt_value']);
+            $columns[] = "`{$row['name']}` $columnType" .
+                        ($row['notnull'] ? ' NOT NULL' : ' NULL') .
+                        ($row['dflt_value'] !== null ? " DEFAULT {$row['dflt_value']}" : '') .
+                        ($row['pk'] ? ' PRIMARY KEY' : '');
+        }
 
-        echo "   ✅ Inserted $totalInserted rows\n";
-    } else {
-        echo "   ℹ️  No data to migrate\n";
+        // Create table in MySQL
+        $dropTableSQL = "DROP TABLE IF EXISTS `$table`";
+        $mysql->exec($dropTableSQL);
+
+        $createTableSQL = "CREATE TABLE `$table` (" . implode(', ', $columns) . ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci";
+        $mysql->exec($createTableSQL);
+
+        // Get data from SQLite
+        $data = $sqlite->query("SELECT * FROM $table")->fetchAll(PDO::FETCH_ASSOC);
+
+        if (!empty($data)) {
+            // Prepare INSERT statement
+            $columnsList = array_keys($data[0]);
+            $placeholders = str_repeat('?,', count($columnsList) - 1) . '?';
+
+            $insertSQL = "INSERT INTO `$table` (`" . implode('`, `', $columnsList) . "`) VALUES ($placeholders)";
+            $stmt = $mysql->prepare($insertSQL);
+
+            // Insert data in batches
+            $batchSize = 25; // Even smaller batch size for shared hosting
+            $totalInserted = 0;
+            $totalBatches = ceil(count($data) / $batchSize);
+
+            for ($i = 0; $i < count($data); $i += $batchSize) {
+                $batch = array_slice($data, $i, $batchSize);
+                $currentBatch = floor($i / $batchSize) + 1;
+
+                try {
+                    foreach ($batch as $row) {
+                        $values = array_values($row);
+                        $stmt->execute($values);
+                        $totalInserted++;
+                    }
+                    echo "   ✅ Batch $currentBatch/$totalBatches completed ($totalInserted rows)\n";
+                } catch (PDOException $e) {
+                    echo "   ❌ Error in batch $currentBatch: " . $e->getMessage() . "\n";
+                    // Continue with next batch instead of stopping
+                    continue;
+                }
+
+                // Add small delay to prevent overwhelming the server
+                usleep(10000); // 10ms delay
+            }
+
+            echo "   ✅ Inserted $totalInserted rows\n";
+        } else {
+            echo "   ℹ️  No data to migrate\n";
+        }
+    } catch (PDOException $e) {
+        echo "   ❌ Error migrating table $table: " . $e->getMessage() . "\n";
+        echo "   ⏭️  Skipping table and continuing...\n";
     }
 
     echo "\n";
@@ -176,27 +194,32 @@ foreach ($tables as $table) {
 echo "🔗 Creating indexes and constraints...\n";
 
 foreach ($tables as $table) {
-    // Get indexes
-    $indexes = $sqlite->query("PRAGMA index_list($table)")->fetchAll(PDO::FETCH_ASSOC);
+    try {
+        // Get indexes
+        $indexes = $sqlite->query("PRAGMA index_list($table)")->fetchAll(PDO::FETCH_ASSOC);
 
-    foreach ($indexes as $index) {
-        if (strpos($index['name'], 'sqlite_autoindex') === false) {
-            $indexInfo = $sqlite->query("PRAGMA index_info({$index['name']})")->fetchAll(PDO::FETCH_ASSOC);
+        foreach ($indexes as $index) {
+            if (strpos($index['name'], 'sqlite_autoindex') === false) {
+                $indexInfo = $sqlite->query("PRAGMA index_info({$index['name']})")->fetchAll(PDO::FETCH_ASSOC);
 
-            if (!empty($indexInfo)) {
-                $columns = array_column($indexInfo, 'name');
-                $indexName = $index['name'];
-                $unique = $index['unique'] ? 'UNIQUE' : '';
+                if (!empty($indexInfo)) {
+                    $columns = array_column($indexInfo, 'name');
+                    $indexName = $index['name'];
+                    $unique = $index['unique'] ? 'UNIQUE' : '';
 
-                $createIndexSQL = "CREATE $unique INDEX `$indexName` ON `$table` (`" . implode('`, `', $columns) . "`)";
-                try {
-                    $mysql->exec($createIndexSQL);
-                    echo "   ✅ Created index: $indexName\n";
-                } catch (PDOException $e) {
-                    echo "   ⚠️  Failed to create index $indexName: " . $e->getMessage() . "\n";
+                    $createIndexSQL = "CREATE $unique INDEX `$indexName` ON `$table` (`" . implode('`, `', $columns) . "`)";
+                    try {
+                        $mysql->exec($createIndexSQL);
+                        echo "   ✅ Created index: $indexName\n";
+                    } catch (PDOException $e) {
+                        echo "   ⚠️  Failed to create index $indexName: " . $e->getMessage() . "\n";
+                    }
                 }
             }
         }
+    } catch (PDOException $e) {
+        echo "   ❌ Error processing indexes for table $table: " . $e->getMessage() . "\n";
+        echo "   ⏭️  Skipping indexes for this table...\n";
     }
 }
 
