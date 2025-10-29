@@ -3,21 +3,29 @@ namespace App\Http\Controllers;
 
 use App\Models\Organization;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 
 class AdminOrganizationController extends Controller
 {
+    private function debugLog($message, $data = [])
+    {
+        // Write to public folder for easy access
+        $logFile = public_path('debug_organization.log');
+        $timestamp = date('Y-m-d H:i:s');
+        $logEntry = "[$timestamp] $message\n" . print_r($data, true) . "\n\n";
+        file_put_contents($logFile, $logEntry, FILE_APPEND);
+    }
+
     public function index()
     {
-        Log::info('AdminOrganizationController::index called', [
+        $this->debugLog('AdminOrganizationController::index called', [
             'user_id' => Auth::id(),
             'user_email' => Auth::user()->email ?? 'not authenticated',
         ]);
         
         $organizations = Organization::with(['user', 'leagues'])->latest()->paginate(20);
         
-        Log::info('AdminOrganizationController::index - organizations loaded', [
+        $this->debugLog('AdminOrganizationController::index - organizations loaded', [
             'count' => $organizations->count(),
         ]);
         
@@ -28,7 +36,7 @@ class AdminOrganizationController extends Controller
     {
         $user = Auth::user();
         
-        Log::info('AdminOrganizationController::show called', [
+        $this->debugLog('AdminOrganizationController::show called', [
             'user_id' => $user->id ?? 'not authenticated',
             'user_email' => $user->email ?? 'not authenticated',
             'organization_id' => $organization->id,
@@ -39,7 +47,7 @@ class AdminOrganizationController extends Controller
         
         // Check if user is owner
         $isOwner = $user && $user->id === $organization->user_id;
-        Log::info('AdminOrganizationController::show - ownership check', [
+        $this->debugLog('AdminOrganizationController::show - ownership check', [
             'is_owner' => $isOwner,
         ]);
         
@@ -47,18 +55,20 @@ class AdminOrganizationController extends Controller
         $isMember = false;
         if ($user) {
             $isMember = $organization->organizationUsers()->where('user_id', $user->id)->exists();
-            Log::info('AdminOrganizationController::show - membership check', [
+            $orgUsers = $organization->organizationUsers()->get();
+            $this->debugLog('AdminOrganizationController::show - membership check', [
                 'is_member' => $isMember,
-                'organization_users_count' => $organization->organizationUsers()->count(),
+                'organization_users_count' => $orgUsers->count(),
+                'organization_users' => $orgUsers->toArray(),
             ]);
         }
         
         // Check policy authorization
         try {
             $this->authorize('view', $organization);
-            Log::info('AdminOrganizationController::show - authorization PASSED');
+            $this->debugLog('AdminOrganizationController::show - authorization PASSED');
         } catch (\Exception $e) {
-            Log::error('AdminOrganizationController::show - authorization FAILED', [
+            $this->debugLog('AdminOrganizationController::show - authorization FAILED', [
                 'error' => $e->getMessage(),
                 'error_class' => get_class($e),
                 'user_id' => $user->id ?? null,
@@ -71,7 +81,7 @@ class AdminOrganizationController extends Controller
         
         $organization->load(['user', 'leagues.matches']);
         
-        Log::info('AdminOrganizationController::show - returning view');
+        $this->debugLog('AdminOrganizationController::show - returning view');
         
         return view('admin.organizations.show', compact('organization'));
     }
