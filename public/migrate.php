@@ -135,15 +135,29 @@ foreach ($tables as $table) {
 
     // Insert data in batches
     $batchSize = 25; // Even smaller batch size for shared hosting
-    $totalInserted = 0;        for ($i = 0; $i < count($data); $i += $batchSize) {
-            $batch = array_slice($data, $i, $batchSize);
+    $totalInserted = 0;
+    $totalBatches = ceil(count($data) / $batchSize);
 
+    for ($i = 0; $i < count($data); $i += $batchSize) {
+        $batch = array_slice($data, $i, $batchSize);
+        $currentBatch = floor($i / $batchSize) + 1;
+
+        try {
             foreach ($batch as $row) {
                 $values = array_values($row);
                 $stmt->execute($values);
                 $totalInserted++;
             }
+            echo "   ✅ Batch $currentBatch/$totalBatches completed ($totalInserted rows)\n";
+        } catch (PDOException $e) {
+            echo "   ❌ Error in batch $currentBatch: " . $e->getMessage() . "\n";
+            // Continue with next batch instead of stopping
+            continue;
         }
+
+        // Add small delay to prevent overwhelming the server
+        usleep(10000); // 10ms delay
+    }
 
         echo "   ✅ Inserted $totalInserted rows\n";
     } else {
