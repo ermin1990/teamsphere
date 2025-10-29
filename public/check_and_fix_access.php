@@ -143,14 +143,37 @@ try {
         echo "Testing organization: {$testOrg->name}<br>";
         echo "Owner ID: {$testOrg->user_id}<br>";
         
-        // Check if organizationUsers relationship exists
+        // Check organizationUsers (pivot records)
+        echo "<h3>Via organizationUsers() - Pivot Records:</h3>";
         $orgUsers = $testOrg->organizationUsers()->get();
-        echo "Members via organizationUsers() relationship: {$orgUsers->count()}<br>";
+        echo "Count: {$orgUsers->count()}<br>";
         foreach ($orgUsers as $ou) {
-            echo "- User ID: {$ou->id}, Email: {$ou->email}<br>";
+            echo "- OrganizationUser ID: {$ou->id}, User ID: {$ou->user_id}, Role: {$ou->role}<br>";
+        }
+        
+        // Check users (actual User objects)
+        echo "<h3>Via users() - Actual User Objects:</h3>";
+        $users = $testOrg->users()->get();
+        echo "Count: {$users->count()}<br>";
+        foreach ($users as $u) {
+            echo "- User ID: {$u->id}, Email: {$u->email}, Role: {$u->pivot->role}<br>";
         }
     }
 } catch (Exception $e) {
     echo "❌ Error testing relationship: " . $e->getMessage() . "<br>";
-    echo "This might indicate the organizationUsers() relationship is not defined in Organization model.<br>";
+    echo "Stack trace: <pre>" . $e->getTraceAsString() . "</pre>";
+}
+
+echo "<hr>";
+echo "<h2>8. Check Policy Logs</h2>";
+$policyLog = public_path('debug_organization.log');
+if (file_exists($policyLog)) {
+    $logs = file_get_contents($policyLog);
+    echo "<strong>Last 2000 characters from policy log:</strong><br>";
+    echo "<pre style='background: #f5f5f5; padding: 10px; overflow: auto; max-height: 400px;'>" . 
+         htmlspecialchars(substr($logs, -2000)) . 
+         "</pre>";
+    echo "<a href='debug_organization.log' target='_blank'>View full log</a><br>";
+} else {
+    echo "❌ No policy log file found at: $policyLog<br>";
 }

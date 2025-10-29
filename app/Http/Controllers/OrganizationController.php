@@ -14,13 +14,8 @@ class OrganizationController extends Controller
 
     public function showFriendlyMatch(Organization $organization, FriendlyMatch $match)
     {
-        // Ensure user is a member of this organization
-        $isMember = $organization->user_id === auth()->id() || 
-                   auth()->user()->organizationUsers()->where('organization_id', $organization->id)->exists();
-        
-        if (!$isMember) {
-            abort(403);
-        }
+        // Use the policy instead of manual authorization
+        $this->authorize('view', $organization);
 
         // For doubles, split names if needed
         if (str_contains($match->home_player_name, ' / ')) {
@@ -45,17 +40,8 @@ class OrganizationController extends Controller
      */
     public function show(Organization $organization)
     {
-        // Allow access if user owns the organization OR is registered as a player in it OR is a referee
-        $isOwner = $organization->user_id === auth()->id();
-        $isPlayer = $organization->players()->where('user_id', auth()->id())->exists();
-        $isReferee = auth()->user()->organizationUsers()
-            ->where('organization_id', $organization->id)
-            ->where('role', 'referee')
-            ->exists();
-
-        if (!$isOwner && !$isPlayer && !$isReferee) {
-            abort(403);
-        }
+        // Use the policy instead of manual authorization
+        $this->authorize('view', $organization);
 
         $organization->load(['leagues', 'competitions.sport', 'players', 'user']);
 
