@@ -853,9 +853,9 @@ class LeagueController extends Controller
 
         $isOwner = $organization->user_id === auth()->id();
         $isPlayer = $organization->players()->where('user_id', auth()->id())->exists();
-        $isReferee = auth()->user()->organizationUsers()
-            ->where('organization_id', $organization->id)
-            ->where('role', 'referee')
+        $isReferee = $organization->users()
+            ->where('users.id', auth()->id())
+            ->where('organization_user.role', 'referee')
             ->exists();
 
         // Load teams with players for team-based leagues
