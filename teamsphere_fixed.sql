@@ -920,7 +920,7 @@ CREATE TABLE `organization_user` (
   `id` int(11) NOT NULL,
   `organization_id` int(11) NOT NULL,
   `user_id` int(11) NOT NULL,
-  `role` text NOT NULL DEFAULT 'referee',
+  `role` VARCHAR(50) NOT NULL DEFAULT 'referee',
   `joined_at` datetime NOT NULL DEFAULT current_timestamp(),
   `created_at` datetime DEFAULT NULL,
   `updated_at` datetime DEFAULT NULL

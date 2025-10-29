@@ -134,7 +134,7 @@ foreach ($tables as $table) {
         $stmt = $mysql->prepare($insertSQL);
 
     // Insert data in batches
-    $batchSize = 50; // Smaller batch size for shared hosting
+    $batchSize = 25; // Even smaller batch size for shared hosting
     $totalInserted = 0;        for ($i = 0; $i < count($data); $i += $batchSize) {
             $batch = array_slice($data, $i, $batchSize);
 
