@@ -46,6 +46,11 @@ echo "Owner ID: {$organization->user_id}<br>";
 
 echo "<h2>User Access Check</h2>";
 echo "User ID: {$user->id}<br>";
+echo "User ID type: " . gettype($user->id) . "<br>";
+echo "Organization user_id: {$organization->user_id}<br>";
+echo "Organization user_id type: " . gettype($organization->user_id) . "<br>";
+echo "Strict comparison (===): " . (($organization->user_id === $user->id) ? 'TRUE ✅' : 'FALSE ❌') . "<br>";
+echo "Loose comparison (==): " . (($organization->user_id == $user->id) ? 'TRUE ✅' : 'FALSE ❌') . "<br>";
 echo "Is Owner: " . ($organization->user_id === $user->id ? 'YES ✅' : 'NO ❌') . "<br>";
 
 // Check membership

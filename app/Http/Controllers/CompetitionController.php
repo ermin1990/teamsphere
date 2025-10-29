@@ -110,20 +110,42 @@ class CompetitionController extends Controller
      */
     public function show(Organization $organization, Competition $competition)
     {
-        // Use the policy for authorization
-        $this->authorize('view', $organization);
+        // EMERGENCY DEBUG
+        $logFile = public_path('debug_competition_show.log');
+        file_put_contents($logFile, "[" . date('Y-m-d H:i:s') . "] === SHOW METHOD CALLED ===\n", FILE_APPEND);
+        file_put_contents($logFile, "Organization: {$organization->id} - {$organization->name}\n", FILE_APPEND);
+        file_put_contents($logFile, "Competition: {$competition->id} - {$competition->name}\n", FILE_APPEND);
+        file_put_contents($logFile, "User: " . auth()->id() . "\n", FILE_APPEND);
+        
+        try {
+            // Use the policy for authorization
+            file_put_contents($logFile, "Before authorize...\n", FILE_APPEND);
+            $this->authorize('view', $organization);
+            file_put_contents($logFile, "After authorize - PASSED\n", FILE_APPEND);
 
-        // Set variables for the view
-        $isOwner = $organization->user_id === auth()->id();
-        $isPlayer = $organization->players()->where('user_id', auth()->id())->exists();
-        $isReferee = $organization->users()
-            ->where('users.id', auth()->id())
-            ->where('organization_user.role', 'referee')
-            ->exists();
+            // Set variables for the view
+            $isOwner = $organization->user_id === auth()->id();
+            $isPlayer = $organization->players()->where('user_id', auth()->id())->exists();
+            $isReferee = $organization->users()
+                ->where('users.id', auth()->id())
+                ->where('organization_user.role', 'referee')
+                ->exists();
 
-        // Ensure competition belongs to organization
-        if ($competition->organization_id !== $organization->id) {
-            abort(404);
+            file_put_contents($logFile, "isOwner: " . ($isOwner ? 'YES' : 'NO') . "\n", FILE_APPEND);
+            file_put_contents($logFile, "isPlayer: " . ($isPlayer ? 'YES' : 'NO') . "\n", FILE_APPEND);
+            file_put_contents($logFile, "isReferee: " . ($isReferee ? 'YES' : 'NO') . "\n", FILE_APPEND);
+
+            // Ensure competition belongs to organization
+            if ($competition->organization_id !== $organization->id) {
+                file_put_contents($logFile, "ERROR: Competition does not belong to organization!\n", FILE_APPEND);
+                abort(404);
+            }
+            
+            file_put_contents($logFile, "Competition belongs to organization - OK\n", FILE_APPEND);
+        } catch (\Exception $e) {
+            file_put_contents($logFile, "EXCEPTION: " . $e->getMessage() . "\n", FILE_APPEND);
+            file_put_contents($logFile, $e->getTraceAsString() . "\n", FILE_APPEND);
+            throw $e;
         }
 
         // Generate group matches if tournament is active but no matches exist
