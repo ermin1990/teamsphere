@@ -133,11 +133,9 @@ foreach ($tables as $table) {
         $insertSQL = "INSERT INTO `$table` (`" . implode('`, `', $columnsList) . "`) VALUES ($placeholders)";
         $stmt = $mysql->prepare($insertSQL);
 
-        // Insert data in batches
-        $batchSize = 100;
-        $totalInserted = 0;
-
-        for ($i = 0; $i < count($data); $i += $batchSize) {
+    // Insert data in batches
+    $batchSize = 50; // Smaller batch size for shared hosting
+    $totalInserted = 0;        for ($i = 0; $i < count($data); $i += $batchSize) {
             $batch = array_slice($data, $i, $batchSize);
 
             foreach ($batch as $row) {
