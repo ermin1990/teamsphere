@@ -40,6 +40,16 @@ class LeagueMatch extends Model
     ];
 
     protected $casts = [
+        'competition_id' => 'integer',
+        'home_team_id' => 'integer',
+        'away_team_id' => 'integer',
+        'home_player_id' => 'integer',
+        'away_player_id' => 'integer',
+        'table_id' => 'integer',
+        'referee_user_id' => 'integer',
+        'moderator_id' => 'integer',
+        'edited_by' => 'integer',
+        'completed_by' => 'integer',
         'scheduled_at' => 'datetime',
         'played_at' => 'datetime',
         'current_set_started_at' => 'datetime',

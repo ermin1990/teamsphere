@@ -22,6 +22,8 @@ class TournamentGroup extends Model
     ];
 
     protected $casts = [
+        'competition_id' => 'integer',
+        'group_number' => 'integer',
         'player_ids' => 'array',
         'standings' => 'array',
         'is_completed' => 'boolean',

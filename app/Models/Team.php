@@ -20,6 +20,8 @@ class Team extends Model
     ];
 
     protected $casts = [
+        'competition_id' => 'integer',
+        'captain_id' => 'integer',
         'status' => 'string',
     ];
 

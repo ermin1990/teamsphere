@@ -31,6 +31,10 @@ class Standing extends Model
     ];
 
     protected $casts = [
+        'competition_id' => 'integer',
+        'tournament_group_id' => 'integer',
+        'team_id' => 'integer',
+        'player_id' => 'integer',
         'played' => 'integer',
         'won' => 'integer',
         'drawn' => 'integer',

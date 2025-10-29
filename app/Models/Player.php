@@ -24,6 +24,8 @@ class Player extends Model
     ];
 
     protected $casts = [
+        'user_id' => 'integer',
+        'organization_id' => 'integer',
         'date_of_birth' => 'date',
         'is_active' => 'boolean',
     ];
