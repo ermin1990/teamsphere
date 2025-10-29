@@ -108,7 +108,7 @@ foreach ($tables as $table) {
     $columns = [];
     $result = $sqlite->query("PRAGMA table_info($table)");
     while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
-        $columnType = convertSqliteTypeToMySQL($row['type'], $row['pk']);
+        $columnType = convertSqliteTypeToMySQL($row['type'], $row['pk'], $row['dflt_value']);
         $columns[] = "`{$row['name']}` $columnType" .
                     ($row['notnull'] ? ' NOT NULL' : ' NULL') .
                     ($row['dflt_value'] !== null ? " DEFAULT {$row['dflt_value']}" : '') .
@@ -191,7 +191,7 @@ echo "   3. Test your application\n";
 /**
  * Convert SQLite column types to MySQL equivalents
  */
-function convertSqliteTypeToMySQL($sqliteType, $isPrimaryKey = false) {
+function convertSqliteTypeToMySQL($sqliteType, $isPrimaryKey = false, $defaultValue = null) {
     $type = strtolower($sqliteType);
 
     if (strpos($type, 'integer') !== false) {
@@ -203,6 +203,11 @@ function convertSqliteTypeToMySQL($sqliteType, $isPrimaryKey = false) {
         }
         return $isPrimaryKey ? 'VARCHAR(255)' : 'TEXT';
     } elseif (strpos($type, 'text') !== false) {
+        // MySQL doesn't allow TEXT columns to have default values
+        // If this TEXT column has a default value, convert to VARCHAR
+        if ($defaultValue !== null) {
+            return 'VARCHAR(255)';
+        }
         return $isPrimaryKey ? 'VARCHAR(255)' : 'TEXT';
     } elseif (strpos($type, 'real') !== false || strpos($type, 'float') !== false || strpos($type, 'double') !== false) {
         return 'DECIMAL(10,2)';
