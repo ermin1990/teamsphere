@@ -809,11 +809,10 @@ class CompetitionController extends Controller
 
         // Get the competition through the match
         $competition = $match->competition;
+        $organization = $competition->organization;
 
-        // Check if user can access this specific match
-        if (!$this->canAccessCompetitionMatch($match, $competition->organization)) {
-            abort(403);
-        }
+        // Use policy for authorization
+        $this->authorize('view', $organization);
 
         $request->validate([
             'home_score' => 'required|integer|min:0|max:7',
@@ -850,32 +849,6 @@ class CompetitionController extends Controller
         }
 
         return back()->with('success', 'Match result saved successfully!');
-    }    /**
-     * Check if user can access a competition match.
-     */
-    private function canAccessCompetitionMatch(CompetitionMatch $match, Organization $organization)
-    {
-        $user = auth()->user();
-
-        // Owner can access
-        if ($organization->user_id === $user->id) {
-            return true;
-        }
-
-        // Player in the organization can access
-        if ($organization->players()->where('user_id', $user->id)->exists()) {
-            return true;
-        }
-
-        // Referee can access
-        if ($user->organizationUsers()
-            ->where('organization_id', $organization->id)
-            ->where('role', 'referee')
-            ->exists()) {
-            return true;
-        }
-
-        return false;
     }
 
     /**
@@ -883,10 +856,8 @@ class CompetitionController extends Controller
      */
     public function showMatch(Organization $organization, Competition $competition, CompetitionMatch $match)
     {
-        // Check if user can access this specific match
-        if (!$this->canAccessCompetitionMatch($match, $organization)) {
-            abort(403);
-        }
+        // Use policy for authorization
+        $this->authorize('view', $organization);
 
         // Ensure match belongs to competition
         if ($match->competition_id !== $competition->id) {
@@ -894,7 +865,7 @@ class CompetitionController extends Controller
         }
 
         $isOwner = $organization->user_id === auth()->id();
-        
+
         // Load relationships
         $match->load(['homePlayer', 'awayPlayer', 'homeTeam', 'awayTeam', 'tournamentGroup']);
 
@@ -906,10 +877,8 @@ class CompetitionController extends Controller
      */
     public function editMatch(Organization $organization, Competition $competition, CompetitionMatch $match)
     {
-        // Check if user can access this specific match
-        if (!$this->canAccessCompetitionMatch($match, $organization)) {
-            abort(403);
-        }
+        // Use policy for authorization
+        $this->authorize('view', $organization);
 
         // Ensure match belongs to competition
         if ($match->competition_id !== $competition->id) {
@@ -926,10 +895,8 @@ class CompetitionController extends Controller
      */
     public function updateMatch(Request $request, Organization $organization, Competition $competition, CompetitionMatch $match)
     {
-        // Check if user can access this specific match
-        if (!$this->canAccessCompetitionMatch($match, $organization)) {
-            abort(403);
-        }
+        // Use policy for authorization
+        $this->authorize('view', $organization);
 
         // Ensure match belongs to competition
         if ($match->competition_id !== $competition->id) {
