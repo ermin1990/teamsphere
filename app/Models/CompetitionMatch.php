@@ -47,6 +47,14 @@ class CompetitionMatch extends Model
     ];
 
     protected $casts = [
+        'competition_id' => 'integer',
+        'home_team_id' => 'integer',
+        'away_team_id' => 'integer',
+        'home_player_id' => 'integer',
+        'away_player_id' => 'integer',
+        'tournament_group_id' => 'integer',
+        'table_id' => 'integer',
+        'referee_user_id' => 'integer',
         'scheduled_at' => 'datetime',
         'played_at' => 'datetime',
         'current_set_started_at' => 'datetime',
