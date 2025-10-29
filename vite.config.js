@@ -8,4 +8,15 @@ export default defineConfig({
             refresh: true,
         }),
     ],
+    build: {
+        rollupOptions: {
+            output: {
+                manualChunks: {
+                    vendor: ['jquery', 'lodash'], // Split vendor libraries
+                    livewire: ['@livewire/livewire'], // Split Livewire
+                },
+            },
+        },
+        chunkSizeWarningLimit: 1000, // Increase chunk size warning limit
+    },
 });
