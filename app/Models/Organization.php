@@ -24,6 +24,7 @@ class Organization extends Model
 
     protected $casts = [
         'is_active' => 'boolean',
+        'user_id' => 'integer',
     ];
 
     /**
