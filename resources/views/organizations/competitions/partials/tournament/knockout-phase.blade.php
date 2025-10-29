@@ -556,9 +556,17 @@ function saveQuickResult() {
         form.appendChild(awaySetField);
     });
 
+    // Add scroll position to restore after page reload
+    const scrollPositionField = document.createElement('input');
+    scrollPositionField.type = 'hidden';
+    scrollPositionField.name = 'scroll_position';
+    scrollPositionField.value = window.pageYOffset || document.documentElement.scrollTop;
+    form.appendChild(scrollPositionField);
+
     document.body.appendChild(form);
     form.submit();
 }
 
 </script>
+
 

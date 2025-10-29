@@ -164,32 +164,39 @@ class CompetitionController extends Controller
 
         file_put_contents($logFile, "Checking standings...\n", FILE_APPEND);
 
-        // Ensure standings exist for tournament groups
+        // Ensure standings exist for tournament groups (but don't reset existing ones)
         if ($competition->isTournament() && $competition->tournamentGroups()->count() > 0) {
             file_put_contents($logFile, "Processing tournament groups...\n", FILE_APPEND);
             foreach ($competition->tournamentGroups as $group) {
-                $existingStandings = \App\Models\Standing::where('competition_id', $competition->id)
-                    ->where('tournament_group_id', $group->id)
-                    ->count();
-                if ($existingStandings === 0) {
-                    foreach ($group->player_ids as $playerId) {
-                        \App\Models\Standing::create([
-                            'competition_id' => $competition->id,
-                            'tournament_group_id' => $group->id,
-                            'player_id' => $playerId,
-                            'played' => 0,
-                            'won' => 0,
-                            'drawn' => 0,
-                            'lost' => 0,
-                            'points' => 0,
-                            'sets_won' => 0,
-                            'sets_lost' => 0,
-                            'points_won' => 0,
-                            'points_lost' => 0,
-                            'goals_for' => 0,
-                            'goals_against' => 0,
-                            'goal_difference' => 0,
-                        ]);
+                foreach ($group->player_ids as $playerId) {
+                    try {
+                        // Only create if doesn't exist - don't update/reset existing standings
+                        \App\Models\Standing::firstOrCreate(
+                            [
+                                'competition_id' => $competition->id,
+                                'tournament_group_id' => $group->id,
+                                'player_id' => $playerId,
+                            ],
+                            [
+                                'played' => 0,
+                                'won' => 0,
+                                'drawn' => 0,
+                                'lost' => 0,
+                                'points' => 0,
+                                'sets_won' => 0,
+                                'sets_lost' => 0,
+                                'points_won' => 0,
+                                'points_lost' => 0,
+                                'goals_for' => 0,
+                                'goals_against' => 0,
+                                'goal_difference' => 0,
+                            ]
+                        );
+                    } catch (\Illuminate\Database\QueryException $e) {
+                        // Ignore duplicate entry errors (race condition)
+                        if ($e->getCode() !== '23000') {
+                            throw $e;
+                        }
                     }
                 }
             }
@@ -440,6 +447,11 @@ class CompetitionController extends Controller
      */
     public function saveGroups(Request $request, Organization $organization, Competition $competition)
     {
+        \Log::info('saveGroups called', [
+            'competition_id' => $competition->id,
+            'user_id' => auth()->id(),
+        ]);
+        
         // Use policy for authorization
 
         $this->authorize('update', $organization);
@@ -803,10 +815,8 @@ class CompetitionController extends Controller
     /**
      * Quick result entry for a match.
      */
-    public function quickResult(Request $request, $matchId)
+    public function quickResult(Request $request, CompetitionMatch $match)
     {
-        $match = CompetitionMatch::findOrFail($matchId);
-
         // Get the competition through the match
         $competition = $match->competition;
         $organization = $competition->organization;
@@ -818,8 +828,8 @@ class CompetitionController extends Controller
             'home_score' => 'required|integer|min:0|max:7',
             'away_score' => 'required|integer|min:0|max:7',
             'sets' => 'nullable|array',
-            'sets.*.home' => 'required_with:sets|integer|min:0',
-            'sets.*.away' => 'required_with:sets|integer|min:0',
+            'sets.*.home_score' => 'required_with:sets|integer|min:0',
+            'sets.*.away_score' => 'required_with:sets|integer|min:0',
             'scroll_position' => 'nullable|integer|min:0',
         ]);
 
@@ -828,22 +838,41 @@ class CompetitionController extends Controller
             session(['scroll_position' => $request->scroll_position]);
         }
 
+        // Normalize sets format from home_score/away_score to home/away
+        $normalizedSets = [];
+        if (!empty($request->sets)) {
+            foreach ($request->sets as $set) {
+                $normalizedSets[] = [
+                    'home' => $set['home_score'] ?? $set['home'] ?? 0,
+                    'away' => $set['away_score'] ?? $set['away'] ?? 0,
+                ];
+            }
+        }
+        
+        // If no sets provided but we have scores, generate empty set placeholders
+        // This allows tracking that match was completed even without detailed set scores
+        if (empty($normalizedSets) && ($request->home_score > 0 || $request->away_score > 0)) {
+            $totalSets = max($request->home_score, $request->away_score);
+            for ($i = 0; $i < $totalSets; $i++) {
+                $normalizedSets[] = [
+                    'home' => 0,
+                    'away' => 0,
+                ];
+            }
+        }
+
         // Update match with results
         $match->update([
             'home_score' => $request->home_score,
             'away_score' => $request->away_score,
-            'sets' => $request->sets ?? [],
+            'sets' => $normalizedSets,
             'status' => 'completed',
             'played_at' => now(),
         ]);
 
         // Update standings if tournament
         if ($competition->type === 'tournament' && $match->tournamentGroup) {
-            // Refresh match to get updated values (like LiveScore does)
             $match->refresh();
-            // First update the in-model group standings (same as LiveScore)
-            $match->tournamentGroup->updateStandings($match);
-            // Then update Eloquent Standing records from scratch
             $groupService = app(\App\Services\TournamentGroupService::class);
             $groupService->recalculateGroupStandings($match->tournamentGroup);
         }
@@ -909,8 +938,8 @@ class CompetitionController extends Controller
             'home_score' => 'nullable|integer|min:0|max:7',
             'away_score' => 'nullable|integer|min:0|max:7',
             'sets' => 'nullable|array',
-            'sets.*.home' => 'required_with:sets|integer|min:0',
-            'sets.*.away' => 'required_with:sets|integer|min:0',
+            'sets.*.home_score' => 'required_with:sets|integer|min:0',
+            'sets.*.away_score' => 'required_with:sets|integer|min:0',
             'forfeited_by' => 'nullable|in:home,away',
         ]);
 
@@ -927,7 +956,18 @@ class CompetitionController extends Controller
         } elseif ($validated['status'] === 'completed') {
             $updateData['home_score'] = $validated['home_score'] ?? 0;
             $updateData['away_score'] = $validated['away_score'] ?? 0;
-            $updateData['sets'] = $validated['sets'] ?? [];
+            
+            // Normalize sets format from home_score/away_score to home/away
+            $normalizedSets = [];
+            if (!empty($validated['sets'])) {
+                foreach ($validated['sets'] as $set) {
+                    $normalizedSets[] = [
+                        'home' => $set['home_score'] ?? $set['home'] ?? 0,
+                        'away' => $set['away_score'] ?? $set['away'] ?? 0,
+                    ];
+                }
+            }
+            $updateData['sets'] = $normalizedSets;
             $updateData['played_at'] = $match->played_at ?? now();
         } elseif ($validated['status'] === 'forfeited') {
             $updateData['forfeited_by'] = $validated['forfeited_by'];
@@ -936,12 +976,21 @@ class CompetitionController extends Controller
 
         $match->update($updateData);
 
-        // Update standings if tournament
-        if ($competition->type === 'tournament' && $match->tournamentGroup && $validated['status'] === 'completed') {
+        \Log::info('Match updated', [
+            'match_id' => $match->id,
+            'status' => $validated['status'],
+            'competition_type' => $competition->type,
+            'has_tournament_group' => !is_null($match->tournamentGroup),
+            'tournament_group_id' => $match->tournament_group_id,
+        ]);
+
+        // Update standings if tournament (recalculate for any status change)
+        if ($competition->type === 'tournament' && $match->tournamentGroup) {
+            \Log::info('About to recalculate standings');
             $match->refresh();
-            $match->tournamentGroup->updateStandings($match);
             $groupService = app(\App\Services\TournamentGroupService::class);
             $groupService->recalculateGroupStandings($match->tournamentGroup);
+            \Log::info('Finished recalculating standings');
         }
 
         return redirect()
@@ -1416,12 +1465,8 @@ class CompetitionController extends Controller
             return back()->with('error', 'This is not a tournament.');
         }
 
-        // PREVENT resetting if groups are not complete (matches still in progress)
-        $completedGroups = $competition->tournamentGroups()->where('is_completed', true)->count();
-        if ($completedGroups > 0) {
-            return back()->with('error', 'Ne možeš resetovati grupnu fazu dok su grupe u toku! Prvo završi sve grupne mečeve ili obriši cijelo takmičenje.');
-        }
-
+        // Allow resetting groups phase at any time - user knows what they're doing
+        
         try {
             \Log::info('Resetting groups phase', [
                 'competition_id' => $competition->id,

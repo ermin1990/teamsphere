@@ -148,7 +148,7 @@
 
                         <div id="sets-container" class="space-y-3">
                             @php
-                                $setsArray = $match->sets ? json_decode($match->sets, true) : [];
+                                $setsArray = is_string($match->sets) ? json_decode($match->sets, true) : ($match->sets ?? []);
                             @endphp
                             @if($setsArray && count($setsArray) > 0)
                                 @foreach($setsArray as $index => $set)
@@ -251,7 +251,7 @@
 
     <script>
         @php
-            $setsArray = $match->sets ? json_decode($match->sets, true) : [];
+            $setsArray = is_string($match->sets) ? json_decode($match->sets, true) : ($match->sets ?? []);
         @endphp
         let setCount = {{ count($setsArray) }};
 

@@ -109,27 +109,57 @@ class TournamentGroupService
     {
         $competition = $group->competition;
 
+        \Log::info('Recalculating standings for group', [
+            'group_id' => $group->id,
+            'competition_id' => $competition->id,
+        ]);
+
         // Get all completed matches for this group (do not rely on TournamentGroup::matches() which filters by phase)
         $completedMatches = CompetitionMatch::where('tournament_group_id', $group->id)
             ->where('competition_id', $competition->id)
             ->whereIn('status', ['completed', 'forfeited'])
             ->get();
 
+        \Log::info('Found completed matches', [
+            'count' => $completedMatches->count(),
+        ]);
+
         // Calculate standings from scratch
         $standingsData = $this->calculateStandingsFromMatches($group, $completedMatches, $competition);
 
+        \Log::info('Calculated standings data', [
+            'data' => $standingsData,
+        ]);
+
         // Remove any existing standings for this group and recreate from scratch
-        Standing::where('competition_id', $competition->id)
+        $deleted = Standing::where('competition_id', $competition->id)
             ->where('tournament_group_id', $group->id)
             ->delete();
 
+        \Log::info('Deleted old standings', [
+            'count' => $deleted,
+        ]);
+
         // Create fresh Standing records
         foreach ($standingsData as $playerId => $data) {
-            Standing::create(array_merge([
-                'competition_id' => $competition->id,
-                'tournament_group_id' => $group->id,
-                'player_id' => $playerId,
-            ], $data));
+            try {
+                $standing = Standing::create(array_merge([
+                    'competition_id' => $competition->id,
+                    'tournament_group_id' => $group->id,
+                    'player_id' => $playerId,
+                ], $data));
+                \Log::info('Created standing', [
+                    'player_id' => $playerId,
+                    'standing_id' => $standing->id,
+                    'data' => $data,
+                ]);
+            } catch (\Illuminate\Database\QueryException $e) {
+                // Ignore duplicate entry errors (race condition)
+                if ($e->getCode() !== '23000') {
+                    throw $e;
+                }
+                \Log::warning('Duplicate standing entry', ['player_id' => $playerId]);
+            }
         }
 
         // Recalculate positions
@@ -140,10 +170,29 @@ class TournamentGroupService
                 return [$s->points ?? 0, ($s->sets_won - $s->sets_lost) ?? 0, $s->points_won ?? 0];
             })->values();
 
+        \Log::info('Ordered standings before position update', [
+            'standings' => $ordered->map(fn($s) => [
+                'id' => $s->id,
+                'player_id' => $s->player_id,
+                'played' => $s->played,
+                'points' => $s->points,
+            ])->toArray(),
+        ]);
+
         foreach ($ordered as $index => $standing) {
             $standing->position = $index + 1;
             $standing->save();
         }
+
+        \Log::info('Finished recalculating - checking final standings in DB');
+        
+        $final = Standing::where('competition_id', $competition->id)
+            ->where('tournament_group_id', $group->id)
+            ->get(['id', 'player_id', 'played', 'points']);
+        
+        \Log::info('Final standings after recalculation', [
+            'standings' => $final->toArray(),
+        ]);
 
         // Check if group is completed after recalculating standings
         $group->checkGroupCompletion();
@@ -204,13 +253,35 @@ class TournamentGroupService
             $standings[$awayId]['sets_won'] += $match->away_score;
             $standings[$awayId]['sets_lost'] += $match->home_score;
 
-            // Update points if available
-            if ($match->home_points !== null) {
-                $standings[$homeId]['points_won'] += $match->home_points;
-                $standings[$homeId]['points_lost'] += $match->away_points ?? 0;
-                $standings[$awayId]['points_won'] += $match->away_points ?? 0;
-                $standings[$awayId]['points_lost'] += $match->home_points;
+            // Calculate points from sets (sum of all points won/lost in each set)
+            $homePointsTotal = 0;
+            $awayPointsTotal = 0;
+            
+            \Log::info('Processing match sets', [
+                'match_id' => $match->id,
+                'sets' => $match->sets,
+                'sets_type' => gettype($match->sets),
+                'is_array' => is_array($match->sets),
+            ]);
+            
+            if (!empty($match->sets) && is_array($match->sets)) {
+                foreach ($match->sets as $set) {
+                    // Support both formats: home/away and home_score/away_score
+                    $homePointsTotal += $set['home'] ?? $set['home_score'] ?? 0;
+                    $awayPointsTotal += $set['away'] ?? $set['away_score'] ?? 0;
+                }
             }
+            
+            \Log::info('Calculated points from sets', [
+                'match_id' => $match->id,
+                'home_points' => $homePointsTotal,
+                'away_points' => $awayPointsTotal,
+            ]);
+            
+            $standings[$homeId]['points_won'] += $homePointsTotal;
+            $standings[$homeId]['points_lost'] += $awayPointsTotal;
+            $standings[$awayId]['points_won'] += $awayPointsTotal;
+            $standings[$awayId]['points_lost'] += $homePointsTotal;
         }
 
         return $standings;

@@ -215,6 +215,23 @@
                 @endif
             </div>
 
+            <!-- Tables Section -->
+            <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-xl font-bold text-white">Stolovi</h3>
+                    @if($organization->user_id === Auth::id())
+                        <a href="{{ route('organizations.tables.index', $organization) }}" class="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white px-4 py-2 rounded-xl transition-all duration-200 transform hover:scale-[1.02] hover:shadow-lg hover:shadow-purple-500/25">
+                            <span class="flex items-center space-x-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                                </svg>
+                                <span>Upravljaj Stolovima</span>
+                            </span>
+                        </a>
+                    @endif
+                </div>
+            </div>
+
             <!-- Leagues Section - Coming Soon -->
             <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl opacity-50">
                 <div class="flex items-center justify-between mb-6">
@@ -237,165 +254,6 @@
                     </div>
                     <h4 class="text-white font-semibold text-lg mb-2">Lige dolaze uskoro!</h4>
                     <p class="text-gray-400">Radimo na implementaciji liga. Hvala na strpljenju.</p>
-                </div>
-            </div>
-
-            <!-- Tables Section -->
-                        // $leagues = $organization->competitions->where('type', 'league');
-                    @endphp
-
-                    <!-- Tournaments Section -->
-                    @if($tournaments->count() > 0)
-                    <div class="mb-8">
-                        <h3 class="text-xl font-bold text-white mb-4 flex items-center">
-                            <span class="mr-2">🏆</span> Turniri
-                        </h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            @foreach($tournaments as $competition)
-                                <div class="bg-gray-700/30 rounded-xl p-4 hover:bg-gray-600/30 transition-all duration-200 relative group">
-                                    <a href="{{ route('organizations.competitions.show', [$organization, $competition]) }}" class="block">
-                                        <div class="flex items-center space-x-3 mb-3">
-                                            <div class="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-600 rounded-xl flex items-center justify-center">
-                                                <span class="text-white font-bold text-sm">{{ substr($competition->name, 0, 2) }}</span>
-                                            </div>
-                                            <div class="flex-1">
-                                                <h4 class="text-white font-semibold">{{ $competition->name }}</h4>
-                                                <p class="text-gray-400 text-sm">{{ $competition->sport->name }}</p>
-                                            </div>
-                                        </div>
-                                    <div class="space-y-2">
-                                        <div class="flex justify-between text-sm">
-                                            <span class="text-gray-400">Učesnici:</span>
-                                            <span class="text-white">{{ $competition->max_participants }}</span>
-                                        </div>
-                                        <div class="flex justify-between text-sm">
-                                            <span class="text-gray-400">Status:</span>
-                                            <span class="
-                                                @if($competition->status === 'active') text-green-400
-                                                @elseif($competition->status === 'draft') text-yellow-400
-                                                @elseif($competition->status === 'completed') text-blue-400
-                                                @else text-red-400 @endif">
-                                                {{ ucfirst($competition->status) }}
-                                            </span>
-                                        </div>
-                                    </div>
-                                    </a>
-                                    
-                                    @if($competition->status === 'draft')
-                                    <!-- Delete button (only for draft competitions) -->
-                                    <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <form action="{{ route('organizations.competitions.destroy', [$organization, $competition]) }}" 
-                                              method="POST" 
-                                              onclick="event.stopPropagation();"
-                                              onsubmit="return confirm('Are you sure you want to delete {{ $competition->name }}?');">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="bg-red-500/20 hover:bg-red-500/30 text-red-400 p-2 rounded-lg transition-colors">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                                </svg>
-                                            </button>
-                                        </form>
-                                    </div>
-                                    @endif
-                                </div>
-                            @endforeach
-                        </div>
-                    </div>
-                    @endif
-
-                    <!-- Leagues Section - Removed to avoid duplication with main Leagues section -->
-                    {{-- @if($leagues->count() > 0)
-                    <div class="mb-8">
-                        <h3 class="text-xl font-bold text-white mb-4 flex items-center">
-                            <span class="mr-2">⚽</span> Lige
-                        </h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            @foreach($leagues as $competition)
-                                <div class="bg-gray-700/30 rounded-xl p-4 hover:bg-gray-600/30 transition-all duration-200 relative group">
-                                    <a href="{{ route('organizations.competitions.show', [$organization, $competition]) }}" class="block">
-                                        <div class="flex items-center space-x-3 mb-3">
-                                            <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-cyan-600 rounded-xl flex items-center justify-center">
-                                                <span class="text-white font-bold text-sm">{{ substr($competition->name, 0, 2) }}</span>
-                                            </div>
-                                            <div class="flex-1">
-                                                <h4 class="text-white font-semibold">{{ $competition->name }}</h4>
-                                                <p class="text-gray-400 text-sm">{{ $competition->sport->name }}</p>
-                                            </div>
-                                        </div>
-                                    <div class="space-y-2">
-                                        <div class="flex justify-between text-sm">
-                                            <span class="text-gray-400">Učesnici:</span>
-                                            <span class="text-white">{{ $competition->max_participants }}</span>
-                                        </div>
-                                        <div class="flex justify-between text-sm">
-                                            <span class="text-gray-400">Status:</span>
-                                            <span class="
-                                                @if($competition->status === 'active') text-green-400
-                                                @elseif($competition->status === 'draft') text-yellow-400
-                                                @elseif($competition->status === 'completed') text-blue-400
-                                                @else text-red-400 @endif">
-                                                {{ ucfirst($competition->status) }}
-                                            </span>
-                                        </div>
-                                    </div>
-                                    </a>
-                                    
-                                    @if($competition->status === 'draft')
-                                    <!-- Delete button (only for draft competitions) -->
-                                    <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <form action="{{ route('organizations.competitions.destroy', [$organization, $competition]) }}" 
-                                              method="POST" 
-                                              onclick="event.stopPropagation();"
-                                              onsubmit="return confirm('Are you sure you want to delete {{ $competition->name }}?');">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="bg-red-500/20 hover:bg-red-500/30 text-red-400 p-2 rounded-lg transition-colors">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                                </svg>
-                                            </button>
-                                        </form>
-                                    </div>
-                                    @endif
-                                </div>
-                            @endforeach
-                        </div>
-                    </div>
-                    @endif --}}
-                @else
-                    <div class="text-center py-8">
-                        <div class="w-16 h-16 bg-gray-700/50 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                            </svg>
-                        </div>
-                        <h4 class="text-white font-semibold mb-2">Još nema takmičenja</h4>
-                        <p class="text-gray-400 mb-4">Kreirajte svoju prvu ligu ili turnir da počnete organizovati takmičenja</p>
-                    </div>
-                @endif
-            </div>
-
-            <!-- Tables Section -->
-            <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl">
-                <div class="flex items-center justify-between mb-6">
-                    <h3 class="text-xl font-bold text-white">Stolovi</h3>
-                    @if($organization->user_id === Auth::id())
-                        <a href="{{ route('organizations.tables.index', $organization) }}" class="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white px-4 py-2 rounded-xl transition-all duration-200 transform hover:scale-[1.02] hover:shadow-lg hover:shadow-purple-500/25">
-                            <span class="flex items-center space-x-2">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
-                                </svg>
-                                <span>Upravljaj Stolovima</span>
-                            </span>
-                        </a>
-                    @endif
-                </div>
-
-                <div class="text-center py-6">
-                    <p class="text-gray-400 text-sm">
-                        Kreirajte stolove koje ćete koristiti prilikom organizacije turnira i dodjele mečeva.
-                    </p>
                 </div>
             </div>
 

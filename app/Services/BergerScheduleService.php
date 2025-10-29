@@ -74,16 +74,23 @@ class BergerScheduleService
         
         foreach ($schedule as $round => $matches) {
             foreach ($matches as $matchData) {
-                CompetitionMatch::create([
-                    'competition_id' => $competition->id,
-                    'tournament_group_id' => $group->id,
-                    'home_player_id' => $matchData['home_player_id'],
-                    'away_player_id' => $matchData['away_player_id'],
-                    'round_number' => $matchData['round'],
-                    'status' => 'scheduled',
-                    'phase' => 'group',
-                    'scheduled_at' => now(),
-                ]);
+                try {
+                    CompetitionMatch::create([
+                        'competition_id' => $competition->id,
+                        'tournament_group_id' => $group->id,
+                        'home_player_id' => $matchData['home_player_id'],
+                        'away_player_id' => $matchData['away_player_id'],
+                        'round_number' => $matchData['round'],
+                        'status' => 'scheduled',
+                        'phase' => 'group',
+                        'scheduled_at' => now(),
+                    ]);
+                } catch (\Illuminate\Database\QueryException $e) {
+                    // Ignore duplicate entry errors (already exists from previous generation)
+                    if ($e->getCode() !== '23000') {
+                        throw $e;
+                    }
+                }
             }
         }
     }

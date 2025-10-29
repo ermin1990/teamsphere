@@ -45,6 +45,10 @@
                 window.scrollTo(0, {{ session('scroll_position') }});
             });
         </script>
+        @php
+            // Clear scroll position after using it so it doesn't persist
+            session()->forget('scroll_position');
+        @endphp
     @endif
 
 </x-app-layout>
