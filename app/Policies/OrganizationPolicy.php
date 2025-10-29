@@ -13,7 +13,7 @@ class OrganizationPolicy
      */
     public function viewAny(User $user): bool
     {
-        return false;
+        return true; // Users can view organizations they have access to
     }
 
     /**
@@ -21,7 +21,13 @@ class OrganizationPolicy
      */
     public function view(User $user, Organization $organization): bool
     {
-        return false;
+        // User can view if they own the organization
+        if ($user->id === $organization->user_id) {
+            return true;
+        }
+
+        // User can view if they are a member of the organization
+        return $organization->organizationUsers()->where('user_id', $user->id)->exists();
     }
 
     /**
@@ -29,7 +35,7 @@ class OrganizationPolicy
      */
     public function create(User $user): bool
     {
-        return false;
+        return true; // Any authenticated user can create organizations
     }
 
     /**
@@ -37,7 +43,7 @@ class OrganizationPolicy
      */
     public function update(User $user, Organization $organization): bool
     {
-        return false;
+        return $user->id === $organization->user_id;
     }
 
     /**
@@ -45,7 +51,7 @@ class OrganizationPolicy
      */
     public function delete(User $user, Organization $organization): bool
     {
-        return false;
+        return $user->id === $organization->user_id;
     }
 
     /**
