@@ -6,6 +6,11 @@
  * After successful migration, DELETE this file for security!
  */
 
+// Increase time limits for long-running migration
+set_time_limit(0);
+ini_set('max_execution_time', 0);
+ini_set('memory_limit', '256M');
+
 echo "<h1>TeamSphere MySQL Migration</h1>";
 echo "<pre>";
 
