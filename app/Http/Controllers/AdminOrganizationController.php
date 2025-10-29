@@ -34,6 +34,11 @@ class AdminOrganizationController extends Controller
 
     public function show(Organization $organization)
     {
+        // Log IMMEDIATELY at the start
+        $logFile = public_path('debug_organization.log');
+        $timestamp = date('Y-m-d H:i:s');
+        file_put_contents($logFile, "[$timestamp] === SHOW METHOD CALLED ===\n", FILE_APPEND);
+        
         $user = Auth::user();
         
         $this->debugLog('AdminOrganizationController::show called', [
