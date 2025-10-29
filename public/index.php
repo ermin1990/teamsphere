@@ -18,6 +18,22 @@ if (isset($_SERVER['REQUEST_URI']) && strpos($_SERVER['REQUEST_URI'], 'organizat
     file_put_contents($logFile, "=== ORGANIZATIONS REQUEST ===\n" . print_r($logData, true) . "\n", FILE_APPEND);
 }
 
+// Add error handler to catch authorization errors
+set_exception_handler(function($e) use ($logFile, $timestamp) {
+    $errorData = [
+        'timestamp' => $timestamp,
+        'exception' => get_class($e),
+        'message' => $e->getMessage(),
+        'file' => $e->getFile(),
+        'line' => $e->getLine(),
+        'trace' => $e->getTraceAsString(),
+    ];
+    file_put_contents($logFile, "=== EXCEPTION CAUGHT ===\n" . print_r($errorData, true) . "\n", FILE_APPEND);
+    
+    // Let Laravel handle it normally
+    throw $e;
+});
+
 // Determine if the application is in maintenance mode...
 if (file_exists($maintenance = __DIR__.'/../storage/framework/maintenance.php')) {
     require $maintenance;

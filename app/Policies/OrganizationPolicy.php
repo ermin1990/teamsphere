@@ -54,15 +54,12 @@ class OrganizationPolicy
         }
 
         // User can view if they are a member of the organization
-        $isMember = $organization->organizationUsers()->where('user_id', $user->id)->exists();
-        $orgUsers = $organization->organizationUsers()->get();
+        $isMember = $organization->users()->where('users.id', $user->id)->exists();
         
         $this->debugLog('OrganizationPolicy::view - Member check', [
             'user_id' => $user->id,
             'organization_id' => $organization->id,
             'is_member' => $isMember,
-            'organization_users_count' => $orgUsers->count(),
-            'organization_users' => $orgUsers->toArray(),
         ]);
 
         if ($isMember) {

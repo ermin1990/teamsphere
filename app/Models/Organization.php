@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Facades\Cache;
 
 class Organization extends Model
@@ -31,6 +32,31 @@ class Organization extends Model
     public function getRouteKeyName()
     {
         return 'slug';
+    }
+
+    /**
+     * Resolve route binding with debugging.
+     */
+    public function resolveRouteBinding($value, $field = null)
+    {
+        $logFile = public_path('debug_organization.log');
+        $timestamp = date('Y-m-d H:i:s');
+        
+        file_put_contents($logFile, "[$timestamp] Organization::resolveRouteBinding called\n", FILE_APPEND);
+        file_put_contents($logFile, "  Value: $value\n", FILE_APPEND);
+        file_put_contents($logFile, "  Field: " . ($field ?? 'null') . "\n", FILE_APPEND);
+        
+        $organization = $this->where($field ?? $this->getRouteKeyName(), $value)->first();
+        
+        if ($organization) {
+            file_put_contents($logFile, "  Organization FOUND: ID={$organization->id}, Name={$organization->name}\n", FILE_APPEND);
+        } else {
+            file_put_contents($logFile, "  Organization NOT FOUND\n", FILE_APPEND);
+        }
+        
+        file_put_contents($logFile, "\n", FILE_APPEND);
+        
+        return $organization;
     }
 
     /**
@@ -63,6 +89,16 @@ class Organization extends Model
     public function organizationUsers(): HasMany
     {
         return $this->hasMany(OrganizationUser::class);
+    }
+
+    /**
+     * Get the users that belong to this organization (many-to-many).
+     */
+    public function users(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'organization_user')
+                    ->withPivot('role')
+                    ->withTimestamps();
     }
 
     /**
