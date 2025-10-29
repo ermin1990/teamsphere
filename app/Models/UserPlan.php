@@ -19,6 +19,8 @@ class UserPlan extends Model
     ];
 
     protected $casts = [
+        'user_id' => 'integer',
+        'plan_id' => 'integer',
         'started_at' => 'datetime',
         'expires_at' => 'datetime',
         'is_active' => 'boolean',

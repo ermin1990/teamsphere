@@ -16,6 +16,7 @@ class Table extends Model
     ];
 
     protected $casts = [
+        'organization_id' => 'integer',
         'is_active' => 'boolean',
     ];
 

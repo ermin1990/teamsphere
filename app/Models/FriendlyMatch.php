@@ -20,6 +20,9 @@ class FriendlyMatch extends Model
     ];
 
     protected $casts = [
+        'organization_id' => 'integer',
+        'home_player_id' => 'integer',
+        'away_player_id' => 'integer',
         'sets' => 'array',
         'set_durations' => 'array',
         'completed_at' => 'datetime',

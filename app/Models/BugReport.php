@@ -20,6 +20,7 @@ class BugReport extends Model
     ];
 
     protected $casts = [
+        'user_id' => 'integer',
         'resolved_at' => 'datetime',
     ];
 

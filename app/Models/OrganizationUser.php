@@ -20,6 +20,8 @@ class OrganizationUser extends Model
     ];
 
     protected $casts = [
+        'organization_id' => 'integer',
+        'user_id' => 'integer',
         'joined_at' => 'datetime',
     ];
 

@@ -33,6 +33,8 @@ class League extends Model
     ];
 
     protected $casts = [
+        'organization_id' => 'integer',
+        'sport_id' => 'integer',
         'start_date' => 'date',
         'end_date' => 'date',
         'max_teams' => 'integer',
