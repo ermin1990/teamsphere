@@ -27,6 +27,13 @@ foreach ($lines as $line) {
 
 echo "✅ Loaded environment configuration\n";
 
+// Debug: Show loaded DB credentials
+echo "🔍 Debug - Loaded credentials:\n";
+echo "   DB_HOST: {$env['DB_HOST']}\n";
+echo "   DB_DATABASE: {$env['DB_DATABASE']}\n";
+echo "   DB_USERNAME: {$env['DB_USERNAME']}\n";
+echo "   DB_PASSWORD: " . (empty($env['DB_PASSWORD']) ? '(empty)' : '(set)') . "\n\n";
+
 // Database configuration
 $mysqlConfig = [
     'host' => $env['DB_HOST'] ?? 'localhost',
