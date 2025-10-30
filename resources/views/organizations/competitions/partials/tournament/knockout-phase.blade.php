@@ -147,6 +147,32 @@
                                         @endif
                                     </div>
 
+                                    {{-- Set Details Display --}}
+                                    @if($match->status === 'completed' && isset($match->sets) && is_array($match->sets) && count($match->sets) > 0)
+                                    <div class="mt-3 pt-3 border-t border-gray-600/30">
+                                        <div class="text-xs text-gray-400 mb-2 text-center">Setovi</div>
+                                        <div class="flex justify-center gap-2">
+                                            @foreach($match->sets as $index => $set)
+                                                <div class="flex flex-col items-center">
+                                                    <div class="text-xs text-gray-500 mb-1">{{ $index + 1 }}</div>
+                                                    <div class="flex flex-col gap-0.5">
+                                                        @php
+                                                            $homeScore = $set['home_score'] ?? $set['home'] ?? 0;
+                                                            $awayScore = $set['away_score'] ?? $set['away'] ?? 0;
+                                                        @endphp
+                                                        <span class="text-xs px-1.5 py-0.5 rounded text-center {{ $homeScore > $awayScore ? 'bg-green-500/20 text-green-300 font-bold' : 'text-gray-400' }}">
+                                                            {{ $homeScore }}
+                                                        </span>
+                                                        <span class="text-xs px-1.5 py-0.5 rounded text-center {{ $awayScore > $homeScore ? 'bg-green-500/20 text-green-300 font-bold' : 'text-gray-400' }}">
+                                                            {{ $awayScore }}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                    @endif
+
                                     {{-- Actions --}}
                                     @if(!$match->is_bye)
                                         <div class="mt-3 flex gap-1 text-xs">

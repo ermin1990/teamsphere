@@ -40,6 +40,7 @@ class PublicMatchController extends Controller
                 'sport',
                 'standings.team',
                 'standings.player',
+                'tournamentGroups', // Load tournament groups for standings
             ]);
 
             // Load matches based on competition type
@@ -54,7 +55,8 @@ class PublicMatchController extends Controller
                 // For tournaments, matches are CompetitionMatch
                 $competition->load([
                     'matches' => function ($query) {
-                        $query->orderBy('scheduled_at', 'desc')
+                        $query->orderBy('round_number')
+                              ->orderBy('match_order')
                               ->with(['homePlayer', 'awayPlayer', 'tournamentGroup']);
                     }
                 ]);
