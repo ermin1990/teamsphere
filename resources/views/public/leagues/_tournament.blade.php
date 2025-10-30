@@ -401,35 +401,37 @@
                 $firstRoundMatches = $knockoutMatches->get(1) ?? collect();
                 $numPlayers = $firstRoundMatches->count() * 2;
 
-                // Determine round names based on number of players in first round and matches per round
+                // Determine round names based on total rounds and position
                 $roundNames = [];
                 for ($round = 1; $round <= $totalRounds; $round++) {
-                    $matchesInRound = $knockoutMatches->get($round) ?? collect();
-
-                    if ($matchesInRound->count() === 1) {
-                        // Finale - only one match in the round
+                    if ($round === $totalRounds) {
+                        // Last round is always Finale
                         $roundNames[$round] = 'Finale';
                     } else {
-                        // Regular round names based on first round size
-                        if ($numPlayers >= 16) {
+                        // Regular round names based on total rounds
+                        if ($totalRounds >= 5) {
+                            // 16+ players tournament
                             $regularNames = [
                                 1 => '16/1 Finala',
                                 2 => '1/8 Finala',
                                 3 => '1/4 Finala',
                                 4 => 'Polufinale',
                             ];
-                        } elseif ($numPlayers >= 8) {
+                        } elseif ($totalRounds >= 4) {
+                            // 8+ players tournament
                             $regularNames = [
                                 1 => '1/8 Finala',
                                 2 => '1/4 Finala',
                                 3 => 'Polufinale',
                             ];
-                        } elseif ($numPlayers >= 4) {
+                        } elseif ($totalRounds >= 3) {
+                            // 4+ players tournament
                             $regularNames = [
                                 1 => '1/4 Finala',
                                 2 => 'Polufinale',
                             ];
                         } else {
+                            // 2+ players tournament
                             $regularNames = [
                                 1 => 'Polufinale',
                             ];
