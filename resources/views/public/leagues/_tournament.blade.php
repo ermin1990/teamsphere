@@ -401,31 +401,8 @@
                 $firstRoundMatches = $knockoutMatches->get(1) ?? collect();
                 $numPlayers = $firstRoundMatches->count() * 2;
 
-                // Determine round names based on number of players
+                // Round names will be calculated per round based on number of matches
                 $roundNames = [];
-                $playersInRound = $numPlayers;
-                
-                for ($round = 1; $round <= $totalRounds; $round++) {
-                    if ($round === $totalRounds) {
-                        // Last round is always Finale
-                        $roundNames[$round] = 'Finale';
-                    } else {
-                        // Calculate round name based on remaining players
-                        $remainingPlayers = $playersInRound / pow(2, $round - 1);
-                        
-                        if ($remainingPlayers <= 2) {
-                            $roundNames[$round] = 'Polufinale';
-                        } elseif ($remainingPlayers == 4) {
-                            $roundNames[$round] = '1/4 Finala';
-                        } elseif ($remainingPlayers == 8) {
-                            $roundNames[$round] = '1/8 Finala';
-                        } elseif ($remainingPlayers == 16) {
-                            $roundNames[$round] = '16/1 Finala';
-                        } else {
-                            $roundNames[$round] = '1/' . $remainingPlayers . ' Finala';
-                        }
-                    }
-                }
 
                 // Check if tournament is completed and get winner
                 $finalMatch = $knockoutMatches->get($totalRounds)?->first();
@@ -464,18 +441,27 @@
                                 // Calculate spacing for bracket alignment
                                 $matchesInRound = $roundMatches->count();
                                 $spacingMultiplier = pow(2, $round - 1);
+                                
+                                // Calculate round name based on number of matches in this round
+                                if ($round === $totalRounds) {
+                                    $roundName = 'Finale';
+                                } elseif ($matchesInRound == 1) {
+                                    $roundName = 'Polufinale';
+                                } else {
+                                    $roundName = '1/' . ($matchesInRound * 2) . ' Finala';
+                                }
                             @endphp
                             @if($matchesInRound > 0 || ($round === $totalRounds && $totalRounds > 1))
                             <div class="flex flex-col justify-center gap-2" style="gap: {{ $spacingMultiplier * 1 }}rem;">
-                                <!-- Round Header -->
+                                {{-- Round Header --}}
                                 <div class="text-center mb-4">
                                     <h4 class="text-sm md:text-base font-bold text-white uppercase tracking-wider">
-                                        {{ $roundNames[$round] ?? 'Runda ' . $round }}
+                                        {{ $roundName }}
                                     </h4>
                                 </div>
 
                                 @if($matchesInRound > 0)
-                                <!-- Round Matches -->
+                                {{-- Round Matches Container --}}
                                 <div class="flex flex-col gap-2">
                                     @foreach($roundMatches as $index => $match)
                                     @php
