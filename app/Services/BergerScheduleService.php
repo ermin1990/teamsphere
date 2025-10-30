@@ -71,6 +71,27 @@ class BergerScheduleService
     public function generateGroupMatches(Competition $competition, TournamentGroup $group): void
     {
         $schedule = $this->generateSchedule($competition, $group);
+        // If competition requests multiple rounds (e.g., double round-robin),
+        // duplicate the schedule with swapped home/away for the additional legs.
+        $originalRoundCount = count($schedule);
+        if (($competition->group_rounds ?? 1) > 1 && $originalRoundCount > 0) {
+            // Build second-leg rounds by swapping home/away and offsetting round numbers
+            $secondLeg = [];
+            foreach ($schedule as $round => $matches) {
+                $newRound = $round + $originalRoundCount;
+                $secondLeg[$newRound] = [];
+                foreach ($matches as $m) {
+                    $secondLeg[$newRound][] = [
+                        'home_player_id' => $m['away_player_id'] ?? null,
+                        'away_player_id' => $m['home_player_id'] ?? null,
+                        'round' => $newRound,
+                    ];
+                }
+            }
+
+            // Merge second leg into schedule preserving round order
+            $schedule = $schedule + $secondLeg;
+        }
         
         foreach ($schedule as $round => $matches) {
             foreach ($matches as $matchData) {

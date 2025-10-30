@@ -463,7 +463,7 @@ class CompetitionController extends Controller
         $request->validate([
             'groups' => ['required', 'array', 'min:1'],
             'groups.*' => ['required', 'array'],
-            'groups.*.players' => ['required', 'array', 'min:2', 'max:' . $competition->players_per_group],
+            'groups.*.players' => ['required', 'array', 'min:2'], // Removed max limit
             'groups.*.players.*' => ['exists:players,id'],
         ]);
 
@@ -596,6 +596,7 @@ class CompetitionController extends Controller
             'tiebreak_points' => ['nullable', 'integer', 'min:5', 'max:15'],
             // Tournament-specific validation
             'players_advancing_per_group' => ['nullable', 'integer', 'min:1', 'max:4'],
+            'group_rounds' => ['nullable', 'integer', 'min:1', 'max:2'],
         ]);
 
         $competition->update([
@@ -610,6 +611,7 @@ class CompetitionController extends Controller
             'tiebreak_points' => $request->tiebreak_points,
             // Tournament-specific updates
             'players_advancing_per_group' => $request->players_advancing_per_group,
+            'group_rounds' => $request->group_rounds,
         ]);
 
         return redirect()
@@ -825,11 +827,11 @@ class CompetitionController extends Controller
         $this->authorize('view', $organization);
 
         $request->validate([
-            'home_score' => 'required|integer|min:0|max:7',
-            'away_score' => 'required|integer|min:0|max:7',
+            'home_score' => 'required|integer|min:0|max:10',
+            'away_score' => 'required|integer|min:0|max:10',
             'sets' => 'nullable|array',
-            'sets.*.home_score' => 'required_with:sets|integer|min:0',
-            'sets.*.away_score' => 'required_with:sets|integer|min:0',
+            'sets.*.home' => 'required_with:sets|integer|min:0',
+            'sets.*.away' => 'required_with:sets|integer|min:0',
             'scroll_position' => 'nullable|integer|min:0',
         ]);
 
@@ -849,9 +851,9 @@ class CompetitionController extends Controller
             }
         }
         
-        // If no sets provided but we have scores, generate empty set placeholders
-        // This allows tracking that match was completed even without detailed set scores
-        if (empty($normalizedSets) && ($request->home_score > 0 || $request->away_score > 0)) {
+        // Only generate empty set placeholders if sets were explicitly provided
+        // Don't auto-generate 0-0 sets when no sets are entered
+        if (empty($normalizedSets) && !empty($request->sets)) {
             $totalSets = max($request->home_score, $request->away_score);
             for ($i = 0; $i < $totalSets; $i++) {
                 $normalizedSets[] = [
@@ -940,8 +942,8 @@ class CompetitionController extends Controller
         // Validation
         $validated = $request->validate([
             'status' => 'required|in:scheduled,in_progress,completed,forfeited,cancelled',
-            'home_score' => 'nullable|integer|min:0|max:7',
-            'away_score' => 'nullable|integer|min:0|max:7',
+            'home_score' => 'nullable|integer|min:0|max:10',
+            'away_score' => 'nullable|integer|min:0|max:10',
             'sets' => 'nullable|array',
             'sets.*.home_score' => 'required_with:sets|integer|min:0',
             'sets.*.away_score' => 'required_with:sets|integer|min:0',

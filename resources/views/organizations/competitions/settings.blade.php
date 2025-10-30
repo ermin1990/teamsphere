@@ -189,7 +189,7 @@
                 <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl mb-6">
                     <h3 class="text-xl font-semibold text-white mb-4">Postavke Turnira</h3>
                     
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <!-- Players Advancing per Group -->
                         <div>
                             <label for="players_advancing_per_group" class="block text-sm font-medium text-white mb-2">
@@ -200,6 +200,25 @@
                                    min="1" max="4" required
                                    class="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <p class="text-gray-400 text-xs mt-1">Broj igrača koji prolaze u eliminacionu fazu iz svake grupe</p>
+                            @error('players_advancing_per_group')
+                                <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <!-- Group Rounds -->
+                        <div>
+                            <label for="group_rounds" class="block text-sm font-medium text-white mb-2">
+                                Broj Krugova u Grupama <span class="text-red-400">*</span>
+                            </label>
+                            <select id="group_rounds" name="group_rounds" required
+                                    class="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="1" {{ old('group_rounds', $competition->group_rounds ?? 1) == 1 ? 'selected' : '' }}>1 Krug - Svako protiv svakoga jednom</option>
+                                <option value="2" {{ old('group_rounds', $competition->group_rounds ?? 1) == 2 ? 'selected' : '' }}>2 Kruga - Kod kuće i u gostima</option>
+                            </select>
+                            <p class="text-gray-400 text-xs mt-1">Da li se igra jedan krug ili dva kruga u grupnoj fazi</p>
+                            @error('group_rounds')
+                                <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
+                            @enderror
                         </div>
                     </div>
 

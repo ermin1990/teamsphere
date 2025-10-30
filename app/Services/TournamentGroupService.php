@@ -87,17 +87,42 @@ class TournamentGroupService
     {
         $playerIds = $group->player_ids;
         $playerCount = count($playerIds);
+        $rounds = $competition->group_rounds ?? 1;
 
-        for ($i = 0; $i < $playerCount; $i++) {
-            for ($j = $i + 1; $j < $playerCount; $j++) {
-                CompetitionMatch::create([
-                    'competition_id' => $competition->id,
-                    'tournament_group_id' => $group->id,
-                    'home_player_id' => $playerIds[$i],
-                    'away_player_id' => $playerIds[$j],
-                    'status' => 'scheduled',
-                    'scheduled_at' => now(),
-                ]);
+        // Generate matches for each round
+        for ($round = 1; $round <= $rounds; $round++) {
+            if ($round == 1) {
+                // First round: normal round-robin
+                for ($i = 0; $i < $playerCount; $i++) {
+                    for ($j = $i + 1; $j < $playerCount; $j++) {
+                        CompetitionMatch::create([
+                            'competition_id' => $competition->id,
+                            'tournament_group_id' => $group->id,
+                            'home_player_id' => $playerIds[$i],
+                            'away_player_id' => $playerIds[$j],
+                            'status' => 'scheduled',
+                            'scheduled_at' => now(),
+                            'phase' => 'group',
+                            'round_number' => $round,
+                        ]);
+                    }
+                }
+            } else {
+                // Subsequent rounds: reverse home/away
+                for ($i = 0; $i < $playerCount; $i++) {
+                    for ($j = $i + 1; $j < $playerCount; $j++) {
+                        CompetitionMatch::create([
+                            'competition_id' => $competition->id,
+                            'tournament_group_id' => $group->id,
+                            'home_player_id' => $playerIds[$j], // Swapped
+                            'away_player_id' => $playerIds[$i], // Swapped
+                            'status' => 'scheduled',
+                            'scheduled_at' => now(),
+                            'phase' => 'group',
+                            'round_number' => $round,
+                        ]);
+                    }
+                }
             }
         }
     }

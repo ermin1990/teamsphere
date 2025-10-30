@@ -41,19 +41,6 @@
                 </button>
 
                 {{-- Debug button without confirm --}}
-                <button type="button" onclick="directResetKnockout()"
-                        class="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg transition-colors text-sm">
-                    🔄 Resetuj (bez confirm)
-                </button>
-                
-                <form id="regenerateKnockoutForm" method="POST" action="{{ route('organizations.competitions.auto-generate-knockout', [$organization, $competition]) }}" style="display: inline;">
-                    @csrf
-                    <input type="hidden" name="knockout_matches_count" value="{{ $competition->knockout_matches_count ?? 8 }}">
-                    <button type="submit" onclick="return confirm('Da li želiš regenerisati knockout bracket?')" 
-                            class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors">
-                        🎯 Regeneriši
-                    </button>
-                </form>
             </div>
         @endif
     </div>
@@ -165,7 +152,7 @@
                                         <div class="mt-3 flex gap-1 text-xs">
                                             @if($match->status === 'scheduled' || $match->status === 'pending')
                                                 <button type="button"
-                                                    onclick="openQuickResultModal({{ json_encode((string)($match->id ?? '')) }}, {{ json_encode($match->homePlayer->name ?? 'TBD') }}, {{ json_encode($match->awayPlayer->name ?? 'TBD') }})"
+                                                    onclick="openQuickResultModal({{ $match->id }}, '{{ $match->homePlayer->name ?? 'TBD' }}', '{{ $match->awayPlayer->name ?? 'TBD' }}')"
                                                     class="bg-blue-600 hover:bg-blue-700 text-white px-1.5 py-0.5 rounded text-xs transition-colors">
                                                     ⚡
                                                 </button>
@@ -179,7 +166,7 @@
                                                 </a>
                                             @elseif($match->status === 'completed')
                                                 <button type="button"
-                                                    onclick="openQuickEditModal({{ json_encode((string)($match->id ?? '')) }}, {{ json_encode($match->homePlayer->name ?? 'TBD') }}, {{ json_encode($match->awayPlayer->name ?? 'TBD') }}, {{ json_encode($match->home_score ?? 0) }}, {{ json_encode($match->away_score ?? 0) }}, {{ json_encode($match->sets ?? []) }})"
+                                                    onclick="openQuickEditModal('{{ $match->id }}', '{{ $match->homePlayer->name ?? 'TBD' }}', '{{ $match->awayPlayer->name ?? 'TBD' }}', '{{ $match->home_score ?? 0 }}', '{{ $match->away_score ?? 0 }}', {{ json_encode($match->sets ?? []) }})"
                                                     class="bg-blue-600 hover:bg-blue-700 text-white px-1.5 py-0.5 rounded text-xs transition-colors">
                                                     ⚡
                                                 </button>
@@ -219,73 +206,156 @@
 @endif
 
 @once
-    {{-- Quick Result Modal --}}
-    <div id="quickResultModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
-        <div class="flex items-center justify-center min-h-screen p-4">
-            <div class="bg-gray-800 rounded-lg max-w-md w-full p-6">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-lg font-semibold text-white">⚡ Brzi unos rezultata</h3>
-                    <button onclick="closeQuickResultModal()" class="text-gray-400 hover:text-white">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                        </svg>
-                    </button>
-                </div>
+    {{-- Quick Edit Modal for Knockout --}}
+    <div id="quickEditModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-gray-800 rounded-2xl p-6 max-w-lg w-full border border-gray-700 shadow-xl">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-semibold text-white">⚡ Brzi unos rezultata</h3>
+                <button onclick="closeQuickEditModal()" class="text-gray-400 hover:text-white">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
 
-                <form id="quickResultForm">
-                    @csrf
-                    <input type="hidden" id="quickMatchId" name="match_id">
-
-                    <div class="space-y-4">
-                        <div class="grid grid-cols-2 gap-4">
-                            <div class="text-center">
-                                <div class="text-white font-medium mb-2" id="homePlayerName">Igrač 1</div>
-                                <input type="number" id="homeScore" name="home_score" min="0" max="7"
-                                       class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white text-center"
-                                       placeholder="0">
-                                <div class="text-xs text-gray-400 mt-1">Setovi osvojeni</div>
+            <form id="quickEditForm" method="POST">
+                @csrf
+                <input type="hidden" id="quickEditMatchId" name="match_id">
+                <input type="hidden" id="quickEditScrollPosition" name="scroll_position">
+                <div class="space-y-6">
+                    <!-- Match Info -->
+                    <div class="bg-gray-700/30 rounded-lg p-4">
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="flex items-center space-x-2">
+                                <div class="w-8 h-8 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
+                                    <span class="text-white font-bold text-xs" id="editHomeInitials">--</span>
+                                </div>
+                                <span class="text-white font-medium" id="editHomePlayerName">Player 1</span>
                             </div>
-                            <div class="text-center">
-                                <div class="text-white font-medium mb-2" id="awayPlayerName">Igrač 2</div>
-                                <input type="number" id="awayScore" name="away_score" min="0" max="7"
-                                       class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white text-center"
-                                       placeholder="0">
-                                <div class="text-xs text-gray-400 mt-1">Setovi osvojeni</div>
+                            <input type="number" name="home_score" id="editHomeScoreInput" min="0" max="10" required
+                                   class="w-20 text-center text-2xl font-bold bg-gray-600/50 border border-gray-500 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-2">
+                                <div class="w-8 h-8 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full flex items-center justify-center">
+                                    <span class="text-white font-bold text-xs" id="editAwayInitials">--</span>
+                                </div>
+                                <span class="text-white font-medium" id="editAwayPlayerName">Player 2</span>
                             </div>
+                            <input type="number" name="away_score" id="editAwayScoreInput" min="0" max="10" required
+                                   class="w-20 text-center text-2xl font-bold bg-gray-600/50 border border-gray-500 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
                         </div>
+                    </div>
 
-                        <div class="text-center text-gray-400 text-sm">
-                            Broj setova koje je svaki igrač osvojio
-                        </div>
-
-                        {{-- Set details (optional) --}}
-                        <div id="setsContainer" class="space-y-2">
-                            <div class="text-center text-gray-300 text-sm mb-2">Detalji setova (opciono)</div>
-                            <div id="setsList"></div>
-                            <button type="button" onclick="addSet()" class="w-full bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 rounded text-sm">
-                                + Dodaj set
+                    <!-- Set Scores (Optional) -->
+                    <div class="bg-gray-700/30 rounded-lg p-4">
+                        <div class="flex items-center justify-between mb-3">
+                            <label class="text-sm font-medium text-gray-300">Set Scores (Optional)</label>
+                            <button type="button" onclick="addEditSetScore()" 
+                                    class="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded transition-colors">
+                                ➕ Add set score
                             </button>
                         </div>
+                        <div id="editSetScoresContainer" class="space-y-2">
+                            <!-- Set scores will be added here dynamically -->
+                        </div>
                     </div>
 
-                    <div class="flex gap-3 mt-6">
-                        <button type="button" onclick="closeQuickResultModal()"
-                                class="flex-1 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded transition-colors">
+                    <div class="flex space-x-3">
+                        <button type="button" 
+                                onclick="closeQuickEditModal()"
+                                class="flex-1 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors">
                             Odustani
                         </button>
-                        <button type="button" onclick="saveQuickResult()"
-                                class="flex-1 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded transition-colors">
-                            💾 Sačuvaj
+                        <button type="submit" 
+                                class="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors">
+                            Sačuvaj rezultat
                         </button>
                     </div>
-                </form>
-            </div>
+                </div>
+            </form>
         </div>
     </div>
-    <script>
-    // ...existing code...
-    </script>
 @endonce
+
+<script>
+let editSetScoreCount = 0;
+
+function openQuickEditModal(matchId, homeName, awayName, homeScore, awayScore, sets) {
+    console.log('Opening quick edit modal for match:', matchId, homeName, 'vs', awayName);
+    document.getElementById('quickEditMatchId').value = matchId;
+
+    // Set scroll position
+    const scrollPosition = window.pageYOffset || document.documentElement.scrollTop;
+    document.getElementById('quickEditScrollPosition').value = scrollPosition;
+
+    document.getElementById('editHomePlayerName').textContent = homeName;
+    document.getElementById('editAwayPlayerName').textContent = awayName;
+    document.getElementById('editHomeInitials').textContent = (homeName || 'TBD').substring(0, 2).toUpperCase();
+    document.getElementById('editAwayInitials').textContent = (awayName || 'TBD').substring(0, 2).toUpperCase();
+    
+    document.getElementById('editHomeScoreInput').value = homeScore || '';
+    document.getElementById('editAwayScoreInput').value = awayScore || '';
+    
+    // Clear existing sets
+    document.getElementById('editSetScoresContainer').innerHTML = '';
+    editSetScoreCount = 0;
+    
+    // Load existing sets if any
+    if (sets && Array.isArray(sets)) {
+        sets.forEach(function(set, index) {
+            editSetScoreCount++;
+            const container = document.getElementById('editSetScoresContainer');
+            const setDiv = document.createElement('div');
+            setDiv.className = 'flex items-center gap-2';
+            setDiv.innerHTML = `
+                <span class="text-gray-400 text-sm w-16">Set ${editSetScoreCount}:</span>
+                <input type="number" name="sets[${editSetScoreCount-1}][home]" min="0" value="${set.home || set.home_score || 0}"
+                       class="w-20 text-center bg-gray-600/50 border border-gray-500 rounded px-2 py-1 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <span class="text-gray-400">-</span>
+                <input type="number" name="sets[${editSetScoreCount-1}][away]" min="0" value="${set.away || set.away_score || 0}"
+                       class="w-20 text-center bg-gray-600/50 border border-gray-500 rounded px-2 py-1 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <button type="button" onclick="this.parentElement.remove()" class="text-red-400 hover:text-red-300 ml-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            `;
+            container.appendChild(setDiv);
+        });
+    }
+    
+    const form = document.getElementById('quickEditForm');
+    form.action = `/competitions/matches/${matchId}/quick-result`;
+    
+    document.getElementById('quickEditModal').classList.remove('hidden');
+}
+
+function closeQuickEditModal() {
+    document.getElementById('quickEditModal').classList.add('hidden');
+}
+
+function addEditSetScore() {
+    editSetScoreCount++;
+    const container = document.getElementById('editSetScoresContainer');
+    const setDiv = document.createElement('div');
+    setDiv.className = 'flex items-center gap-2';
+    setDiv.innerHTML = `
+        <span class="text-gray-400 text-sm w-16">Set ${editSetScoreCount}:</span>
+        <input type="number" name="sets[${editSetScoreCount-1}][home]" min="0" placeholder="0"
+               class="w-20 text-center bg-gray-600/50 border border-gray-500 rounded px-2 py-1 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <span class="text-gray-400">-</span>
+        <input type="number" name="sets[${editSetScoreCount-1}][away]" min="0" placeholder="0"
+               class="w-20 text-center bg-gray-600/50 border border-gray-500 rounded px-2 py-1 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <button type="button" onclick="this.parentElement.remove()" class="text-red-400 hover:text-red-300 ml-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+        </button>
+    `;
+    container.appendChild(setDiv);
+}
+</script>
 
 <script>
 function confirmResetKnockout() {
@@ -352,10 +422,14 @@ function submitAutoGenerateForm(event) {
 }
 
 function confirmAdvanceRound(currentRound) {
+    console.log('confirmAdvanceRound called with round:', currentRound);
     if (confirm(`Da li želiš generirati sledeću rundu? Svi mečevi runde ${currentRound} su završeni.`)) {
+        console.log('User confirmed, creating form');
         const form = document.createElement('form');
         form.method = 'POST';
         form.action = '{{ route("organizations.competitions.advance-knockout-round", [$organization, $competition]) }}';
+        
+        console.log('Form action:', form.action);
         
         // Add CSRF token
         const csrfToken = document.createElement('input');
@@ -372,201 +446,10 @@ function confirmAdvanceRound(currentRound) {
         form.appendChild(roundInput);
         
         document.body.appendChild(form);
+        console.log('Submitting form...');
         form.submit();
+    } else {
+        console.log('User cancelled');
     }
 }
-
-let currentSets = [];
-
-function openQuickResultModal(matchId, homePlayer, awayPlayer) {
-    // Fallback for null/undefined matchId
-    if (matchId === null || matchId === undefined) matchId = '';
-    matchId = String(matchId);
-    console.log('Opening modal with:', { matchId, homePlayer, awayPlayer });
-    document.getElementById('quickMatchId').value = matchId;
-    document.getElementById('homePlayerName').textContent = homePlayer;
-    document.getElementById('awayPlayerName').textContent = awayPlayer;
-    document.getElementById('homeScore').value = '';
-    document.getElementById('awayScore').value = '';
-    currentSets = [];
-    document.getElementById('setsList').innerHTML = '';
-    document.getElementById('setsContainer').classList.remove('hidden'); // Show sets container immediately
-    document.getElementById('quickResultModal').classList.remove('hidden');
-}
-
-function openQuickEditModal(matchId, homePlayer, awayPlayer, homeScore, awayScore, sets) {
-    // Fallback for null/undefined matchId
-    if (matchId === null || matchId === undefined) matchId = '';
-    matchId = String(matchId);
-    console.log('Opening edit modal with:', { matchId, homePlayer, awayPlayer, homeScore, awayScore, sets });
-    
-    // Set basic match info
-    document.getElementById('quickMatchId').value = matchId;
-    document.getElementById('homePlayerName').textContent = homePlayer;
-    document.getElementById('awayPlayerName').textContent = awayPlayer;
-    document.getElementById('homeScore').value = homeScore || '';
-    document.getElementById('awayScore').value = awayScore || '';
-    
-    // Clear existing sets
-    currentSets = [];
-    document.getElementById('setsList').innerHTML = '';
-    
-    // Load existing sets
-    if (sets && Array.isArray(sets) && sets.length > 0) {
-        sets.forEach((set, index) => {
-            const setNumber = index + 1;
-            const setDiv = document.createElement('div');
-            setDiv.className = 'flex gap-2 items-center';
-            setDiv.innerHTML = `
-                <span class="text-gray-400 text-sm w-12">Set ${setNumber}:</span>
-                <input type="number" name="sets[${setNumber}][home]" min="0" max="21" value="${set.home || set.home_score || 0}"
-                       class="flex-1 bg-gray-700 border border-gray-600 rounded px-2 py-1 text-white text-center text-sm">
-                <span class="text-gray-400">-</span>
-                <input type="number" name="sets[${setNumber}][away]" min="0" max="21" value="${set.away || set.away_score || 0}"
-                       class="flex-1 bg-gray-700 border border-gray-600 rounded px-2 py-1 text-white text-center text-sm">
-                <button type="button" onclick="removeSet(${index})" class="text-red-400 hover:text-red-300 text-sm px-2">×</button>
-            `;
-            document.getElementById('setsList').appendChild(setDiv);
-            currentSets.push(setNumber);
-        });
-    }
-    
-    document.getElementById('setsContainer').classList.remove('hidden');
-    document.getElementById('quickResultModal').classList.remove('hidden');
-}
-
-function closeQuickResultModal() {
-    document.getElementById('quickResultModal').classList.add('hidden');
-}
-
-function addSet() {
-    const setNumber = currentSets.length + 1;
-    const setDiv = document.createElement('div');
-    setDiv.className = 'flex gap-2 items-center';
-    setDiv.innerHTML = `
-        <span class="text-gray-400 text-sm w-12">Set ${setNumber}:</span>
-        <input type="number" name="sets[${setNumber}][home]" min="0" max="21" 
-               class="flex-1 bg-gray-700 border border-gray-600 rounded px-2 py-1 text-white text-center text-sm" placeholder="0">
-        <span class="text-gray-400">-</span>
-        <input type="number" name="sets[${setNumber}][away]" min="0" max="21" 
-               class="flex-1 bg-gray-700 border border-gray-600 rounded px-2 py-1 text-white text-center text-sm" placeholder="0">
-        <button type="button" onclick="removeSet(${setNumber - 1})" class="text-red-400 hover:text-red-300 text-sm px-2">×</button>
-    `;
-    document.getElementById('setsList').appendChild(setDiv);
-    currentSets.push(setNumber);
-    document.getElementById('setsContainer').classList.remove('hidden');
-}
-
-function removeSet(index) {
-    currentSets.splice(index, 1);
-    const setsList = document.getElementById('setsList');
-    setsList.innerHTML = '';
-    currentSets.forEach((setNum, i) => {
-        const setDiv = document.createElement('div');
-        setDiv.className = 'flex gap-2 items-center';
-        setDiv.innerHTML = `
-            <span class="text-gray-400 text-sm w-12">Set ${i + 1}:</span>
-            <input type="number" name="sets[${i + 1}][home]" min="0" max="21" 
-                   class="flex-1 bg-gray-700 border border-gray-600 rounded px-2 py-1 text-white text-center text-sm" placeholder="0">
-            <span class="text-gray-400">-</span>
-            <input type="number" name="sets[${i + 1}][away]" min="0" max="21" 
-                   class="flex-1 bg-gray-700 border border-gray-600 rounded px-2 py-1 text-white text-center text-sm" placeholder="0">
-            <button type="button" onclick="removeSet(${i})" class="text-red-400 hover:text-red-300 text-sm px-2">×</button>
-        `;
-        setsList.appendChild(setDiv);
-    });
-}
-
-function saveQuickResult() {
-    const matchId = document.getElementById('quickMatchId').value;
-    const homeScore = document.getElementById('homeScore').value;
-    const awayScore = document.getElementById('awayScore').value;
-
-    console.log('Saving result:', { matchId, homeScore, awayScore });
-
-    if (!matchId || matchId.trim() === '') {
-        alert('Greška: ID meča nije pronađen');
-        return;
-    }
-
-    if (!homeScore || !awayScore) {
-        alert('Molimo unesite rezultate za oba igrača');
-        return;
-    }
-
-    // Collect set data
-    const sets = [];
-    currentSets.forEach((setNum, index) => {
-        const homeSetScore = document.querySelector(`input[name="sets[${setNum}][home]"]`)?.value;
-        const awaySetScore = document.querySelector(`input[name="sets[${setNum}][away]"]`)?.value;
-        if (homeSetScore && awaySetScore) {
-            sets.push({
-                home: parseInt(homeSetScore),
-                away: parseInt(awaySetScore)
-            });
-        }
-    });
-
-    // Create form and submit
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = '/competitions/matches/' + matchId + '/quick-result';
-    form.style.display = 'none';
-
-    console.log('Form action:', form.action);
-
-    // Add CSRF token
-    const csrfToken = document.createElement('input');
-    csrfToken.type = 'hidden';
-    csrfToken.name = '_token';
-    csrfToken.value = '{{ csrf_token() }}';
-    form.appendChild(csrfToken);
-
-    // Add match data
-    const matchIdField = document.createElement('input');
-    matchIdField.type = 'hidden';
-    matchIdField.name = 'match_id';
-    matchIdField.value = matchId;
-    form.appendChild(matchIdField);
-
-    const homeScoreField = document.createElement('input');
-    homeScoreField.type = 'hidden';
-    homeScoreField.name = 'home_score';
-    homeScoreField.value = homeScore;
-    form.appendChild(homeScoreField);
-
-    const awayScoreField = document.createElement('input');
-    awayScoreField.type = 'hidden';
-    awayScoreField.name = 'away_score';
-    awayScoreField.value = awayScore;
-    form.appendChild(awayScoreField);
-
-    // Add sets data as individual fields (not JSON string)
-    sets.forEach((set, index) => {
-        const homeSetField = document.createElement('input');
-        homeSetField.type = 'hidden';
-        homeSetField.name = `sets[${index}][home]`;
-        homeSetField.value = set.home;
-        form.appendChild(homeSetField);
-
-        const awaySetField = document.createElement('input');
-        awaySetField.type = 'hidden';
-        awaySetField.name = `sets[${index}][away]`;
-        awaySetField.value = set.away;
-        form.appendChild(awaySetField);
-    });
-
-    // Add scroll position to restore after page reload
-    const scrollPositionField = document.createElement('input');
-    scrollPositionField.type = 'hidden';
-    scrollPositionField.name = 'scroll_position';
-    scrollPositionField.value = window.pageYOffset || document.documentElement.scrollTop;
-    form.appendChild(scrollPositionField);
-
-    document.body.appendChild(form);
-    form.submit();
-}
-
 </script>
-
-

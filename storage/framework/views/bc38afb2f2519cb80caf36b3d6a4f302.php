@@ -54,6 +54,10 @@
                 window.scrollTo(0, <?php echo e(session('scroll_position')); ?>);
             });
         </script>
+        <?php
+            // Clear scroll position after using it so it doesn't persist
+            session()->forget('scroll_position');
+        ?>
     <?php endif; ?>
 
  <?php echo $__env->renderComponent(); ?>

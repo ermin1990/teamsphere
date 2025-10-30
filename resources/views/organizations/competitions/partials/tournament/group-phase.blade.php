@@ -124,15 +124,27 @@
                     @if($matchesInGroup->count() > 0)
                     <div class="px-4 py-3 border-t border-gray-700/50">
                         <h5 class="text-gray-300 font-semibold text-xs mb-2">Mečevi</h5>
-                        <div class="space-y-2">
-                            @foreach($matchesInGroup as $match)
-                                @include('organizations.competitions.partials.tournament.match-card', [
-                                    'match' => $match,
-                                    'competition' => $competition,
-                                    'organization' => $organization,
-                                    'isOwner' => $isOwner,
-                                    'isRefereeForMatch' => $isRefereeForMatch
-                                ])
+                        @php
+                            $matchesByRound = $matchesInGroup->groupBy('round_number');
+                        @endphp
+                        <div class="space-y-3">
+                            @foreach($matchesByRound as $roundNumber => $roundMatches)
+                                <div class="space-y-1">
+                                    <div class="text-gray-400 text-xs font-medium px-2 py-1 bg-gray-700/30 rounded">
+                                        Kolo {{ $roundNumber }}.
+                                    </div>
+                                    <div class="space-y-1">
+                                        @foreach($roundMatches as $match)
+                                            @include('organizations.competitions.partials.tournament.match-card', [
+                                                'match' => $match,
+                                                'competition' => $competition,
+                                                'organization' => $organization,
+                                                'isOwner' => $isOwner,
+                                                'isRefereeForMatch' => $isRefereeForMatch
+                                            ])
+                                        @endforeach
+                                    </div>
+                                </div>
                             @endforeach
                         </div>
                     </div>

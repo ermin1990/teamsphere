@@ -126,15 +126,27 @@
                     <?php if($matchesInGroup->count() > 0): ?>
                     <div class="px-4 py-3 border-t border-gray-700/50">
                         <h5 class="text-gray-300 font-semibold text-xs mb-2">Mečevi</h5>
-                        <div class="space-y-2">
-                            <?php $__currentLoopData = $matchesInGroup; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $match): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                <?php echo $__env->make('organizations.competitions.partials.tournament.match-card', [
-                                    'match' => $match,
-                                    'competition' => $competition,
-                                    'organization' => $organization,
-                                    'isOwner' => $isOwner,
-                                    'isRefereeForMatch' => $isRefereeForMatch
-                                ], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+                        <?php
+                            $matchesByRound = $matchesInGroup->groupBy('round_number');
+                        ?>
+                        <div class="space-y-3">
+                            <?php $__currentLoopData = $matchesByRound; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $roundNumber => $roundMatches): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <div class="space-y-1">
+                                    <div class="text-gray-400 text-xs font-medium px-2 py-1 bg-gray-700/30 rounded">
+                                        Kolo <?php echo e($roundNumber); ?>.
+                                    </div>
+                                    <div class="space-y-1">
+                                        <?php $__currentLoopData = $roundMatches; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $match): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                            <?php echo $__env->make('organizations.competitions.partials.tournament.match-card', [
+                                                'match' => $match,
+                                                'competition' => $competition,
+                                                'organization' => $organization,
+                                                'isOwner' => $isOwner,
+                                                'isRefereeForMatch' => $isRefereeForMatch
+                                            ], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+                                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                    </div>
+                                </div>
                             <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                         </div>
                     </div>

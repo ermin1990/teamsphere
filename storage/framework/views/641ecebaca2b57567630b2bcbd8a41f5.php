@@ -25,7 +25,7 @@
                             </div>
                             <span class="text-white font-medium" id="homePlayerName">Player 1</span>
                         </div>
-                        <input type="number" name="home_score" id="homeScoreInput" min="0" max="5" required
+                        <input type="number" name="home_score" id="homeScoreInput" min="0" max="10" required
                                class="w-20 text-center text-2xl font-bold bg-gray-600/50 border border-gray-500 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div class="flex items-center justify-between">
@@ -35,20 +35,23 @@
                             </div>
                             <span class="text-white font-medium" id="awayPlayerName">Player 2</span>
                         </div>
-                        <input type="number" name="away_score" id="awayScoreInput" min="0" max="5" required
+                        <input type="number" name="away_score" id="awayScoreInput" min="0" max="10" required
                                class="w-20 text-center text-2xl font-bold bg-gray-600/50 border border-gray-500 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                 </div>
 
                 <!-- Set Scores (Optional) -->
-                <div>
-                    <label class="block text-sm font-medium text-gray-400 mb-3">Rezultati setova (Opcionalno)</label>
-                    <div id="setScoresContainer" class="space-y-2">
-                        <!-- Set score inputs will be dynamically added here -->
+                <div class="bg-gray-700/30 rounded-lg p-4">
+                    <div class="flex items-center justify-between mb-3">
+                        <label class="text-sm font-medium text-gray-300">Set Scores (Optional)</label>
+                        <button type="button" onclick="addSetScore()" 
+                                class="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded transition-colors">
+                            ➕ Add set score
+                        </button>
                     </div>
-                    <button type="button" onclick="addSetScore()" class="mt-2 text-blue-400 hover:text-blue-300 text-sm">
-                        + Dodaj rezultat seta
-                    </button>
+                    <div id="setScoresContainer" class="space-y-2">
+                        <!-- Set scores will be added here dynamically -->
+                    </div>
                 </div>
 
                 <div class="flex space-x-3">

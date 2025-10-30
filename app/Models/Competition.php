@@ -35,6 +35,7 @@ class Competition extends Model
         'group_count',
         'players_per_group',
         'players_advancing_per_group',
+        'group_rounds',
         'advancement_method',
         'current_phase',
         'knockout_bracket',
@@ -68,6 +69,7 @@ class Competition extends Model
         'group_count' => 'integer',
         'players_per_group' => 'integer',
         'players_advancing_per_group' => 'integer',
+        'group_rounds' => 'integer',
         'knockout_bracket' => 'array',
         'groups_completed_at' => 'datetime',
         'knockout_completed_at' => 'datetime',
@@ -250,19 +252,51 @@ class Competition extends Model
         $groups = [];
         $playersPerGroup = $this->players_per_group;
 
-        for ($i = 0; $i < $this->group_count; $i++) {
-            $groupPlayers = array_slice($playerIds, $i * $playersPerGroup, $playersPerGroup);
+        // If players_per_group is null or 0, distribute players evenly across groups without limit
+        if (!$playersPerGroup) {
+            $groupCount = $this->group_count;
+            for ($i = 0; $i < $groupCount; $i++) {
+                $groups[] = [
+                    'name' => chr(65 + $i),
+                    'group_number' => $i + 1,
+                    'player_ids' => [],
+                    'standings' => [],
+                ];
+            }
 
+            // Assign players to groups in alternating order to balance groups
+            $playerIndex = 0;
+            foreach ($players as $player) {
+                $groupIndex = $playerIndex % $groupCount;
+                $groups[$groupIndex]['player_ids'][] = $player->id;
+                $playerIndex++;
+            }
+        } else {
+            // Use fixed players per group
+            for ($i = 0; $i < $this->group_count; $i++) {
+                $groupPlayers = array_slice($playerIds, $i * $playersPerGroup, $playersPerGroup);
+
+                $groups[] = [
+                    'name' => chr(65 + $i),
+                    'group_number' => $i + 1,
+                    'player_ids' => $groupPlayers,
+                    'standings' => $this->initializeGroupStandings($groupPlayers),
+                ];
+            }
+        }
+
+        // Create groups and standings
+        foreach ($groups as $groupData) {
             $group = TournamentGroup::create([
                 'competition_id' => $this->id,
-                'name' => chr(65 + $i), // A, B, C, etc.
-                'group_number' => $i + 1,
-                'player_ids' => $groupPlayers,
-                'standings' => $this->initializeGroupStandings($groupPlayers),
+                'name' => $groupData['name'],
+                'group_number' => $groupData['group_number'],
+                'player_ids' => $groupData['player_ids'],
+                'standings' => $this->initializeGroupStandings($groupData['player_ids']),
             ]);
 
             // Create Standing records for each player in the group
-            foreach ($groupPlayers as $playerId) {
+            foreach ($groupData['player_ids'] as $playerId) {
                 Standing::create([
                     'competition_id' => $this->id,
                     'tournament_group_id' => $group->id,
@@ -281,8 +315,6 @@ class Competition extends Model
                     'goal_difference' => 0,
                 ]);
             }
-
-            $groups[] = $group;
         }
 
         return $groups;

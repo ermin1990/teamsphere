@@ -196,7 +196,8 @@ class TournamentGroup extends Model
     public function checkGroupCompletion()
     {
         $totalPlayers = count($this->player_ids ?? []);
-        $requiredMatches = ($totalPlayers * ($totalPlayers - 1)) / 2; // Round-robin formula
+        $rounds = $this->competition ? ($this->competition->group_rounds ?? 1) : 1;
+        $requiredMatches = ($totalPlayers * ($totalPlayers - 1)) / 2 * $rounds;
 
         $completedMatches = $this->matches()->where('status', 'completed')->count();
 

@@ -46,10 +46,10 @@
                     </svg>
                     <div>
                         <p class="text-blue-400 font-medium mb-1">Kako postaviti grupe:</p>
-                        <ul class="text-blue-300 text-sm space-y-1">
+                                                <ul class="text-blue-300 text-sm space-y-1">
                             <li>• Povucite igrače sa liste s lijeva na grupe s desna</li>
                             <li>• Ili pretražite i kliknite dugme "Dodaj u Grupu"</li>
-                            <li>• Svaka grupa bi trebala imati 2-{{ $competition->players_per_group }} igrača</li>
+                            <li>• Svaka grupa bi trebala imati najmanje 2 igrača</li>
                             <li>• Kliknite "Shuffle" da nasumično rasporedite nedodijeljene igrače</li>
                         </ul>
                     </div>
@@ -210,7 +210,7 @@
     </div>
 
     <script>
-        const playersPerGroup = {{ $competition->players_per_group }};
+        const playersPerGroup = 100; // No limit on players per group
         let groupCount = {{ count($groups) }};
         let draggedElement = null;
         let nextGroupNumber = {{ count($groups) + 1 }};
@@ -286,13 +286,6 @@
             this.style.borderColor = '';
 
             const groupDropzone = this.closest('.group-dropzone');
-            const currentCount = groupDropzone.querySelectorAll('.player-item').length;
-
-            // Check if group is full
-            if (currentCount >= playersPerGroup) {
-                showNotification('Grupa je puna!', 'error');
-                return false;
-            }
 
             // Check if player is already in this group
             const playerId = draggedElement.dataset.playerId;
@@ -369,32 +362,32 @@
                     [availablePlayers[i], availablePlayers[j]] = [availablePlayers[j], availablePlayers[i]];
                 }
 
-                // Distribute to groups
+                // Distribute to groups evenly - round-robin style
                 const groups = document.querySelectorAll('.group-dropzone');
-                let playerIndex = 0;
+                if (groups.length === 0) {
+                    showNotification('Nema grupa za raspodjelu igrača!', 'error');
+                    return;
+                }
 
-                groups.forEach(group => {
-                    const currentCount = group.querySelectorAll('.player-item').length;
-                    const neededPlayers = playersPerGroup - currentCount;
-
-                    for (let i = 0; i < neededPlayers && playerIndex < availablePlayers.length; i++) {
-                        const player = availablePlayers[playerIndex];
-                        const clonedElement = player.cloneNode(true);
-                        clonedElement.addEventListener('dragstart', handleDragStart);
-                        clonedElement.addEventListener('dragend', handleDragEnd);
-                        addRemovePlayerButton(clonedElement);
-                        
-                        group.appendChild(clonedElement);
-                        player.remove();
-                        playerIndex++;
-                    }
-
-                    updateGroupCount(group.closest('.group-container'));
+                let groupIndex = 0;
+                availablePlayers.forEach(player => {
+                    const group = groups[groupIndex];
+                    const clonedElement = player.cloneNode(true);
+                    clonedElement.addEventListener('dragstart', handleDragStart);
+                    clonedElement.addEventListener('dragend', handleDragEnd);
+                    addRemovePlayerButton(clonedElement);
+                    
+                    group.appendChild(clonedElement);
+                    player.remove();
+                    
+                    // Move to next group (round-robin)
+                    groupIndex = (groupIndex + 1) % groups.length;
                 });
 
+                updateAllGroupCounts();
                 updateUnassignedCount();
                 updateSaveButton();
-                showNotification('Igrači su shuffle-ovani!', 'success');
+                showNotification('Igrači su shuffle-ovani ravnomjerno po grupama!', 'success');
             });
 
             // Clear group buttons
@@ -615,12 +608,9 @@
 
             // Update styling based on count
             const countBadge = groupContainer.querySelector('.group-count');
-            if (count >= 2 && count <= playersPerGroup) {
+            if (count >= 2) {
                 countBadge.classList.remove('bg-gray-700', 'bg-red-600');
                 countBadge.classList.add('bg-green-600');
-            } else if (count > playersPerGroup) {
-                countBadge.classList.remove('bg-gray-700', 'bg-green-600');
-                countBadge.classList.add('bg-red-600');
             } else {
                 countBadge.classList.remove('bg-green-600', 'bg-red-600');
                 countBadge.classList.add('bg-gray-700');
