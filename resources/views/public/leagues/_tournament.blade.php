@@ -443,11 +443,14 @@
                                 $spacingMultiplier = pow(2, $round - 1);
                                 
                                 // Calculate round name based on number of matches in this round
-                                if ($round === $totalRounds) {
+                                if ($matchesInRound == 1 && $round === $totalRounds) {
+                                    // Last round with 1 match = Finale
                                     $roundName = 'Finale';
                                 } elseif ($matchesInRound == 1) {
+                                    // 1 match but not last round = Polufinale
                                     $roundName = 'Polufinale';
                                 } else {
+                                    // Multiple matches = 1/N Finala
                                     $roundName = '1/' . ($matchesInRound * 2) . ' Finala';
                                 }
                             @endphp
