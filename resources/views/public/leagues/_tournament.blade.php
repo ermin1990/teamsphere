@@ -643,11 +643,6 @@
                                     </div>
                                     @endforeach
                                 </div>
-                                @else
-                                <!-- No matches in this round yet -->
-                                <div class="text-center text-gray-400 text-sm py-8">
-                                    Finale - uskoro
-                                </div>
                                 @endif
                             </div>
 
