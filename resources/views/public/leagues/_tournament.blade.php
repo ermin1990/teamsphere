@@ -478,6 +478,7 @@
                                 $matchesInRound = $roundMatches->count();
                                 $spacingMultiplier = pow(2, $round - 1);
                             @endphp
+                            @if($matchesInRound > 0)
                             <div class="flex flex-col justify-center gap-2" style="gap: {{ $spacingMultiplier * 1 }}rem;">
                                 <!-- Round Header -->
                                 <div class="text-center mb-4">
@@ -671,10 +672,22 @@
                             </div>
 
                             <!-- Bracket Lines (except for the last round) -->
-                            @if($round < $totalRounds)
+                            @php
+                                // Check if there's a next round with matches
+                                $hasNextRound = false;
+                                for($nextRound = $round + 1; $nextRound <= $totalRounds; $nextRound++) {
+                                    $nextRoundMatches = $knockoutMatches->get($nextRound) ?? collect();
+                                    if($nextRoundMatches->count() > 0) {
+                                        $hasNextRound = true;
+                                        break;
+                                    }
+                                }
+                            @endphp
+                            @if($hasNextRound)
                             <div class="flex items-center justify-center" style="margin-top: {{ $spacingMultiplier * 0.5 }}rem; margin-bottom: {{ $spacingMultiplier * 0.5 }}rem;">
                                 <div class="w-8 h-px bg-gray-600/50"></div>
                             </div>
+                            @endif
                             @endif
                             @endfor
                         </div>
