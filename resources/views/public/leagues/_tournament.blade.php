@@ -472,7 +472,7 @@
                                 $matchesInRound = $roundMatches->count();
                                 $spacingMultiplier = pow(2, $round - 1);
                             @endphp
-                            @if($matchesInRound > 0)
+                            @if($matchesInRound > 0 || ($round === $totalRounds && $totalRounds > 1))
                             <div class="flex flex-col justify-center gap-2" style="gap: {{ $spacingMultiplier * 1 }}rem;">
                                 <!-- Round Header -->
                                 <div class="text-center mb-4">
@@ -481,6 +481,7 @@
                                     </h4>
                                 </div>
 
+                                @if($matchesInRound > 0)
                                 <!-- Round Matches -->
                                 <div class="flex flex-col gap-2">
                                     @foreach($roundMatches as $index => $match)
@@ -663,6 +664,12 @@
                                     </div>
                                     @endforeach
                                 </div>
+                                @else
+                                <!-- No matches in this round yet -->
+                                <div class="text-center text-gray-400 text-sm py-8">
+                                    Finale - uskoro
+                                </div>
+                                @endif
                             </div>
 
                             @endif
