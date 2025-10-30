@@ -450,8 +450,10 @@
                                     // 1 match but not last round = Polufinale
                                     $roundName = 'Polufinale';
                                 } else {
-                                    // Multiple matches = 1/N Finala
-                                    $roundName = '1/' . ($matchesInRound * 2) . ' Finala';
+                                    // Multiple matches = 1/N Finala where N is half the number of players in this round
+                                    // Number of players = matchesInRound * 2
+                                    // So 1/(matchesInRound * 2 / 2) = 1/matchesInRound
+                                    $roundName = '1/' . $matchesInRound . ' Finala';
                                 }
                             @endphp
                             @if($matchesInRound > 0 || ($round === $totalRounds && $totalRounds > 1))
