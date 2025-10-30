@@ -877,6 +877,11 @@ class CompetitionController extends Controller
             $groupService->recalculateGroupStandings($match->tournamentGroup);
         }
 
+        // Propagate winner changes in knockout bracket
+        if ($competition->type === 'tournament' && $match->phase === 'knockout' && $match->status === 'completed') {
+            $competition->propagateWinnerChanges($match);
+        }
+
         return back()->with('success', 'Match result saved successfully!');
     }
 
@@ -991,6 +996,11 @@ class CompetitionController extends Controller
             $groupService = app(\App\Services\TournamentGroupService::class);
             $groupService->recalculateGroupStandings($match->tournamentGroup);
             \Log::info('Finished recalculating standings');
+        }
+
+        // Propagate winner changes in knockout bracket
+        if ($competition->type === 'tournament' && $match->phase === 'knockout' && $match->status === 'completed') {
+            $competition->propagateWinnerChanges($match);
         }
 
         return redirect()
@@ -1277,6 +1287,11 @@ class CompetitionController extends Controller
             $competition->generateKnockoutBracket();
             return back()->with('success', 'Knockout bracket generated successfully using JOOLA rules!');
         } catch (\Exception $e) {
+            \Log::error('Error generating knockout bracket', [
+                'competition_id' => $competition->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
             return back()->with('error', 'Error generating knockout bracket: ' . $e->getMessage());
         }
     }
@@ -1394,6 +1409,32 @@ class CompetitionController extends Controller
             return back()->with('success', 'Knockout round advanced successfully!');
         } catch (\Exception $e) {
             return back()->with('error', 'Error advancing knockout round: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Regenerate a specific knockout round.
+     */
+    public function regenerateKnockoutRound(Request $request, Organization $organization, Competition $competition)
+    {
+        // Use policy for authorization
+
+        $this->authorize('update', $organization);
+
+        if ($competition->organization_id !== $organization->id) {
+            abort(404);
+        }
+
+        $request->validate([
+            'round_number' => ['required', 'integer', 'min:2'],
+        ]);
+
+        try {
+            $competition->regenerateKnockoutRound($request->round_number);
+
+            return back()->with('success', 'Runda ' . $request->round_number . ' je regenerisana uspješno!');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Greška pri regenerisanju runde: ' . $e->getMessage());
         }
     }
 

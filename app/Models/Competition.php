@@ -373,13 +373,30 @@ class Competition extends Model
             throw new \Exception('This is not a tournament.');
         }
 
+        \Log::info('Starting generateKnockoutBracket', [
+            'competition_id' => $this->id,
+            'current_phase' => $this->current_phase,
+            'groups_completed' => $this->isGroupsCompleted()
+        ]);
+
         // Get tournament groups with standings
         $groups = $this->tournamentGroups()
             ->orderBy('group_number')
             ->get();
 
+        \Log::info('Tournament groups loaded', [
+            'groups_count' => $groups->count(),
+            'groups' => $groups->map(fn($g) => ['id' => $g->id, 'name' => $g->name, 'is_completed' => $g->is_completed])->toArray()
+        ]);
+
         if ($groups->isEmpty()) {
             throw new \Exception('No tournament groups found.');
+        }
+
+        // Check if all groups are completed
+        $incompleteGroups = $groups->where('is_completed', false);
+        if ($incompleteGroups->count() > 0) {
+            throw new \Exception('Not all groups are completed. Cannot generate knockout bracket.');
         }
 
         // Use JOOLA-specific logic instead of generic qualified players
@@ -389,6 +406,10 @@ class Competition extends Model
             'current_phase' => 'knockout',
             'knockout_bracket' => true,
             'knockout_started_at' => now(),
+        ]);
+
+        \Log::info('Knockout bracket generation completed', [
+            'competition_id' => $this->id
         ]);
     }
 
@@ -409,6 +430,13 @@ class Competition extends Model
         $playersPerGroup = $this->players_advancing_per_group ?? 2;
         $totalPlayers = $totalGroups * $playersPerGroup;
         
+        \Log::info('Creating JOOLA knockout matches', [
+            'competition_id' => $this->id,
+            'total_groups' => $totalGroups,
+            'players_per_group' => $playersPerGroup,
+            'total_players' => $totalPlayers
+        ]);
+        
         // Sort groups by name for consistent ordering
         $sortedGroups = $groups->sortBy('name')->values();
         
@@ -416,9 +444,18 @@ class Competition extends Model
         $advancingPlayers = [];
 
         foreach ($sortedGroups as $group) {
+            \Log::info('Processing group', [
+                'group_id' => $group->id,
+                'group_name' => $group->name,
+                'standings_count' => $group->standings()->count()
+            ]);
+            
             // Use Standing models instead of standings array
             $standings = $group->standings()
-                ->orderBy('position')
+                ->orderByRaw('position IS NULL, position ASC')
+                ->orderByDesc('points')
+                ->orderByDesc(\DB::raw('sets_won - sets_lost'))
+                ->orderByDesc('sets_won')
                 ->get()
                 ->map(function ($standing) {
                     return [
@@ -429,15 +466,43 @@ class Competition extends Model
                     ];
                 });
 
+            \Log::info('Group standings loaded', [
+                'group_name' => $group->name,
+                'standings_count' => $standings->count(),
+                'players_per_group' => $playersPerGroup,
+                'standings_data' => $standings->toArray()
+            ]);
+
+            if ($standings->count() < $playersPerGroup) {
+                throw new \Exception("Group {$group->name} has only {$standings->count()} players but needs {$playersPerGroup} to advance.");
+            }
+
             for ($i = 0; $i < min($playersPerGroup, count($standings)); $i++) {
+                $playerId = $standings[$i]['player_id'];
+                
+                // Validate that player exists
+                if (!$playerId || !\App\Models\Player::find($playerId)) {
+                    \Log::error('Invalid player ID found in standings', [
+                        'competition_id' => $this->id,
+                        'group_name' => $group->name,
+                        'player_id' => $playerId,
+                        'standing_index' => $i
+                    ]);
+                    throw new \Exception("Invalid player ID {$playerId} found in group {$group->name} standings.");
+                }
+                
                 $advancingPlayers[$group->name][] = [
-                    'player_id' => $standings[$i]['player_id'],
+                    'player_id' => $playerId,
                     'group' => $group->name,
                     'position' => $i + 1,
                     'points' => $standings[$i]['points']
                 ];
             }
         }
+
+        \Log::info('Advancing players extracted', [
+            'advancing_players' => $advancingPlayers
+        ]);
 
         // Separate winners (position 1) and other advancing players
         $winners = [];
@@ -516,7 +581,7 @@ class Competition extends Model
             $bracketPositions[$totalGroups + 1 + $i] = $allAvailableOthers[$i]['player_id'];
         }
 
-        // Create matches: pair position 1 vs last, 2 vs second-to-last, etc.
+        // Create matches: pair position 1 vs last, 2 vs second-to-last, 3 vs third-to-last, etc.
         $matches = [];
         for ($i = 1; $i <= floor($totalPlayers / 2); $i++) {
             $homePos = $i;
@@ -747,6 +812,166 @@ class Competition extends Model
                 'home_player_group' => $pair['home_group'],
                 'away_player_group' => $pair['away_group'],
             ]);
+        }
+    }
+
+    /**
+     * Regenerate a specific knockout round.
+     */
+    public function regenerateKnockoutRound(int $roundNumber)
+    {
+        if (!$this->isTournament()) {
+            throw new \Exception('This is not a tournament.');
+        }
+
+        // Get winners from the previous round
+        $previousRound = $roundNumber - 1;
+        if ($previousRound < 1) {
+            throw new \Exception('Cannot regenerate the first round.');
+        }
+
+        $winners = $this->getRoundWinners($previousRound);
+
+        if (empty($winners)) {
+            throw new \Exception('No winners found from previous round.');
+        }
+
+        // Delete existing matches in this round
+        CompetitionMatch::where('competition_id', $this->id)
+            ->where('phase', 'knockout')
+            ->where('round_number', $roundNumber)
+            ->delete();
+
+        // Create new matches for this round
+        $pairedWinners = [];
+        $winnersCount = count($winners);
+
+        for ($i = 0; $i < $winnersCount; $i += 2) {
+            if ($i + 1 < $winnersCount) {
+                $pairedWinners[] = [
+                    'home' => $winners[$i],
+                    'away' => $winners[$i + 1],
+                ];
+            }
+        }
+
+        $matchOrder = 1;
+        foreach ($pairedWinners as $pair) {
+            CompetitionMatch::create([
+                'competition_id' => $this->id,
+                'home_player_id' => $pair['home'],
+                'away_player_id' => $pair['away'],
+                'phase' => 'knockout',
+                'round_number' => $roundNumber,
+                'match_order' => $matchOrder++,
+                'status' => 'scheduled',
+                'is_bye' => false,
+                'scheduled_at' => now(),
+            ]);
+        }
+
+        // Delete all subsequent rounds as they are now invalid
+        CompetitionMatch::where('competition_id', $this->id)
+            ->where('phase', 'knockout')
+            ->where('round_number', '>', $roundNumber)
+            ->delete();
+    }
+
+    /**
+     * Propagate winner changes through knockout bracket after match update.
+     */
+    public function propagateWinnerChanges(CompetitionMatch $updatedMatch)
+    {
+        if ($updatedMatch->phase !== 'knockout') {
+            return;
+        }
+
+        $currentRound = $updatedMatch->round_number;
+
+        // Find all matches that depend on this match's winner
+        $dependentMatches = CompetitionMatch::where('competition_id', $this->id)
+            ->where('phase', 'knockout')
+            ->where('round_number', '>', $currentRound)
+            ->get();
+
+        if ($dependentMatches->isEmpty()) {
+            return; // No dependent matches
+        }
+
+        // Get winners from current round
+        $currentRoundWinners = $this->getRoundWinners($currentRound);
+
+        // Update next round matches based on new winners
+        $nextRound = $currentRound + 1;
+        $nextRoundMatches = $dependentMatches->where('round_number', $nextRound);
+
+        if ($nextRoundMatches->isNotEmpty()) {
+            $this->updateNextRoundMatches($nextRoundMatches, $currentRoundWinners);
+        }
+
+        // Continue propagating to subsequent rounds if needed
+        $maxRound = $dependentMatches->max('round_number');
+        for ($round = $nextRound + 1; $round <= $maxRound; $round++) {
+            $roundMatches = $dependentMatches->where('round_number', $round);
+            if ($roundMatches->isNotEmpty()) {
+                $prevRoundWinners = $this->getRoundWinners($round - 1);
+                $this->updateNextRoundMatches($roundMatches, $prevRoundWinners);
+            }
+        }
+    }
+
+    /**
+     * Get winners from a specific round.
+     */
+    private function getRoundWinners(int $round): array
+    {
+        $matches = CompetitionMatch::where('competition_id', $this->id)
+            ->where('phase', 'knockout')
+            ->where('round_number', $round)
+            ->where('status', 'completed')
+            ->orderBy('match_order')
+            ->get();
+
+        $winners = [];
+        foreach ($matches as $match) {
+            $winner = $match->getWinner();
+            if ($winner) {
+                $winners[] = $winner->id;
+            }
+        }
+
+        return $winners;
+    }
+
+    /**
+     * Update next round matches with new winners.
+     */
+    private function updateNextRoundMatches($nextRoundMatches, array $winners): void
+    {
+        // Sort winners by their match order to maintain pairing
+        $sortedWinners = collect($winners)->values();
+
+        // Pair winners: 1st vs 2nd, 3rd vs 4th, etc.
+        $pairedWinners = [];
+        $winnersCount = count($sortedWinners);
+
+        for ($i = 0; $i < $winnersCount; $i += 2) {
+            if ($i + 1 < $winnersCount) {
+                $pairedWinners[] = [
+                    'home' => $sortedWinners[$i],
+                    'away' => $sortedWinners[$i + 1],
+                ];
+            }
+        }
+
+        // Update matches with new pairings
+        foreach ($nextRoundMatches->sortBy('match_order') as $index => $match) {
+            if (isset($pairedWinners[$index])) {
+                $match->update([
+                    'home_player_id' => $pairedWinners[$index]['home'],
+                    'away_player_id' => $pairedWinners[$index]['away'],
+                ]);
+            }
         }
     }
 }
