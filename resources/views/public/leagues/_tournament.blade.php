@@ -401,36 +401,29 @@
                 $firstRoundMatches = $knockoutMatches->get(1) ?? collect();
                 $numPlayers = $firstRoundMatches->count() * 2;
 
-                // Determine round names based on total rounds and position
+                // Determine round names based on number of players
                 $roundNames = [];
-                if ($totalRounds == 2) {
-                    $roundNames = [
-                        1 => 'Polufinale',
-                        2 => 'Finale',
-                    ];
-                } elseif ($totalRounds == 3) {
-                    $roundNames = [
-                        1 => '1/4 Finala',
-                        2 => 'Polufinale',
-                        3 => 'Finale',
-                    ];
-                } elseif ($totalRounds == 4) {
-                    $roundNames = [
-                        1 => '1/8 Finala',
-                        2 => '1/4 Finala',
-                        3 => 'Polufinale',
-                        4 => 'Finale',
-                    ];
-                } elseif ($totalRounds >= 5) {
-                    $roundNames = [
-                        1 => '16/1 Finala',
-                        2 => '1/8 Finala',
-                        3 => '1/4 Finala',
-                        4 => 'Polufinale',
-                        5 => 'Finale',
-                    ];
-                    for ($i = 6; $i <= $totalRounds; $i++) {
-                        $roundNames[$i] = 'Runda ' . $i;
+                $playersInRound = $numPlayers;
+                
+                for ($round = 1; $round <= $totalRounds; $round++) {
+                    if ($round === $totalRounds) {
+                        // Last round is always Finale
+                        $roundNames[$round] = 'Finale';
+                    } else {
+                        // Calculate round name based on remaining players
+                        $remainingPlayers = $playersInRound / pow(2, $round - 1);
+                        
+                        if ($remainingPlayers <= 2) {
+                            $roundNames[$round] = 'Polufinale';
+                        } elseif ($remainingPlayers == 4) {
+                            $roundNames[$round] = '1/4 Finala';
+                        } elseif ($remainingPlayers == 8) {
+                            $roundNames[$round] = '1/8 Finala';
+                        } elseif ($remainingPlayers == 16) {
+                            $roundNames[$round] = '16/1 Finala';
+                        } else {
+                            $roundNames[$round] = '1/' . $remainingPlayers . ' Finala';
+                        }
                     }
                 }
 
