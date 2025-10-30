@@ -545,7 +545,7 @@
                                                             <span class="text-gray-500">0</span>
                                                         @endif
                                                     </div>
-                                                    <div class="text-xs md:text-sm font-semibold {{ $match->status === 'completed' && $homeSetsWon > $awaySetsWon ? 'text-green-400' : 'text-white' }} truncate">
+                                                    <div class="text-xs md:text-sm font-semibold {{ ($homeSetsWon > $awaySetsWon) && ($homeSetsWon > 0 || $awaySetsWon > 0) ? 'text-green-400' : 'text-white' }} truncate">
                                                         {{ $match->homePlayer->name ?? 'NEMA PROTIVNIKA' }}
                                                     </div>
                                                 </div>
@@ -586,7 +586,7 @@
                                                             <span class="text-gray-500">0</span>
                                                         @endif
                                                     </div>
-                                                    <div class="text-xs md:text-sm font-semibold {{ $match->status === 'completed' && $awaySetsWon > $homeSetsWon ? 'text-green-400' : 'text-white' }} truncate">
+                                                    <div class="text-xs md:text-sm font-semibold {{ ($awaySetsWon > $homeSetsWon) && ($homeSetsWon > 0 || $awaySetsWon > 0) ? 'text-green-400' : 'text-white' }} truncate">
                                                         {{ $match->awayPlayer->name ?? 'NEMA PROTIVNIKA' }}
                                                     </div>
                                                 </div>
