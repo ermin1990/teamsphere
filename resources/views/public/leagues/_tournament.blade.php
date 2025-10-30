@@ -141,6 +141,31 @@
 
                                 <!-- Mobile Layout -->
                                 <div class="block md:hidden p-4">
+                                    @php
+                                        $homeSetsWon = 0;
+                                        $awaySetsWon = 0;
+                                        if(isset($match->sets) && is_array($match->sets) && count($match->sets) > 0) {
+                                            foreach($match->sets as $set) {
+                                                if(($set['home_score'] ?? $set['home'] ?? 0) > ($set['away_score'] ?? $set['away'] ?? 0)) {
+                                                    $homeSetsWon++;
+                                                }
+                                                if(($set['away_score'] ?? $set['away'] ?? 0) > ($set['home_score'] ?? $set['home'] ?? 0)) {
+                                                    $awaySetsWon++;
+                                                }
+                                            }
+                                        } elseif ($match->status === 'completed') {
+                                            $homeSetsWon = $match->home_score ?? 0;
+                                            $awaySetsWon = $match->away_score ?? 0;
+                                        }
+                                    @endphp
+
+                                    <!-- Match Header with Link -->
+                                    <div class="flex items-center justify-between mb-3">
+                                        <a href="{{ route('public.matches.show', [$competition, $match]) }}"
+                                           class="text-xs text-gray-400 hover:text-gray-300">
+                                            Detalji meča
+                                        </a>
+                                    </div>
                                     <div class="flex items-center justify-between mb-3">
                                         <div class="flex items-center gap-3 flex-1 min-w-0">
                                             <!-- Sets won indicator -->
@@ -523,13 +548,164 @@
                                         </div>
                                         @endif
 
-                                        <!-- Match Header with Toggle -->
-                                        <div class="flex items-center justify-between p-3 md:p-4">
-                                            <a href="{{ route('public.matches.show', [$competition, $match]) }}"
-                                               class="flex-1 text-xs text-gray-400 hover:text-gray-300">
-                                                Detalji meča
-                                            </a>
+                                        <!-- Mobile Layout -->
+                                        <div class="block md:hidden p-4">
+                                            @php
+                                                $homeSetsWonMobile = 0;
+                                                $awaySetsWonMobile = 0;
+                                                if(isset($match->sets) && is_array($match->sets) && count($match->sets) > 0) {
+                                                    foreach($match->sets as $set) {
+                                                        if(($set['home_score'] ?? $set['home'] ?? 0) > ($set['away_score'] ?? $set['away'] ?? 0)) {
+                                                            $homeSetsWonMobile++;
+                                                        }
+                                                        if(($set['away_score'] ?? $set['away'] ?? 0) > ($set['home_score'] ?? $set['home'] ?? 0)) {
+                                                            $awaySetsWonMobile++;
+                                                        }
+                                                    }
+                                                } elseif ($match->status === 'completed') {
+                                                    $homeSetsWonMobile = $match->home_score ?? 0;
+                                                    $awaySetsWonMobile = $match->away_score ?? 0;
+                                                }
+                                            @endphp
+
+                                            <!-- Match Header with Link -->
+                                            <div class="flex items-center justify-between mb-3">
+                                                <a href="{{ route('public.matches.show', [$competition, $match]) }}"
+                                                   class="text-xs text-gray-400 hover:text-gray-300">
+                                                    Detalji meča
+                                                </a>
+                                            </div>
+
+                                            <!-- Home Player -->
+                                            <div class="flex items-center justify-between mb-3">
+                                                <div class="flex items-center gap-2 flex-1 min-w-0">
+                                                    <div class="w-6 h-6 rounded bg-white/20 flex items-center justify-center text-xs font-bold text-white flex-shrink-0">
+                                                        @if($match->status === 'completed' || ($homeSetsWonMobile > 0 || $awaySetsWonMobile > 0))
+                                                            {{ $homeSetsWonMobile }}
+                                                        @elseif($match->status === 'in_progress')
+                                                            <span class="text-green-400">{{ $homeSetsWonMobile }}</span>
+                                                        @else
+                                                            <span class="text-gray-500">0</span>
+                                                        @endif
+                                                    </div>
+                                                    <div class="text-xs md:text-sm font-semibold {{ ($homeSetsWonMobile > $awaySetsWonMobile) && ($homeSetsWonMobile > 0 || $awaySetsWonMobile > 0) || ($match->is_bye && $match->homePlayer) ? 'text-green-400' : 'text-white' }} truncate">
+                                                        {{ $match->homePlayer->name ?? 'NEMA PROTIVNIKA' }}
+                                                    </div>
+                                                </div>
+                                                <div class="flex-shrink-0 ml-2">
+                                                    @if($match->status === 'in_progress' && !$match->is_bye)
+                                                        <div class="w-6 h-6 bg-green-900/80 rounded flex items-center justify-center">
+                                                            <div class="text-xs font-bold text-green-300">
+                                                                {{ $homeFinalScore }}
+                                                            </div>
+                                                        </div>
+                                                    @elseif($match->status === 'completed' || ($homeSetsWonMobile > 0 || $awaySetsWonMobile > 0))
+                                                        <div class="w-6 h-6 bg-green-900/80 rounded flex items-center justify-center">
+                                                            <div class="text-xs font-bold text-green-300">
+                                                                {{ $homeFinalScore ?: $homeSetsWonMobile }}
+                                                            </div>
+                                                        </div>
+                                                    @elseif($match->is_bye)
+                                                        <div class="w-6 h-6 bg-gray-700/50 rounded flex items-center justify-center">
+                                                            <div class="text-xs font-bold text-gray-500">bye</div>
+                                                        </div>
+                                                    @else
+                                                        <div class="w-6 h-6 bg-gray-700/50 rounded flex items-center justify-center">
+                                                            <div class="text-xs font-bold text-gray-500">-</div>
+                                                        </div>
+                                                    @endif
+                                                </div>
+                                            </div>
+
+                                            <!-- Away Player -->
+                                            <div class="flex items-center justify-between">
+                                                <div class="flex items-center gap-2 flex-1 min-w-0">
+                                                    <div class="w-6 h-6 rounded bg-white/20 flex items-center justify-center text-xs font-bold text-white flex-shrink-0">
+                                                        @if($match->status === 'completed' || ($homeSetsWonMobile > 0 || $awaySetsWonMobile > 0))
+                                                            {{ $awaySetsWonMobile }}
+                                                        @elseif($match->status === 'in_progress')
+                                                            <span class="text-green-400">{{ $awaySetsWonMobile }}</span>
+                                                        @else
+                                                            <span class="text-gray-500">0</span>
+                                                        @endif
+                                                    </div>
+                                                    <div class="text-xs md:text-sm font-semibold {{ ($awaySetsWonMobile > $homeSetsWonMobile) && ($homeSetsWonMobile > 0 || $awaySetsWonMobile > 0) || ($match->is_bye && $match->awayPlayer) ? 'text-green-400' : 'text-white' }} truncate">
+                                                        {{ $match->awayPlayer->name ?? 'NEMA PROTIVNIKA' }}
+                                                    </div>
+                                                </div>
+                                                <div class="flex-shrink-0 ml-2">
+                                                    @if($match->status === 'in_progress' && !$match->is_bye)
+                                                        <div class="w-6 h-6 bg-green-900/80 rounded flex items-center justify-center">
+                                                            <div class="text-xs font-bold text-green-300">
+                                                                {{ $awayFinalScore }}
+                                                            </div>
+                                                        </div>
+                                                    @elseif($match->status === 'completed' || ($homeSetsWonMobile > 0 || $awaySetsWonMobile > 0))
+                                                        <div class="w-6 h-6 bg-green-900/80 rounded flex items-center justify-center">
+                                                            <div class="text-xs font-bold text-green-300">
+                                                                {{ $awayFinalScore ?: $awaySetsWonMobile }}
+                                                            </div>
+                                                        </div>
+                                                    @elseif($match->is_bye)
+                                                        <div class="w-6 h-6 bg-gray-700/50 rounded flex items-center justify-center">
+                                                            <div class="text-xs font-bold text-gray-500">bye</div>
+                                                        </div>
+                                                    @else
+                                                        <div class="w-6 h-6 bg-gray-700/50 rounded flex items-center justify-center">
+                                                            <div class="text-xs font-bold text-gray-500">-</div>
+                                                        </div>
+                                                    @endif
+                                                </div>
+                                            </div>
+
+                                            <!-- Mobile Toggle Sets Button -->
+                                            @if(isset($match->sets) && is_array($match->sets) && count($match->sets) > 0)
+                                            <div class="mt-3 text-center">
+                                                <button onclick="toggleMatchSets({{ $match->id }})"
+                                                        class="text-xs text-gray-400 hover:text-white transition-colors flex items-center justify-center gap-1 mx-auto">
+                                                    <span id="toggle-text-{{ $match->id }}">Prikaži po setovima</span>
+                                                    <svg id="arrow-{{ $match->id }}" class="w-3 h-3 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                            @endif
                                         </div>
+
+                                        <!-- Mobile Set Details Display (Hidden by default) -->
+                                        @if(isset($match->sets) && is_array($match->sets) && count($match->sets) > 0)
+                                        <div id="sets-{{ $match->id }}" class="hidden block md:hidden px-4 pb-4 border-t border-gray-600/30">
+                                            <div class="mt-3">
+                                                <div class="flex justify-center gap-1">
+                                                    @for($i = 1; $i <= 5; $i++)
+                                                    <div class="flex flex-col items-center">
+                                                        <div class="text-xs text-gray-400 mb-1">{{ $i }}</div>
+                                                        <div class="flex flex-col gap-0.5">
+                                                            @if(isset($match->sets[$i-1]))
+                                                                @php
+                                                                    $homeScore = $match->sets[$i-1]['home_score'] ?? $match->sets[$i-1]['home'] ?? 0;
+                                                                    $awayScore = $match->sets[$i-1]['away_score'] ?? $match->sets[$i-1]['away'] ?? 0;
+                                                                @endphp
+                                                                <span class="text-xs px-1 py-0.5 rounded text-center {{ $homeScore > $awayScore ? 'bg-green-900/60 text-green-300 font-bold' : 'text-gray-400' }}">
+                                                                    {{ $homeScore }}
+                                                                </span>
+                                                                <span class="text-xs px-1 py-0.5 rounded text-center {{ $awayScore > $homeScore ? 'bg-green-900/60 text-green-300 font-bold' : 'text-gray-400' }}">
+                                                                    {{ $awayScore }}
+                                                                </span>
+                                                            @else
+                                                                <span class="text-xs px-1 py-0.5 rounded text-gray-600 text-center">-</span>
+                                                                <span class="text-xs px-1 py-0.5 rounded text-gray-600 text-center">-</span>
+                                                            @endif
+                                                        </div>
+                                                    </div>
+                                                    @endfor
+                                                </div>
+                                            </div>
+                                        </div>
+                                        @endif
+
+                                        <!-- Desktop Layout -->
+                                        <div class="hidden md:block p-3 md:p-4">
 
                                         <!-- Match Players -->
                                         <div class="px-3 md:px-4 pb-3 md:pb-4">
