@@ -213,7 +213,7 @@
 
                                     <!-- Mobile Set Display -->
                                     @if(isset($match->sets) && is_array($match->sets) && count($match->sets) > 0)
-                                    <div class="mt-3 pt-3 border-t border-gray-600/30">
+                                    <div class="mt-3 pt-3 border-t border-gray-600/30 hidden md:block">
                                         <div class="flex justify-center gap-1">
                                             @php
                                                 $displaySets = isset($match->sets) && is_array($match->sets) && count($match->sets) > 0 ? $match->sets : [];
