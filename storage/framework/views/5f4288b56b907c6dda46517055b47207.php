@@ -29,7 +29,7 @@
     </a>
 
     
-    <?php if(false && $competition->type === 'tournament' && $competition->tournamentGroups->count() > 0): ?>
+    <?php if($competition->type === 'tournament' && $competition->tournamentGroups->count() > 0): ?>
         <a href="<?php echo e(route('organizations.competitions.export-pdf', [$organization, $competition])); ?>"
            class="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors font-semibold"
            target="_blank">

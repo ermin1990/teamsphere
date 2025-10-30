@@ -1554,51 +1554,5 @@ class CompetitionController extends Controller
             return back()->with('error', 'Greška pri resetovanju grupne faze: ' . $e->getMessage());
         }
     }
-
-    /**
-     * Export tournament to PDF in public display format
-     */
-    public function exportPdf(Organization $organization, Competition $competition)
-    {
-        $this->authorize('view', $organization);
-
-        // Load competition with all necessary relationships
-        $competition->load([
-            'tournamentGroups.standings.player',
-            'tournamentGroups.matches.homePlayer',
-            'tournamentGroups.matches.awayPlayer',
-            'organization'
-        ]);
-
-        // Get knockout matches grouped by round
-        $knockoutMatches = CompetitionMatch::where('competition_id', $competition->id)
-            ->where('phase', 'knockout')
-            ->with(['homePlayer', 'awayPlayer'])
-            ->orderBy('round_number')
-            ->orderBy('id')
-            ->get()
-            ->groupBy('round_number');
-
-        // Determine active phase
-        $hasGroups = $competition->tournamentGroups->count() > 0;
-        $hasKnockoutMatches = $knockoutMatches->count() > 0;
-        $activePhase = $hasKnockoutMatches ? 'knockout' : 'groups';
-
-        $data = [
-            'competition' => $competition,
-            'organization' => $organization,
-            'knockoutMatches' => $knockoutMatches,
-            'hasGroups' => $hasGroups,
-            'hasKnockoutMatches' => $hasKnockoutMatches,
-            'activePhase' => $activePhase,
-        ];
-
-        $pdf = Pdf::loadView('pdf.tournament-public-display', $data);
-        $pdf->setPaper('a4', 'portrait');
-
-        $filename = Str::slug($competition->name) . '-turnir-' . now()->format('Y-m-d') . '.pdf';
-
-        return $pdf->download($filename);
-    }
 }
 

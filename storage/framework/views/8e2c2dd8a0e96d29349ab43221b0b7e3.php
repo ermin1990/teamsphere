@@ -152,6 +152,34 @@
                                     </div>
 
                                     
+                                    <?php if($match->status === 'completed' && isset($match->sets) && is_array($match->sets) && count($match->sets) > 0): ?>
+                                    <div class="mt-3 pt-3 border-t border-gray-600/30">
+                                        <div class="text-xs text-gray-400 mb-2 text-center">Setovi</div>
+                                        <div class="flex justify-center gap-2">
+                                            <?php $__currentLoopData = $match->sets; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $set): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                <div class="flex flex-col items-center">
+                                                    <div class="text-xs text-gray-500 mb-1"><?php echo e($index + 1); ?></div>
+                                                    <div class="flex flex-col gap-0.5">
+                                                        <?php
+                                                            $homeScore = $set['home_score'] ?? $set['home'] ?? 0;
+                                                            $awayScore = $set['away_score'] ?? $set['away'] ?? 0;
+                                                        ?>
+                                                        <span class="text-xs px-1.5 py-0.5 rounded text-center <?php echo e($homeScore > $awayScore ? 'bg-green-500/20 text-green-300 font-bold' : 'text-gray-400'); ?>">
+                                                            <?php echo e($homeScore); ?>
+
+                                                        </span>
+                                                        <span class="text-xs px-1.5 py-0.5 rounded text-center <?php echo e($awayScore > $homeScore ? 'bg-green-500/20 text-green-300 font-bold' : 'text-gray-400'); ?>">
+                                                            <?php echo e($awayScore); ?>
+
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                        </div>
+                                    </div>
+                                    <?php endif; ?>
+
+                                    
                                     <?php if(!$match->is_bye): ?>
                                         <div class="mt-3 flex gap-1 text-xs">
                                             <?php if($match->status === 'scheduled' || $match->status === 'pending'): ?>
@@ -209,7 +237,7 @@
 </div>
 <?php endif; ?>
 
-<?php if (! $__env->hasRenderedOnce('e6dc882d-e311-4127-8ce3-e4b1de00af84')): $__env->markAsRenderedOnce('e6dc882d-e311-4127-8ce3-e4b1de00af84'); ?>
+<?php if (! $__env->hasRenderedOnce('9e44c898-5efe-4124-bd48-8357820a11d5')): $__env->markAsRenderedOnce('9e44c898-5efe-4124-bd48-8357820a11d5'); ?>
     
     <div id="quickEditModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-gray-800 rounded-2xl p-6 max-w-lg w-full border border-gray-700 shadow-xl">
