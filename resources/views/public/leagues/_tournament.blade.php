@@ -558,7 +558,7 @@
                                                     @elseif($match->status === 'completed' || ($homeSetsWon > 0 || $awaySetsWon > 0))
                                                         <div class="w-6 h-6 bg-green-900/80 rounded flex items-center justify-center">
                                                             <div class="text-xs font-bold text-green-300">
-                                                                {{ $homeSetsWon }}
+                                                                {{ $homeFinalScore ?: $homeSetsWon }}
                                                             </div>
                                                         </div>
                                                     @elseif($match->is_bye)
@@ -599,7 +599,7 @@
                                                     @elseif($match->status === 'completed' || ($homeSetsWon > 0 || $awaySetsWon > 0))
                                                         <div class="w-6 h-6 bg-green-900/80 rounded flex items-center justify-center">
                                                             <div class="text-xs font-bold text-green-300">
-                                                                {{ $awaySetsWon }}
+                                                                {{ $awayFinalScore ?: $awaySetsWon }}
                                                             </div>
                                                         </div>
                                                     @elseif($match->is_bye)
@@ -615,7 +615,7 @@
                                             </div>
 
                                             <!-- Toggle Sets Button -->
-                                            @if(isset($match->sets) && is_array($match->sets) && count($match->sets) > 0)
+                                            @if($match->status === 'completed' || ($homeSetsWon > 0 || $awaySetsWon > 0))
                                             <div class="mt-3 text-center">
                                                 <button onclick="toggleMatchSets({{ $match->id }})"
                                                         class="text-xs text-gray-400 hover:text-white transition-colors flex items-center justify-center gap-1 mx-auto">
@@ -629,9 +629,10 @@
                                         </div>
 
                                         <!-- Set Details Display (Hidden by default) -->
-                                        @if(isset($match->sets) && is_array($match->sets) && count($match->sets) > 0)
+                                        @if($match->status === 'completed' || ($homeSetsWon > 0 || $awaySetsWon > 0))
                                         <div id="sets-{{ $match->id }}" class="hidden px-3 md:px-4 pb-3 md:pb-4 border-t border-gray-600/30">
                                             <div class="mt-3">
+                                                @if(isset($match->sets) && is_array($match->sets) && count($match->sets) > 0)
                                                 <div class="flex justify-center gap-1">
                                                     @for($i = 1; $i <= 5; $i++)
                                                     <div class="flex flex-col items-center">
@@ -656,6 +657,11 @@
                                                     </div>
                                                     @endfor
                                                 </div>
+                                                @else
+                                                <div class="text-center text-xs text-gray-400">
+                                                    Detalji o setovima nisu dostupni
+                                                </div>
+                                                @endif
                                             </div>
                                         </div>
                                         @endif
