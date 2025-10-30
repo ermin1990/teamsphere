@@ -467,7 +467,7 @@
 
             <!-- Tournament Bracket -->
             <div class="bg-gray-800/30 backdrop-blur-xl rounded-xl p-4 md:p-6 border border-gray-700/30 shadow-xl">
-                <div class="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800">
+                    <div class="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800 pb-6">
                     <div class="min-w-max">
                         <!-- Bracket Container -->
                         <div class="flex gap-4 md:gap-8 lg:gap-12 justify-center">
