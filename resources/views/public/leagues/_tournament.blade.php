@@ -395,7 +395,7 @@
             @endif
         </div>        <!-- Knockout Tab Content -->
         @if($hasKnockoutMatches)
-        <div id="knockout-content" class="tab-content mt-4 md:mt-6 {{ !$showKnockoutTab ? 'hidden' : '' }}">
+        <div id="knockout-content" class="tab-content mt-4 md:mt-6 pb-16 md:pb-24 {{ !$showKnockoutTab ? 'hidden' : '' }}">
             @php
                 $totalRounds = $knockoutMatches->count();
                 $firstRoundMatches = $knockoutMatches->get(1) ?? collect();
@@ -466,7 +466,7 @@
             @endif
 
             <!-- Tournament Bracket -->
-            <div class="bg-gray-800/30 backdrop-blur-xl rounded-xl p-4 md:p-6 border border-gray-700/30 shadow-xl pb-8 md:pb-12">
+            <div class="bg-gray-800/30 backdrop-blur-xl rounded-xl p-4 md:p-6 border border-gray-700/30 shadow-xl">
                 <div class="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800">
                     <div class="min-w-max">
                         <!-- Bracket Container -->
