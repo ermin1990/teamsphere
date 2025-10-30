@@ -616,7 +616,7 @@
                                             </div>
 
                                             <!-- Toggle Sets Button -->
-                                            @if($match->status === 'completed' || ($homeSetsWon > 0 || $awaySetsWon > 0))
+                                            @if(isset($match->sets) && is_array($match->sets) && count($match->sets) > 0)
                                             <div class="mt-3 text-center">
                                                 <button onclick="toggleMatchSets({{ $match->id }})"
                                                         class="text-xs text-gray-400 hover:text-white transition-colors flex items-center justify-center gap-1 mx-auto">
@@ -630,7 +630,7 @@
                                         </div>
 
                                         <!-- Set Details Display (Hidden by default) -->
-                                        @if($match->status === 'completed' || ($homeSetsWon > 0 || $awaySetsWon > 0))
+                                        @if(isset($match->sets) && is_array($match->sets) && count($match->sets) > 0)
                                         <div id="sets-{{ $match->id }}" class="hidden px-3 md:px-4 pb-3 md:pb-4 border-t border-gray-600/30">
                                             <div class="mt-3">
                                                 @if(isset($match->sets) && is_array($match->sets) && count($match->sets) > 0)
