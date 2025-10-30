@@ -13,38 +13,32 @@
             ->sortBy(['round_number', 'match_order'])
             ->groupBy('tournament_group_id');
 
-        // Determine active phase - prioritize knockout if it has matches, otherwise groups
+        // Determine active phase - show both phases if they exist
         $hasActiveGroupMatches = $groupMatches->flatten()->where('status', '!=', 'completed')->count() > 0;
         $hasActiveKnockoutMatches = $knockoutMatches->flatten()->where('status', '!=', 'completed')->count() > 0;
         $hasKnockoutMatches = $knockoutMatches->count() > 0;
         $hasGroupMatches = $groupMatches->count() > 0;
 
-        // If knockout has active matches, show knockout. If not, show groups if they exist.
-        // If neither has active matches, show whichever has completed matches.
-        if ($hasActiveKnockoutMatches) {
-            $activePhase = 'knockout';
-        } elseif ($hasActiveGroupMatches) {
-            $activePhase = 'groups';
-        } elseif ($hasKnockoutMatches) {
-            $activePhase = 'knockout';
-        } else {
-            $activePhase = 'groups';
-        }
+        // Always show both phases if they exist - no need to determine "active" phase
+        $showGroupsTab = $hasGroupMatches;
+        $showKnockoutTab = $hasKnockoutMatches;
     @endphp
 
     <!-- Tournament Tabs -->
     <div class="mb-6 md:mb-8">
         <div class="border-b border-gray-700">
             <nav class="-mb-px flex space-x-6 md:space-x-8">
+                @if($showGroupsTab)
                 <button onclick="showTournamentTab('groups')" id="groups-tab"
                         class="tab-button border-b-2 py-2 px-1 text-sm md:text-base font-medium transition-colors
-                        {{ $activePhase === 'groups' ? 'border-blue-500 text-blue-400' : 'border-transparent text-gray-400 hover:text-gray-300' }}">
+                        {{ $showGroupsTab ? 'border-blue-500 text-blue-400' : 'border-transparent text-gray-400 hover:text-gray-300' }}">
                     🏆 Grupna faza
                 </button>
-                @if($hasKnockoutMatches)
+                @endif
+                @if($showKnockoutTab)
                 <button onclick="showTournamentTab('knockout')" id="knockout-tab"
                         class="tab-button border-b-2 py-2 px-1 text-sm md:text-base font-medium transition-colors
-                        {{ $activePhase === 'knockout' ? 'border-blue-500 text-blue-400' : 'border-transparent text-gray-400 hover:text-gray-300' }}">
+                        {{ !$showGroupsTab && $showKnockoutTab ? 'border-blue-500 text-blue-400' : 'border-transparent text-gray-400 hover:text-gray-300' }}">
                     🏅 Eliminaciona faza
                 </button>
                 @endif
@@ -52,7 +46,7 @@
         </div>
 
         <!-- Groups Tab Content -->
-        <div id="groups-content" class="tab-content mt-4 md:mt-6 {{ $activePhase !== 'groups' ? 'hidden' : '' }}">
+        <div id="groups-content" class="tab-content mt-4 md:mt-6 {{ !$showGroupsTab ? 'hidden' : '' }}">
             @if($hasGroupMatches)
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
                 @foreach($competition->tournamentGroups as $group)
@@ -401,24 +395,53 @@
             @endif
         </div>        <!-- Knockout Tab Content -->
         @if($hasKnockoutMatches)
-        <div id="knockout-content" class="tab-content mt-4 md:mt-6 {{ $activePhase !== 'knockout' ? 'hidden' : '' }}">
+        <div id="knockout-content" class="tab-content mt-4 md:mt-6 {{ !$showKnockoutTab ? 'hidden' : '' }}">
             @php
                 $totalRounds = $knockoutMatches->count();
                 $firstRoundMatches = $knockoutMatches->get(1) ?? collect();
                 $numPlayers = $firstRoundMatches->count() * 2;
-                $expectedRounds = $numPlayers > 1 ? ceil(log($numPlayers, 2)) : 1;
 
-                $roundNames = [
-                    1 => $expectedRounds == 4 ? 'Šesnaestina finala' : ($expectedRounds == 3 ? 'Četvrtfinale' : ($expectedRounds == 2 ? 'Polufinale' : 'Runda 1')),
-                    2 => $expectedRounds == 4 ? 'Četvrtfinale' : ($expectedRounds == 3 ? 'Polufinale' : ($expectedRounds == 2 ? 'Finale' : 'Runda 2')),
-                    3 => $expectedRounds == 4 ? 'Polufinale' : 'Finale',
-                    4 => 'Finale',
-                ];
+                // Determine round names based on number of players in first round and matches per round
+                $roundNames = [];
+                for ($round = 1; $round <= $totalRounds; $round++) {
+                    $matchesInRound = $knockoutMatches->get($round) ?? collect();
+
+                    if ($matchesInRound->count() === 1) {
+                        // Finale - only one match in the round
+                        $roundNames[$round] = 'Finale';
+                    } else {
+                        // Regular round names based on first round size
+                        if ($numPlayers >= 16) {
+                            $regularNames = [
+                                1 => '16/1 Finala',
+                                2 => '1/8 Finala',
+                                3 => '1/4 Finala',
+                                4 => 'Polufinale',
+                            ];
+                        } elseif ($numPlayers >= 8) {
+                            $regularNames = [
+                                1 => '1/8 Finala',
+                                2 => '1/4 Finala',
+                                3 => 'Polufinale',
+                            ];
+                        } elseif ($numPlayers >= 4) {
+                            $regularNames = [
+                                1 => '1/4 Finala',
+                                2 => 'Polufinale',
+                            ];
+                        } else {
+                            $regularNames = [
+                                1 => 'Polufinale',
+                            ];
+                        }
+                        $roundNames[$round] = $regularNames[$round] ?? 'Runda ' . $round;
+                    }
+                }
 
                 // Check if tournament is completed and get winner
                 $finalMatch = $knockoutMatches->get($totalRounds)?->first();
                 $winner = null;
-                if ($finalMatch && $finalMatch->status === 'completed' && $totalRounds == $expectedRounds) {
+                if ($finalMatch && $finalMatch->status === 'completed') {
                     $winner = $finalMatch->home_score > $finalMatch->away_score
                         ? $finalMatch->homePlayer
                         : $finalMatch->awayPlayer;
@@ -442,10 +465,10 @@
 
             <!-- Tournament Bracket -->
             <div class="bg-gray-800/30 backdrop-blur-xl rounded-xl p-4 md:p-6 border border-gray-700/30 shadow-xl">
-                <div class="overflow-x-auto">
+                <div class="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800">
                     <div class="min-w-max">
                         <!-- Bracket Container -->
-                        <div class="flex gap-8 md:gap-12 justify-center">
+                        <div class="flex gap-4 md:gap-8 lg:gap-12 justify-center">
                             @for($round = 1; $round <= $totalRounds; $round++)
                             @php
                                 $roundMatches = $knockoutMatches->get($round) ?? collect();
@@ -453,7 +476,7 @@
                                 $matchesInRound = $roundMatches->count();
                                 $spacingMultiplier = pow(2, $round - 1);
                             @endphp
-                            <div class="flex flex-col justify-center gap-4" style="gap: {{ $spacingMultiplier * 1 }}rem;">
+                            <div class="flex flex-col justify-center gap-2" style="gap: {{ $spacingMultiplier * 1 }}rem;">
                                 <!-- Round Header -->
                                 <div class="text-center mb-4">
                                     <h4 class="text-sm md:text-base font-bold text-white uppercase tracking-wider">
@@ -462,41 +485,56 @@
                                 </div>
 
                                 <!-- Round Matches -->
-                                <div class="flex flex-col gap-4">
+                                <div class="flex flex-col gap-2">
                                     @foreach($roundMatches as $index => $match)
                                     @php
                                         $homeSetsWon = 0;
                                         $awaySetsWon = 0;
+                                        $homeFinalScore = $match->home_score ?? 0;
+                                        $awayFinalScore = $match->away_score ?? 0;
+
                                         if(isset($match->sets) && is_array($match->sets) && count($match->sets) > 0) {
                                             foreach($match->sets as $set) {
-                                                if(($set['home_score'] ?? $set['home'] ?? 0) > ($set['away_score'] ?? $set['away'] ?? 0)) {
+                                                $homeSetScore = $set['home_score'] ?? $set['home'] ?? 0;
+                                                $awaySetScore = $set['away_score'] ?? $set['away'] ?? 0;
+                                                if($homeSetScore > $awaySetScore) {
                                                     $homeSetsWon++;
-                                                }
-                                                if(($set['away_score'] ?? $set['away'] ?? 0) > ($set['home_score'] ?? $set['home'] ?? 0)) {
+                                                } elseif($awaySetScore > $homeSetScore) {
                                                     $awaySetsWon++;
                                                 }
                                             }
-                                        } elseif ($match->status === 'completed') {
-                                            $homeSetsWon = $match->home_score ?? 0;
-                                            $awaySetsWon = $match->away_score ?? 0;
+                                        }
+
+                                        // If match is completed and we don't have sets data, use final scores
+                                        if($match->status === 'completed' && $homeSetsWon === 0 && $awaySetsWon === 0) {
+                                            $homeSetsWon = $homeFinalScore;
+                                            $awaySetsWon = $awayFinalScore;
                                         }
                                     @endphp
 
-                                    <a href="{{ route('public.matches.show', [$competition, $match]) }}"
-                                       class="block bg-gray-700/20 hover:bg-gray-700/40 rounded-lg transition-all duration-200 hover:scale-[1.02] border border-gray-600/30">
+                                    <div class="block bg-gray-700/20 hover:bg-gray-700/40 rounded-lg transition-all duration-200 hover:scale-[1.02] border border-gray-600/30"
+                                         data-match-id="{{ $match->id }}">
                                         @if($match->status === 'in_progress' && !$match->is_bye)
                                         <div class="text-center mb-2">
                                             <span class="text-red-400 font-semibold text-xs uppercase tracking-wider">Live</span>
                                         </div>
                                         @endif
 
+                                        <!-- Match Header with Toggle -->
+                                        <div class="flex items-center justify-between p-3 md:p-4">
+                                            <a href="{{ route('public.matches.show', [$competition, $match]) }}"
+                                               class="flex-1 text-xs text-gray-400 hover:text-gray-300">
+                                                Detalji meča
+                                            </a>
+                                        </div>
+
                                         <!-- Match Players -->
-                                        <div class="p-3 md:p-4">
+                                        <div class="px-3 md:px-4 pb-3 md:pb-4">
                                             <!-- Home Player -->
                                             <div class="flex items-center justify-between mb-2">
                                                 <div class="flex items-center gap-2 flex-1 min-w-0">
                                                     <div class="w-6 h-6 rounded bg-white/20 flex items-center justify-center text-xs font-bold text-white flex-shrink-0">
-                                                        @if($match->status === 'completed')
+                                                        @if($match->status === 'completed' || ($homeSetsWon > 0 || $awaySetsWon > 0))
                                                             {{ $homeSetsWon }}
                                                         @elseif($match->status === 'in_progress')
                                                             <span class="text-green-400">{{ $homeSetsWon }}</span>
@@ -512,10 +550,10 @@
                                                     @if($match->status === 'in_progress' && !$match->is_bye)
                                                         <div class="w-6 h-6 bg-green-900/80 rounded flex items-center justify-center">
                                                             <div class="text-xs font-bold text-green-300">
-                                                                {{ $match->home_score ?? 0 }}
+                                                                {{ $homeFinalScore }}
                                                             </div>
                                                         </div>
-                                                    @elseif($match->status === 'completed')
+                                                    @elseif($match->status === 'completed' || ($homeSetsWon > 0 || $awaySetsWon > 0))
                                                         <div class="w-6 h-6 bg-green-900/80 rounded flex items-center justify-center">
                                                             <div class="text-xs font-bold text-green-300">
                                                                 {{ $homeSetsWon }}
@@ -537,7 +575,7 @@
                                             <div class="flex items-center justify-between">
                                                 <div class="flex items-center gap-2 flex-1 min-w-0">
                                                     <div class="w-6 h-6 rounded bg-white/20 flex items-center justify-center text-xs font-bold text-white flex-shrink-0">
-                                                        @if($match->status === 'completed')
+                                                        @if($match->status === 'completed' || ($homeSetsWon > 0 || $awaySetsWon > 0))
                                                             {{ $awaySetsWon }}
                                                         @elseif($match->status === 'in_progress')
                                                             <span class="text-green-400">{{ $awaySetsWon }}</span>
@@ -553,10 +591,10 @@
                                                     @if($match->status === 'in_progress' && !$match->is_bye)
                                                         <div class="w-6 h-6 bg-green-900/80 rounded flex items-center justify-center">
                                                             <div class="text-xs font-bold text-green-300">
-                                                                {{ $match->away_score ?? 0 }}
+                                                                {{ $awayFinalScore }}
                                                             </div>
                                                         </div>
-                                                    @elseif($match->status === 'completed')
+                                                    @elseif($match->status === 'completed' || ($homeSetsWon > 0 || $awaySetsWon > 0))
                                                         <div class="w-6 h-6 bg-green-900/80 rounded flex items-center justify-center">
                                                             <div class="text-xs font-bold text-green-300">
                                                                 {{ $awaySetsWon }}
@@ -574,9 +612,24 @@
                                                 </div>
                                             </div>
 
-                                            <!-- Set Details Display -->
+                                            <!-- Toggle Sets Button -->
                                             @if(isset($match->sets) && is_array($match->sets) && count($match->sets) > 0)
-                                            <div class="mt-3 pt-3 border-t border-gray-600/30">
+                                            <div class="mt-3 text-center">
+                                                <button onclick="toggleMatchSets({{ $match->id }})"
+                                                        class="text-xs text-gray-400 hover:text-white transition-colors flex items-center justify-center gap-1 mx-auto">
+                                                    <span id="toggle-text-{{ $match->id }}">Prikaži po setovima</span>
+                                                    <svg id="arrow-{{ $match->id }}" class="w-3 h-3 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                            @endif
+                                        </div>
+
+                                        <!-- Set Details Display (Hidden by default) -->
+                                        @if(isset($match->sets) && is_array($match->sets) && count($match->sets) > 0)
+                                        <div id="sets-{{ $match->id }}" class="hidden px-3 md:px-4 pb-3 md:pb-4 border-t border-gray-600/30">
+                                            <div class="mt-3">
                                                 <div class="flex justify-center gap-1">
                                                     @for($i = 1; $i <= 5; $i++)
                                                     <div class="flex flex-col items-center">
@@ -602,9 +655,9 @@
                                                     @endfor
                                                 </div>
                                             </div>
-                                            @endif
                                         </div>
-                                    </a>
+                                        @endif
+                                    </div>
                                     @endforeach
                                 </div>
                             </div>
@@ -643,6 +696,24 @@
             // Set active state for selected tab
             document.getElementById(tabName + '-tab').classList.remove('border-transparent', 'text-gray-400');
             document.getElementById(tabName + '-tab').classList.add('border-blue-500', 'text-blue-400');
+        }
+
+        function toggleMatchSets(matchId) {
+            const setsElement = document.getElementById('sets-' + matchId);
+            const arrowElement = document.getElementById('arrow-' + matchId);
+            const textElement = document.getElementById('toggle-text-' + matchId);
+
+            if (setsElement && arrowElement && textElement) {
+                const isHidden = setsElement.classList.contains('hidden');
+                setsElement.classList.toggle('hidden');
+                arrowElement.classList.toggle('rotate-180');
+
+                if (isHidden) {
+                    textElement.textContent = 'Sakrij po setovima';
+                } else {
+                    textElement.textContent = 'Prikaži po setovima';
+                }
+            }
         }
     </script>
 @endif
