@@ -31,6 +31,9 @@
 
             /* Knockout bracket container */
             .bracket-container { page-break-inside: avoid; }
+
+            /* Force page break before knockout section */
+            .knockout-section { page-break-before: always; }
         }
     </style>
 </head>
@@ -177,7 +180,7 @@
 
     <!-- Knockout Section -->
     @if($hasKnockoutMatches)
-    <div class="mb-12">
+    <div class="mb-12 knockout-section">
         <h2 class="text-2xl font-bold text-gray-900 mb-6 border-b-2 border-gray-300 pb-2">🏅 Eliminaciona faza</h2>
 
         @php
