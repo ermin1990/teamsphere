@@ -203,7 +203,9 @@
                                                     ✏️
                                                 </a>
                                                 <a href="{{ route('competitions.live-score', ['match' => $match->id]) }}"
-                                                   class="bg-red-600 hover:bg-red-700 text-white px-1.5 py-0.5 rounded text-xs transition-colors text-center inline-block animate-pulse">
+                                                   class="bg-red-600 text-gray-400 px-1.5 py-0.5 rounded text-xs text-center inline-block cursor-not-allowed opacity-50 animate-pulse"
+                                                   disabled
+                                                   title="Live unos rezultata je trenutno onemogućen">
                                                     🔴 Live
                                                 </a>
                                                 <a href="{{ route('organizations.competitions.matches.show', [$organization, $competition, $match]) }}"
