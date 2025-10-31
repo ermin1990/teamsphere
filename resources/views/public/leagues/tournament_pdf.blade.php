@@ -252,7 +252,7 @@
             <div class="overflow-x-auto pb-6">
                 <div class="min-w-max">
                     <!-- Bracket Container -->
-                    <div class="flex gap-4 md:gap-8 lg:gap-12 justify-center">
+                    <div class="flex justify-center" style="gap: 3px;">
                         @for($round = 1; $round <= $totalRounds; $round++)
                         @php
                             $roundMatches = $knockoutMatches->get($round) ?? collect();
@@ -275,9 +275,9 @@
                             }
                         @endphp
                         @if($matchesInRound > 0 || ($round === $totalRounds && $totalRounds > 1))
-                        <div class="flex flex-col justify-center gap-2" style="gap: {{ $spacingMultiplier * 1 }}rem;">
+                        <div class="flex flex-col justify-center gap-2" style="gap: 3px;">
                             {{-- Round Header --}}
-                            <div class="text-center mb-4">
+                            <div class="text-center" style="margin-bottom: 3px;">
                                 <h4 class="text-sm md:text-base font-bold text-gray-900 uppercase tracking-wider round-header">
                                     {{ $roundName }}
                                 </h4>
@@ -285,7 +285,7 @@
 
                             @if($matchesInRound > 0)
                             {{-- Round Matches Container --}}
-                            <div class="flex flex-col gap-2">
+                            <div class="flex flex-col" style="gap: 3px;">
                                 @foreach($roundMatches as $index => $match)
                                 @php
                                     $homeSetsWon = 0;
@@ -312,8 +312,8 @@
                                     }
                                 @endphp
 
-                                <div class="block bg-white rounded-lg pt-2 mt-1 mb-1 border border-gray-300 break-inside-avoid"
-                                     data-match-id="{{ $match->id }}">
+                                <div class="block bg-white rounded-lg border border-gray-300 break-inside-avoid"
+                                     data-match-id="{{ $match->id }}" style="padding-top: 3px; margin-top: 3px; margin-bottom: 3px;">
 
                                     @if($match->status === 'in_progress' && !$match->is_bye)
                                     <div class="text-center mb-1">
@@ -322,7 +322,7 @@
                                     @endif
 
                                     <!-- Match Players -->
-                                    <div class="px-2 md:px-3 pb-2 md:pb-3">
+                                    <div class="px-2 md:px-3" style="padding-bottom: 3px;">
                                         <!-- Home Player -->
                                         <div class="flex items-center justify-between mb-1">
                                             <div class="flex items-center gap-1 flex-1 min-w-0">
