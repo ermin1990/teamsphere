@@ -117,7 +117,7 @@
                 <!-- Group Standings Table -->
                 @if($groupStandings->count() > 0)
                 <div class="mb-6">
-                    <h4 class="text-lg font-medium text-gray-700 mb-3">Tabela</h4>
+                    <h4 class="text-lg font-medium text-gray-700 mb-3">{{ $group->name }}</h4>
                     <div class="overflow-hidden border border-gray-300 rounded">
                         <table class="w-full text-sm">
                             <thead class="bg-gray-100">
@@ -149,7 +149,7 @@
 
                 <!-- Group Matches -->
                 <div>
-                    <h4 class="text-lg font-medium text-gray-700 mb-3">Mečevi</h4>
+                    <h4 class="text-lg font-medium text-gray-700 mb-3">{{ $group->name }}</h4>
                     <div class="space-y-3">
                         @foreach($currentGroupMatches as $match)
                         @php
