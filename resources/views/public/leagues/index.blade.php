@@ -1,40 +1,8 @@
-<!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
+@extends('layouts.public')
 
-    <title>Table Tennis Competitions - TeamSphere</title>
+@section('title', 'Takmičenja - TeamSphere')
 
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
-
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-
-    <!-- Scripts -->
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-</head>
-<body class="antialiased bg-gray-900 text-white min-h-screen pb-16 md:pb-8">
-    <div class="py-8">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <!-- Navigation Menu (Desktop only) -->
-            <nav class="hidden md:block bg-gray-800/50 backdrop-blur-xl rounded-2xl p-4 border border-gray-700/50 shadow-xl mb-6">
-                <div class="flex items-center justify-center space-x-6 md:space-x-8">
-                    <a href="{{ route('home') }}" class="text-gray-300 hover:text-white transition-colors text-sm md:text-base font-medium">
-                        🏠 Home
-                    </a>
-                    <a href="{{ route('public.live-matches') }}" class="text-gray-300 hover:text-white transition-colors text-sm md:text-base font-medium">
-                        📺 Live Matches
-                    </a>
-                    <a href="{{ route('public.leagues.index') }}" class="text-blue-400 font-semibold text-sm md:text-base">
-                        🏆 Competitions
-                    </a>
-                </div>
-            </nav>
-
+@section('content')
             <!-- Header -->
             <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-4 md:p-6 border border-gray-700/50 shadow-xl mb-6 md:mb-8">
                 <h1 class="text-2xl md:text-3xl font-bold text-center bg-gradient-to-r from-green-400 to-blue-400 bg-clip-text text-transparent">
@@ -152,3 +120,4 @@
     </nav>
 </body>
 </html>
+@endsection

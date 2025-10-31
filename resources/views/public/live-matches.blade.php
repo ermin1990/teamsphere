@@ -1,22 +1,8 @@
-<!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
+@extends('layouts.public')
 
-    <title>Mečevi Uživo - TeamSphere</title>
+@section('title', 'Mečevi Uživo - TeamSphere')
 
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
-
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-
-    <!-- Scripts -->
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-
+@push('scripts')
     <script>
         let lastUpdate = null;
 
@@ -209,25 +195,9 @@
             updateLiveMatches();
         });
     </script>
-</head>
-<body class="antialiased bg-gray-900 text-white min-h-screen pb-16 md:pb-8">
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <!-- Navigation Menu (Desktop only) -->
-            <nav class="hidden md:block bg-gray-800/50 backdrop-blur-xl rounded-2xl p-4 border border-gray-700/50 shadow-xl mb-6">
-                <div class="flex items-center justify-center space-x-6 md:space-x-8">
-                    <a href="{{ route('home') }}" class="text-gray-300 hover:text-white transition-colors text-sm md:text-base font-medium">
-                        🏠 Home
-                    </a>
-                    <a href="{{ route('public.live-matches') }}" class="text-blue-400 font-semibold text-sm md:text-base">
-                        📺 Mečevi Uživo
-                    </a>
-                    <a href="{{ route('public.leagues.index') }}" class="text-gray-300 hover:text-white transition-colors text-sm md:text-base font-medium">
-                        🏆 Takmičenja
-                    </a>
-                </div>
-            </nav>
+@endsection
 
+@section('content')
             <!-- Header -->
             <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-8 border border-gray-700/50 shadow-xl mb-8">
                 <div class="text-center">
@@ -238,10 +208,10 @@
                     <div class="mt-4 text-sm text-gray-500">
                         Ažuriranje u realnom vremenu • {{ $liveMatches->count() }} mečeva uživo
                     </div>
-                    
+
                     <!-- Display Screen Link -->
                     <div class="mt-6">
-                        <a href="{{ route('display.selector') }}" 
+                        <a href="{{ route('display.selector') }}"
                            target="_blank"
                            class="inline-flex items-center space-x-3 px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -477,9 +447,8 @@
             </a>
             <a href="{{ route('public.leagues.index') }}" class="flex flex-col items-center text-gray-300 hover:text-white transition-colors text-xs flex-1">
                 <span class="text-lg">🏆</span>
-                <span class="mt-1">Competitions</span>
+                <span class="mt-1">Takmičenja</span>
             </a>
         </div>
     </nav>
-</body>
-</html>
+@endsection
