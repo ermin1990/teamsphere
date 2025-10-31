@@ -52,18 +52,27 @@
             transition: all 0.2s ease;
         }
 
-        /* Dark theme highlight */
-        .knockout-match.player-highlight {
-            background-color: rgba(59, 130, 246, 0.2) !important;
-            border-color: rgba(59, 130, 246, 0.5) !important;
-            box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
+        /* Player name highlight effects */
+        .player-name-knockout {
+            transition: all 0.2s ease;
+            border-radius: 4px;
+            padding: 2px 4px;
         }
 
-        /* Light theme highlight - use darker amber color for better visibility */
-        [data-theme="light"] .knockout-match.player-highlight {
-            background-color: rgba(217, 119, 6, 0.25) !important; /* amber-600 with higher opacity */
-            border-color: rgba(217, 119, 6, 0.6) !important; /* amber-600 with higher opacity */
-            box-shadow: 0 0 15px rgba(217, 119, 6, 0.5); /* amber-600 glow */
+        /* Dark theme highlight */
+        .player-name-knockout.player-highlight {
+            background-color: rgba(59, 130, 246, 0.3) !important;
+            color: #ffffff !important;
+            font-weight: bold !important;
+            box-shadow: 0 0 8px rgba(59, 130, 246, 0.5);
+        }
+
+        /* Light theme highlight */
+        [data-theme="light"] .player-name-knockout.player-highlight {
+            background-color: rgba(217, 119, 6, 0.4) !important;
+            color: #ffffff !important;
+            font-weight: bold !important;
+            box-shadow: 0 0 8px rgba(217, 119, 6, 0.6);
         }
     </style>
     @php
@@ -838,22 +847,20 @@
         }
 
         function highlightPlayerPath(playerId) {
-            const allMatches = document.querySelectorAll('.knockout-match');
+            const allPlayerNames = document.querySelectorAll('.player-name-knockout');
 
-            allMatches.forEach(match => {
-                const homePlayerId = match.getAttribute('data-home-player');
-                const awayPlayerId = match.getAttribute('data-away-player');
-
-                if (homePlayerId === playerId || awayPlayerId === playerId) {
-                    match.classList.add('player-highlight');
+            allPlayerNames.forEach(playerName => {
+                const playerNameId = playerName.getAttribute('data-player-id');
+                if (playerNameId === playerId) {
+                    playerName.classList.add('player-highlight');
                 }
             });
         }
 
         function clearAllHighlights() {
-            const highlightedMatches = document.querySelectorAll('.knockout-match.player-highlight');
-            highlightedMatches.forEach(match => {
-                match.classList.remove('player-highlight');
+            const highlightedNames = document.querySelectorAll('.player-name-knockout.player-highlight');
+            highlightedNames.forEach(name => {
+                name.classList.remove('player-highlight');
             });
         }
     </script>
