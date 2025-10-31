@@ -232,12 +232,6 @@
                             <h3 class="text-lg leading-6 font-medium text-white">
                                 Meč završen!
                             </h3>
-                            <div class="mt-2">
-                                <p class="text-sm text-gray-300">
-                                    <span x-text="winner === 'home' ? '{{ $parent->is_team_based ? $match->homeTeam->name ?? 'Domaći tim' : $match->homePlayer->name ?? 'Domaći igrač' }}' : '{{ $parent->is_team_based ? $match->awayTeam->name ?? 'Gostujući tim' : $match->awayPlayer->name ?? 'Gostujući igrač' }}'"></span>
-                                    pobjeđuje sa <span x-text="winner === 'home' ? homeSets : awaySets"></span> setova na <span x-text="winner === 'away' ? homeSets : awaySets"></span>!
-                                </p>
-                            </div>
                         </div>
                     </div>
                 </div>
