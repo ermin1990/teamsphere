@@ -56,10 +56,10 @@
                                     const homeScore = set.home_score ?? 0;
                                     const awayScore = set.away_score ?? 0;
                                     span.textContent = homeScore;
-                                    span.className = `text-xs px-1 py-0.5 rounded ${homeScore > awayScore ? 'bg-green-900/60 text-green-300 font-bold' : 'text-gray-400'}`;
+                                    span.className = `text-xs px-1 py-0.5 rounded ${homeScore > awayScore ? 'bg-green-900/60 text-green-300 font-bold' : 'text-[var(--text-secondary)]'}`;
                                 } else {
                                     span.textContent = '-';
-                                    span.className = 'text-xs px-1 py-0.5 rounded text-gray-600';
+                                    span.className = 'text-xs px-1 py-0.5 rounded text-[var(--text-muted)]';
                                 }
                             });
                         }
@@ -73,10 +73,10 @@
                                     const homeScore = set.home_score ?? 0;
                                     const awayScore = set.away_score ?? 0;
                                     span.textContent = awayScore;
-                                    span.className = `text-xs px-1 py-0.5 rounded ${awayScore > homeScore ? 'bg-green-900/60 text-green-300 font-bold' : 'text-gray-400'}`;
+                                    span.className = `text-xs px-1 py-0.5 rounded ${awayScore > homeScore ? 'bg-green-900/60 text-green-300 font-bold' : 'text-[var(--text-secondary)]'}`;
                                 } else {
                                     span.textContent = '-';
-                                    span.className = 'text-xs px-1 py-0.5 rounded text-gray-600';
+                                    span.className = 'text-xs px-1 py-0.5 rounded text-[var(--text-muted)]';
                                 }
                             });
                         }
@@ -108,7 +108,7 @@
                         } else if (match.status === 'completed') {
                             homeSetsSquare.innerHTML = homeSetsWon;
                         } else {
-                            homeSetsSquare.innerHTML = `<span class="text-gray-500">0</span>`;
+                            homeSetsSquare.innerHTML = `<span class="text-[var(--text-muted)]">0</span>`;
                         }
                     }
 
@@ -118,7 +118,7 @@
                         } else if (match.status === 'completed') {
                             awaySetsSquare.innerHTML = awaySetsWon;
                         } else {
-                            awaySetsSquare.innerHTML = `<span class="text-gray-500">0</span>`;
+                            awaySetsSquare.innerHTML = `<span class="text-[var(--text-muted)]">0</span>`;
                         }
                     }
 
@@ -166,19 +166,19 @@
                         } else {
                             // Set to inactive state (scheduled/cancelled)
                             if (scoreBoxes[0]) {
-                                scoreBoxes[0].className = 'w-8 h-8 bg-gray-700/50 rounded-lg flex items-center justify-center';
+                                scoreBoxes[0].className = 'w-8 h-8 bg-[var(--bg-inactive)] rounded-lg flex items-center justify-center';
                                 const homeScoreDiv = scoreBoxes[0].querySelector('.text-sm.font-bold') || scoreBoxes[0].querySelector('div');
                                 if (homeScoreDiv) {
                                     homeScoreDiv.textContent = '-';
-                                    homeScoreDiv.className = 'text-sm font-bold text-gray-500';
+                                    homeScoreDiv.className = 'text-sm font-bold text-[var(--text-muted)]';
                                 }
                             }
                             if (scoreBoxes[1]) {
-                                scoreBoxes[1].className = 'w-8 h-8 bg-gray-700/50 rounded-lg flex items-center justify-center';
+                                scoreBoxes[1].className = 'w-8 h-8 bg-[var(--bg-inactive)] rounded-lg flex items-center justify-center';
                                 const awayScoreDiv = scoreBoxes[1].querySelector('.text-sm.font-bold') || scoreBoxes[1].querySelector('div');
                                 if (awayScoreDiv) {
                                     awayScoreDiv.textContent = '-';
-                                    awayScoreDiv.className = 'text-sm font-bold text-gray-500';
+                                    awayScoreDiv.className = 'text-sm font-bold text-[var(--text-muted)]';
                                 }
                             }
                         }
@@ -199,13 +199,13 @@
 
 @section('content')
             <!-- Header -->
-            <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-8 border border-gray-700/50 shadow-xl mb-8">
+            <div class="bg-[var(--bg-card)] backdrop-blur-xl rounded-2xl p-8 border border-[var(--border-primary)] shadow-xl mb-8">
                 <div class="text-center">
                     <h1 class="text-4xl font-bold bg-gradient-to-r from-green-400 to-blue-400 bg-clip-text text-transparent mb-2">
                         🏓 Mečevi Uživo
                     </h1>
-                    <p class="text-gray-400">Pratite mečeve stonog tenisa uživo iz svih liga</p>
-                    <div class="mt-4 text-sm text-gray-500">
+                    <p class="text-[var(--text-secondary)]">Pratite mečeve stonog tenisa uživo iz svih liga</p>
+                    <div class="mt-4 text-sm text-[var(--text-muted)]">
                         Ažuriranje u realnom vremenu • {{ $liveMatches->count() }} mečeva uživo
                     </div>
 
@@ -242,13 +242,13 @@
                     @endphp
 
                     <!-- Competition Header -->
-                    <div class="bg-gray-800/30 backdrop-blur-xl rounded-xl p-4 md:p-6 border border-gray-700/30 shadow-xl">
+                    <div class="bg-[var(--bg-tertiary)] backdrop-blur-xl rounded-xl p-4 md:p-6 border border-[var(--border-primary)] shadow-xl">
                         <div class="flex items-center justify-between mb-4">
                             <div>
-                                <h2 class="text-lg md:text-xl font-bold text-white">
+                                <h2 class="text-lg md:text-xl font-bold text-[var(--text-primary)]">
                                     {{ $competition->name }}
                                 </h2>
-                                <p class="text-sm text-gray-400">
+                                <p class="text-sm text-[var(--text-secondary)]">
                                     {{ $competition->organization->name }} • {{ $competition->sport->name }}
                                 </p>
                             </div>
@@ -261,7 +261,7 @@
                         </div>
 
                         <!-- Matches Table -->
-                        <div class="bg-gray-800/30 rounded-lg overflow-hidden border border-gray-700/30">
+                        <div class="bg-[var(--bg-tertiary)] rounded-lg overflow-hidden border border-[var(--border-primary)]">
                             <!-- Table Header - Removed -->
                             <!-- <div class="grid grid-cols-[3fr_120px] gap-0 bg-gray-700/50 border-b border-gray-600/30">
                                 <div class="p-4">
@@ -273,7 +273,7 @@
                             </div> -->
 
                             @foreach($competitionMatches as $match)
-                            <div class="block hover:bg-gray-700/20 transition-colors duration-200 border-b border-gray-700/20 last:border-b-0 group">
+                            <div class="block hover:bg-[var(--bg-hover)] transition-colors duration-200 border-b border-[var(--border-secondary)] last:border-b-0 group">
                                 <div class="grid grid-cols-[3fr_120px] gap-0 items-center p-4">
                                     <!-- Players Column -->
                                     <div class="space-y-4">
@@ -281,7 +281,7 @@
                                         <div class="flex items-center justify-between">
                                             <div class="flex items-center gap-3 flex-1 min-w-0">
                                                 <!-- Sets won indicator -->
-                                                <div class="w-8 h-8 rounded bg-white/20 flex items-center justify-center text-xs font-bold text-white flex-shrink-0">
+                                                <div class="w-8 h-8 rounded bg-[var(--bg-accent)] flex items-center justify-center text-xs font-bold text-[var(--text-primary)] flex-shrink-0">
                                                     @php
                                                         $homeSetsWon = 0;
                                                         if(isset($match->sets) && is_array($match->sets)) {
@@ -297,10 +297,10 @@
                                                     @elseif($match->status === 'in_progress')
                                                         <span class="text-green-400">{{ $homeSetsWon }}</span>
                                                     @else
-                                                        <span class="text-gray-500">0</span>
+                                                        <span class="text-[var(--text-muted)]">0</span>
                                                     @endif
                                                 </div>
-                                                <div class="text-xs md:text-sm font-semibold text-white truncate">
+                                                <div class="text-xs md:text-sm font-semibold text-[var(--text-primary)] truncate">
                                                     @if($match->competition->is_team_based)
                                                         {{ $match->homeTeam?->name ?? 'Home Team' }}
                                                     @else
@@ -310,13 +310,13 @@
                                             </div>
                                             <div class="flex gap-1 ml-4">
                                                 @for($i = 1; $i <= 5; $i++)
-                                                <div class="w-6 text-center {{ $i < 5 ? 'border-r border-gray-600/30' : '' }}">
+                                                <div class="w-6 text-center {{ $i < 5 ? 'border-r border-[var(--border-secondary)]' : '' }}">
                                                     @if(isset($match->sets) && isset($match->sets[$i-1]))
-                                                        <span class="text-xs px-1 py-0.5 rounded {{ $match->sets[$i-1]['home_score'] > $match->sets[$i-1]['away_score'] ? 'bg-green-900/60 text-green-300 font-bold' : 'text-gray-400' }}">
+                                                        <span class="text-xs px-1 py-0.5 rounded {{ $match->sets[$i-1]['home_score'] > $match->sets[$i-1]['away_score'] ? 'bg-green-900/60 text-green-300 font-bold' : 'text-[var(--text-secondary)]' }}">
                                                             {{ $match->sets[$i-1]['home_score'] ?? 0 }}
                                                         </span>
                                                     @else
-                                                        <span class="text-xs px-1 py-0.5 rounded text-gray-600">-</span>
+                                                        <span class="text-xs px-1 py-0.5 rounded text-[var(--text-muted)]">-</span>
                                                     @endif
                                                 </div>
                                                 @endfor
@@ -327,7 +327,7 @@
                                         <div class="flex items-center justify-between">
                                             <div class="flex items-center gap-3 flex-1 min-w-0">
                                                 <!-- Sets won indicator -->
-                                                <div class="w-8 h-8 rounded bg-white/20 flex items-center justify-center text-xs font-bold text-white flex-shrink-0">
+                                                <div class="w-8 h-8 rounded bg-[var(--bg-accent)] flex items-center justify-center text-xs font-bold text-[var(--text-primary)] flex-shrink-0">
                                                     @php
                                                         $awaySetsWon = 0;
                                                         if(isset($match->sets) && is_array($match->sets)) {
@@ -343,10 +343,10 @@
                                                     @elseif($match->status === 'in_progress')
                                                         <span class="text-green-400">{{ $awaySetsWon }}</span>
                                                     @else
-                                                        <span class="text-gray-500">0</span>
+                                                        <span class="text-[var(--text-muted)]">0</span>
                                                     @endif
                                                 </div>
-                                                <div class="text-xs md:text-sm font-semibold text-white truncate">
+                                                <div class="text-xs md:text-sm font-semibold text-[var(--text-primary)] truncate">
                                                     @if($match->competition->is_team_based)
                                                         {{ $match->awayTeam?->name ?? 'Away Team' }}
                                                     @else
@@ -356,13 +356,13 @@
                                             </div>
                                             <div class="flex gap-1 ml-4">
                                                 @for($i = 1; $i <= 5; $i++)
-                                                <div class="w-6 text-center {{ $i < 5 ? 'border-r border-gray-600/30' : '' }}">
+                                                <div class="w-6 text-center {{ $i < 5 ? 'border-r border-[var(--border-secondary)]' : '' }}">
                                                     @if(isset($match->sets) && isset($match->sets[$i-1]))
-                                                        <span class="text-xs px-1 py-0.5 rounded {{ $match->sets[$i-1]['away_score'] > $match->sets[$i-1]['home_score'] ? 'bg-green-900/60 text-green-300 font-bold' : 'text-gray-400' }}">
+                                                        <span class="text-xs px-1 py-0.5 rounded {{ $match->sets[$i-1]['away_score'] > $match->sets[$i-1]['home_score'] ? 'bg-green-900/60 text-green-300 font-bold' : 'text-[var(--text-secondary)]' }}">
                                                             {{ $match->sets[$i-1]['away_score'] ?? 0 }}
                                                         </span>
                                                     @else
-                                                        <span class="text-xs px-1 py-0.5 rounded text-gray-600">-</span>
+                                                        <span class="text-xs px-1 py-0.5 rounded text-[var(--text-muted)]">-</span>
                                                     @endif
                                                 </div>
                                                 @endfor
@@ -373,7 +373,7 @@
                                         
                                         <!-- Table Assignment -->
                                         @if($match->table)
-                                        <div class="mt-2 flex items-center gap-2 text-xs text-gray-400">
+                                        <div class="mt-2 flex items-center gap-2 text-xs text-[var(--text-secondary)]">
                                             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
                                             </svg>
@@ -399,11 +399,11 @@
                                             </div>
                                         @else
                                             <div class="flex flex-col items-center space-y-1">
-                                                <div class="w-8 h-8 bg-gray-700/50 rounded-lg flex items-center justify-center">
-                                                    <div class="text-sm font-bold text-gray-500">-</div>
+                                                <div class="w-8 h-8 bg-[var(--bg-inactive)] rounded-lg flex items-center justify-center">
+                                                    <div class="text-sm font-bold text-[var(--text-muted)]">-</div>
                                                 </div>
-                                                <div class="w-8 h-8 bg-gray-700/50 rounded-lg flex items-center justify-center">
-                                                    <div class="text-sm font-bold text-gray-500">-</div>
+                                                <div class="w-8 h-8 bg-[var(--bg-inactive)] rounded-lg flex items-center justify-center">
+                                                    <div class="text-sm font-bold text-[var(--text-muted)]">-</div>
                                                 </div>
                                             </div>
                                         @endif
@@ -417,35 +417,35 @@
                 </div>
             @else
                 <!-- No Live Matches -->
-                <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-12 border border-gray-700/50 shadow-xl text-center">
+                <div class="bg-[var(--bg-card)] backdrop-blur-xl rounded-2xl p-12 border border-[var(--border-primary)] shadow-xl text-center">
                     <div class="text-6xl mb-4">🏓</div>
-                    <h2 class="text-2xl font-bold text-white mb-4">Nema Mečeva Uživo</h2>
-                    <p class="text-gray-400 mb-6">Trenutno nema mečeva koji se igraju uživo. Provjerite ponovo kasnije!</p>
-                    <div class="text-sm text-gray-500">
+                    <h2 class="text-2xl font-bold text-[var(--text-primary)] mb-4">Nema Mečeva Uživo</h2>
+                    <p class="text-[var(--text-secondary)] mb-6">Trenutno nema mečeva koji se igraju uživo. Provjerite ponovo kasnije!</p>
+                    <div class="text-sm text-[var(--text-muted)]">
                         Mečevi uživo će se automatski pojaviti ovdje kada počnu.
                     </div>
                 </div>
             @endif
 
             <!-- Footer -->
-            <div class="text-center mt-8 text-gray-400 text-sm">
+            <div class="text-center mt-8 text-[var(--text-secondary)] text-sm">
                 <p>Powered by TeamSphere • Real-time match updates</p>
             </div>
         </div>
     </div>
 
     <!-- Mobile Navigation Menu (Fixed Bottom) -->
-    <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-gray-800/95 backdrop-blur-xl border-t border-gray-700/50 shadow-2xl z-50">
+    <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-[var(--bg-nav)] backdrop-blur-xl border-t border-[var(--border-primary)] shadow-2xl z-50">
         <div class="flex items-center justify-between py-3 px-4 w-full">
-            <a href="{{ route('home') }}" class="flex flex-col items-center text-gray-300 hover:text-white transition-colors text-xs flex-1">
+            <a href="{{ route('home') }}" class="flex flex-col items-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors text-xs flex-1">
                 <span class="text-lg">🏠</span>
                 <span class="mt-1">Home</span>
             </a>
-            <a href="{{ route('public.live-matches') }}" class="flex flex-col items-center text-gray-300 hover:text-white transition-colors text-xs flex-1">
+            <a href="{{ route('public.live-matches') }}" class="flex flex-col items-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors text-xs flex-1">
                 <span class="text-lg">📺</span>
                 <span class="mt-1">Uživo</span>
             </a>
-            <a href="{{ route('public.leagues.index') }}" class="flex flex-col items-center text-gray-300 hover:text-white transition-colors text-xs flex-1">
+            <a href="{{ route('public.leagues.index') }}" class="flex flex-col items-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors text-xs flex-1">
                 <span class="text-lg">🏆</span>
                 <span class="mt-1">Takmičenja</span>
             </a>

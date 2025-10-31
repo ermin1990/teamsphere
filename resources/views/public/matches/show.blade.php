@@ -88,11 +88,11 @@
                 const awayScore = set.away_score ?? set.away ?? 0;
                 
                 const tr = document.createElement('tr');
-                tr.className = 'border-b border-gray-700/50';
+                tr.className = 'border-b border-[var(--border-secondary)]';
                 tr.innerHTML = `
-                    <td class="py-2 md:py-3 text-gray-300 font-medium text-xs md:text-sm">${index + 1}</td>
+                    <td class="py-2 md:py-3 text-[var(--text-secondary)] font-medium text-xs md:text-sm">${index + 1}</td>
                     <td class="py-2 md:py-3 text-blue-400 font-bold text-sm md:text-lg">${homeScore}</td>
-                    <td class="py-2 md:py-3 text-gray-400 text-xs md:text-sm">-</td>
+                    <td class="py-2 md:py-3 text-[var(--text-muted)] text-xs md:text-sm">-</td>
                     <td class="py-2 md:py-3 text-red-400 font-bold text-sm md:text-lg">${awayScore}</td>
                 `;
                 tbody.appendChild(tr);
@@ -111,18 +111,18 @@
 
 @section('content')
             <!-- Header -->
-            <div class="bg-gray-800/50 backdrop-blur-xl rounded-xl p-4 border border-gray-700/50 shadow-xl mb-6">
+            <div class="bg-[var(--bg-card)] backdrop-blur-xl rounded-xl p-4 border border-[var(--border-primary)] shadow-xl mb-6">
                 <div class="text-center">
-                    <div class="text-xs text-gray-400 mb-2">{{ $competition->sport->name }} • {{ $competition->name }}</div>
+                    <div class="text-xs text-[var(--text-secondary)] mb-2">{{ $competition->sport->name }} • {{ $competition->name }}</div>
                     <h1 class="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent mb-1">
                         Detalji Meča
                     </h1>
-                    <p class="text-sm text-gray-400 mb-3">Kolo {{ $match->round_number ?? $match->round }}</p>
+                    <p class="text-sm text-[var(--text-secondary)] mb-3">Kolo {{ $match->round_number ?? $match->round }}</p>
                     
                     <!-- Match Info -->
                     <div class="flex flex-wrap justify-center gap-2">
                         @if($match->table)
-                        <div class="flex items-center gap-1.5 text-xs text-gray-300 bg-gray-700/30 px-3 py-1.5 rounded-lg">
+                        <div class="flex items-center gap-1.5 text-xs text-[var(--text-primary)] bg-[var(--bg-tertiary)] px-3 py-1.5 rounded-lg">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
                             </svg>
@@ -131,7 +131,7 @@
                         @endif
                         
                         @if($match->referee)
-                        <div class="flex items-center gap-1.5 text-xs text-gray-300 bg-gray-700/30 px-3 py-1.5 rounded-lg">
+                        <div class="flex items-center gap-1.5 text-xs text-[var(--text-primary)] bg-[var(--bg-tertiary)] px-3 py-1.5 rounded-lg">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                             </svg>
@@ -148,7 +148,7 @@
             <!-- Back to League -->
             <div class="text-center mt-8 mb-20 md:mb-8">
                 <a href="{{ route('public.leagues.show', $competition) }}"
-                   class="inline-flex items-center px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors">
+                   class="inline-flex items-center px-6 py-3 bg-[var(--bg-button)] hover:bg-[var(--bg-button-hover)] text-[var(--text-primary)] rounded-lg transition-colors">
                     ← Back to League
                 </a>
             </div>
@@ -156,17 +156,17 @@
     </div>
 
     <!-- Mobile Navigation Menu (Fixed Bottom) -->
-    <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-gray-800/95 backdrop-blur-xl border-t border-gray-700/50 shadow-2xl z-50">
+    <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-[var(--bg-nav)] backdrop-blur-xl border-t border-[var(--border-primary)] shadow-2xl z-50">
         <div class="flex items-center justify-between py-3 px-4 w-full">
-            <a href="{{ route('home') }}" class="flex flex-col items-center text-gray-300 hover:text-white transition-colors text-xs flex-1">
+            <a href="{{ route('home') }}" class="flex flex-col items-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors text-xs flex-1">
                 <span class="text-lg">🏠</span>
                 <span class="mt-1">Home</span>
             </a>
-            <a href="{{ route('public.live-matches') }}" class="flex flex-col items-center text-gray-300 hover:text-white transition-colors text-xs flex-1">
+            <a href="{{ route('public.live-matches') }}" class="flex flex-col items-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors text-xs flex-1">
                 <span class="text-lg">📺</span>
                 <span class="mt-1">Live</span>
             </a>
-            <a href="{{ route('public.leagues.index') }}" class="flex flex-col items-center text-gray-300 hover:text-white transition-colors text-xs flex-1">
+            <a href="{{ route('public.leagues.index') }}" class="flex flex-col items-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors text-xs flex-1">
                 <span class="text-lg">🏆</span>
                 <span class="mt-1">Takmičenja</span>
             </a>
