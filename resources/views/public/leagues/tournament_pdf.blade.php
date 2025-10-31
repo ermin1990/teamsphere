@@ -79,8 +79,7 @@
     <div class="max-w-3xl mx-auto pt-16">
         <!-- Tournament Header -->
         <div class="text-center mb-6 tournament-header">
-            <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-2">{{ $competition->name }}</h1>
-            <p class="text-lg text-gray-600">{{ $competition->organization->name ?? 'TeamSphere' }}</p>
+            <p class="text-lg text-gray-600">{{ $competition->organization->name ?? 'TeamSphere' }} - {{ $competition->name }}</p>
             <p class="text-sm text-gray-500 mt-2">
                 @if($competition->start_date)
                     {{ \Carbon\Carbon::parse($competition->start_date)->format('d.m.Y') }}
@@ -94,7 +93,6 @@
     <!-- Groups Section -->
     @if($hasGroupMatches)
     <div class="mb-8">
-        <h2 class="text-2xl font-bold text-gray-900 mb-6 border-b-2 border-gray-300 pb-2 section-header">🏆 Grupna faza</h2>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 groups-grid">
             @foreach($competition->tournamentGroups as $group)
@@ -201,7 +199,6 @@
     <!-- Knockout Section -->
     @if($hasKnockoutMatches)
     <div class="mb-8 knockout-section">
-        <h2 class="text-2xl font-bold text-gray-900 mb-6 border-b-2 border-gray-300 pb-2 section-header">🏅 Eliminaciona faza</h2>
 
         @php
             $totalRounds = $knockoutMatches->count();
