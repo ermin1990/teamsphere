@@ -94,7 +94,7 @@
         <!-- Groups Tab Content -->
         <div id="groups-content" class="tab-content mt-4 md:mt-6 {{ !$showGroupsTab ? 'hidden' : '' }}">
             @if($hasGroupMatches)
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+            <div class="grid grid-cols-2 gap-4 md:gap-6">
                 @foreach($competition->tournamentGroups as $group)
                 @php
                     $currentGroupMatches = $groupMatches->get($group->id) ?? collect();
@@ -114,10 +114,10 @@
                         <!-- Table Header -->
                                                 <div class="grid grid-cols-12 gap-2 mb-2 text-xs text-[var(--text-tertiary)] font-medium px-2">
                             <div class="col-span-6"></div>
-                            <div class="col-span-1 text-center">Pob</div>
-                            <div class="col-span-1 text-center">Por</div>
-                            <div class="col-span-1 text-center">Set ±</div>
-                            <div class="col-span-2 text-center">Bod</div>
+                            <div class="col-span-1 text-center">P</div>
+                            <div class="col-span-1 text-center">I</div>
+                            <div class="col-span-1 text-center">Set±</div>
+                            <div class="col-span-2 text-center">B</div>
                         </div>
 
                         <!-- Table Rows -->
@@ -196,7 +196,7 @@
                                                     <span class="text-[var(--text-muted)]">-</span>
                                                 @endif
                                             </div>
-                                            <div class="text-sm font-semibold text-[var(--text-primary)] truncate">
+                                            <div class="text-sm font-semibold {{ $homeSetsWon > $awaySetsWon ? 'font-bold' : '' }} text-[var(--text-primary)] truncate">
                                                 {{ $match->homePlayer->name ?? 'Home Player' }}
                                             </div>
                                         </div>
@@ -231,7 +231,7 @@
                                                     <span class="text-[var(--text-muted)]">-</span>
                                                 @endif
                                             </div>
-                                            <div class="text-sm font-semibold text-[var(--text-primary)] truncate">
+                                            <div class="text-sm font-semibold {{ $awaySetsWon > $homeSetsWon ? 'font-bold' : '' }} text-[var(--text-primary)] truncate">
                                                 {{ $match->awayPlayer->name ?? 'Away Player' }}
                                             </div>
                                         </div>
@@ -322,7 +322,7 @@
                                                         <span class="text-[var(--text-muted)]">-</span>
                                                     @endif
                                                 </div>
-                                                <div class="text-xs md:text-sm font-semibold text-[var(--text-primary)] truncate flex-1 min-w-0">
+                                                <div class="text-xs md:text-sm font-semibold {{ $homeSetsWon > $awaySetsWon ? 'font-bold' : '' }} text-[var(--text-primary)] truncate flex-1 min-w-0">
                                                     {{ $match->homePlayer->name ?? 'Home Player' }}
                                                 </div>
                                                 <!-- Sets -->
@@ -358,7 +358,7 @@
                                                         <span class="text-[var(--text-muted)]">-</span>
                                                     @endif
                                                 </div>
-                                                <div class="text-xs md:text-sm font-semibold text-[var(--text-primary)] truncate flex-1 min-w-0">
+                                                <div class="text-xs md:text-sm font-semibold {{ $awaySetsWon > $homeSetsWon ? 'font-bold' : '' }} text-[var(--text-primary)] truncate flex-1 min-w-0">
                                                     {{ $match->awayPlayer->name ?? 'Away Player' }}
                                                 </div>
                                                 <!-- Sets -->
@@ -790,6 +790,8 @@
                 showTournamentTab('groups');
             @elseif($showKnockoutTab)
                 showTournamentTab('knockout');
+            @elseif($showPdfTab)
+                showTournamentTab('pdf');
             @endif
         });
     </script>
