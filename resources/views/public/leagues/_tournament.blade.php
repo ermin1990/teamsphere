@@ -525,7 +525,7 @@
                             @if($matchesInRound > 0 || ($round === $totalRounds && $totalRounds > 1))
                             <div class="flex flex-col justify-center gap-2" style="gap: 3px;">
                                 {{-- Round Header --}}
-                                <div class="text-center mb-4">
+                                <div class="text-center" style="margin-bottom: 3px;">
                                     <h4 class="text-sm md:text-base font-bold text-[var(--text-primary)] uppercase tracking-wider">
                                         {{ $roundName }}
                                     </h4>
@@ -560,8 +560,8 @@
                                         }
                                     @endphp
 
-                                    <div class="block bg-[var(--bg-tertiary)] hover:bg-[var(--bg-tertiary)] rounded-lg pt-4 mt-2 mb-2 transition-all duration-200 hover:scale-[1.02] border border-[var(--border-primary)]"
-                                         data-match-id="{{ $match->id }}">
+                                    <div class="block bg-[var(--bg-tertiary)] hover:bg-[var(--bg-tertiary)] rounded-lg transition-all duration-200 hover:scale-[1.02] border border-[var(--border-primary)]"
+                                         data-match-id="{{ $match->id }}" style="padding-top: 3px; margin-top: 3px; margin-bottom: 3px;">
                                         @if($match->status === 'in_progress' && !$match->is_bye)
                                         <div class="text-center mb-2">
                                             <span class="text-red-400 font-semibold text-xs uppercase tracking-wider">Live</span>
@@ -569,7 +569,7 @@
                                         @endif
 
                                         <!-- Match Players -->
-                                        <div class="px-3 md:px-4 pb-3 md:pb-4">
+                                        <div class="px-3 md:px-4" style="padding-bottom: 3px;">
                                             <!-- Home Player -->
                                             <div class="flex items-center justify-between mb-2">
                                                 <div class="flex items-center gap-2 flex-1 min-w-0">
