@@ -188,15 +188,15 @@ Route::middleware('auth')->group(function () {
         return view('live-score-page', ['match' => $match]);
     })->name('leagues.live-score');
     
-    Route::get('competitions/matches/{match}/live-score', function($matchId) {
-        $match = \App\Models\CompetitionMatch::with([
+    Route::get('competitions/matches/{match}/live-score', function(\App\Models\CompetitionMatch $match) {
+        $match->load([
             'competition.organization',
             'league.organization',
             'homeTeam.players',
             'awayTeam.players',
             'homePlayer',
             'awayPlayer'
-        ])->findOrFail($matchId);
+        ]);
         return view('live-score-page', ['match' => $match]);
     })->name('competitions.live-score');
     

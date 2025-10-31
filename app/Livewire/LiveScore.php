@@ -760,9 +760,9 @@ class LiveScore extends Component
         $awaySetsWon = 0;
 
         foreach ($this->sets as $set) {
-            if ($set['home_score'] > $set['away_score']) {
+            if (($set['home_score'] ?? $set['home'] ?? 0) > ($set['away_score'] ?? $set['away'] ?? 0)) {
                 $homeSetsWon++;
-            } elseif ($set['away_score'] > $set['home_score']) {
+            } elseif (($set['away_score'] ?? $set['away'] ?? 0) > ($set['home_score'] ?? $set['home'] ?? 0)) {
                 $awaySetsWon++;
             }
         }
@@ -785,9 +785,9 @@ class LiveScore extends Component
         $awaySetsWon = 0;
 
         foreach ($this->sets as $set) {
-            if ($set['home_score'] > $set['away_score']) {
+            if (($set['home_score'] ?? $set['home'] ?? 0) > ($set['away_score'] ?? $set['away'] ?? 0)) {
                 $homeSetsWon++;
-            } elseif ($set['away_score'] > $set['home_score']) {
+            } elseif (($set['away_score'] ?? $set['away'] ?? 0) > ($set['home_score'] ?? $set['home'] ?? 0)) {
                 $awaySetsWon++;
             }
         }
@@ -862,9 +862,9 @@ class LiveScore extends Component
         $awaySetsWon = 0;
 
         foreach ($this->sets as $set) {
-            if ($set['home_score'] > $set['away_score']) {
+            if (($set['home_score'] ?? $set['home'] ?? 0) > ($set['away_score'] ?? $set['away'] ?? 0)) {
                 $homeSetsWon++;
-            } elseif ($set['away_score'] > $set['home_score']) {
+            } elseif (($set['away_score'] ?? $set['away'] ?? 0) > ($set['home_score'] ?? $set['home'] ?? 0)) {
                 $awaySetsWon++;
             }
         }
