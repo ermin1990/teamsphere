@@ -876,12 +876,12 @@ class LiveScore extends Component
                 'homeSetsWon' => $homeSetsWon,
                 'awaySetsWon' => $awaySetsWon,
                 'setsToWin' => $setsToWin,
-                'winner' => $homeSetsWon >= $setsToWin ? 'home' : 'away',
+                'winner' => $homeSetsWon > $awaySetsWon ? 'home' : 'away',
                 'sets' => $this->sets
             ]);
             
             $this->dispatch('match-won', [
-                'winner' => $homeSetsWon >= $setsToWin ? 'home' : 'away',
+                'winner' => $homeSetsWon > $awaySetsWon ? 'home' : 'away',
                 'homeSets' => $homeSetsWon,
                 'awaySets' => $awaySetsWon,
                 'setsToWin' => $setsToWin,
