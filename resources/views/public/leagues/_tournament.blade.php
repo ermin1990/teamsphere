@@ -6,6 +6,46 @@
             color: var(--accent-blue) !important;
             font-weight: 600 !important;
         }
+
+        /* PDF Print Styles */
+        @media print {
+            .tab-button, nav, .border-b, .mb-6 {
+                display: none !important;
+            }
+
+            #pdf-content {
+                display: block !important;
+            }
+
+            body {
+                background: white !important;
+                color: black !important;
+            }
+
+            .break-inside-avoid {
+                page-break-inside: avoid;
+            }
+
+            h1, h2, h3, h4 {
+                color: black !important;
+            }
+
+            table {
+                border-collapse: collapse;
+                width: 100%;
+            }
+
+            th, td {
+                border: 1px solid #ccc;
+                padding: 8px;
+                text-align: left;
+            }
+
+            th {
+                background-color: #f5f5f5 !important;
+                -webkit-print-color-adjust: exact;
+            }
+        }
     </style>
     @php
         // Use already loaded matches from controller instead of re-querying
@@ -29,6 +69,7 @@
         // Always show both phases if they exist - no need to determine "active" phase
         $showGroupsTab = $hasGroupMatches;
         $showKnockoutTab = $hasKnockoutMatches;
+        $showPdfTab = $hasGroupMatches || $hasKnockoutMatches;
     @endphp
 
     <!-- Tournament Tabs -->
@@ -45,6 +86,12 @@
                 <button onclick="showTournamentTab('knockout')" id="knockout-tab"
                         class="tab-button border-b-2 py-2 px-1 text-sm md:text-base font-medium transition-colors" style="border-color: transparent; color: var(--text-tertiary);">
                     🏅 Eliminaciona faza
+                </button>
+                @endif
+                @if($showPdfTab)
+                <button onclick="showTournamentTab('pdf')" id="pdf-tab"
+                        class="tab-button border-b-2 py-2 px-1 text-sm md:text-base font-medium transition-colors" style="border-color: transparent; color: var(--text-tertiary);">
+                    📄 PDF Export
                 </button>
                 @endif
             </nav>
@@ -664,7 +711,270 @@
             </div>
         </div>
         @endif
-    </div>
+
+        <!-- PDF Export Tab Content -->
+        @if($showPdfTab)
+        <div id="pdf-content" class="tab-content mt-4 md:mt-6 pb-16 md:pb-24 hidden">
+            <div class="max-w-4xl mx-auto">
+                <!-- Tournament Header -->
+                <div class="text-center mb-8">
+                    <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-2">{{ $competition->name }}</h1>
+                    <p class="text-lg text-gray-600">{{ $competition->organization->name ?? 'TeamSphere' }}</p>
+                    <p class="text-sm text-gray-500 mt-2">
+                        @if($competition->start_date)
+                            {{ \Carbon\Carbon::parse($competition->start_date)->format('d.m.Y') }}
+                            @if($competition->end_date && $competition->end_date != $competition->start_date)
+                                - {{ \Carbon\Carbon::parse($competition->end_date)->format('d.m.Y') }}
+                            @endif
+                        @endif
+                    </p>
+                </div>
+
+                <!-- Groups Section -->
+                @if($hasGroupMatches)
+                <div class="mb-12">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-6 border-b-2 border-gray-300 pb-2">🏆 Grupna faza</h2>
+
+                    @foreach($competition->tournamentGroups as $group)
+                    @php
+                        $currentGroupMatches = $groupMatches->get($group->id) ?? collect();
+                        $groupStandings = $group->standings()->with('player')->orderBy('position')->get();
+                        $advancingPlayers = $competition->players_advancing_per_group ?? 2;
+                    @endphp
+
+                    @if($currentGroupMatches->count() > 0)
+                    <div class="mb-8 break-inside-avoid">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-4">{{ $group->name }}</h3>
+
+                        <!-- Group Standings Table -->
+                        @if($groupStandings->count() > 0)
+                        <div class="mb-6">
+                            <h4 class="text-lg font-medium text-gray-700 mb-3">Tabela</h4>
+                            <div class="overflow-hidden border border-gray-300 rounded">
+                                <table class="w-full text-sm">
+                                    <thead class="bg-gray-100">
+                                        <tr>
+                                            <th class="px-4 py-2 text-left font-semibold text-gray-700">#</th>
+                                            <th class="px-4 py-2 text-left font-semibold text-gray-700">Igrač</th>
+                                            <th class="px-4 py-2 text-center font-semibold text-gray-700">Pob</th>
+                                            <th class="px-4 py-2 text-center font-semibold text-gray-700">Por</th>
+                                            <th class="px-4 py-2 text-center font-semibold text-gray-700">Set ±</th>
+                                            <th class="px-4 py-2 text-center font-semibold text-gray-700">Bod</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($groupStandings as $index => $standing)
+                                        <tr class="{{ $index < $advancingPlayers ? 'bg-green-50' : 'bg-white' }} border-t border-gray-200">
+                                            <td class="px-4 py-2 text-center font-medium">{{ $index + 1 }}</td>
+                                            <td class="px-4 py-2 font-medium">{{ $standing->player->name }}</td>
+                                            <td class="px-4 py-2 text-center">{{ $standing->won ?? 0 }}</td>
+                                            <td class="px-4 py-2 text-center">{{ $standing->lost ?? 0 }}</td>
+                                            <td class="px-4 py-2 text-center">{{ ($standing->sets_won ?? 0) - ($standing->sets_lost ?? 0) }}</td>
+                                            <td class="px-4 py-2 text-center font-semibold">{{ $standing->points ?? 0 }}</td>
+                                        </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        @endif
+
+                        <!-- Group Matches -->
+                        <div>
+                            <h4 class="text-lg font-medium text-gray-700 mb-3">Mečevi</h4>
+                            <div class="space-y-3">
+                                @foreach($currentGroupMatches as $match)
+                                @php
+                                    $homeSetsWon = 0;
+                                    $awaySetsWon = 0;
+                                    if($match->played_at) {
+                                        if(isset($match->sets) && is_array($match->sets) && count($match->sets) > 0) {
+                                            foreach($match->sets as $set) {
+                                                if(($set['home_score'] ?? 0) > ($set['away_score'] ?? 0)) {
+                                                    $homeSetsWon++;
+                                                }
+                                                if(($set['away_score'] ?? 0) > ($set['home_score'] ?? 0)) {
+                                                    $awaySetsWon++;
+                                                }
+                                            }
+                                        } elseif ($match->status === 'completed') {
+                                            $homeSetsWon = $match->home_score ?? 0;
+                                            $awaySetsWon = $match->away_score ?? 0;
+                                        }
+                                    }
+                                @endphp
+
+                                <div class="border border-gray-300 rounded p-4 bg-white">
+                                    <div class="flex justify-between items-center mb-2">
+                                        <div class="flex items-center space-x-3">
+                                            <span class="font-semibold text-gray-900">{{ $match->homePlayer->name ?? 'Home Player' }}</span>
+                                            <span class="text-sm text-gray-600">vs</span>
+                                            <span class="font-semibold text-gray-900">{{ $match->awayPlayer->name ?? 'Away Player' }}</span>
+                                        </div>
+                                        <div class="text-sm text-gray-600">
+                                            @if($match->status === 'completed')
+                                                Završen
+                                            @elseif($match->status === 'in_progress')
+                                                U toku
+                                            @else
+                                                Zakazan
+                                            @endif
+                                        </div>
+                                    </div>
+
+                                    <div class="flex justify-between items-center">
+                                        <div class="text-sm">
+                                            <span class="font-medium">{{ $homeSetsWon }}</span> - <span class="font-medium">{{ $awaySetsWon }}</span>
+                                        </div>
+                                        @if(isset($match->sets) && is_array($match->sets) && count($match->sets) > 0)
+                                        <div class="text-xs text-gray-600">
+                                            Setovi: {{ collect($match->sets)->map(function($set) {
+                                                $home = $set['home_score'] ?? $set['home'] ?? 0;
+                                                $away = $set['away_score'] ?? $set['away'] ?? 0;
+                                                return $home . '-' . $away;
+                                            })->join(', ') }}
+                                        </div>
+                                        @endif
+                                    </div>
+                                </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
+                    @endif
+                    @endforeach
+                </div>
+                @endif
+
+                <!-- Knockout Section -->
+                @if($hasKnockoutMatches)
+                <div class="mb-12">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-6 border-b-2 border-gray-300 pb-2">🏅 Eliminaciona faza</h2>
+
+                    @php
+                        $totalRounds = $knockoutMatches->count();
+                        $firstRoundMatches = $knockoutMatches->get(1) ?? collect();
+                        $numPlayers = $firstRoundMatches->count() * 2;
+
+                        // Check if tournament is completed and get winner
+                        $finalMatch = $knockoutMatches->get($totalRounds)?->first();
+                        $winner = null;
+                        if ($finalMatch && $finalMatch->status === 'completed') {
+                            $winner = $finalMatch->home_score > $finalMatch->away_score
+                                ? $finalMatch->homePlayer
+                                : $finalMatch->awayPlayer;
+                        }
+                    @endphp
+
+                    <!-- Winner Display -->
+                    @if($winner)
+                    <div class="text-center mb-8 p-6 bg-yellow-50 border border-yellow-200 rounded">
+                        <h3 class="text-xl font-bold text-yellow-800 mb-2">🏆 Šampion turnira</h3>
+                        <p class="text-2xl font-black text-gray-900">{{ $winner->name }}</p>
+                    </div>
+                    @endif
+
+                    <!-- Knockout Rounds -->
+                    <div class="space-y-8">
+                        @for($round = 1; $round <= $totalRounds; $round++)
+                        @php
+                            $roundMatches = $knockoutMatches->get($round) ?? collect();
+
+                            if ($roundMatches->count() == 1 && $round === $totalRounds) {
+                                $roundName = 'Finale';
+                            } elseif ($roundMatches->count() == 1) {
+                                $roundName = 'Polufinale';
+                            } else {
+                                $roundName = '1/' . $roundMatches->count() . ' Finala';
+                            }
+                        @endphp
+
+                        @if($roundMatches->count() > 0)
+                        <div class="break-inside-avoid">
+                            <h3 class="text-xl font-semibold text-gray-800 mb-4">{{ $roundName }}</h3>
+
+                            <div class="space-y-3">
+                                @foreach($roundMatches as $match)
+                                @php
+                                    $homeSetsWon = 0;
+                                    $awaySetsWon = 0;
+                                    $homeFinalScore = $match->home_score ?? 0;
+                                    $awayFinalScore = $match->away_score ?? 0;
+
+                                    if(isset($match->sets) && is_array($match->sets) && count($match->sets) > 0) {
+                                        foreach($match->sets as $set) {
+                                            $homeSetScore = $set['home_score'] ?? $set['home'] ?? 0;
+                                            $awaySetScore = $set['away_score'] ?? $set['away'] ?? 0;
+                                            if($homeSetScore > $awaySetScore) {
+                                                $homeSetsWon++;
+                                            } elseif($awaySetScore > $homeSetScore) {
+                                                $awaySetsWon++;
+                                            }
+                                        }
+                                    }
+
+                                    if($match->status === 'completed' && $homeSetsWon === 0 && $awaySetsWon === 0) {
+                                        $homeSetsWon = $homeFinalScore;
+                                        $awaySetsWon = $awayFinalScore;
+                                    }
+                                @endphp
+
+                                <div class="border border-gray-300 rounded p-4 bg-white">
+                                    <div class="flex justify-between items-center">
+                                        <div class="flex-1">
+                                            <div class="flex items-center justify-between mb-2">
+                                                <span class="font-semibold text-gray-900 {{ ($homeSetsWon > $awaySetsWon) && ($homeSetsWon > 0 || $awaySetsWon > 0) ? 'text-green-700' : 'text-gray-900' }}">
+                                                    {{ $match->homePlayer->name ?? 'NEMA PROTIVNIKA' }}
+                                                </span>
+                                                <span class="font-bold text-gray-700">{{ $homeSetsWon }}</span>
+                                            </div>
+                                            <div class="flex items-center justify-between">
+                                                <span class="font-semibold text-gray-900 {{ ($awaySetsWon > $homeSetsWon) && ($homeSetsWon > 0 || $awaySetsWon > 0) ? 'text-green-700' : 'text-gray-900' }}">
+                                                    {{ $match->awayPlayer->name ?? 'NEMA PROTIVNIKA' }}
+                                                </span>
+                                                <span class="font-bold text-gray-700">{{ $awaySetsWon }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    @if(isset($match->sets) && is_array($match->sets) && count($match->sets) > 0)
+                                    <div class="mt-3 pt-3 border-t border-gray-200">
+                                        <div class="text-sm text-gray-600">
+                                            <div class="grid grid-cols-5 gap-2 text-center">
+                                                @for($i = 1; $i <= 5; $i++)
+                                                @if(isset($match->sets[$i-1]))
+                                                    @php
+                                                        $homeScore = $match->sets[$i-1]['home_score'] ?? $match->sets[$i-1]['home'] ?? 0;
+                                                        $awayScore = $match->sets[$i-1]['away_score'] ?? $match->sets[$i-1]['away'] ?? 0;
+                                                    @endphp
+                                                    <div class="text-xs">
+                                                        <div class="font-medium">{{ $homeScore }}-{{ $awayScore }}</div>
+                                                    </div>
+                                                @else
+                                                    <div class="text-xs text-gray-400">-</div>
+                                                @endif
+                                                @endfor
+                                            </div>
+                                        </div>
+                                    </div>
+                                    @endif
+                                </div>
+                                @endforeach
+                            </div>
+                        </div>
+                        @endif
+                        @endfor
+                    </div>
+                </div>
+                @endif
+
+                <!-- Footer -->
+                <div class="text-center text-sm text-gray-500 mt-12 pt-8 border-t border-gray-300">
+                    <p>Generisano od strane TeamSphere - {{ now()->format('d.m.Y H:i') }}</p>
+                </div>
+            </div>
+        </div>
+        @endif
 
     <script>
     // Knockout bracket zoom logic
@@ -738,6 +1048,8 @@
                 showTournamentTab('groups');
             @elseif($showKnockoutTab)
                 showTournamentTab('knockout');
+            @elseif($showPdfTab)
+                showTournamentTab('pdf');
             @endif
         });
     </script>
