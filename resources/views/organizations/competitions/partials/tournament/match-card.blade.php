@@ -72,7 +72,9 @@
                     ✏️ {{ __('Edit') }}
                 </a>
                 <a href="{{ $isRefereeForMatch($match) ? route('referee.competition.match.live', [$match]) : route('competitions.live-score', [$match->id]) }}" 
-                   class="bg-green-600 hover:bg-green-700 text-white text-[10px] px-2 py-1 rounded transition-colors text-center whitespace-nowrap">
+                   class="bg-gray-600 text-gray-400 text-[10px] px-2 py-1 rounded text-center whitespace-nowrap cursor-not-allowed opacity-50"
+                   disabled
+                   title="Live unos rezultata je trenutno onemogućen">
                     ▶️ {{ __('Live') }}
                 </a>
                 <button onclick="openQuickResultModal({{ $match->id }}, '{{ $match->homePlayer->name ?? 'TBD' }}', '{{ $match->awayPlayer->name ?? 'TBD' }}')"
