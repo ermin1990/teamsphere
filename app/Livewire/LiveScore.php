@@ -871,6 +871,15 @@ class LiveScore extends Component
 
         if ($homeSetsWon >= $setsToWin || $awaySetsWon >= $setsToWin) {
             // Match is won, show confirmation and end match
+            \Log::info('Match won detected', [
+                'match_id' => $this->match->id,
+                'homeSetsWon' => $homeSetsWon,
+                'awaySetsWon' => $awaySetsWon,
+                'setsToWin' => $setsToWin,
+                'winner' => $homeSetsWon >= $setsToWin ? 'home' : 'away',
+                'sets' => $this->sets
+            ]);
+            
             $this->dispatch('match-won', [
                 'winner' => $homeSetsWon >= $setsToWin ? 'home' : 'away',
                 'homeSets' => $homeSetsWon,
