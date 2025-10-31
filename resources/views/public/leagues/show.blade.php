@@ -1,247 +1,17 @@
-<!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
+@extends('layouts.public')
 
-    <title>{{ $competition->name }} - {{ $organization->name }}</title>
+@section('title', $competition->name . ' - ' . $organization->name)
 
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
-
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-
-    <!-- Scripts -->
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-
-    <script>
-        function updateCompetitionMatches() {
-            fetch('{{ route("public.api.live-matches") }}')
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        // Filter matches for this specific competition
-                        const competitionData = data.data.find(comp => comp.competition.id === {{ $competition->id }});
-                        if (competitionData) {
-                            updateLiveMatchesSection(competitionData.matches);
-                        }
-                    }
-                })
-                .catch(error => {
-                    // Silent error handling
-                });
-        }
-
-        function updateLiveMatchesSection(matchesData) {
-            matchesData.forEach(match => {
-                // Find match by ID in rounds section
-                const roundMatchElements = document.querySelectorAll(`a[href*="/matches/${match.id}"]`);
-                roundMatchElements.forEach(matchElement => {
-
-                    // Update sets won indicators in white squares
-                    const homeSetsSquare = matchElement.querySelector('.flex.items-center.justify-between:first-child .w-8.h-8.rounded.bg-white\\/20 .text-xs.font-bold, .flex.items-center.justify-between:first-child .w-8.h-8.rounded.bg-white\\/20 span');
-                    const awaySetsSquare = matchElement.querySelector('.flex.items-center.justify-between:nth-child(2) .w-8.h-8.rounded.bg-white\\/20 .text-xs.font-bold, .flex.items-center.justify-between:nth-child(2) .w-8.h-8.rounded.bg-white\\/20 span');
-
-                    // Calculate sets won by counting sets where player has higher score
-                    let homeSetsWon = 0;
-                    let awaySetsWon = 0;
-
-                    if (match.sets && match.sets.length > 0) {
-                        match.sets.forEach(set => {
-                            const homeScore = set.home_score ?? 0;
-                            const awayScore = set.away_score ?? 0;
-                            if (homeScore > awayScore) {
-                                homeSetsWon++;
-                            } else if (awayScore > homeScore) {
-                                awaySetsWon++;
-                            }
-                        });
-                    }
-
-                    if (homeSetsSquare) {
-                        const newScore = homeSetsWon;
-                        if (match.status === 'in_progress') {
-                            homeSetsSquare.innerHTML = `<span class="text-green-400">${newScore}</span>`;
-                        } else if (match.status === 'completed') {
-                            homeSetsSquare.innerHTML = newScore;
-                        } else {
-                            homeSetsSquare.innerHTML = `<span class="text-gray-500">0</span>`;
-                        }
-                    }
-
-                    if (awaySetsSquare) {
-                        const newScore = awaySetsWon;
-                        if (match.status === 'in_progress') {
-                            awaySetsSquare.innerHTML = `<span class="text-green-400">${newScore}</span>`;
-                        } else if (match.status === 'completed') {
-                            awaySetsSquare.innerHTML = newScore;
-                        } else {
-                            awaySetsSquare.innerHTML = `<span class="text-gray-500">0</span>`;
-                        }
-                    }
-
-                    // Update set scores
-                    if (match.sets && match.sets.length > 0) {
-
-                        // Find the players column div
-                        const playersColumn = matchElement.querySelector('.space-y-4');
-                        if (!playersColumn) {
-                            return;
-                        }
-
-                        // Find all set score containers (both home and away rows)
-                        const setContainers = playersColumn.querySelectorAll('.flex.gap-1.ml-4');
-
-                        if (setContainers.length >= 2) {
-                            // Home player sets (first container)
-                            const homeSetDivs = setContainers[0].querySelectorAll('.w-6.text-center');
-                            
-                            homeSetDivs.forEach((div, index) => {
-                                const span = div.querySelector('span');
-                                if (!span) return;
-                                
-                                if (index < match.sets.length) {
-                                    const set = match.sets[index];
-                                    const homeScore = set.home_score ?? 0;
-                                    const awayScore = set.away_score ?? 0;
-                                    span.textContent = homeScore;
-                                    span.className = `text-xs px-1 py-0.5 rounded ${homeScore > awayScore ? 'bg-green-900/60 text-green-300 font-bold' : 'text-gray-400'}`;
-                                } else {
-                                    span.textContent = '-';
-                                    span.className = 'text-xs px-1 py-0.5 rounded text-gray-600';
-                                }
-                            });
-
-                            // Away player sets (second container)
-                            const awaySetDivs = setContainers[1].querySelectorAll('.w-6.text-center');
-                            
-                            awaySetDivs.forEach((div, index) => {
-                                const span = div.querySelector('span');
-                                if (!span) return;
-                                
-                                if (index < match.sets.length) {
-                                    const set = match.sets[index];
-                                    const homeScore = set.home_score ?? 0;
-                                    const awayScore = set.away_score ?? 0;
-                                    span.textContent = awayScore;
-                                    span.className = `text-xs px-1 py-0.5 rounded ${awayScore > homeScore ? 'bg-green-900/60 text-green-300 font-bold' : 'text-gray-400'}`;
-                                } else {
-                                    span.textContent = '-';
-                                    span.className = 'text-xs px-1 py-0.5 rounded text-gray-600';
-                                }
-                            });
-
-                        }
-                    }
-
-                    // Update current set scores in green boxes
-                    const currentScoreContainer = matchElement.querySelector('.flex.flex-col.items-start.justify-center.space-y-1.pl-4');
-                    if (currentScoreContainer) {
-                        const scoreBoxes = currentScoreContainer.querySelectorAll('.w-8.h-8');
-                        if (match.status === 'in_progress') {
-                            // Update home score box - green and glowing for live match
-                            if (scoreBoxes[0]) {
-                                scoreBoxes[0].className = 'w-8 h-8 bg-green-900/80 rounded-lg flex items-center justify-center';
-                                const homeScoreDiv = scoreBoxes[0].querySelector('.text-sm.font-bold') || scoreBoxes[0].querySelector('div');
-                                if (homeScoreDiv) {
-                                    homeScoreDiv.textContent = match.home_score ?? 0;
-                                    homeScoreDiv.className = 'text-sm font-bold text-green-300';
-                                }
-                            }
-                            // Update away score box - green and glowing for live match
-                            if (scoreBoxes[1]) {
-                                scoreBoxes[1].className = 'w-8 h-8 bg-green-900/80 rounded-lg flex items-center justify-center';
-                                const awayScoreDiv = scoreBoxes[1].querySelector('.text-sm.font-bold') || scoreBoxes[1].querySelector('div');
-                                if (awayScoreDiv) {
-                                    awayScoreDiv.textContent = match.away_score ?? 0;
-                                    awayScoreDiv.className = 'text-sm font-bold text-green-300';
-                                }
-                            }
-                        } else if (match.status === 'completed') {
-                            // Match finished - hide current set boxes (show nothing)
-                            if (scoreBoxes[0]) {
-                                scoreBoxes[0].className = 'w-8 h-8 bg-transparent rounded-lg flex items-center justify-center';
-                                const homeScoreDiv = scoreBoxes[0].querySelector('.text-sm.font-bold') || scoreBoxes[0].querySelector('div');
-                                if (homeScoreDiv) {
-                                    homeScoreDiv.textContent = '';
-                                    homeScoreDiv.className = 'text-sm font-bold text-transparent';
-                                }
-                            }
-                            if (scoreBoxes[1]) {
-                                scoreBoxes[1].className = 'w-8 h-8 bg-transparent rounded-lg flex items-center justify-center';
-                                const awayScoreDiv = scoreBoxes[1].querySelector('.text-sm.font-bold') || scoreBoxes[1].querySelector('div');
-                                if (awayScoreDiv) {
-                                    awayScoreDiv.textContent = '';
-                                    awayScoreDiv.className = 'text-sm font-bold text-transparent';
-                                }
-                            }
-                        } else {
-                            // Set to inactive state (scheduled/cancelled)
-                            if (scoreBoxes[0]) {
-                                scoreBoxes[0].className = 'w-8 h-8 bg-gray-700/50 rounded-lg flex items-center justify-center';
-                                const homeScoreDiv = scoreBoxes[0].querySelector('.text-sm.font-bold') || scoreBoxes[0].querySelector('div');
-                                if (homeScoreDiv) {
-                                    homeScoreDiv.textContent = '-';
-                                    homeScoreDiv.className = 'text-sm font-bold text-gray-500';
-                                }
-                            }
-                            if (scoreBoxes[1]) {
-                                scoreBoxes[1].className = 'w-8 h-8 bg-gray-700/50 rounded-lg flex items-center justify-center';
-                                const awayScoreDiv = scoreBoxes[1].querySelector('.text-sm.font-bold') || scoreBoxes[1].querySelector('div');
-                                if (awayScoreDiv) {
-                                    awayScoreDiv.textContent = '-';
-                                    awayScoreDiv.className = 'text-sm font-bold text-gray-500';
-                                }
-                            }
-                        }
-                    }
-                });
-            });
-        }
-
-        function updateRoundsSection(matchesData) {
-            // This function is now handled by updateLiveMatchesSection
-        }
-
-        // Update every 3 seconds
-        setInterval(updateCompetitionMatches, 3000);
-
-        // Initial update
-        document.addEventListener('DOMContentLoaded', function() {
-            updateCompetitionMatches();
-        });
-    </script>
-</head>
-<body class="antialiased bg-gray-900 text-white min-h-screen pb-16 md:pb-8 px-4">
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <!-- Navigation Menu (Desktop only) -->
-            <nav class="hidden md:block bg-gray-800/50 backdrop-blur-xl rounded-2xl p-4 border border-gray-700/50 shadow-xl mb-6">
-                <div class="flex items-center justify-center space-x-6 md:space-x-8">
-                    <a href="{{ route('home') }}" class="text-gray-300 hover:text-white transition-colors text-sm md:text-base font-medium">
-                        🏠 Home
-                    </a>
-                    <a href="{{ route('public.live-matches') }}" class="text-gray-300 hover:text-white transition-colors text-sm md:text-base font-medium">
-                        📺 Live Matches
-                    </a>
-                    <a href="{{ route('public.leagues.index') }}" class="text-gray-300 hover:text-white transition-colors text-sm md:text-base font-medium">
-                        🏆 Competitions
-                    </a>
-                </div>
-            </nav>
-
-            <!-- Header -->
-            <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-8 border border-gray-700/50 shadow-xl mb-8">
-                <div class="text-center">
-                    <h1 class="text-4xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent mb-2">
-                        {{ $competition->name }}
-                    </h1>
-                    <p class="text-gray-400">{{ $organization->name }} • {{ $competition->sport->name }}</p>
-                </div>
-            </div>
+@section('content')
+    <!-- Header -->
+    <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-8 border border-gray-700/50 shadow-xl mb-8">
+        <div class="text-center">
+            <h1 class="text-4xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent mb-2">
+                {{ $competition->name }}
+            </h1>
+            <p class="text-gray-400">{{ $organization->name }} • {{ $competition->sport->name }}</p>
+        </div>
+    </div>
 
             <!-- Competition Content -->
             @if($competition->type === 'league')
@@ -542,5 +312,204 @@
             </a>
         </div>
     </nav>
-</body>
-</html>
+@endsection
+
+@push('scripts')
+<script>
+    function updateCompetitionMatches() {
+        fetch('{{ route("public.api.live-matches") }}')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Filter matches for this specific competition
+                    const competitionData = data.data.find(comp => comp.competition.id === {{ $competition->id }});
+                    if (competitionData) {
+                        updateLiveMatchesSection(competitionData.matches);
+                    }
+                }
+            })
+            .catch(error => {
+                // Silent error handling
+            });
+    }
+
+    function updateLiveMatchesSection(matchesData) {
+        matchesData.forEach(match => {
+            // Find match by ID in rounds section
+            const roundMatchElements = document.querySelectorAll(`a[href*="/matches/${match.id}"]`);
+            roundMatchElements.forEach(matchElement => {
+
+                // Update sets won indicators in white squares
+                const homeSetsSquare = matchElement.querySelector('.flex.items-center.justify-between:first-child .w-8.h-8.rounded.bg-white\\/20 .text-xs.font-bold, .flex.items-center.justify-between:first-child .w-8.h-8.rounded.bg-white\\/20 span');
+                const awaySetsSquare = matchElement.querySelector('.flex.items-center.justify-between:nth-child(2) .w-8.h-8.rounded.bg-white\\/20 .text-xs.font-bold, .flex.items-center.justify-between:nth-child(2) .w-8.h-8.rounded.bg-white\\/20 span');
+
+                // Calculate sets won by counting sets where player has higher score
+                let homeSetsWon = 0;
+                let awaySetsWon = 0;
+
+                if (match.sets && match.sets.length > 0) {
+                    match.sets.forEach(set => {
+                        const homeScore = set.home_score ?? 0;
+                        const awayScore = set.away_score ?? 0;
+                        if (homeScore > awayScore) {
+                            homeSetsWon++;
+                        } else if (awayScore > homeScore) {
+                            awaySetsWon++;
+                        }
+                    });
+                }
+
+                if (homeSetsSquare) {
+                    const newScore = homeSetsWon;
+                    if (match.status === 'in_progress') {
+                        homeSetsSquare.innerHTML = `<span class="text-green-400">${newScore}</span>`;
+                    } else if (match.status === 'completed') {
+                        homeSetsSquare.innerHTML = newScore;
+                    } else {
+                        homeSetsSquare.innerHTML = `<span class="text-gray-500">0</span>`;
+                    }
+                }
+
+                if (awaySetsSquare) {
+                    const newScore = awaySetsWon;
+                    if (match.status === 'in_progress') {
+                        awaySetsSquare.innerHTML = `<span class="text-green-400">${newScore}</span>`;
+                    } else if (match.status === 'completed') {
+                        awaySetsSquare.innerHTML = newScore;
+                    } else {
+                        awaySetsSquare.innerHTML = `<span class="text-gray-500">0</span>`;
+                    }
+                }
+
+                // Update set scores
+                if (match.sets && match.sets.length > 0) {
+
+                    // Find the players column div
+                    const playersColumn = matchElement.querySelector('.space-y-4');
+                    if (!playersColumn) {
+                        return;
+                    }
+
+                    // Find all set score containers (both home and away rows)
+                    const setContainers = playersColumn.querySelectorAll('.flex.gap-1.ml-4');
+
+                    if (setContainers.length >= 2) {
+                        // Home player sets (first container)
+                        const homeSetDivs = setContainers[0].querySelectorAll('.w-6.text-center');
+                        
+                        homeSetDivs.forEach((div, index) => {
+                            const span = div.querySelector('span');
+                            if (!span) return;
+                            
+                            if (index < match.sets.length) {
+                                const set = match.sets[index];
+                                const homeScore = set.home_score ?? 0;
+                                const awayScore = set.away_score ?? 0;
+                                span.textContent = homeScore;
+                                span.className = `text-xs px-1 py-0.5 rounded ${homeScore > awayScore ? 'bg-green-900/60 text-green-300 font-bold' : 'text-gray-400'}`;
+                            } else {
+                                span.textContent = '-';
+                                span.className = 'text-xs px-1 py-0.5 rounded text-gray-600';
+                            }
+                        });
+
+                        // Away player sets (second container)
+                        const awaySetDivs = setContainers[1].querySelectorAll('.w-6.text-center');
+                        
+                        awaySetDivs.forEach((div, index) => {
+                            const span = div.querySelector('span');
+                            if (!span) return;
+                            
+                            if (index < match.sets.length) {
+                                const set = match.sets[index];
+                                const homeScore = set.home_score ?? 0;
+                                const awayScore = set.away_score ?? 0;
+                                span.textContent = awayScore;
+                                span.className = `text-xs px-1 py-0.5 rounded ${awayScore > homeScore ? 'bg-green-900/60 text-green-300 font-bold' : 'text-gray-400'}`;
+                            } else {
+                                span.textContent = '-';
+                                span.className = 'text-xs px-1 py-0.5 rounded text-gray-600';
+                            }
+                        });
+
+                    }
+                }
+
+                // Update current set scores in green boxes
+                const currentScoreContainer = matchElement.querySelector('.flex.flex-col.items-start.justify-center.space-y-1.pl-4');
+                if (currentScoreContainer) {
+                    const scoreBoxes = currentScoreContainer.querySelectorAll('.w-8.h-8');
+                    if (match.status === 'in_progress') {
+                        // Update home score box - green and glowing for live match
+                        if (scoreBoxes[0]) {
+                            scoreBoxes[0].className = 'w-8 h-8 bg-green-900/80 rounded-lg flex items-center justify-center';
+                            const homeScoreDiv = scoreBoxes[0].querySelector('.text-sm.font-bold') || scoreBoxes[0].querySelector('div');
+                            if (homeScoreDiv) {
+                                homeScoreDiv.textContent = match.home_score ?? 0;
+                                homeScoreDiv.className = 'text-sm font-bold text-green-300';
+                            }
+                        }
+                        // Update away score box - green and glowing for live match
+                        if (scoreBoxes[1]) {
+                            scoreBoxes[1].className = 'w-8 h-8 bg-green-900/80 rounded-lg flex items-center justify-center';
+                            const awayScoreDiv = scoreBoxes[1].querySelector('.text-sm.font-bold') || scoreBoxes[1].querySelector('div');
+                            if (awayScoreDiv) {
+                                awayScoreDiv.textContent = match.away_score ?? 0;
+                                awayScoreDiv.className = 'text-sm font-bold text-green-300';
+                            }
+                        }
+                    } else if (match.status === 'completed') {
+                        // Match finished - hide current set boxes (show nothing)
+                        if (scoreBoxes[0]) {
+                            scoreBoxes[0].className = 'w-8 h-8 bg-transparent rounded-lg flex items-center justify-center';
+                            const homeScoreDiv = scoreBoxes[0].querySelector('.text-sm.font-bold') || scoreBoxes[0].querySelector('div');
+                            if (homeScoreDiv) {
+                                homeScoreDiv.textContent = '';
+                                homeScoreDiv.className = 'text-sm font-bold text-transparent';
+                            }
+                        }
+                        if (scoreBoxes[1]) {
+                            scoreBoxes[1].className = 'w-8 h-8 bg-transparent rounded-lg flex items-center justify-center';
+                            const awayScoreDiv = scoreBoxes[1].querySelector('.text-sm.font-bold') || scoreBoxes[1].querySelector('div');
+                            if (awayScoreDiv) {
+                                awayScoreDiv.textContent = '';
+                                awayScoreDiv.className = 'text-sm font-bold text-transparent';
+                            }
+                        }
+                    } else {
+                        // Set to inactive state (scheduled/cancelled)
+                        if (scoreBoxes[0]) {
+                            scoreBoxes[0].className = 'w-8 h-8 bg-gray-700/50 rounded-lg flex items-center justify-center';
+                            const homeScoreDiv = scoreBoxes[0].querySelector('.text-sm.font-bold') || scoreBoxes[0].querySelector('div');
+                            if (homeScoreDiv) {
+                                homeScoreDiv.textContent = '-';
+                                homeScoreDiv.className = 'text-sm font-bold text-gray-500';
+                            }
+                        }
+                        if (scoreBoxes[1]) {
+                            scoreBoxes[1].className = 'w-8 h-8 bg-gray-700/50 rounded-lg flex items-center justify-center';
+                            const awayScoreDiv = scoreBoxes[1].querySelector('.text-sm.font-bold') || scoreBoxes[1].querySelector('div');
+                            if (awayScoreDiv) {
+                                awayScoreDiv.textContent = '-';
+                                awayScoreDiv.className = 'text-sm font-bold text-gray-500';
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    }
+
+    function updateRoundsSection(matchesData) {
+        // This function is now handled by updateLiveMatchesSection
+    }
+
+    // Update every 3 seconds
+    setInterval(updateCompetitionMatches, 3000);
+
+    // Initial update
+    document.addEventListener('DOMContentLoaded', function() {
+        updateCompetitionMatches();
+    });
+</script>
+@endpush
