@@ -114,8 +114,8 @@
                                                 TBD
                                             @endif
                                         </span>
-                                        @if($match->status === 'completed' && $match->homePlayer && $match->awayPlayer)
-                                            <span class="text-base font-bold {{ $match->home_score > $match->away_score ? 'text-green-400' : 'text-gray-400' }}">
+                                        @if(($match->status === 'completed' || $match->status === 'live' || $match->status === 'in_progress') && $match->homePlayer && $match->awayPlayer)
+                                            <span class="text-base font-bold {{ $match->status === 'completed' && $match->home_score > $match->away_score ? 'text-green-400' : 'text-white' }}">
                                                 {{ $match->home_score ?? '-' }}
                                             </span>
                                         @elseif($match->homePlayer && !$match->awayPlayer)
@@ -138,8 +138,8 @@
                                                 TBD
                                             @endif
                                         </span>
-                                        @if($match->status === 'completed' && $match->homePlayer && $match->awayPlayer)
-                                            <span class="text-base font-bold {{ $match->away_score > $match->home_score ? 'text-green-400' : 'text-gray-400' }}">
+                                        @if(($match->status === 'completed' || $match->status === 'live' || $match->status === 'in_progress') && $match->homePlayer && $match->awayPlayer)
+                                            <span class="text-base font-bold {{ $match->status === 'completed' && $match->away_score > $match->home_score ? 'text-green-400' : 'text-white' }}">
                                                 {{ $match->away_score ?? '-' }}
                                             </span>
                                         @elseif($match->awayPlayer && !$match->homePlayer)
