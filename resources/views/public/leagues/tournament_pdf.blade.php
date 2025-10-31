@@ -63,8 +63,8 @@
             .knockout-bracket .px-3 { padding-left: 0.5rem !important; padding-right: 0.5rem !important; }
             .knockout-bracket .pb-3 { padding-bottom: 0.5rem !important; }
 
-            /* Force 2 columns for groups in PDF */
-            .groups-grid { display: grid !important; grid-template-columns: repeat(2, 1fr) !important; gap: 1rem !important; }
+            /* Footer should not break to new page */
+            .footer-section { page-break-inside: avoid; page-break-before: avoid; margin-top: 1rem !important; padding-top: 1rem !important; }
         }
     </style>
 </head>
@@ -448,7 +448,7 @@
     @endif
 
     <!-- Footer -->
-    <div class="text-center text-sm text-gray-500 mt-8 pt-6 border-t border-gray-300">
+    <div class="text-center text-sm text-gray-500 mt-2 pt-2 border-t border-gray-300 footer-section">
         <p>Generisano od strane TeamSphere - {{ now()->format('d.m.Y H:i') }}</p>
     </div>
 </div>
