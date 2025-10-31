@@ -59,11 +59,11 @@
             box-shadow: 0 0 10px rgba(59, 130, 246, 0.2);
         }
 
-        /* Light theme highlight - use different color for better visibility */
+        /* Light theme highlight - use darker amber color for better visibility */
         [data-theme="light"] .knockout-match.player-highlight {
-            background-color: rgba(245, 158, 11, 0.1) !important; /* amber-400 with low opacity */
-            border-color: rgba(245, 158, 11, 0.4) !important; /* amber-400 with medium opacity */
-            box-shadow: 0 0 10px rgba(245, 158, 11, 0.3); /* amber-400 glow */
+            background-color: rgba(217, 119, 6, 0.15) !important; /* amber-600 with slightly higher opacity */
+            border-color: rgba(217, 119, 6, 0.5) !important; /* amber-600 with higher opacity */
+            box-shadow: 0 0 12px rgba(217, 119, 6, 0.4); /* amber-600 glow */
         }
     </style>
     @php
@@ -821,22 +821,35 @@
         });
 
         function initializeKnockoutHover() {
-            const matches = document.querySelectorAll('.knockout-match');
+            const playerNames = document.querySelectorAll('.player-name-knockout');
 
-            matches.forEach(match => {
-                match.addEventListener('mouseenter', function() {
-                    const homePlayerId = this.getAttribute('data-home-player');
-                    const awayPlayerId = this.getAttribute('data-away-player');
+            playerNames.forEach(playerName => {
+                playerName.addEventListener('mouseenter', function() {
+                    // Find the parent match element
+                    const matchElement = this.closest('.knockout-match');
+                    if (matchElement) {
+                        const homePlayerId = matchElement.getAttribute('data-home-player');
+                        const awayPlayerId = matchElement.getAttribute('data-away-player');
 
-                    if (homePlayerId) {
-                        highlightPlayerPath(homePlayerId);
-                    }
-                    if (awayPlayerId) {
-                        highlightPlayerPath(awayPlayerId);
+                        // Determine which player this is (home or away)
+                        const playerText = this.textContent.trim();
+                        const homePlayerName = matchElement.querySelector('.player-name-knockout')?.textContent.trim();
+                        
+                        // Check if this is the home player by comparing text
+                        let targetPlayerId = null;
+                        if (homePlayerName === playerText) {
+                            targetPlayerId = homePlayerId;
+                        } else {
+                            targetPlayerId = awayPlayerId;
+                        }
+
+                        if (targetPlayerId) {
+                            highlightPlayerPath(targetPlayerId);
+                        }
                     }
                 });
 
-                match.addEventListener('mouseleave', function() {
+                playerName.addEventListener('mouseleave', function() {
                     clearAllHighlights();
                 });
             });
