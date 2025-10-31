@@ -29,7 +29,7 @@
     </a>
 
     @if($competition->type === 'tournament')
-    <a href="{{ route('public.leagues.tournament.pdf', $competition) }}"
+    <a href="{{ route('public.leagues.tournament.pdf', $competition->slug) }}"
        target="_blank"
        class="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors font-semibold">
         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
