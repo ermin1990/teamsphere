@@ -195,7 +195,7 @@
             updateLiveMatches();
         });
     </script>
-@endsection
+@endpush
 
 @section('content')
             <!-- Header -->
