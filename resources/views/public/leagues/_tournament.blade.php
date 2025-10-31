@@ -110,8 +110,7 @@
                         <h5 class="text-sm md:text-base font-semibold text-gray-300 mb-2 uppercase tracking-wide">Mečevi</h5>
                         <div class="space-y-1 md:space-y-3">
                             @foreach($currentGroupMatches as $match)
-                            <a href="{{ route('public.matches.show', [$competition, $match]) }}"
-                               class="block bg-gray-700/20 hover:bg-gray-700/40 rounded-md transition-all duration-200 hover:scale-[1.01]">
+                            <div class="block bg-gray-700/20 hover:bg-gray-700/40 rounded-md transition-all duration-200 hover:scale-[1.01]">
                                 @if($match->status === 'in_progress')
                                 <div class="text-center mb-2">
                                     <span class="text-red-400 font-semibold text-xs uppercase tracking-wider">Live</span>
@@ -377,7 +376,7 @@
                                             @endif
                                         </div>
                                     </div>
-                                </div>                            </a>
+                                </div>                            </div>
                             @endforeach
                         </div>
                     </div>
@@ -431,10 +430,20 @@
 
             <!-- Tournament Bracket -->
             <div class="bg-gray-800/30 backdrop-blur-xl rounded-xl p-4 md:p-6 border border-gray-700/30 shadow-xl">
-                    <div class="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800 pb-6">
+                <div class="flex justify-end mb-2">
+                    <div class="flex items-center gap-2">
+                        <button id="knockout-zoom-out" type="button" class="px-2 py-1 rounded bg-gray-700 hover:bg-gray-600 text-white text-lg font-bold" title="Smanji">
+                            &minus;
+                        </button>
+                        <button id="knockout-zoom-in" type="button" class="px-2 py-1 rounded bg-gray-700 hover:bg-gray-600 text-white text-lg font-bold" title="Povećaj">
+                            &plus;
+                        </button>
+                    </div>
+                </div>
+                <div class="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800 pb-6">
                     <div class="min-w-max">
                         <!-- Bracket Container -->
-                        <div class="flex gap-4 md:gap-8 lg:gap-12 justify-center">
+                        <div id="knockout-bracket-scale" class="flex gap-4 md:gap-8 lg:gap-12 justify-center transition-transform duration-200" style="transform: scale(1); transform-origin: top left;">
                             @for($round = 1; $round <= $totalRounds; $round++)
                             @php
                                 $roundMatches = $knockoutMatches->get($round) ?? collect();
@@ -504,10 +513,9 @@
 
                                         <!-- Match Header with Toggle -->
                                         <div class="flex items-center justify-between p-3 md:p-4">
-                                            <a href="{{ route('public.matches.show', [$competition, $match]) }}"
-                                               class="flex-1 text-xs text-gray-400 hover:text-gray-300">
+                                            <span class="flex-1 text-xs text-gray-400 hover:text-gray-300">
                                                 Detalji meča
-                                            </a>
+                                            </span>
                                         </div>
 
                                         <!-- Match Players -->
@@ -662,6 +670,31 @@
     </div>
 
     <script>
+    // Knockout bracket zoom logic
+    (function() {
+        const scaleContainer = document.getElementById('knockout-bracket-scale');
+        const zoomInBtn = document.getElementById('knockout-zoom-in');
+        const zoomOutBtn = document.getElementById('knockout-zoom-out');
+        let scale = 1;
+        const minScale = 0.4;
+        const maxScale = 2.2;
+        const step = 0.15;
+        function updateScale() {
+            if (scaleContainer) {
+                scaleContainer.style.transform = `scale(${scale})`;
+            }
+        }
+        if (zoomInBtn && zoomOutBtn && scaleContainer) {
+            zoomInBtn.addEventListener('click', function() {
+                scale = Math.min(maxScale, scale + step);
+                updateScale();
+            });
+            zoomOutBtn.addEventListener('click', function() {
+                scale = Math.max(minScale, scale - step);
+                updateScale();
+            });
+        }
+    })();
         function showTournamentTab(tabName) {
             // Hide all tab contents
             document.querySelectorAll('.tab-content').forEach(content => {

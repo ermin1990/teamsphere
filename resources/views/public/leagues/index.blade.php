@@ -29,9 +29,6 @@
                     <a href="{{ route('public.live-matches') }}" class="text-gray-300 hover:text-white transition-colors text-sm md:text-base font-medium">
                         📺 Live Matches
                     </a>
-                    <a href="{{ route('display.selector') }}" class="text-gray-300 hover:text-white transition-colors text-sm md:text-base font-medium">
-                        📺 Semafor
-                    </a>
                     <a href="{{ route('public.leagues.index') }}" class="text-blue-400 font-semibold text-sm md:text-base">
                         🏆 Competitions
                     </a>
@@ -146,10 +143,6 @@
             <a href="{{ route('public.live-matches') }}" class="flex flex-col items-center text-gray-300 hover:text-white transition-colors text-xs flex-1">
                 <span class="text-lg">📺</span>
                 <span class="mt-1">Live</span>
-            </a>
-            <a href="{{ route('display.selector') }}" class="flex flex-col items-center text-gray-300 hover:text-white transition-colors text-xs flex-1">
-                <span class="text-lg">📺</span>
-                <span class="mt-1">Semafor</span>
             </a>
             <a href="{{ route('public.leagues.index') }}" class="flex flex-col items-center text-gray-300 hover:text-white transition-colors text-xs flex-1">
                 <span class="text-lg">🏆</span>

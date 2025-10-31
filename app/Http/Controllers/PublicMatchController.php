@@ -258,9 +258,10 @@ class PublicMatchController extends Controller
     {
         // Try to find as LeagueMatch first, then CompetitionMatch
         $match = LeagueMatch::with(['competition.organization', 'homeTeam', 'awayTeam', 'homePlayer', 'awayPlayer', 'moderator', 'table', 'referee'])->find($matchId);
-        
+        $isCompetitionMatch = false;
         if (!$match) {
             $match = \App\Models\CompetitionMatch::with(['competition.organization', 'homePlayer', 'awayPlayer', 'tournamentGroup', 'table', 'referee'])->find($matchId);
+            $isCompetitionMatch = true;
         }
 
         if (!$match) {
@@ -269,6 +270,10 @@ class PublicMatchController extends Controller
 
         // Get parent competition/league
         $parent = $match->competition ?? $match->league;
+
+        // Always provide player/team names for frontend display
+        $homePlayerName = $match->homePlayer->name ?? ($match->homeTeam->name ?? 'N/A');
+        $awayPlayerName = $match->awayPlayer->name ?? ($match->awayTeam->name ?? 'N/A');
 
         return response()->json([
             'success' => true,
@@ -281,12 +286,18 @@ class PublicMatchController extends Controller
                 'updated_at' => $match->updated_at->toISOString(),
                 'home_player' => $match->homePlayer ? [
                     'id' => $match->homePlayer->id,
-                    'name' => $match->homePlayer->name,
-                ] : null,
+                    'name' => $homePlayerName,
+                ] : ($match->homeTeam ? [
+                    'id' => $match->homeTeam->id,
+                    'name' => $homePlayerName,
+                ] : ['id' => null, 'name' => 'N/A']),
                 'away_player' => $match->awayPlayer ? [
                     'id' => $match->awayPlayer->id,
-                    'name' => $match->awayPlayer->name,
-                ] : null,
+                    'name' => $awayPlayerName,
+                ] : ($match->awayTeam ? [
+                    'id' => $match->awayTeam->id,
+                    'name' => $awayPlayerName,
+                ] : ['id' => null, 'name' => 'N/A']),
                 'home_team' => $match->homeTeam ? [
                     'id' => $match->homeTeam->id,
                     'name' => $match->homeTeam->name,

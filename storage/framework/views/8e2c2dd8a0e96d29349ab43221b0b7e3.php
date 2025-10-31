@@ -196,6 +196,20 @@
                                                    class="bg-red-600 hover:bg-red-700 text-white px-1.5 py-0.5 rounded text-xs transition-colors text-center inline-block">
                                                     🔴 Live
                                                 </a>
+                                            <?php elseif($match->status === 'in_progress' || $match->status === 'live'): ?>
+                                                <button type="button"
+                                                    onclick="openQuickEditModal('<?php echo e($match->id); ?>', '<?php echo e($match->homePlayer->name ?? 'TBD'); ?>', '<?php echo e($match->awayPlayer->name ?? 'TBD'); ?>', '<?php echo e($match->home_score ?? 0); ?>', '<?php echo e($match->away_score ?? 0); ?>', <?php echo e(json_encode($match->sets ?? [])); ?>)"
+                                                    class="bg-blue-600 hover:bg-blue-700 text-white px-1.5 py-0.5 rounded text-xs transition-colors">
+                                                    ⚡
+                                                </button>
+                                                <a href="<?php echo e(route('organizations.competitions.matches.edit', [$organization, $competition, $match])); ?>"
+                                                   class="bg-purple-600 hover:bg-purple-700 text-white px-1.5 py-0.5 rounded text-xs transition-colors text-center inline-block">
+                                                    ✏️
+                                                </a>
+                                                <a href="<?php echo e(route('competitions.live-score', ['match' => $match->id])); ?>"
+                                                   class="bg-red-600 hover:bg-red-700 text-white px-1.5 py-0.5 rounded text-xs transition-colors text-center inline-block">
+                                                    🔴 Live
+                                                </a>
                                             <?php elseif($match->status === 'completed'): ?>
                                                 <button type="button"
                                                     onclick="openQuickEditModal('<?php echo e($match->id); ?>', '<?php echo e($match->homePlayer->name ?? 'TBD'); ?>', '<?php echo e($match->awayPlayer->name ?? 'TBD'); ?>', '<?php echo e($match->home_score ?? 0); ?>', '<?php echo e($match->away_score ?? 0); ?>', <?php echo e(json_encode($match->sets ?? [])); ?>)"
@@ -237,7 +251,7 @@
 </div>
 <?php endif; ?>
 
-<?php if (! $__env->hasRenderedOnce('9e44c898-5efe-4124-bd48-8357820a11d5')): $__env->markAsRenderedOnce('9e44c898-5efe-4124-bd48-8357820a11d5'); ?>
+<?php if (! $__env->hasRenderedOnce('a48578b8-d580-47db-b6f7-7e43216adeb9')): $__env->markAsRenderedOnce('a48578b8-d580-47db-b6f7-7e43216adeb9'); ?>
     
     <div id="quickEditModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-gray-800 rounded-2xl p-6 max-w-lg w-full border border-gray-700 shadow-xl">

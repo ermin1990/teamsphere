@@ -44,8 +44,7 @@
         @if($liveMatches->count() > 0)
             <div class="space-y-2">
                 @foreach($liveMatches as $match)
-                <a href="{{ route('public.matches.show', [$competition, $match]) }}"
-                   class="block p-3 bg-green-600/20 hover:bg-green-600/30 rounded-lg transition-colors">
+                <div class="block p-3 bg-green-600/20 hover:bg-green-600/30 rounded-lg transition-colors">
                     <div class="text-sm font-semibold text-green-400">
                         Round {{ $match->round }}
                     </div>
@@ -56,7 +55,7 @@
                             {{ $match->homePlayer->name ?? 'TBD' }} vs {{ $match->awayPlayer->name ?? 'TBD' }}
                         @endif
                     </div>
-                </a>
+                </div>
                 @endforeach
             </div>
         @else
@@ -106,8 +105,7 @@
     <h3 class="text-sm font-semibold text-gray-300 mb-4 uppercase tracking-wide">Recent Matches</h3>
     <div class="space-y-2">
         @foreach($competition->matches->where('status', 'completed')->sortByDesc('played_at')->take(10) as $match)
-        <a href="{{ route('public.matches.show', [$competition, $match]) }}"
-           class="block p-2 bg-gray-700/20 hover:bg-gray-700/30 rounded-md transition-colors">
+        <div class="block p-2 bg-gray-700/20 hover:bg-gray-700/30 rounded-md transition-colors">
             <div class="flex items-center justify-between">
                 <div class="flex-1 truncate pr-2">
                     <span class="text-gray-300 text-sm">
@@ -134,7 +132,7 @@
             <div class="text-center text-xs text-gray-500 mt-1">
                 {{ $match->played_at ? $match->played_at->format('d.m. H:i') : 'TBD' }}
             </div>
-        </a>
+        </div>
         @endforeach
     </div>
 </div>

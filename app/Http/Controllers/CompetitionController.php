@@ -960,10 +960,10 @@ class CompetitionController extends Controller
             $updateData['sets'] = [];
             $updateData['forfeited_by'] = null;
             $updateData['played_at'] = null;
-        } elseif ($validated['status'] === 'completed') {
+        } elseif (in_array($validated['status'], ['completed', 'in_progress'])) {
             $updateData['home_score'] = $validated['home_score'] ?? 0;
             $updateData['away_score'] = $validated['away_score'] ?? 0;
-            
+
             // Normalize sets format from home_score/away_score to home/away
             $normalizedSets = [];
             if (!empty($validated['sets'])) {
@@ -975,7 +975,10 @@ class CompetitionController extends Controller
                 }
             }
             $updateData['sets'] = $normalizedSets;
-            $updateData['played_at'] = $match->played_at ?? now();
+            // Only set played_at if completed, otherwise leave as is
+            if ($validated['status'] === 'completed') {
+                $updateData['played_at'] = $match->played_at ?? now();
+            }
         } elseif ($validated['status'] === 'forfeited') {
             $updateData['forfeited_by'] = $validated['forfeited_by'];
             $updateData['played_at'] = now();

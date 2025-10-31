@@ -325,8 +325,7 @@
                                 </h4>
                                 <div class="space-y-1 md:space-y-3">
                                     @foreach($roundMatches->sortByDesc('scheduled_at') as $match)
-                                    <a href="{{ route('public.matches.show', [$competition, $match]) }}"
-                                       class="block bg-gray-700/20 hover:bg-gray-700/40 rounded-md p-3 transition-all duration-200 hover:scale-[1.01]">
+                                    <div class="block bg-gray-700/20 hover:bg-gray-700/40 rounded-md p-3 transition-all duration-200 hover:scale-[1.01]">
                                         <div class="grid grid-cols-[3fr_120px] gap-0 items-center p-3">
                                             <!-- Players Column -->
                                             <div class="space-y-4">
@@ -476,7 +475,7 @@
                                             {{ $match->scheduled_at->format('d.m. H:i') }}
                                         </div>
                                         @endif
-                                    </a>
+                                    </div>
                                     @endforeach
                                 </div>
                             </div>

@@ -222,9 +222,6 @@
                     <a href="{{ route('public.live-matches') }}" class="text-blue-400 font-semibold text-sm md:text-base">
                         📺 Mečevi Uživo
                     </a>
-                    <a href="{{ route('display.selector') }}" class="text-gray-300 hover:text-white transition-colors text-sm md:text-base font-medium">
-                        📺 Semafor
-                    </a>
                     <a href="{{ route('public.leagues.index') }}" class="text-gray-300 hover:text-white transition-colors text-sm md:text-base font-medium">
                         🏆 Takmičenja
                     </a>
@@ -306,8 +303,7 @@
                             </div> -->
 
                             @foreach($competitionMatches as $match)
-                            <a href="{{ route('public.matches.show', [$match->competition, $match]) }}"
-                               class="block hover:bg-gray-700/20 transition-colors duration-200 border-b border-gray-700/20 last:border-b-0 group">
+                            <div class="block hover:bg-gray-700/20 transition-colors duration-200 border-b border-gray-700/20 last:border-b-0 group">
                                 <div class="grid grid-cols-[3fr_120px] gap-0 items-center p-4">
                                     <!-- Players Column -->
                                     <div class="space-y-4">
@@ -443,7 +439,7 @@
                                         @endif
                                     </div>
                                 </div>
-                            </a>
+                            </div>
                             @endforeach
                         </div>
                     </div>
@@ -478,10 +474,6 @@
             <a href="{{ route('public.live-matches') }}" class="flex flex-col items-center text-gray-300 hover:text-white transition-colors text-xs flex-1">
                 <span class="text-lg">📺</span>
                 <span class="mt-1">Uživo</span>
-            </a>
-            <a href="{{ route('display.selector') }}" class="flex flex-col items-center text-gray-300 hover:text-white transition-colors text-xs flex-1">
-                <span class="text-lg">📺</span>
-                <span class="mt-1">Semafor</span>
             </a>
             <a href="{{ route('public.leagues.index') }}" class="flex flex-col items-center text-gray-300 hover:text-white transition-colors text-xs flex-1">
                 <span class="text-lg">🏆</span>

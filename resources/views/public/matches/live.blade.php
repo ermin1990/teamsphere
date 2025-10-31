@@ -136,10 +136,9 @@
                         <p class="text-gray-400 text-sm md:text-base mt-1">{{ $competition->name }} • Round {{ $match->round_number ?? $match->round }}</p>
                     </div>
                     <div class="flex items-center space-x-2 md:space-x-4">
-                        <a href="{{ route('public.matches.show', [$competition, $match]) }}"
-                           class="px-3 py-1 md:px-4 md:py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors text-sm">
+                        <span class="px-3 py-1 md:px-4 md:py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors text-sm">
                             ← Details
-                        </a>
+                        </span>
                     </div>
                 </div>
             </div>
