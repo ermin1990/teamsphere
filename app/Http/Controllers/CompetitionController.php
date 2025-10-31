@@ -960,10 +960,27 @@ class CompetitionController extends Controller
             $updateData['sets'] = [];
             $updateData['forfeited_by'] = null;
             $updateData['played_at'] = null;
+        } elseif ($validated['status'] === 'in_progress') {
+            // Update current scores and sets for live matches
+            $updateData['home_score'] = $validated['home_score'] ?? 0;
+            $updateData['away_score'] = $validated['away_score'] ?? 0;
+
+            // Normalize sets format from home_score/away_score to home/away
+            $normalizedSets = [];
+            if (!empty($validated['sets'])) {
+                foreach ($validated['sets'] as $set) {
+                    $normalizedSets[] = [
+                        'home' => $set['home_score'] ?? $set['home'] ?? 0,
+                        'away' => $set['away_score'] ?? $set['away'] ?? 0,
+                    ];
+                }
+            }
+            $updateData['sets'] = $normalizedSets;
+            $updateData['played_at'] = $match->played_at ?? now();
         } elseif ($validated['status'] === 'completed') {
             $updateData['home_score'] = $validated['home_score'] ?? 0;
             $updateData['away_score'] = $validated['away_score'] ?? 0;
-            
+
             // Normalize sets format from home_score/away_score to home/away
             $normalizedSets = [];
             if (!empty($validated['sets'])) {
