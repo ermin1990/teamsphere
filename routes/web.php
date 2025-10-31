@@ -237,6 +237,7 @@ Route::prefix('public')->name('public.')->group(function () {
     Route::get('/leagues', [App\Http\Controllers\PublicMatchController::class, 'indexLeagues'])->name('leagues.index');
     Route::get('/leagues/{competition}', [App\Http\Controllers\PublicMatchController::class, 'showLeague'])->name('leagues.show');
     Route::get('/leagues/{competition}/semafor', [App\Http\Controllers\PublicMatchController::class, 'competitionSemafor'])->name('leagues.semafor');
+    Route::get('/leagues/{competition}/pdf', [App\Http\Controllers\PublicMatchController::class, 'tournamentPdf'])->name('leagues.tournament.pdf');
 
     // Public match routes
     Route::get('/leagues/{competition}/matches/{match}', [App\Http\Controllers\PublicMatchController::class, 'showMatch'])->name('matches.show');

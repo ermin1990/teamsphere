@@ -325,6 +325,72 @@ class PublicMatchController extends Controller
     }
 
     /**
+     * Display tournament PDF export.
+     */
+    public function tournamentPdf(Competition $competition)
+    {
+        // Ensure competition is public, or allow access if user is the owner
+        $isOwner = auth()->check() && auth()->id() === $competition->organization->user_id;
+        if (!$competition->is_public && !$isOwner) {
+            abort(404, 'Competition not found.');
+        }
+
+        // Only allow for tournaments
+        if ($competition->type !== 'tournament') {
+            abort(404, 'PDF export is only available for tournaments.');
+        }
+
+        try {
+            // Load necessary relationships for PDF export
+            $competition->load([
+                'organization',
+                'sport',
+                'tournamentGroups.standings.player',
+                'matches' => function ($query) {
+                    $query->orderBy('round_number')
+                          ->orderBy('match_order')
+                          ->with(['homePlayer', 'awayPlayer', 'tournamentGroup']);
+                }
+            ]);
+
+            // Group matches for display
+            $groupMatches = $competition->matches->whereNotNull('tournament_group_id')->groupBy('tournament_group_id');
+            $knockoutMatches = $competition->matches->where('phase', 'knockout')
+                ->sortBy(['round_number', 'match_order'])
+                ->groupBy('round_number');
+
+            // Determine what tabs to show
+            $hasGroupMatches = $groupMatches->count() > 0;
+            $hasKnockoutMatches = $knockoutMatches->count() > 0;
+            $showGroupsTab = $hasGroupMatches;
+            $showKnockoutTab = $hasKnockoutMatches;
+            $showPdfTab = $hasGroupMatches || $hasKnockoutMatches;
+
+            $organization = $competition->organization;
+
+            return view('public.leagues.tournament_pdf', compact(
+                'competition',
+                'organization',
+                'groupMatches',
+                'knockoutMatches',
+                'hasGroupMatches',
+                'hasKnockoutMatches',
+                'showGroupsTab',
+                'showKnockoutTab',
+                'showPdfTab'
+            ));
+
+        } catch (\Exception $e) {
+            \Log::error('Error loading tournament PDF: ' . $e->getMessage(), [
+                'competition_id' => $competition->id,
+                'user_id' => auth()->id(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            abort(500, 'Error loading tournament PDF: ' . $e->getMessage());
+        }
+    }
+
+    /**
      * Display competition semafor - large screen display for competition results
      */
     public function competitionSemafor(Competition $competition)

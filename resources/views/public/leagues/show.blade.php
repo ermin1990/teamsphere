@@ -10,6 +10,19 @@
                 {{ $competition->name }}
             </h1>
             <p style="color: var(--text-tertiary);">{{ $organization->name }} • {{ $competition->sport->name }}</p>
+            @if($competition->type === 'tournament')
+            <div class="mt-2">
+                <a href="{{ route('public.leagues.tournament.pdf', ['organization' => $organization->slug, 'competition' => $competition->slug]) }}"
+                   target="_blank"
+                   class="inline-flex items-center gap-2 px-3 py-1 text-sm font-medium rounded-lg transition-colors"
+                   style="color: var(--accent-blue); background: var(--bg-tertiary); border: 1px solid var(--border-primary);">
+                    📄 PDF Export
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                    </svg>
+                </a>
+            </div>
+            @endif
         </div>
     </div>
 
