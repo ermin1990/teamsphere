@@ -47,8 +47,12 @@
             .group-section h3 { font-size: 1.125rem !important; }
             .match-card { font-size: 0.75rem !important; padding: 0.75rem !important; }
             .match-card .text-xs { font-size: 0.625rem !important; }
+            .match-card .player-name { font-size: 0.75rem !important; font-weight: 600 !important; }
             table { font-size: 0.75rem !important; }
             table th, table td { padding: 0.25rem 0.5rem !important; }
+
+            /* Force 2 columns for groups in PDF */
+            .groups-grid { display: grid !important; grid-template-columns: repeat(2, 1fr) !important; gap: 1rem !important; }
         }
     </style>
 </head>
@@ -80,7 +84,7 @@
     <div class="mb-8">
         <h2 class="text-2xl font-bold text-gray-900 mb-6 border-b-2 border-gray-300 pb-2 section-header">🏆 Grupna faza</h2>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 groups-grid">
             @foreach($competition->tournamentGroups as $group)
             @php
                 $currentGroupMatches = $groupMatches->get($group->id) ?? collect();
@@ -152,36 +156,25 @@
 
                         <div class="border border-gray-300 rounded p-4 bg-white match-card">
                             <div class="flex justify-between items-center mb-2">
-                                <div class="flex items-center space-x-3">
-                                    <span class="font-semibold text-gray-900">{{ $match->homePlayer->name ?? 'Home Player' }}</span>
+                                <div class="flex items-center space-x-3 flex-1">
+                                    <span class="player-name text-gray-900">{{ $match->homePlayer->name ?? 'Home Player' }}</span>
                                     <span class="text-sm text-gray-600">vs</span>
-                                    <span class="font-semibold text-gray-900">{{ $match->awayPlayer->name ?? 'Away Player' }}</span>
+                                    <span class="player-name text-gray-900">{{ $match->awayPlayer->name ?? 'Away Player' }}</span>
                                 </div>
-                                <div class="text-sm text-gray-600">
-                                    @if($match->status === 'completed')
-                                        Završen
-                                    @elseif($match->status === 'in_progress')
-                                        U toku
-                                    @else
-                                        Zakazan
-                                    @endif
+                                <div class="text-sm font-medium text-gray-700">
+                                    <span class="font-medium">{{ $homeSetsWon }}</span> - <span class="font-medium">{{ $awaySetsWon }}</span>
                                 </div>
                             </div>
 
-                            <div class="flex justify-between items-center">
-                                <div class="text-sm">
-                                    <span class="font-medium">{{ $homeSetsWon }}</span> - <span class="font-medium">{{ $awaySetsWon }}</span>
-                                </div>
-                                @if(isset($match->sets) && is_array($match->sets) && count($match->sets) > 0)
-                                <div class="text-xs text-gray-600">
-                                    Setovi: {{ collect($match->sets)->map(function($set) {
-                                        $home = $set['home_score'] ?? $set['home'] ?? 0;
-                                        $away = $set['away_score'] ?? $set['away'] ?? 0;
-                                        return $home . '-' . $away;
-                                    })->join(', ') }}
-                                </div>
-                                @endif
+                            @if(isset($match->sets) && is_array($match->sets) && count($match->sets) > 0)
+                            <div class="text-xs text-gray-600">
+                                Setovi: {{ collect($match->sets)->map(function($set) {
+                                    $home = $set['home_score'] ?? $set['home'] ?? 0;
+                                    $away = $set['away_score'] ?? $set['away'] ?? 0;
+                                    return $home . '-' . $away;
+                                })->join(', ') }}
                             </div>
+                            @endif
                         </div>
                         @endforeach
                     </div>
