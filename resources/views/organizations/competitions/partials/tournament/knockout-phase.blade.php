@@ -192,6 +192,24 @@
                                                    title="Live unos rezultata je trenutno onemogućen">
                                                     🔴 Live
                                                 </a>
+                                            @elseif($match->status === 'live' || $match->status === 'in_progress')
+                                                <button type="button"
+                                                    onclick="openQuickEditModal('{{ $match->id }}', '{{ $match->homePlayer->name ?? 'TBD' }}', '{{ $match->awayPlayer->name ?? 'TBD' }}', '{{ $match->home_score ?? 0 }}', '{{ $match->away_score ?? 0 }}', {{ json_encode($match->sets ?? []) }})"
+                                                    class="bg-blue-600 hover:bg-blue-700 text-white px-1.5 py-0.5 rounded text-xs transition-colors">
+                                                    ⚡
+                                                </button>
+                                                <a href="{{ route('organizations.competitions.matches.edit', [$organization, $competition, $match]) }}"
+                                                   class="bg-purple-600 hover:bg-purple-700 text-white px-1.5 py-0.5 rounded text-xs transition-colors text-center inline-block">
+                                                    ✏️
+                                                </a>
+                                                <a href="{{ route('competitions.live-score', ['match' => $match->id]) }}"
+                                                   class="bg-red-600 hover:bg-red-700 text-white px-1.5 py-0.5 rounded text-xs transition-colors text-center inline-block animate-pulse">
+                                                    🔴 Live
+                                                </a>
+                                                <a href="{{ route('organizations.competitions.matches.show', [$organization, $competition, $match]) }}"
+                                                   class="bg-gray-600 hover:bg-gray-700 text-white px-1.5 py-0.5 rounded text-xs transition-colors text-center inline-block">
+                                                    👁️
+                                                </a>
                                             @elseif($match->status === 'completed')
                                                 <button type="button"
                                                     onclick="openQuickEditModal('{{ $match->id }}', '{{ $match->homePlayer->name ?? 'TBD' }}', '{{ $match->awayPlayer->name ?? 'TBD' }}', '{{ $match->home_score ?? 0 }}', '{{ $match->away_score ?? 0 }}', {{ json_encode($match->sets ?? []) }})"
