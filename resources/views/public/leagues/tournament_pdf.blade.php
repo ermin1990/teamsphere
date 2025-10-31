@@ -102,8 +102,7 @@
     @if($hasGroupMatches)
     <div class="mb-8">
 
-        <div class="groups-grid">
-
+        <div class="grid grid-cols-2 gap-6 md:gap-8">
             @foreach($competition->tournamentGroups as $group)
             @php
                 $currentGroupMatches = $groupMatches->get($group->id) ?? collect();
