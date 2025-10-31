@@ -500,7 +500,7 @@
                 <div class="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800 pb-6">
                     <div class="min-w-max">
                         <!-- Bracket Container -->
-                        <div id="knockout-bracket-scale" class="flex gap-4 md:gap-8 lg:gap-12 justify-center transition-transform duration-200" style="transform: scale(1); transform-origin: top left;">
+                        <div id="knockout-bracket-scale" class="flex justify-center transition-transform duration-200" style="transform: scale(1); transform-origin: top left; gap: 3px;">
                             @for($round = 1; $round <= $totalRounds; $round++)
                             @php
                                 $roundMatches = $knockoutMatches->get($round) ?? collect();
@@ -523,7 +523,7 @@
                                 }
                             @endphp
                             @if($matchesInRound > 0 || ($round === $totalRounds && $totalRounds > 1))
-                            <div class="flex flex-col justify-center gap-2" style="gap: {{ $spacingMultiplier * 1 }}rem;">
+                            <div class="flex flex-col justify-center gap-2" style="gap: 3px;">
                                 {{-- Round Header --}}
                                 <div class="text-center mb-4">
                                     <h4 class="text-sm md:text-base font-bold text-[var(--text-primary)] uppercase tracking-wider">
@@ -533,7 +533,7 @@
 
                                 @if($matchesInRound > 0)
                                 {{-- Round Matches Container --}}
-                                <div class="flex flex-col gap-2">
+                                <div class="flex flex-col" style="gap: 3px;">
                                     @foreach($roundMatches as $index => $match)
                                     @php
                                         $homeSetsWon = 0;
