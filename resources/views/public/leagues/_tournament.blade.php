@@ -54,16 +54,16 @@
 
         /* Dark theme highlight */
         .knockout-match.player-highlight {
-            background-color: rgba(59, 130, 246, 0.1) !important;
-            border-color: rgba(59, 130, 246, 0.3) !important;
-            box-shadow: 0 0 10px rgba(59, 130, 246, 0.2);
+            background-color: rgba(59, 130, 246, 0.2) !important;
+            border-color: rgba(59, 130, 246, 0.5) !important;
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
         }
 
         /* Light theme highlight - use darker amber color for better visibility */
         [data-theme="light"] .knockout-match.player-highlight {
-            background-color: rgba(217, 119, 6, 0.15) !important; /* amber-600 with slightly higher opacity */
-            border-color: rgba(217, 119, 6, 0.5) !important; /* amber-600 with higher opacity */
-            box-shadow: 0 0 12px rgba(217, 119, 6, 0.4); /* amber-600 glow */
+            background-color: rgba(217, 119, 6, 0.25) !important; /* amber-600 with higher opacity */
+            border-color: rgba(217, 119, 6, 0.6) !important; /* amber-600 with higher opacity */
+            box-shadow: 0 0 15px rgba(217, 119, 6, 0.5); /* amber-600 glow */
         }
     </style>
     @php
@@ -604,7 +604,7 @@
                                                             <span class="text-[var(--text-muted)]">0</span>
                                                         @endif
                                                     </div>
-                                                    <div class="text-xs md:text-sm font-semibold {{ ($homeSetsWon > $awaySetsWon) && ($homeSetsWon > 0 || $awaySetsWon > 0) || ($match->is_bye && $match->homePlayer) ? 'text-green-600' : 'text-[var(--text-tertiary)]' }} truncate">
+                                                    <div class="text-xs md:text-sm font-semibold {{ ($homeSetsWon > $awaySetsWon) && ($homeSetsWon > 0 || $awaySetsWon > 0) || ($match->is_bye && $match->homePlayer) ? 'text-green-600' : 'text-[var(--text-tertiary)]' }} truncate player-name-knockout" data-player-id="{{ $match->homePlayer->id ?? '' }}">
                                                         {{ $match->homePlayer->name ?? 'NEMA PROTIVNIKA' }}
                                                     </div>
                                                 </div>
@@ -645,7 +645,7 @@
                                                             <span class="text-[var(--text-muted)]">0</span>
                                                         @endif
                                                     </div>
-                                                    <div class="text-xs md:text-sm font-semibold {{ ($awaySetsWon > $homeSetsWon) && ($homeSetsWon > 0 || $awaySetsWon > 0) || ($match->is_bye && $match->awayPlayer) ? 'text-green-600' : 'text-[var(--text-tertiary)]' }} truncate">
+                                                    <div class="text-xs md:text-sm font-semibold {{ ($awaySetsWon > $homeSetsWon) && ($homeSetsWon > 0 || $awaySetsWon > 0) || ($match->is_bye && $match->awayPlayer) ? 'text-green-600' : 'text-[var(--text-tertiary)]' }} truncate player-name-knockout" data-player-id="{{ $match->awayPlayer->id ?? '' }}">
                                                         {{ $match->awayPlayer->name ?? 'NEMA PROTIVNIKA' }}
                                                     </div>
                                                 </div>
@@ -825,27 +825,9 @@
 
             playerNames.forEach(playerName => {
                 playerName.addEventListener('mouseenter', function() {
-                    // Find the parent match element
-                    const matchElement = this.closest('.knockout-match');
-                    if (matchElement) {
-                        const homePlayerId = matchElement.getAttribute('data-home-player');
-                        const awayPlayerId = matchElement.getAttribute('data-away-player');
-
-                        // Determine which player this is (home or away)
-                        const playerText = this.textContent.trim();
-                        const homePlayerName = matchElement.querySelector('.player-name-knockout')?.textContent.trim();
-                        
-                        // Check if this is the home player by comparing text
-                        let targetPlayerId = null;
-                        if (homePlayerName === playerText) {
-                            targetPlayerId = homePlayerId;
-                        } else {
-                            targetPlayerId = awayPlayerId;
-                        }
-
-                        if (targetPlayerId) {
-                            highlightPlayerPath(targetPlayerId);
-                        }
+                    const playerId = this.getAttribute('data-player-id');
+                    if (playerId) {
+                        highlightPlayerPath(playerId);
                     }
                 });
 
