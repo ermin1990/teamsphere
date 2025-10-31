@@ -52,10 +52,18 @@
             transition: all 0.2s ease;
         }
 
+        /* Dark theme highlight */
         .knockout-match.player-highlight {
             background-color: rgba(59, 130, 246, 0.1) !important;
             border-color: rgba(59, 130, 246, 0.3) !important;
             box-shadow: 0 0 10px rgba(59, 130, 246, 0.2);
+        }
+
+        /* Light theme highlight - use different color for better visibility */
+        [data-theme="light"] .knockout-match.player-highlight {
+            background-color: rgba(245, 158, 11, 0.1) !important; /* amber-400 with low opacity */
+            border-color: rgba(245, 158, 11, 0.4) !important; /* amber-400 with medium opacity */
+            box-shadow: 0 0 10px rgba(245, 158, 11, 0.3); /* amber-400 glow */
         }
     </style>
     @php
