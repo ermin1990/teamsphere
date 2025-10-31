@@ -12,7 +12,7 @@
             <p style="color: var(--text-tertiary);">{{ $organization->name }} • {{ $competition->sport->name }}</p>
             @if($competition->type === 'tournament')
             <div class="mt-2">
-                <a href="{{ route('public.leagues.tournament.pdf', ['organization' => $organization->slug, 'competition' => $competition->slug]) }}"
+                <a href="{{ route('public.leagues.tournament.pdf', $competition->slug) }}"
                    target="_blank"
                    class="inline-flex items-center gap-2 px-3 py-1 text-sm font-medium rounded-lg transition-colors"
                    style="color: var(--accent-blue); background: var(--bg-tertiary); border: 1px solid var(--border-primary);">
