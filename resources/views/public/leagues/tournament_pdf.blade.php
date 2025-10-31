@@ -50,6 +50,7 @@
             .match-card .player-name { font-size: 0.75rem !important; font-weight: 600 !important; }
             table { font-size: 0.75rem !important; }
             table th, table td { padding: 0.25rem 0.5rem !important; }
+            table .player-name-table { font-size: 0.625rem !important; font-weight: 500 !important; }
 
             /* Force 2 columns for groups in PDF */
             .groups-grid { display: grid !important; grid-template-columns: repeat(2, 1fr) !important; gap: 1rem !important; }
@@ -116,7 +117,7 @@
                                 @foreach($groupStandings as $index => $standing)
                                 <tr class="{{ $index < $advancingPlayers ? 'bg-green-50' : 'bg-white' }} border-t border-gray-200">
                                     <td class="px-4 py-2 text-center font-medium">{{ $index + 1 }}</td>
-                                    <td class="px-4 py-2 font-medium">{{ $standing->player->name }}</td>
+                                    <td class="px-4 py-2 player-name-table">{{ $standing->player->name }}</td>
                                     <td class="px-4 py-2 text-center">{{ $standing->won ?? 0 }}</td>
                                     <td class="px-4 py-2 text-center">{{ $standing->lost ?? 0 }}</td>
                                     <td class="px-4 py-2 text-center">{{ ($standing->sets_won ?? 0) - ($standing->sets_lost ?? 0) }}</td>
@@ -321,7 +322,7 @@
                                                         <span class="text-gray-400">0</span>
                                                     @endif
                                                 </div>
-                                                <div class="text-xs md:text-sm font-semibold {{ ($homeSetsWon > $awaySetsWon) && ($homeSetsWon > 0 || $awaySetsWon > 0) || ($match->is_bye && $match->homePlayer) ? 'text-green-600' : 'text-gray-600' }} truncate">
+                                                <div class="text-xs md:text-sm font-semibold {{ ($homeSetsWon > $awaySetsWon) && ($homeSetsWon > 0 || $awaySetsWon > 0) || ($match->is_bye && $match->homePlayer) ? 'text-gray-900 font-bold' : 'text-gray-600' }} truncate">
                                                     {{ $match->homePlayer->name ?? 'NEMA PROTIVNIKA' }}
                                                 </div>
                                             </div>
@@ -362,7 +363,7 @@
                                                         <span class="text-gray-400">0</span>
                                                     @endif
                                                 </div>
-                                                <div class="text-xs md:text-sm font-semibold {{ ($awaySetsWon > $homeSetsWon) && ($homeSetsWon > 0 || $awaySetsWon > 0) || ($match->is_bye && $match->awayPlayer) ? 'text-green-600' : 'text-gray-600' }} truncate">
+                                                <div class="text-xs md:text-sm font-semibold {{ ($awaySetsWon > $homeSetsWon) && ($homeSetsWon > 0 || $awaySetsWon > 0) || ($match->is_bye && $match->awayPlayer) ? 'text-gray-900 font-bold' : 'text-gray-600' }} truncate">
                                                     {{ $match->awayPlayer->name ?? 'NEMA PROTIVNIKA' }}
                                                 </div>
                                             </div>
