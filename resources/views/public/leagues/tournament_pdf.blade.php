@@ -235,18 +235,6 @@
             }
         @endphp
 
-        <!-- Winner Display (if tournament is completed) -->
-        @if($winner)
-        <div class="mb-6 md:mb-8 text-center break-inside-avoid winner-section">
-            <div class="text-center">
-                <p class="text-xl md:text-2xl font-black text-gray-900 mb-2" style="font-family: 'Inter', sans-serif; letter-spacing: -0.02em;">
-                    {{ $winner->name }} 🏆
-                </p>
-                <p class="text-sm md:text-base text-gray-600 font-medium">{{ $competition->name }}</p>
-            </div>
-        </div>
-        @endif
-
         <!-- Tournament Bracket -->
         <div class="bg-gray-50 rounded-xl p-4 md:p-6 border border-gray-300 bracket-container knockout-bracket">
             <div class="overflow-x-auto pb-6">
