@@ -9,6 +9,28 @@
         @media print {
             .no-print { display: none !important; }
             body { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+
+            /* Prevent page breaks inside important elements */
+            table { page-break-inside: avoid; }
+            .break-inside-avoid { page-break-inside: avoid; }
+
+            /* Ensure group sections stay together */
+            .group-section { page-break-inside: avoid; }
+
+            /* Prevent breaking inside match cards */
+            .match-card { page-break-inside: avoid; }
+
+            /* Add some spacing between sections */
+            .section-spacing { margin-bottom: 2rem; }
+
+            /* Ensure tournament header stays together */
+            .tournament-header { page-break-inside: avoid; }
+
+            /* Winner section should not break */
+            .winner-section { page-break-inside: avoid; page-break-before: avoid; }
+
+            /* Knockout bracket container */
+            .bracket-container { page-break-inside: avoid; }
         }
     </style>
 </head>
@@ -22,7 +44,7 @@
 
     <div class="max-w-4xl mx-auto pt-16">
         <!-- Tournament Header -->
-        <div class="text-center mb-8">
+        <div class="text-center mb-8 tournament-header">
             <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-2">{{ $competition->name }}</h1>
             <p class="text-lg text-gray-600">{{ $competition->organization->name ?? 'TeamSphere' }}</p>
             <p class="text-sm text-gray-500 mt-2">
@@ -49,7 +71,7 @@
             @endphp
 
             @if($currentGroupMatches->count() > 0)
-            <div class="break-inside-avoid">
+            <div class="break-inside-avoid group-section">
                 <h3 class="text-xl font-semibold text-gray-800 mb-4">{{ $group->name }}</h3>
 
                 <!-- Group Standings Table -->
@@ -110,7 +132,7 @@
                             }
                         @endphp
 
-                        <div class="border border-gray-300 rounded p-4 bg-white">
+                        <div class="border border-gray-300 rounded p-4 bg-white match-card">
                             <div class="flex justify-between items-center mb-2">
                                 <div class="flex items-center space-x-3">
                                     <span class="font-semibold text-gray-900">{{ $match->homePlayer->name ?? 'Home Player' }}</span>
@@ -187,7 +209,7 @@
 
         <!-- Winner Display (if tournament is completed) -->
         @if($winner)
-        <div class="mb-6 md:mb-8 text-center break-inside-avoid">
+        <div class="mb-6 md:mb-8 text-center break-inside-avoid winner-section">
             <div class="text-center">
                 <h2 class="text-base md:text-lg font-semibold text-amber-400 mb-2 md:mb-3 tracking-wide">
                     🏆 ŠAMPION TURNIRA 🏆
@@ -201,7 +223,7 @@
         @endif
 
         <!-- Tournament Bracket -->
-        <div class="bg-gray-50 rounded-xl p-4 md:p-6 border border-gray-300">
+        <div class="bg-gray-50 rounded-xl p-4 md:p-6 border border-gray-300 bracket-container">
             <div class="overflow-x-auto pb-6">
                 <div class="min-w-max">
                     <!-- Bracket Container -->
