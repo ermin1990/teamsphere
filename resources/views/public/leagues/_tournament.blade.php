@@ -459,7 +459,19 @@
                 // Check if tournament is completed and get winner
                 $finalMatch = $knockoutMatches->get($totalRounds)?->first();
                 $winner = null;
-                if ($finalMatch && $finalMatch->status === 'completed') {
+                $allMatchesCompleted = true;
+
+                // Check if all knockout matches are completed
+                foreach($knockoutMatches as $roundMatches) {
+                    foreach($roundMatches as $match) {
+                        if($match->status !== 'completed' && !$match->is_bye) {
+                            $allMatchesCompleted = false;
+                            break 2;
+                        }
+                    }
+                }
+
+                if ($finalMatch && $finalMatch->status === 'completed' && $allMatchesCompleted) {
                     $winner = $finalMatch->home_score > $finalMatch->away_score
                         ? $finalMatch->homePlayer
                         : $finalMatch->awayPlayer;
