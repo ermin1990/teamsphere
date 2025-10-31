@@ -52,27 +52,24 @@
             transition: all 0.2s ease;
         }
 
-        /* Player name highlight effects */
-        .player-name-knockout {
+        /* Player container hover effects */
+        .player-container {
             transition: all 0.2s ease;
             border-radius: 4px;
             padding: 2px 4px;
+            margin: -2px -4px;
         }
 
         /* Dark theme highlight */
-        .player-name-knockout.player-highlight {
-            background-color: rgba(59, 130, 246, 0.3) !important;
-            color: #ffffff !important;
-            font-weight: bold !important;
-            box-shadow: 0 0 8px rgba(59, 130, 246, 0.5);
+        .player-container.player-highlight {
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.6);
+            background-color: rgba(59, 130, 246, 0.1) !important;
         }
 
         /* Light theme highlight */
-        [data-theme="light"] .player-name-knockout.player-highlight {
-            background-color: rgba(217, 119, 6, 0.4) !important;
-            color: #ffffff !important;
-            font-weight: bold !important;
-            box-shadow: 0 0 8px rgba(217, 119, 6, 0.6);
+        [data-theme="light"] .player-container.player-highlight {
+            box-shadow: 0 0 0 2px rgba(217, 119, 6, 0.7);
+            background-color: rgba(217, 119, 6, 0.15) !important;
         }
     </style>
     @php
@@ -603,8 +600,8 @@
                                         <div class="px-3 md:px-4" style="padding-bottom: 3px;">
                                             <!-- Home Player -->
                                             <div class="flex items-center justify-between mb-2">
-                                                <div class="flex items-center gap-2 flex-1 min-w-0">
-                                                    <div class="text-xs md:text-sm font-semibold {{ ($homeSetsWon > $awaySetsWon) && ($homeSetsWon > 0 || $awaySetsWon > 0) || ($match->is_bye && $match->homePlayer) ? 'text-green-600' : 'text-[var(--text-tertiary)]' }} truncate player-name-knockout" data-player-id="{{ $match->homePlayer->id ?? '' }}">
+                                                <div class="flex items-center gap-2 flex-1 min-w-0 player-container" data-player-id="{{ $match->homePlayer->id ?? '' }}">
+                                                    <div class="text-xs md:text-sm font-semibold {{ ($homeSetsWon > $awaySetsWon) && ($homeSetsWon > 0 || $awaySetsWon > 0) || ($match->is_bye && $match->homePlayer) ? 'text-green-600' : 'text-[var(--text-tertiary)]' }} truncate">
                                                         {{ $match->homePlayer->name ?? 'NEMA PROTIVNIKA' }}
                                                     </div>
                                                 </div>
@@ -635,8 +632,8 @@
 
                                             <!-- Away Player -->
                                             <div class="flex items-center justify-between">
-                                                <div class="flex items-center gap-2 flex-1 min-w-0">
-                                                    <div class="text-xs md:text-sm font-semibold {{ ($awaySetsWon > $homeSetsWon) && ($homeSetsWon > 0 || $awaySetsWon > 0) || ($match->is_bye && $match->awayPlayer) ? 'text-green-600' : 'text-[var(--text-tertiary)]' }} truncate player-name-knockout" data-player-id="{{ $match->awayPlayer->id ?? '' }}">
+                                                <div class="flex items-center gap-2 flex-1 min-w-0 player-container" data-player-id="{{ $match->awayPlayer->id ?? '' }}">
+                                                    <div class="text-xs md:text-sm font-semibold {{ ($awaySetsWon > $homeSetsWon) && ($homeSetsWon > 0 || $awaySetsWon > 0) || ($match->is_bye && $match->awayPlayer) ? 'text-green-600' : 'text-[var(--text-tertiary)]' }} truncate">
                                                         {{ $match->awayPlayer->name ?? 'NEMA PROTIVNIKA' }}
                                                     </div>
                                                 </div>
@@ -812,37 +809,37 @@
         });
 
         function initializeKnockoutHover() {
-            const playerNames = document.querySelectorAll('.player-name-knockout');
+            const playerContainers = document.querySelectorAll('.player-container');
 
-            playerNames.forEach(playerName => {
-                playerName.addEventListener('mouseenter', function() {
+            playerContainers.forEach(container => {
+                container.addEventListener('mouseenter', function() {
                     const playerId = this.getAttribute('data-player-id');
                     if (playerId) {
                         highlightPlayerPath(playerId);
                     }
                 });
 
-                playerName.addEventListener('mouseleave', function() {
+                container.addEventListener('mouseleave', function() {
                     clearAllHighlights();
                 });
             });
         }
 
         function highlightPlayerPath(playerId) {
-            const allPlayerNames = document.querySelectorAll('.player-name-knockout');
+            const allPlayerContainers = document.querySelectorAll('.player-container');
 
-            allPlayerNames.forEach(playerName => {
-                const playerNameId = playerName.getAttribute('data-player-id');
-                if (playerNameId === playerId) {
-                    playerName.classList.add('player-highlight');
+            allPlayerContainers.forEach(container => {
+                const containerPlayerId = container.getAttribute('data-player-id');
+                if (containerPlayerId === playerId) {
+                    container.classList.add('player-highlight');
                 }
             });
         }
 
         function clearAllHighlights() {
-            const highlightedNames = document.querySelectorAll('.player-name-knockout.player-highlight');
-            highlightedNames.forEach(name => {
-                name.classList.remove('player-highlight');
+            const highlightedContainers = document.querySelectorAll('.player-container.player-highlight');
+            highlightedContainers.forEach(container => {
+                container.classList.remove('player-highlight');
             });
         }
     </script>
