@@ -52,6 +52,17 @@
             table th, table td { padding: 0.25rem 0.5rem !important; }
             table .player-name-table { font-size: 0.625rem !important; font-weight: 500 !important; }
 
+            /* Compact knockout bracket for PDF */
+            .knockout-bracket { font-size: 0.7rem !important; }
+            .knockout-bracket .round-header { font-size: 0.65rem !important; }
+            .knockout-bracket .match-card { padding: 0.5rem !important; margin: 0.25rem 0 !important; }
+            .knockout-bracket .player-name-knockout { font-size: 0.6rem !important; font-weight: 600 !important; }
+            .knockout-bracket .score-circle { width: 1rem !important; height: 1rem !important; font-size: 0.5rem !important; }
+            .knockout-bracket .gap-4 { gap: 0.75rem !important; }
+            .knockout-bracket .gap-8 { gap: 1rem !important; }
+            .knockout-bracket .px-3 { padding-left: 0.5rem !important; padding-right: 0.5rem !important; }
+            .knockout-bracket .pb-3 { padding-bottom: 0.5rem !important; }
+
             /* Force 2 columns for groups in PDF */
             .groups-grid { display: grid !important; grid-template-columns: repeat(2, 1fr) !important; gap: 1rem !important; }
         }
@@ -235,7 +246,7 @@
         @endif
 
         <!-- Tournament Bracket -->
-        <div class="bg-gray-50 rounded-xl p-4 md:p-6 border border-gray-300 bracket-container">
+        <div class="bg-gray-50 rounded-xl p-4 md:p-6 border border-gray-300 bracket-container knockout-bracket">
             <div class="overflow-x-auto pb-6">
                 <div class="min-w-max">
                     <!-- Bracket Container -->
@@ -265,7 +276,7 @@
                         <div class="flex flex-col justify-center gap-2" style="gap: {{ $spacingMultiplier * 1 }}rem;">
                             {{-- Round Header --}}
                             <div class="text-center mb-4">
-                                <h4 class="text-sm md:text-base font-bold text-gray-900 uppercase tracking-wider">
+                                <h4 class="text-sm md:text-base font-bold text-gray-900 uppercase tracking-wider round-header">
                                     {{ $roundName }}
                                 </h4>
                             </div>
@@ -322,29 +333,29 @@
                                                         <span class="text-gray-400">0</span>
                                                     @endif
                                                 </div>
-                                                <div class="text-xs md:text-sm font-semibold {{ ($homeSetsWon > $awaySetsWon) && ($homeSetsWon > 0 || $awaySetsWon > 0) || ($match->is_bye && $match->homePlayer) ? 'text-gray-900 font-bold' : 'text-gray-600' }} truncate">
+                                                <div class="text-xs md:text-sm font-semibold {{ ($homeSetsWon > $awaySetsWon) && ($homeSetsWon > 0 || $awaySetsWon > 0) || ($match->is_bye && $match->homePlayer) ? 'text-gray-900 font-bold' : 'text-gray-600' }} truncate player-name-knockout">
                                                     {{ $match->homePlayer->name ?? 'NEMA PROTIVNIKA' }}
                                                 </div>
                                             </div>
                                             <div class="flex-shrink-0 ml-2">
                                                 @if($match->status === 'in_progress' && !$match->is_bye)
-                                                    <div class="w-6 h-6 bg-green-600 rounded flex items-center justify-center">
+                                                    <div class="w-6 h-6 bg-green-600 rounded flex items-center justify-center score-circle">
                                                         <div class="text-xs font-bold text-white">
                                                             {{ $homeFinalScore }}
                                                         </div>
                                                     </div>
                                                 @elseif($match->status === 'completed' || ($homeSetsWon > 0 || $awaySetsWon > 0))
-                                                    <div class="w-6 h-6 bg-green-600 rounded flex items-center justify-center">
+                                                    <div class="w-6 h-6 bg-green-600 rounded flex items-center justify-center score-circle">
                                                         <div class="text-xs font-bold text-white">
                                                             {{ $homeFinalScore ?: $homeSetsWon }}
                                                         </div>
                                                     </div>
                                                 @elseif($match->is_bye)
-                                                    <div class="w-6 h-6 bg-gray-200 rounded flex items-center justify-center">
+                                                    <div class="w-6 h-6 bg-gray-200 rounded flex items-center justify-center score-circle">
                                                         <div class="text-xs font-bold text-gray-500">bye</div>
                                                     </div>
                                                 @else
-                                                    <div class="w-6 h-6 bg-gray-200 rounded flex items-center justify-center">
+                                                    <div class="w-6 h-6 bg-gray-200 rounded flex items-center justify-center score-circle">
                                                         <div class="text-xs font-bold text-gray-400">-</div>
                                                     </div>
                                                 @endif
@@ -363,29 +374,29 @@
                                                         <span class="text-gray-400">0</span>
                                                     @endif
                                                 </div>
-                                                <div class="text-xs md:text-sm font-semibold {{ ($awaySetsWon > $homeSetsWon) && ($homeSetsWon > 0 || $awaySetsWon > 0) || ($match->is_bye && $match->awayPlayer) ? 'text-gray-900 font-bold' : 'text-gray-600' }} truncate">
+                                                <div class="text-xs md:text-sm font-semibold {{ ($awaySetsWon > $homeSetsWon) && ($homeSetsWon > 0 || $awaySetsWon > 0) || ($match->is_bye && $match->awayPlayer) ? 'text-gray-900 font-bold' : 'text-gray-600' }} truncate player-name-knockout">
                                                     {{ $match->awayPlayer->name ?? 'NEMA PROTIVNIKA' }}
                                                 </div>
                                             </div>
                                             <div class="flex-shrink-0 ml-2">
                                                 @if($match->status === 'in_progress' && !$match->is_bye)
-                                                    <div class="w-6 h-6 bg-green-600 rounded flex items-center justify-center">
+                                                    <div class="w-6 h-6 bg-green-600 rounded flex items-center justify-center score-circle">
                                                         <div class="text-xs font-bold text-white">
                                                             {{ $awayFinalScore }}
                                                         </div>
                                                     </div>
                                                 @elseif($match->status === 'completed' || ($homeSetsWon > 0 || $awaySetsWon > 0))
-                                                    <div class="w-6 h-6 bg-green-600 rounded flex items-center justify-center">
+                                                    <div class="w-6 h-6 bg-green-600 rounded flex items-center justify-center score-circle">
                                                         <div class="text-xs font-bold text-white">
                                                             {{ $awayFinalScore ?: $awaySetsWon }}
                                                         </div>
                                                     </div>
                                                 @elseif($match->is_bye)
-                                                    <div class="w-6 h-6 bg-gray-200 rounded flex items-center justify-center">
+                                                    <div class="w-6 h-6 bg-gray-200 rounded flex items-center justify-center score-circle">
                                                         <div class="text-xs font-bold text-gray-500">bye</div>
                                                     </div>
                                                 @else
-                                                    <div class="w-6 h-6 bg-gray-200 rounded flex items-center justify-center">
+                                                    <div class="w-6 h-6 bg-gray-200 rounded flex items-center justify-center score-circle">
                                                         <div class="text-xs font-bold text-gray-400">-</div>
                                                     </div>
                                                 @endif
