@@ -176,9 +176,9 @@
                         <div class="border border-gray-300 rounded p-4 bg-white match-card">
                             <div class="flex justify-between items-center mb-2">
                                 <div class="flex items-center space-x-3 flex-1">
-                                    <span class="player-name text-gray-900">{{ $match->homePlayer->name ?? 'Home Player' }}</span>
+                                    <span class="player-name text-gray-900 {{ $homeSetsWon > $awaySetsWon ? 'font-bold' : '' }}">{{ $match->homePlayer->name ?? 'Home Player' }}</span>
                                     <span class="text-sm text-gray-600">vs</span>
-                                    <span class="player-name text-gray-900">{{ $match->awayPlayer->name ?? 'Away Player' }}</span>
+                                    <span class="player-name text-gray-900 {{ $awaySetsWon > $homeSetsWon ? 'font-bold' : '' }}">{{ $match->awayPlayer->name ?? 'Away Player' }}</span>
                                 </div>
                                 <div class="text-sm font-medium text-gray-700">
                                     <span class="font-medium">{{ $homeSetsWon }}</span> - <span class="font-medium">{{ $awaySetsWon }}</span>
