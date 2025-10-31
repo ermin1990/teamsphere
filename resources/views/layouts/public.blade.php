@@ -154,9 +154,6 @@
                         <a href="{{ route('home') }}" class="transition-colors text-sm md:text-base font-medium hover:text-blue-400" style="color: var(--text-secondary);">
                             🏠 Home
                         </a>
-                        <a href="{{ route('public.live-matches') }}" class="transition-colors text-sm md:text-base font-medium hover:text-blue-400 {{ request()->routeIs('public.live-matches*') ? 'font-semibold' : '' }}" style="color: {{ request()->routeIs('public.live-matches*') ? 'var(--accent-blue)' : 'var(--text-secondary)' }};">
-                            📺 Mečevi Uživo
-                        </a>
                         <a href="{{ route('public.leagues.index') }}" class="transition-colors text-sm md:text-base font-medium hover:text-blue-400 {{ request()->routeIs('public.leagues*') ? 'font-semibold' : '' }}" style="color: {{ request()->routeIs('public.leagues*') ? 'var(--accent-blue)' : 'var(--text-secondary)' }};">
                             🏆 Takmičenja
                         </a>
@@ -185,10 +182,6 @@
             <a href="{{ route('home') }}" class="flex flex-col items-center transition-colors text-xs flex-1 hover:text-blue-400" style="color: var(--text-secondary);">
                 <span class="text-lg">🏠</span>
                 <span class="mt-1">Home</span>
-            </a>
-            <a href="{{ route('public.live-matches') }}" class="flex flex-col items-center transition-colors text-xs flex-1 hover:text-blue-400 {{ request()->routeIs('public.live-matches*') ? 'text-blue-400' : '' }}" style="color: {{ request()->routeIs('public.live-matches*') ? 'var(--accent-blue)' : 'var(--text-secondary)' }};">
-                <span class="text-lg">📺</span>
-                <span class="mt-1">Uživo</span>
             </a>
             <a href="{{ route('public.leagues.index') }}" class="flex flex-col items-center transition-colors text-xs flex-1 hover:text-blue-400 {{ request()->routeIs('public.leagues*') ? 'text-blue-400' : '' }}" style="color: {{ request()->routeIs('public.leagues*') ? 'var(--accent-blue)' : 'var(--text-secondary)' }};">
                 <span class="text-lg">🏆</span>

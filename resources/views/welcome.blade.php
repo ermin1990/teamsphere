@@ -52,9 +52,9 @@
                     <div class="max-w-4xl mx-auto">
                         <div class="text-center mb-6">
                             <h2 class="text-2xl font-bold text-white mb-2">Istraži Takmičenja</h2>
-                            <p class="text-gray-400">Pregledaj lige i turnire ili prati mečeve uživo</p>
+                            <p class="text-gray-400">Pregledaj lige i turnire</p>
                         </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="grid grid-cols-1 gap-4 max-w-md mx-auto">
                             <!-- View Competitions -->
                             <a href="{{ route('public.leagues.index') }}" class="block bg-gradient-to-r from-blue-500/10 to-purple-500/10 border-2 border-blue-500/30 rounded-2xl p-6 hover:border-blue-500/50 transition-all group">
                                 <div class="flex items-center justify-center space-x-4">
@@ -69,34 +69,6 @@
                                         <div class="text-gray-400 text-xs mt-1">Rezultati i tabele</div>
                                     </div>
                                     <svg class="w-5 h-5 text-blue-400 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                                    </svg>
-                                </div>
-                            </a>
-
-                            <!-- Live Matches -->
-                            <a href="{{ route('public.live-matches') }}" class="block bg-gradient-to-r from-green-500/10 to-emerald-500/10 border-2 border-green-500/30 rounded-2xl p-6 hover:border-green-500/50 transition-all group">
-                                <div class="flex items-center justify-center space-x-4">
-                                    <div class="relative">
-                                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                                        <div class="w-12 h-12 bg-green-500 rounded-xl flex items-center justify-center relative">
-                                            <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                                            </svg>
-                                        </div>
-                                    </div>
-                                    <div class="text-left">
-                                        <div class="text-green-400 font-bold text-lg">🔴 Uživo Mečevi</div>
-                                        <div class="text-white text-sm font-medium">
-                                            @if(isset($liveMatchesCount) && $liveMatchesCount > 0)
-                                                {{ $liveMatchesCount }} {{ $liveMatchesCount == 1 ? 'meč uživo' : ($liveMatchesCount < 5 ? 'meča uživo' : 'mečeva uživo') }}
-                                            @else
-                                                Prati uživo
-                                            @endif
-                                        </div>
-                                        <div class="text-gray-400 text-xs mt-1">Real-time rezultati</div>
-                                    </div>
-                                    <svg class="w-5 h-5 text-green-400 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                                     </svg>
                                 </div>
@@ -143,17 +115,6 @@
                                 </svg>
                             </div>
                             <div>
-                                <h3 class="font-semibold text-white mb-1">Real-time Rezultati</h3>
-                                <p class="text-gray-400 text-sm">Uživo praćenje svih mečeva</p>
-                            </div>
-                        </div>
-                        <div class="flex items-start space-x-3">
-                            <div class="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                                </svg>
-                            </div>
-                            <div>
                                 <h3 class="font-semibold text-white mb-1">Jednostavna Organizacija</h3>
                                 <p class="text-gray-400 text-sm">Rasporedi i timovi na jednom mjestu</p>
                             </div>
@@ -178,6 +139,17 @@
                             <div>
                                 <h3 class="font-semibold text-white mb-1">Stoni Tenis</h3>
                                 <p class="text-gray-400 text-sm">Za sada samo stoni tenis, uskoro i ostali sportovi</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start space-x-3">
+                            <div class="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-white mb-1">Turniri i Lige</h3>
+                                <p class="text-gray-400 text-sm">Potpuna podrška za organizaciju takmičenja</p>
                             </div>
                         </div>
                     </div>
