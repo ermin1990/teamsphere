@@ -604,15 +604,6 @@
                                             <!-- Home Player -->
                                             <div class="flex items-center justify-between mb-2">
                                                 <div class="flex items-center gap-2 flex-1 min-w-0">
-                                                    <div class="w-6 h-6 rounded bg-white/20 flex items-center justify-center text-xs font-bold text-[var(--text-primary)] flex-shrink-0">
-                                                        @if($match->status === 'completed' || ($homeSetsWon > 0 || $awaySetsWon > 0))
-                                                            {{ $homeSetsWon }}
-                                                        @elseif($match->status === 'in_progress')
-                                                            <span class="text-green-400">{{ $homeSetsWon }}</span>
-                                                        @else
-                                                            <span class="text-[var(--text-muted)]">0</span>
-                                                        @endif
-                                                    </div>
                                                     <div class="text-xs md:text-sm font-semibold {{ ($homeSetsWon > $awaySetsWon) && ($homeSetsWon > 0 || $awaySetsWon > 0) || ($match->is_bye && $match->homePlayer) ? 'text-green-600' : 'text-[var(--text-tertiary)]' }} truncate player-name-knockout" data-player-id="{{ $match->homePlayer->id ?? '' }}">
                                                         {{ $match->homePlayer->name ?? 'NEMA PROTIVNIKA' }}
                                                     </div>
@@ -645,15 +636,6 @@
                                             <!-- Away Player -->
                                             <div class="flex items-center justify-between">
                                                 <div class="flex items-center gap-2 flex-1 min-w-0">
-                                                    <div class="w-6 h-6 rounded bg-white/20 flex items-center justify-center text-xs font-bold text-[var(--text-primary)] flex-shrink-0">
-                                                        @if($match->status === 'completed' || ($homeSetsWon > 0 || $awaySetsWon > 0))
-                                                            {{ $awaySetsWon }}
-                                                        @elseif($match->status === 'in_progress')
-                                                            <span class="text-green-400">{{ $awaySetsWon }}</span>
-                                                        @else
-                                                            <span class="text-[var(--text-muted)]">0</span>
-                                                        @endif
-                                                    </div>
                                                     <div class="text-xs md:text-sm font-semibold {{ ($awaySetsWon > $homeSetsWon) && ($homeSetsWon > 0 || $awaySetsWon > 0) || ($match->is_bye && $match->awayPlayer) ? 'text-green-600' : 'text-[var(--text-tertiary)]' }} truncate player-name-knockout" data-player-id="{{ $match->awayPlayer->id ?? '' }}">
                                                         {{ $match->awayPlayer->name ?? 'NEMA PROTIVNIKA' }}
                                                     </div>
