@@ -394,7 +394,8 @@
             @endif
         </div>        <!-- Knockout Tab Content -->
         @if($hasKnockoutMatches)
-        <div id="knockout-content" class="tab-content mt-4 md:mt-6 pb-16 md:pb-24 {{ !$showKnockoutTab ? 'hidden' : '' }}">
+                <!-- Knockout Tab Content -->
+        <div id="knockout-content" class="tab-content mt-4 md:mt-6 pb-16 md:pb-24 hidden">
             @php
                 $totalRounds = $knockoutMatches->count();
                 $firstRoundMatches = $knockoutMatches->get(1) ?? collect();
