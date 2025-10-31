@@ -112,12 +112,10 @@
 
             @if($currentGroupMatches->count() > 0)
             <div class="break-inside-avoid group-section">
-                <h3 class="text-xl font-semibold text-gray-800 mb-4">{{ $group->name }}</h3>
-
                 <!-- Group Standings Table -->
                 @if($groupStandings->count() > 0)
                 <div class="mb-6">
-                    <h4 class="text-lg font-medium text-gray-700 mb-3">{{ $group->name }}</h4>
+                    <h4 class="text-lg font-medium text-gray-700 mb-3">Grupa {{ $group->name }}</h4>
                     <div class="overflow-hidden border border-gray-300 rounded">
                         <table class="w-full text-sm">
                             <thead class="bg-gray-100">
@@ -149,7 +147,7 @@
 
                 <!-- Group Matches -->
                 <div>
-                    <h4 class="text-lg font-medium text-gray-700 mb-3">{{ $group->name }}</h4>
+                    <h4 class="text-lg font-medium text-gray-700 mb-3">Grupa {{ $group->name }}</h4>
                     <div class="space-y-3">
                         @foreach($currentGroupMatches as $match)
                         @php
