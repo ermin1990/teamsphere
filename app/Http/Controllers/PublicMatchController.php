@@ -323,4 +323,55 @@ class PublicMatchController extends Controller
             'last_updated' => now()->toISOString(),
         ]);
     }
+
+    /**
+     * Display competition semafor - large screen display for competition results
+     */
+    public function competitionSemafor(Competition $competition)
+    {
+        // Ensure competition is public, or allow access if user is the owner
+        $isOwner = auth()->check() && auth()->id() === $competition->organization->user_id;
+        if (!$competition->is_public && !$isOwner) {
+            abort(404, 'Competition not found.');
+        }
+
+        try {
+            // Load all necessary data for semafor display
+            $competition->load([
+                'organization',
+                'sport',
+                'standings.team',
+                'standings.player',
+                'tournamentGroups.standings.player',
+                'tournamentGroups.standings.team',
+                'matches' => function ($query) {
+                    $query->with(['homePlayer', 'awayPlayer', 'homeTeam', 'awayTeam'])
+                          ->orderBy('round_number')
+                          ->orderBy('match_order')
+                          ->orderBy('scheduled_at');
+                }
+            ]);
+
+            // Group matches by phase for knockout display
+            $matchesByPhase = $competition->matches->groupBy('phase');
+
+            // Get current active phase
+            $currentPhase = 'groups'; // default
+            if ($competition->current_phase) {
+                $currentPhase = $competition->current_phase;
+            } elseif ($matchesByPhase->has('knockout')) {
+                $currentPhase = 'knockout';
+            }
+
+            return view('public.leagues.semafor', compact(
+                'competition',
+                'matchesByPhase',
+                'currentPhase'
+            ));
+
+        } catch (\Exception $e) {
+            \Log::error('Competition semafor error: ' . $e->getMessage());
+            abort(500, 'Error loading competition data.');
+        }
+    }
 }
