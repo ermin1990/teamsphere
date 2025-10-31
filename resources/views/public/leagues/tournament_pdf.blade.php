@@ -65,6 +65,14 @@
 
             /* Footer should not break to new page */
             .footer-section { page-break-inside: avoid; page-break-before: avoid; margin-top: 1rem !important; padding-top: 1rem !important; }
+
+            /* Force 2 columns for groups in PDF */
+            .groups-grid { 
+                display: grid !important; 
+                grid-template-columns: repeat(2, 1fr) !important; 
+                gap: 1rem !important;
+                width: 100% !important;
+            }
         }
     </style>
 </head>
@@ -94,7 +102,8 @@
     @if($hasGroupMatches)
     <div class="mb-8">
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 groups-grid">
+        <div class="groups-grid">
+
             @foreach($competition->tournamentGroups as $group)
             @php
                 $currentGroupMatches = $groupMatches->get($group->id) ?? collect();
