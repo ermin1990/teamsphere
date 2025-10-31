@@ -1,38 +1,17 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex items-center justify-between">
+        <div class="flex items-center">
             <div>
-                <h2 class="font-bold text-3xl bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                <h2 class="font-bold text-2xl md:text-3xl bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
                     Kontrolna Tabla
                 </h2>
                 <p class="text-gray-400 mt-1">Dobrodošli nazad, {{ Auth::user()->name }}!</p>
-            </div>
-            <div class="text-right">
-                <p class="text-sm text-gray-400">{{ now()->format('l, F j, Y') }}</p>
-                <p class="text-sm text-gray-500">{{ now()->format('H:i') }}</p>
             </div>
         </div>
     </x-slot>
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
-
-            <!-- Welcome Card -->
-            <div class="bg-gray-800/50 backdrop-blur-xl rounded-3xl p-8 border border-gray-700/50 shadow-2xl">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <h3 class="text-2xl font-bold text-white mb-2">Dobrodošli u Team Sphere</h3>
-                        <p class="text-gray-400">Pogledajte svoje organizacije i nadolazeće mečeve.</p>
-                    </div>
-                    <div class="hidden md:block">
-                        <div class="w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
-                            <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                            </svg>
-                        </div>
-                    </div>
-                </div>
-            </div>
 
             <!-- Referee Section -->
             @if($isReferee)
@@ -68,21 +47,21 @@
 
                 <!-- My Organizations -->
                 <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl lg:col-span-2">
-                    <div class="flex items-center justify-between mb-6">
-                        <div>
-                            <h3 class="text-2xl font-bold text-white">Moje Organizacije</h3>
-                            <p class="text-gray-400">Upravljajte svojim organizacijama i takmičenjima</p>
-                        </div>
-                        @if(Auth::user()->canCreateMoreOrganizations())
-                            <a href="{{ route('organizations.create') }}" class="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-6 py-3 rounded-xl transition-all duration-200 transform hover:scale-[1.02] hover:shadow-lg hover:shadow-blue-500/25">
-                                <span class="flex items-center space-x-2">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div class="mb-6">
+                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                            <div>
+                                <h3 class="text-xl sm:text-2xl font-bold text-white">Moje Organizacije</h3>
+                                <p class="text-gray-400 text-sm">Upravljajte svojim organizacijama i takmičenjima</p>
+                            </div>
+                            @if(Auth::user()->canCreateMoreOrganizations())
+                                <a href="{{ route('organizations.create') }}" class="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-4 py-2 sm:px-6 sm:py-3 rounded-xl transition-all duration-200 transform hover:scale-[1.02] hover:shadow-lg hover:shadow-blue-500/25 inline-flex items-center space-x-2">
+                                    <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                                     </svg>
-                                    <span>Kreiraj Organizaciju</span>
-                                </span>
-                            </a>
-                        @endif
+                                    <span class="text-sm sm:text-base">Kreiraj Organizaciju</span>
+                                </a>
+                            @endif
+                        </div>
                     </div>
 
                 @if($organizations->count() > 0)

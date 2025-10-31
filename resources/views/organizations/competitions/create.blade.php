@@ -211,13 +211,13 @@
                     </div>
 
                     <!-- Submit Button -->
-                    <div class="flex justify-end space-x-4 pt-6 border-t border-gray-600">
+                    <div class="flex flex-col sm:flex-row justify-end gap-3 sm:gap-4 pt-6 border-t border-gray-600">
                         <a href="{{ route('organizations.show', $organization) }}"
-                           class="px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors font-semibold">
+                           class="px-4 py-2 sm:px-6 sm:py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors font-semibold text-center">
                             Otkaži
                         </a>
                         <button type="submit"
-                                class="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg transition-all duration-200 font-semibold shadow-lg hover:shadow-xl">
+                                class="px-4 py-2 sm:px-6 sm:py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg transition-all duration-200 font-semibold shadow-lg hover:shadow-xl text-center">
                             Kreiraj Takmičenje
                         </button>
                     </div>

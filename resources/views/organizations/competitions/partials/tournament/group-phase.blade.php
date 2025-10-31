@@ -7,42 +7,42 @@
 @endphp
 
 <div class="mb-8">
-    <div class="w-full bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 hover:border-gray-600/50 transition-all text-left">
-        <div class="flex items-center justify-between">
-            <div class="flex items-center space-x-4">
-                <h3 class="text-2xl font-bold text-white">📋 Grupna Faza</h3>
+    <div class="w-full bg-gray-800/50 backdrop-blur-xl rounded-2xl p-4 sm:p-6 border border-gray-700/50 hover:border-gray-600/50 transition-all text-left">
+        <div class="flex flex-col sm:flex-row gap-4">
+            <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                <h3 class="text-lg sm:text-2xl font-bold text-white">📋 Grupna Faza</h3>
                 @if($allGroupMatchesCompleted)
-                    <span class="px-3 py-1 text-xs rounded-full bg-green-600/20 text-green-400">
+                    <span class="px-2 py-1 sm:px-3 text-xs rounded-full bg-green-600/20 text-green-400 self-start">
                         ✓ Završeno
                     </span>
                 @else
-                    <span class="px-3 py-1 text-xs rounded-full bg-yellow-600/20 text-yellow-400">
+                    <span class="px-2 py-1 sm:px-3 text-xs rounded-full bg-yellow-600/20 text-yellow-400 self-start">
                         ⏳ U toku
                     </span>
                 @endif
             </div>
-            
-            <div class="flex gap-2">
+
+            <div class="flex flex-col sm:flex-row gap-2 sm:gap-2 sm:ml-auto">
                 {{-- Knockout buttons (show when groups are completed) --}}
                 @if($isOwner && $allGroupMatchesCompleted && $knockoutMatches->count() === 0)
                     <a href="{{ route('organizations.competitions.knockout-setup', [$organization, $competition]) }}"
-                       class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-4 py-2 rounded-lg transition-colors font-semibold">
+                       class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-2 sm:px-4 rounded-lg transition-colors font-semibold text-center">
                         🎯 Ručno Postavi Knockout
                     </a>
                     <form id="autoGenerateKnockoutForm" method="POST" action="{{ route('organizations.competitions.auto-generate-knockout', [$organization, $competition]) }}" style="display: inline;">
                         @csrf
                         <div class="flex gap-2 items-center">
-                            <button type="submit" id="autoGenerateBtn" class="bg-gray-600 text-gray-400 text-xs px-4 py-2 rounded-lg cursor-not-allowed font-semibold" disabled title="Trenutno nije u funkciji">
+                            <button type="submit" id="autoGenerateBtn" class="bg-gray-600 text-gray-400 text-xs px-3 py-2 sm:px-4 rounded-lg cursor-not-allowed font-semibold" disabled title="Trenutno nije u funkciji">
                                 ⚡ Automatski Generiši (nedostupno)
                             </button>
                         </div>
                     </form>
                 @endif
-            
+
                 {{-- Reset Button --}}
                 @if($isOwner && $groupMatches->count() > 0)
-                    <button type="button" onclick="confirmResetGroupPhase()" 
-                            class="bg-red-600 hover:bg-red-700 text-white text-xs px-4 py-2 rounded-lg transition-colors font-semibold">
+                    <button type="button" onclick="confirmResetGroupPhase()"
+                            class="bg-red-600 hover:bg-red-700 text-white text-xs px-3 py-2 sm:px-4 rounded-lg transition-colors font-semibold text-center">
                         🔄 Resetuj grupnu fazu
                     </button>
                 @endif

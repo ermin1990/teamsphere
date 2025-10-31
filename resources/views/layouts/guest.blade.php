@@ -18,13 +18,6 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="bg-gray-900 text-white min-h-screen">
-        <!-- Language Switcher -->
-        <div class="absolute top-6 right-6 z-10 flex items-center space-x-2">
-            <a href="{{ route('locale', ['locale' => 'en']) }}" class="text-gray-300 hover:text-white font-medium transition-colors {{ app()->getLocale() === 'en' ? 'text-blue-400' : '' }}">EN</a>
-            <span class="text-gray-600">|</span>
-            <a href="{{ route('locale', ['locale' => 'bs']) }}" class="text-gray-300 hover:text-white font-medium transition-colors {{ app()->getLocale() === 'bs' ? 'text-blue-400' : '' }}">BS</a>
-        </div>
-
         <div class="min-h-screen flex flex-col items-center justify-center px-6 py-12">
             <!-- Background Effects -->
             <div class="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-900/95 to-gray-800"></div>

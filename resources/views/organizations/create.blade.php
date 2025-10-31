@@ -1,14 +1,17 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex items-center justify-between">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-                <h2 class="font-bold text-3xl bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                <h2 class="font-bold text-2xl sm:text-3xl bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
                     Kreiraj Organizaciju
                 </h2>
-                <p class="text-gray-400 mt-1">Postavite svoju sportsku organizaciju da počnete upravljati ligama i timovima</p>
+                <p class="text-gray-400 text-sm mt-1">Postavite svoju sportsku organizaciju da počnete upravljati ligama i timovima</p>
             </div>
-            <a href="{{ route('dashboard') }}" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-xl transition-all duration-200">
-                ← Nazad na Kontrolnu Tablu
+            <a href="{{ route('dashboard') }}" class="bg-gray-700 hover:bg-gray-600 text-white px-3 py-2 sm:px-4 sm:py-2 rounded-xl transition-all duration-200 inline-flex items-center space-x-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                </svg>
+                <span class="text-sm sm:text-base">Nazad na Kontrolnu Tablu</span>
             </a>
         </div>
     </x-slot>
