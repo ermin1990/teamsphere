@@ -1,20 +1,39 @@
-@extends('layouts.public')
-
-@section('content')
-<div class="max-w-4xl mx-auto">
-    <!-- Tournament Header -->
-    <div class="text-center mb-8">
-        <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-2">{{ $competition->name }}</h1>
-        <p class="text-lg text-gray-600">{{ $competition->organization->name ?? 'TeamSphere' }}</p>
-        <p class="text-sm text-gray-500 mt-2">
-            @if($competition->start_date)
-                {{ \Carbon\Carbon::parse($competition->start_date)->format('d.m.Y') }}
-                @if($competition->end_date && $competition->end_date != $competition->start_date)
-                    - {{ \Carbon\Carbon::parse($competition->end_date)->format('d.m.Y') }}
-                @endif
-            @endif
-        </p>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ $competition->name }} - PDF Export</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @media print {
+            .no-print { display: none !important; }
+            body { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+        }
+    </style>
+</head>
+<body class="bg-white">
+    <!-- Print/Save as PDF Button -->
+    <div class="no-print fixed top-4 right-4 z-50">
+        <button onclick="window.print()" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg shadow-lg transition-colors duration-200">
+            💾 Spremi kao PDF
+        </button>
     </div>
+
+    <div class="max-w-4xl mx-auto pt-16">
+        <!-- Tournament Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-2">{{ $competition->name }}</h1>
+            <p class="text-lg text-gray-600">{{ $competition->organization->name ?? 'TeamSphere' }}</p>
+            <p class="text-sm text-gray-500 mt-2">
+                @if($competition->start_date)
+                    {{ \Carbon\Carbon::parse($competition->start_date)->format('d.m.Y') }}
+                    @if($competition->end_date && $competition->end_date != $competition->start_date)
+                        - {{ \Carbon\Carbon::parse($competition->end_date)->format('d.m.Y') }}
+                    @endif
+                @endif
+            </p>
+        </div>
 
     <!-- Groups Section -->
     @if($hasGroupMatches)
@@ -391,4 +410,5 @@
         <p>Generisano od strane TeamSphere - {{ now()->format('d.m.Y H:i') }}</p>
     </div>
 </div>
-@endsection
+</body>
+</html>
