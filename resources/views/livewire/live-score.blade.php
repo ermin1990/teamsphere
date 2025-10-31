@@ -230,12 +230,12 @@
                         </div>
                         <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
                             <h3 class="text-lg leading-6 font-medium text-white">
-                                Match Completed!
+                                Meč završen!
                             </h3>
                             <div class="mt-2">
                                 <p class="text-sm text-gray-300">
-                                    <span x-text="winner === 'home' ? '{{ $parent->is_team_based ? $match->homeTeam->name ?? 'Home Team' : $match->homePlayer->name ?? 'Home Player' }}' : '{{ $parent->is_team_based ? $match->awayTeam->name ?? 'Away Team' : $match->awayPlayer->name ?? 'Away Player' }}'"></span>
-                                    wins the match with <span x-text="winner === 'home' ? homeSets : awaySets"></span> sets to <span x-text="winner === 'away' ? homeSets : awaySets"></span>!
+                                    <span x-text="winner === 'home' ? '{{ $parent->is_team_based ? $match->homeTeam->name ?? 'Domaći tim' : $match->homePlayer->name ?? 'Domaći igrač' }}' : '{{ $parent->is_team_based ? $match->awayTeam->name ?? 'Gostujući tim' : $match->awayPlayer->name ?? 'Gostujući igrač' }}'"></span>
+                                    pobjeđuje sa <span x-text="winner === 'home' ? homeSets : awaySets"></span> setova na <span x-text="winner === 'away' ? homeSets : awaySets"></span>!
                                 </p>
                             </div>
                         </div>
@@ -244,11 +244,11 @@
                 <div class="bg-gray-700 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
                     <button type="button" wire:click="confirmMatchEnd" x-on:click="showModal = false"
                             class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-green-600 text-base font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:ml-3 sm:w-auto sm:text-sm">
-                        End Match & Save Results
+                        Završi meč i sačuvaj rezultate
                     </button>
                     <button type="button" x-on:click="showModal = false"
                             class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-600 shadow-sm px-4 py-2 bg-gray-600 text-base font-medium text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
-                        Continue Playing
+                        Nastavi igrati
                     </button>
                 </div>
             </div>
