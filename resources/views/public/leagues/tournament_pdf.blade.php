@@ -34,6 +34,21 @@
 
             /* Force page break before knockout section */
             .knockout-section { page-break-before: always; }
+
+            /* Force page breaks for section headers */
+            .section-header { page-break-before: always; }
+
+            /* Group layout - 2 groups per page */
+            .group-section:nth-child(odd) { page-break-after: always; }
+
+            /* Smaller fonts for better fit */
+            .tournament-header h1 { font-size: 2rem !important; }
+            .tournament-header p { font-size: 0.875rem !important; }
+            .group-section h3 { font-size: 1.125rem !important; }
+            .match-card { font-size: 0.75rem !important; padding: 0.75rem !important; }
+            .match-card .text-xs { font-size: 0.625rem !important; }
+            table { font-size: 0.75rem !important; }
+            table th, table td { padding: 0.25rem 0.5rem !important; }
         }
     </style>
 </head>
@@ -45,9 +60,9 @@
         </button>
     </div>
 
-    <div class="max-w-4xl mx-auto pt-16">
+    <div class="max-w-3xl mx-auto pt-16">
         <!-- Tournament Header -->
-        <div class="text-center mb-8 tournament-header">
+        <div class="text-center mb-6 tournament-header">
             <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-2">{{ $competition->name }}</h1>
             <p class="text-lg text-gray-600">{{ $competition->organization->name ?? 'TeamSphere' }}</p>
             <p class="text-sm text-gray-500 mt-2">
@@ -62,10 +77,10 @@
 
     <!-- Groups Section -->
     @if($hasGroupMatches)
-    <div class="mb-12">
-        <h2 class="text-2xl font-bold text-gray-900 mb-6 border-b-2 border-gray-300 pb-2">🏆 Grupna faza</h2>
+    <div class="mb-8">
+        <h2 class="text-2xl font-bold text-gray-900 mb-6 border-b-2 border-gray-300 pb-2 section-header">🏆 Grupna faza</h2>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
             @foreach($competition->tournamentGroups as $group)
             @php
                 $currentGroupMatches = $groupMatches->get($group->id) ?? collect();
@@ -180,8 +195,8 @@
 
     <!-- Knockout Section -->
     @if($hasKnockoutMatches)
-    <div class="mb-12 knockout-section">
-        <h2 class="text-2xl font-bold text-gray-900 mb-6 border-b-2 border-gray-300 pb-2">🏅 Eliminaciona faza</h2>
+    <div class="mb-8 knockout-section">
+        <h2 class="text-2xl font-bold text-gray-900 mb-6 border-b-2 border-gray-300 pb-2 section-header">🏅 Eliminaciona faza</h2>
 
         @php
             $totalRounds = $knockoutMatches->count();
@@ -431,7 +446,7 @@
     @endif
 
     <!-- Footer -->
-    <div class="text-center text-sm text-gray-500 mt-12 pt-8 border-t border-gray-300">
+    <div class="text-center text-sm text-gray-500 mt-8 pt-6 border-t border-gray-300">
         <p>Generisano od strane TeamSphere - {{ now()->format('d.m.Y H:i') }}</p>
     </div>
 </div>
