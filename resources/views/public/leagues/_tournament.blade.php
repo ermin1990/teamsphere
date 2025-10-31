@@ -46,6 +46,17 @@
                 -webkit-print-color-adjust: exact;
             }
         }
+
+        /* Knockout bracket hover effects */
+        .knockout-match {
+            transition: all 0.2s ease;
+        }
+
+        .knockout-match.player-highlight {
+            background-color: rgba(59, 130, 246, 0.1) !important;
+            border-color: rgba(59, 130, 246, 0.3) !important;
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.2);
+        }
     </style>
     @php
         // Use already loaded matches from controller instead of re-querying
@@ -560,8 +571,11 @@
                                         }
                                     @endphp
 
-                                    <div class="block bg-[var(--bg-tertiary)] hover:bg-[var(--bg-tertiary)] rounded-lg transition-all duration-200 hover:scale-[1.02] border border-[var(--border-primary)]"
-                                         data-match-id="{{ $match->id }}" style="padding-top: 3px; margin-top: 3px; margin-bottom: 3px;">
+                                    <div class="block bg-[var(--bg-tertiary)] hover:bg-[var(--bg-tertiary)] rounded-lg transition-all duration-200 hover:scale-[1.02] border border-[var(--border-primary)] knockout-match"
+                                         data-match-id="{{ $match->id }}" 
+                                         data-home-player="{{ $match->homePlayer->id ?? '' }}" 
+                                         data-away-player="{{ $match->awayPlayer->id ?? '' }}"
+                                         style="padding-top: 3px; margin-top: 3px; margin-bottom: 3px;">
                                         @if($match->status === 'in_progress' && !$match->is_bye)
                                         <div class="text-center mb-2">
                                             <span class="text-red-400 font-semibold text-xs uppercase tracking-wider">Live</span>
@@ -793,6 +807,51 @@
             @elseif($showPdfTab)
                 showTournamentTab('pdf');
             @endif
+
+            // Initialize knockout bracket hover effects
+            initializeKnockoutHover();
         });
+
+        function initializeKnockoutHover() {
+            const matches = document.querySelectorAll('.knockout-match');
+
+            matches.forEach(match => {
+                match.addEventListener('mouseenter', function() {
+                    const homePlayerId = this.getAttribute('data-home-player');
+                    const awayPlayerId = this.getAttribute('data-away-player');
+
+                    if (homePlayerId) {
+                        highlightPlayerPath(homePlayerId);
+                    }
+                    if (awayPlayerId) {
+                        highlightPlayerPath(awayPlayerId);
+                    }
+                });
+
+                match.addEventListener('mouseleave', function() {
+                    clearAllHighlights();
+                });
+            });
+        }
+
+        function highlightPlayerPath(playerId) {
+            const allMatches = document.querySelectorAll('.knockout-match');
+
+            allMatches.forEach(match => {
+                const homePlayerId = match.getAttribute('data-home-player');
+                const awayPlayerId = match.getAttribute('data-away-player');
+
+                if (homePlayerId === playerId || awayPlayerId === playerId) {
+                    match.classList.add('player-highlight');
+                }
+            });
+        }
+
+        function clearAllHighlights() {
+            const highlightedMatches = document.querySelectorAll('.knockout-match.player-highlight');
+            highlightedMatches.forEach(match => {
+                match.classList.remove('player-highlight');
+            });
+        }
     </script>
 @endif
