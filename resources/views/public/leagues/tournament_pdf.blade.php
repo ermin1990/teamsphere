@@ -33,7 +33,7 @@
             .bracket-container { page-break-inside: avoid; }
 
             /* Force page break before knockout section */
-            .knockout-section { page-break-before: always; }
+            .knockout-section { page-break-before: always; page-break-inside: avoid; }
 
             /* Force page breaks for section headers */
             .section-header { page-break-before: always; }
@@ -52,22 +52,25 @@
             table th, table td { padding: 0.25rem 0.5rem !important; }
             table .player-name-table { font-size: 0.625rem !important; font-weight: 500 !important; }
 
-            /* Compact knockout bracket for PDF */
-            .knockout-bracket { font-size: 0.7rem !important; }
-            .knockout-bracket .round-header { font-size: 0.65rem !important; }
-            .knockout-bracket .match-card { padding: 0.5rem !important; margin: 0.25rem 0 !important; }
-            .knockout-bracket .player-name-knockout { font-size: 0.6rem !important; font-weight: 600 !important; }
-            .knockout-bracket .score-circle { width: 1rem !important; height: 1rem !important; font-size: 0.5rem !important; }
-            .knockout-bracket .gap-4 { gap: 0.75rem !important; }
-            .knockout-bracket .gap-8 { gap: 1rem !important; }
-            .knockout-bracket .px-3 { padding-left: 0.5rem !important; padding-right: 0.5rem !important; }
-            .knockout-bracket .pb-3 { padding-bottom: 0.5rem !important; }
+            /* Compact knockout bracket for PDF - optimized for single page */
+            .knockout-bracket { font-size: 0.6rem !important; padding: 0.25rem !important; }
+            .knockout-bracket .round-header { font-size: 0.55rem !important; margin-bottom: 0.125rem !important; }
+            .knockout-bracket .match-card { padding: 0.25rem !important; margin: 0.125rem 0 !important; }
+            .knockout-bracket .player-name-knockout { font-size: 0.5rem !important; font-weight: 600 !important; }
+            .knockout-bracket .score-circle { width: 0.875rem !important; height: 0.875rem !important; font-size: 0.4rem !important; }
+            .knockout-bracket .overflow-x-auto { overflow-x: visible !important; }
+            .knockout-bracket .min-w-max { min-width: auto !important; }
+            .knockout-bracket .gap-2 { gap: 0.25rem !important; }
+            .knockout-bracket .px-3 { padding-left: 0.25rem !important; padding-right: 0.25rem !important; }
+            .knockout-bracket .pb-3 { padding-bottom: 0.25rem !important; }
+            .knockout-bracket .mb-1 { margin-bottom: 0.125rem !important; }
+            .knockout-bracket .ml-1 { margin-left: 0.125rem !important; }
 
             /* Footer should not break to new page */
             .footer-section { page-break-inside: avoid; page-break-before: avoid; margin-top: 1rem !important; padding-top: 1rem !important; }
 
             /* Force 2 columns for groups in PDF */
-            .groups-grid { 
+            .groups-container { 
                 display: grid !important; 
                 grid-template-columns: repeat(2, 1fr) !important; 
                 gap: 1rem !important;
@@ -102,7 +105,7 @@
     @if($hasGroupMatches)
     <div class="mb-8">
 
-        <div class="grid grid-cols-2 gap-6 md:gap-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 groups-container">
             @foreach($competition->tournamentGroups as $group)
             @php
                 $currentGroupMatches = $groupMatches->get($group->id) ?? collect();

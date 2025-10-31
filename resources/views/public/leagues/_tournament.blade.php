@@ -119,7 +119,7 @@
         <!-- Groups Tab Content -->
         <div id="groups-content" class="tab-content mt-4 md:mt-6 {{ !$showGroupsTab ? 'hidden' : '' }}">
             @if($hasGroupMatches)
-            <div class="grid grid-cols-2 gap-4 md:gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                 @foreach($competition->tournamentGroups as $group)
                 @php
                     $currentGroupMatches = $groupMatches->get($group->id) ?? collect();
