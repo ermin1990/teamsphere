@@ -7,6 +7,56 @@
             font-weight: 600 !important;
         }
 
+        /* Light theme table colors */
+        [data-theme="light"] .table-header-text {
+            color: #111827 !important; /* gray-900 */
+        }
+
+        [data-theme="light"] .table-number-text {
+            color: #111827 !important; /* gray-900 */
+        }
+
+        [data-theme="light"] .table-player-name {
+            color: #111827 !important; /* gray-900 */
+        }
+
+        [data-theme="light"] .table-player-position {
+            color: #4b5563 !important; /* gray-600 */
+        }
+
+        [data-theme="light"] .table-advancing-bg {
+            background-color: #f0fdf4 !important; /* green-50 */
+        }
+
+        /* Dark theme table colors */
+        [data-theme="dark"] .table-header-text {
+            color: var(--text-tertiary) !important;
+        }
+
+        [data-theme="dark"] .table-number-text {
+            color: #d1d5db !important; /* gray-300 */
+        }
+
+        [data-theme="dark"] .table-player-name {
+            color: var(--text-primary) !important;
+        }
+
+        [data-theme="dark"] .table-player-position {
+            color: var(--text-tertiary) !important;
+        }
+
+        [data-theme="dark"] .table-advancing-bg {
+            background-color: rgba(6, 78, 59, 0.3) !important; /* green-900/30 */
+        }
+
+        [data-theme="dark"] .table-loss-text {
+            color: #f87171 !important; /* red-400 */
+        }
+
+        [data-theme="dark"] .table-points-text {
+            color: #4ade80 !important; /* green-400 */
+        }
+
         /* PDF Print Styles */
         @media print {
             .tab-button, nav, .border-b, .mb-6 {
@@ -137,7 +187,7 @@
                                                 <h5 class="text-sm md:text-base font-semibold text-[var(--text-secondary)] mb-2 uppercase tracking-wide">Tabela</h5>
 
                         <!-- Table Header -->
-                        <div class="grid grid-cols-12 gap-2 mb-2 text-xs text-gray-900 dark:text-[var(--text-tertiary)] font-medium px-2">
+                        <div class="grid grid-cols-12 gap-2 mb-2 text-xs table-header-text font-medium px-2">
                             <div class="col-span-7"></div>
                             <div class="col-span-1 text-center">P</div>
                             <div class="col-span-1 text-center">I</div>
@@ -149,23 +199,23 @@
                                 $advancingPlayers = $competition->players_advancing_per_group ?? 2;
                             @endphp
                             @foreach($groupStandings as $index => $standing)
-                            <div class="grid grid-cols-12 gap-2 items-center py-2 px-2 {{ $index < $advancingPlayers ? 'bg-green-50 dark:bg-green-900/30' : 'bg-[var(--bg-tertiary)]' }} hover:bg-[var(--bg-secondary)] rounded text-xs md:text-sm transition-all duration-200">
+                            <div class="grid grid-cols-12 gap-2 items-center py-2 px-2 {{ $index < $advancingPlayers ? 'table-advancing-bg' : 'bg-[var(--bg-tertiary)]' }} hover:bg-[var(--bg-secondary)] rounded text-xs md:text-sm transition-all duration-200">
                                 <div class="col-span-7 flex items-center space-x-2">
-                                    <span class="font-bold text-gray-900 dark:text-[var(--text-tertiary)] w-6 text-center">{{ $index + 1 }}</span>
-                                    <span class="text-gray-900 dark:text-[var(--text-primary)] font-medium text-xs truncate">{{ $standing->player->name }}@if($standing->player->position) <span class="text-gray-600 dark:text-[var(--text-tertiary)] text-xs">({{ $standing->player->position }})</span>@endif</span>
+                                    <span class="font-bold table-number-text w-6 text-center">{{ $index + 1 }}</span>
+                                    <span class="table-player-name font-medium text-xs truncate">{{ $standing->player->name }}@if($standing->player->position) <span class="table-player-position text-xs">({{ $standing->player->position }})</span>@endif</span>
                                 </div>
                                 <div class="col-span-1 text-center">
-                                    <span class="text-gray-900 dark:text-gray-300 font-bold">{{ $standing->won ?? 0 }}</span>
+                                    <span class="table-number-text font-bold">{{ $standing->won ?? 0 }}</span>
                                 </div>
                                
                                 <div class="col-span-1 text-center">
-                                    <span class="text-gray-900 dark:text-red-400 font-bold">{{ $standing->lost ?? 0 }}</span>
+                                    <span class="table-number-text table-loss-text font-bold">{{ $standing->lost ?? 0 }}</span>
                                 </div>
                                 <div class="col-span-1 text-center">
-                                    <span class="text-gray-900 dark:text-gray-300 font-bold">{{ ($standing->sets_won ?? 0) - ($standing->sets_lost ?? 0) }}</span>
+                                    <span class="table-number-text font-bold">{{ ($standing->sets_won ?? 0) - ($standing->sets_lost ?? 0) }}</span>
                                 </div>
                                 <div class="col-span-2 text-center">
-                                    <span class="text-gray-900 dark:text-green-400 font-bold">{{ $standing->points ?? 0 }}</span>
+                                    <span class="table-number-text table-points-text font-bold">{{ $standing->points ?? 0 }}</span>
                                 </div>
                             </div>
                             @endforeach
