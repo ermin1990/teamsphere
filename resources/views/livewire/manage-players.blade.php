@@ -4,37 +4,51 @@
 
             <!-- Progress Indicator -->
             <div class="mb-8">
-                <div class="flex items-center justify-between">
-                    <div class="flex-1">
-                        <div class="flex items-center">
-                            <div class="flex items-center justify-center w-10 h-10 bg-blue-600 rounded-full">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 sm:gap-0">
+                    <div class="flex-1 flex flex-col sm:flex-row sm:items-center">
+                        <div class="flex items-center justify-center sm:justify-start">
+                            <div class="flex items-center justify-center w-10 h-10 bg-blue-600 rounded-full flex-shrink-0">
                                 <span class="text-white font-bold">1</span>
                             </div>
-                            <div class="ml-4">
+                            <div class="ml-4 text-center sm:text-left">
                                 <h3 class="text-white font-semibold">Dodaj Igrače</h3>
                                 <p class="text-gray-400 text-sm">Odaberite učesnike</p>
                             </div>
                         </div>
                     </div>
-                    <div class="flex-1 h-1 bg-gray-700 mx-4"></div>
-                    <div class="flex-1">
-                        <div class="flex items-center">
-                            <div class="flex items-center justify-center w-10 h-10 bg-gray-700 rounded-full">
+
+                    <!-- Connecting Line - Hidden on mobile, horizontal on desktop -->
+                    <div class="hidden sm:flex flex-1 h-1 bg-gray-700 mx-4"></div>
+                    <!-- Vertical connecting line on mobile -->
+                    <div class="flex sm:hidden justify-center">
+                        <div class="w-1 h-6 bg-gray-700"></div>
+                    </div>
+
+                    <div class="flex-1 flex flex-col sm:flex-row sm:items-center">
+                        <div class="flex items-center justify-center sm:justify-start">
+                            <div class="flex items-center justify-center w-10 h-10 bg-gray-700 rounded-full flex-shrink-0">
                                 <span class="text-gray-400 font-bold">2</span>
                             </div>
-                            <div class="ml-4">
+                            <div class="ml-4 text-center sm:text-left">
                                 <h3 class="text-gray-400 font-semibold">Postavi Grupe</h3>
                                 <p class="text-gray-500 text-sm">Organizujte učesnike</p>
                             </div>
                         </div>
                     </div>
-                    <div class="flex-1 h-1 bg-gray-700 mx-4"></div>
-                    <div class="flex-1">
-                        <div class="flex items-center">
-                            <div class="flex items-center justify-center w-10 h-10 bg-gray-700 rounded-full">
+
+                    <!-- Connecting Line - Hidden on mobile, horizontal on desktop -->
+                    <div class="hidden sm:flex flex-1 h-1 bg-gray-700 mx-4"></div>
+                    <!-- Vertical connecting line on mobile -->
+                    <div class="flex sm:hidden justify-center">
+                        <div class="w-1 h-6 bg-gray-700"></div>
+                    </div>
+
+                    <div class="flex-1 flex flex-col sm:flex-row sm:items-center">
+                        <div class="flex items-center justify-center sm:justify-start">
+                            <div class="flex items-center justify-center w-10 h-10 bg-gray-700 rounded-full flex-shrink-0">
                                 <span class="text-gray-400 font-bold">3</span>
                             </div>
-                            <div class="ml-4">
+                            <div class="ml-4 text-center sm:text-left">
                                 <h3 class="text-gray-400 font-semibold">Započni Takmičenje</h3>
                                 <p class="text-gray-500 text-sm">Započni mečeve</p>
                             </div>

@@ -4,13 +4,13 @@
             
             <!-- Header -->
             <div class="mb-8">
-                <div class="flex items-center justify-between">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div>
-                        <h1 class="text-3xl font-bold text-white mb-2">Postavi Grupe Turnira</h1>
+                        <h1 class="text-2xl sm:text-3xl font-bold text-white mb-2">Postavi Grupe Turnira</h1>
                         <p class="text-gray-300">{{ $competition->name }}</p>
                     </div>
                     <a href="{{ route('organizations.competitions.show', [$organization, $competition]) }}" 
-                       class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors">
+                       class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors text-center sm:w-auto w-full">
                         Nazad
                     </a>
                 </div>
@@ -90,11 +90,12 @@
                                 <div class="player-item bg-gray-700/30 rounded-lg p-3 cursor-move hover:bg-gray-700/50 transition-colors" 
                                      data-player-id="{{ $player->id }}"
                                      data-player-name="{{ $player->name }}"
+                                     data-player-position="{{ $player->position ?? 'UN' }}"
                                      draggable="true">
                                     <div class="flex items-center justify-between">
                                         <div class="flex items-center space-x-3">
                                             <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                                                <span class="text-white font-bold text-sm">{{ substr($player->name, 0, 2) }}</span>
+                                                <span class="text-white font-bold text-sm">{{ $loop->index + 1 }}</span>
                                             </div>
                                             <div>
                                                 <p class="text-white font-medium">{{ $player->name }}</p>
@@ -116,12 +117,12 @@
 
                     <!-- Groups -->
                     <div class="lg:col-span-2">
-                        <div class="flex items-center justify-between mb-4">
-                            <h3 class="text-lg font-semibold text-white">Grupe Turnira</h3>
-                            <div class="flex space-x-2">
+                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+                            <h3 class="text-lg font-semibold text-white text-center sm:text-left">Grupe Turnira</h3>
+                            <div class="flex flex-col sm:flex-row gap-2">
                                 <button type="button" 
                                         id="addGroupBtn"
-                                        class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg transition-colors text-sm flex items-center">
+                                        class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg transition-colors text-sm flex items-center justify-center">
                                     <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                                     </svg>
@@ -129,7 +130,7 @@
                                 </button>
                                 <button type="button" 
                                         id="removeGroupBtn"
-                                        class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg transition-colors text-sm flex items-center disabled:opacity-50 disabled:cursor-not-allowed">
+                                        class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg transition-colors text-sm flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed">
                                     <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
                                     </svg>
@@ -161,7 +162,7 @@
                                         <div class="flex items-center justify-between">
                                             <div class="flex items-center space-x-3">
                                                 <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                                                    <span class="text-white font-bold text-sm">{{ substr($player['name'], 0, 2) }}</span>
+                                                    <span class="text-white font-bold text-sm">{{ $group['name'] }}-{{ $loop->index + 1 }}</span>
                                                 </div>
                                                 <div>
                                                     <p class="text-white font-medium">{{ $player['name'] }}</p>
@@ -188,15 +189,15 @@
                         </div>
 
                         <!-- Save Button -->
-                        <div class="mt-6 flex space-x-4">
+                        <div class="mt-6 flex flex-col sm:flex-row gap-2 sm:gap-4">
                             <button type="submit" 
                                     id="saveBtn"
-                                    class="flex-1 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed">
-                                Sačuvaj Grupe i Nastavi
+                                    class="flex-1 bg-green-600 hover:bg-green-700 text-white px-4 py-2 sm:px-6 sm:py-3 rounded-lg transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base">
+                                Svaka grupa treba minimum 2 igrača
                             </button>
                             <button type="button" 
                                     id="resetBtn"
-                                    class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg transition-colors">
+                                    class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 sm:px-6 sm:py-3 rounded-lg transition-colors text-sm sm:text-base">
                                 Resetuj Sve
                             </button>
                         </div>
@@ -286,6 +287,8 @@
             this.style.borderColor = '';
 
             const groupDropzone = this.closest('.group-dropzone');
+            const groupContainer = groupDropzone.closest('.group-container');
+            const groupName = groupContainer.querySelector('h3').textContent.replace('Grupa ', '');
 
             // Check if player is already in this group
             const playerId = draggedElement.dataset.playerId;
@@ -299,11 +302,18 @@
             clonedElement.addEventListener('dragend', handleDragEnd);
             addRemovePlayerButton(clonedElement);
             
+            // Update avatar to show group position
+            const currentPlayerCount = groupDropzone.querySelectorAll('.player-item').length;
+            const avatarSpan = clonedElement.querySelector('.w-10.h-10 span');
+            if (avatarSpan) {
+                avatarSpan.textContent = groupName + '-' + (currentPlayerCount + 1);
+            }
+            
             groupDropzone.appendChild(clonedElement);
             draggedElement.remove();
 
             updateUnassignedCount();
-            updateGroupCount(groupDropzone.closest('.group-container'));
+            updateGroupCount(groupContainer);
             updateSaveButton();
 
             return false;
@@ -318,6 +328,18 @@
             const clonedElement = draggedElement.cloneNode(true);
             clonedElement.addEventListener('dragstart', handleDragStart);
             clonedElement.addEventListener('dragend', handleDragEnd);
+            
+            // Update avatar back to position number
+            const avatarSpan = clonedElement.querySelector('.w-10.h-10 span');
+            if (avatarSpan) {
+                const availablePlayers = document.querySelectorAll('#availablePlayers .player-item');
+                const position = Array.from(availablePlayers).indexOf(clonedElement) + 1;
+                avatarSpan.textContent = position.toString();
+            }
+            
+            // Remove remove button if it exists
+            const removeBtn = clonedElement.querySelector('.remove-player-btn');
+            if (removeBtn) removeBtn.remove();
             
             document.getElementById('availablePlayers').appendChild(clonedElement);
             draggedElement.remove();
@@ -370,12 +392,22 @@
                 }
 
                 let groupIndex = 0;
-                availablePlayers.forEach(player => {
+                availablePlayers.forEach((player, playerIndex) => {
                     const group = groups[groupIndex];
+                    const groupContainer = group.closest('.group-container');
+                    const groupName = groupContainer.querySelector('h3').textContent.replace('Grupa ', '');
+                    
                     const clonedElement = player.cloneNode(true);
                     clonedElement.addEventListener('dragstart', handleDragStart);
                     clonedElement.addEventListener('dragend', handleDragEnd);
                     addRemovePlayerButton(clonedElement);
+                    
+                    // Update avatar to show group position
+                    const currentPlayerCount = group.querySelectorAll('.player-item').length;
+                    const avatarSpan = clonedElement.querySelector('.w-10.h-10 span');
+                    if (avatarSpan) {
+                        avatarSpan.textContent = groupName + '-' + (currentPlayerCount + 1);
+                    }
                     
                     group.appendChild(clonedElement);
                     player.remove();
@@ -402,6 +434,18 @@
                         clonedElement.addEventListener('dragstart', handleDragStart);
                         clonedElement.addEventListener('dragend', handleDragEnd);
                         
+                        // Update avatar back to position number
+                        const avatarSpan = clonedElement.querySelector('.w-10.h-10 span');
+                        if (avatarSpan) {
+                            const availablePlayers = document.querySelectorAll('#availablePlayers .player-item');
+                            const position = Array.from(availablePlayers).length + 1; // Next position
+                            avatarSpan.textContent = position.toString();
+                        }
+                        
+                        // Remove remove button
+                        const removeBtn = clonedElement.querySelector('.remove-player-btn');
+                        if (removeBtn) removeBtn.remove();
+                        
                         document.getElementById('availablePlayers').appendChild(clonedElement);
                         player.remove();
                     });
@@ -420,10 +464,23 @@
 
                 document.querySelectorAll('.group-dropzone').forEach(dropzone => {
                     const players = Array.from(dropzone.querySelectorAll('.player-item'));
+                    let positionCounter = document.querySelectorAll('#availablePlayers .player-item').length + 1;
+                    
                     players.forEach(player => {
                         const clonedElement = player.cloneNode(true);
                         clonedElement.addEventListener('dragstart', handleDragStart);
                         clonedElement.addEventListener('dragend', handleDragEnd);
+                        
+                        // Update avatar back to position number
+                        const avatarSpan = clonedElement.querySelector('.w-10.h-10 span');
+                        if (avatarSpan) {
+                            avatarSpan.textContent = positionCounter.toString();
+                            positionCounter++;
+                        }
+                        
+                        // Remove remove button
+                        const removeBtn = clonedElement.querySelector('.remove-player-btn');
+                        if (removeBtn) removeBtn.remove();
                         
                         document.getElementById('availablePlayers').appendChild(clonedElement);
                         player.remove();
@@ -459,6 +516,18 @@
                     const clonedElement = playerItem.cloneNode(true);
                     clonedElement.addEventListener('dragstart', handleDragStart);
                     clonedElement.addEventListener('dragend', handleDragEnd);
+                    
+                    // Update avatar back to position number
+                    const avatarSpan = clonedElement.querySelector('.w-10.h-10 span');
+                    if (avatarSpan) {
+                        const availablePlayers = document.querySelectorAll('#availablePlayers .player-item');
+                        const position = Array.from(availablePlayers).length + 1; // Next position
+                        avatarSpan.textContent = position.toString();
+                    }
+                    
+                    // Remove remove button
+                    const removeBtn = clonedElement.querySelector('.remove-player-btn');
+                    if (removeBtn) removeBtn.remove();
                     
                     document.getElementById('availablePlayers').appendChild(clonedElement);
                     playerItem.remove();
@@ -519,6 +588,18 @@
                     clonedElement.addEventListener('dragstart', handleDragStart);
                     clonedElement.addEventListener('dragend', handleDragEnd);
                     
+                    // Update avatar back to position number
+                    const avatarSpan = clonedElement.querySelector('.w-10.h-10 span');
+                    if (avatarSpan) {
+                        const availablePlayers = document.querySelectorAll('#availablePlayers .player-item');
+                        const position = Array.from(availablePlayers).length + 1; // Next position
+                        avatarSpan.textContent = position.toString();
+                    }
+                    
+                    // Remove remove button
+                    const removeBtn = clonedElement.querySelector('.remove-player-btn');
+                    if (removeBtn) removeBtn.remove();
+                    
                     document.getElementById('availablePlayers').appendChild(clonedElement);
                     player.remove();
                 });
@@ -546,10 +627,22 @@
             const players = Array.from(dropzone.querySelectorAll('.player-item'));
 
             // Move players back to available list
+            let positionCounter = document.querySelectorAll('#availablePlayers .player-item').length + 1;
             players.forEach(player => {
                 const clonedElement = player.cloneNode(true);
                 clonedElement.addEventListener('dragstart', handleDragStart);
                 clonedElement.addEventListener('dragend', handleDragEnd);
+                
+                // Update avatar back to position number
+                const avatarSpan = clonedElement.querySelector('.w-10.h-10 span');
+                if (avatarSpan) {
+                    avatarSpan.textContent = positionCounter.toString();
+                    positionCounter++;
+                }
+                
+                // Remove remove button
+                const removeBtn = clonedElement.querySelector('.remove-player-btn');
+                if (removeBtn) removeBtn.remove();
                 
                 document.getElementById('availablePlayers').appendChild(clonedElement);
             });
@@ -587,6 +680,18 @@
                 const clonedElement = playerItem.cloneNode(true);
                 clonedElement.addEventListener('dragstart', handleDragStart);
                 clonedElement.addEventListener('dragend', handleDragEnd);
+                
+                // Update avatar back to position number
+                const avatarSpan = clonedElement.querySelector('.w-10.h-10 span');
+                if (avatarSpan) {
+                    const availablePlayers = document.querySelectorAll('#availablePlayers .player-item');
+                    const position = Array.from(availablePlayers).length + 1; // Next position
+                    avatarSpan.textContent = position.toString();
+                }
+                
+                // Remove remove button
+                const removeBtn = clonedElement.querySelector('.remove-player-btn');
+                if (removeBtn) removeBtn.remove();
                 
                 document.getElementById('availablePlayers').appendChild(clonedElement);
                 playerItem.remove();

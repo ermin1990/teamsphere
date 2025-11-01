@@ -4,13 +4,13 @@
             
             {{-- Header --}}
             <div class="mb-4">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <h1 class="text-2xl font-bold text-white mb-1">🎯 Ručno postavljanje eliminacione faze</h1>
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <div class="text-center sm:text-left">
+                        <h1 class="text-xl sm:text-2xl font-bold text-white mb-1">🎯 Ručno postavljanje eliminacione faze</h1>
                         <p class="text-sm text-gray-400">{{ $competition->name }} - {{ $organization->name }}</p>
                     </div>
-                    <a href="{{ route('organizations.competitions.show', [$organization, $competition]) }}" 
-                       class="bg-gray-600 hover:bg-gray-700 text-white px-3 py-1.5 rounded-lg transition-colors text-sm">
+                    <a href="{{ route('organizations.competitions.show', [$organization, $competition]) }}"
+                       class="bg-gray-600 hover:bg-gray-700 text-white px-3 py-1.5 rounded-lg transition-colors text-sm w-full sm:w-auto text-center">
                         ← Nazad na turnir
                     </a>
                 </div>
@@ -87,40 +87,52 @@
                     {{-- Knockout Bracket Slots --}}
                     <div class="lg:col-span-3">
                         <div class="bg-gray-800/50 backdrop-blur-xl rounded-xl border border-gray-700/50 shadow-xl p-4">
-                            <div class="flex items-center justify-between mb-4">
-                                <h3 class="text-base font-semibold text-white">Mečevi eliminacione faze</h3>
-                                <div class="flex space-x-2">
-                                    <div class="flex items-center space-x-2">
-                                        <label for="matchCount" class="text-sm text-gray-300">Broj mečeva:</label>
-                                        <input type="number" id="matchCount" min="1" max="16" value="4" 
-                                               class="w-16 px-2 py-1 bg-gray-600/50 border border-gray-500 rounded-lg text-white text-sm text-center">
+                            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-4">
+                                <h3 class="text-base font-semibold text-white text-center lg:text-left lg:flex-shrink-0">Mečevi eliminacione faze</h3>
+                                <div class="flex flex-col items-center justify-center lg:justify-center gap-3 flex-1 lg:max-w-md">
+                                    <div class="flex flex-col items-center space-y-1">
+                                        <label for="matchCount" class="text-sm text-gray-300 font-medium text-center">Broj mečeva:</label>
+                                        <div class="flex items-center space-x-2">
+                                            <input type="number" id="matchCount" min="1" max="32" value="4"
+                                                   class="w-20 h-10 px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white text-lg font-semibold text-center focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                                   readonly>
+                                            <div class="flex flex-col space-y-1">
+                                                <button type="button" id="increaseMatches"
+                                                        class="w-8 h-5 bg-blue-600 hover:bg-blue-700 text-white rounded flex items-center justify-center text-sm font-bold transition-colors"
+                                                        title="Povećaj broj mečeva (maksimalno 32)">
+                                                    ▲
+                                                </button>
+                                                <button type="button" id="decreaseMatches"
+                                                        class="w-8 h-5 bg-blue-600 hover:bg-blue-700 text-white rounded flex items-center justify-center text-sm font-bold transition-colors"
+                                                        title="Smanji broj mečeva (minimalno 1)">
+                                                    ▼
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <p class="text-xs text-gray-400 text-center hidden sm:block lg:hidden">Maksimalno 32 meča (zbog preglednosti ždrijeba na ekranu)</p>
                                     </div>
-                                    <button type="button" onclick="generateMatches()" 
-                                            class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg transition-colors text-sm">
-                                        Generiši mečeve
-                                    </button>
                                 </div>
                             </div>
                             
-                            <div id="knockoutMatchesContainer" class="mb-4">
-                                <div id="topBracket" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 md:gap-4 mb-4 md:mb-6">
+                                                        <div id="knockoutMatchesContainer" class="mb-4">
+                                <div id="topBracket" class="grid gap-2 md:gap-3 mb-4 md:mb-6 lg:grid-cols-4 xl:grid-cols-6 knockout-grid">
                                     <!-- Top half matches -->
                                 </div>
                                 <div class="flex items-center justify-center mb-4 md:mb-6">
                                     <div class="w-full max-w-md h-px bg-gradient-to-r from-transparent via-blue-500 to-transparent"></div>
                                 </div>
-                                <div id="bottomBracket" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 md:gap-4">
+                                <div id="bottomBracket" class="grid gap-2 md:gap-3 mb-4 md:mb-6 lg:grid-cols-4 xl:grid-cols-6 knockout-grid">
                                     <!-- Bottom half matches -->
                                 </div>
                             </div>
 
-                            <div class="flex justify-between items-center pt-4 border-t border-gray-700">
-                                <a href="{{ route('organizations.competitions.show', [$organization, $competition]) }}" 
-                                   class="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors text-sm">
+                            <div class="flex flex-col sm:flex-row sm:justify-between gap-3 pt-4 border-t border-gray-700">
+                                <a href="{{ route('organizations.competitions.show', [$organization, $competition]) }}"
+                                   class="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors text-sm w-full sm:w-auto text-center">
                                     Odustani
                                 </a>
-                                <button type="button" onclick="saveManualKnockout()" 
-                                        class="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors font-semibold text-sm">
+                                <button type="button" onclick="saveManualKnockout()"
+                                        class="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors font-semibold text-sm w-full sm:w-auto">
                                     💾 Sačuvaj i generiši eliminacionu fazu
                                 </button>
                             </div>
@@ -133,6 +145,34 @@
         </div>
     </div>
 
+    {{-- Custom Styles for Number Input --}}
+    <style>
+        /* Custom styling for number input */
+        #matchCount::-webkit-outer-spin-button,
+        #matchCount::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        #matchCount[type=number] {
+            -moz-appearance: textfield;
+        }
+
+        #matchCount:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+        }
+
+        /* Improve button appearance on desktop */
+        @media (min-width: 1024px) {
+            #increaseMatches, #decreaseMatches {
+                width: 32px;
+                height: 20px;
+                font-size: 14px;
+            }
+        }
+    </style>
+
     {{-- Scripts --}}
     <script>
         let draggedPlayer = null;
@@ -142,7 +182,30 @@
         document.addEventListener('DOMContentLoaded', function() {
             generateMatches();
             initializeDragAndDrop();
+            initializeMatchCountControls();
         });
+
+        function initializeMatchCountControls() {
+            const increaseBtn = document.getElementById('increaseMatches');
+            const decreaseBtn = document.getElementById('decreaseMatches');
+            const matchCountInput = document.getElementById('matchCount');
+
+            increaseBtn.addEventListener('click', function() {
+                const currentValue = parseInt(matchCountInput.value);
+                if (currentValue < 32) {
+                    matchCountInput.value = currentValue + 1;
+                    generateMatches();
+                }
+            });
+
+            decreaseBtn.addEventListener('click', function() {
+                const currentValue = parseInt(matchCountInput.value);
+                if (currentValue > 1) {
+                    matchCountInput.value = currentValue - 1;
+                    generateMatches();
+                }
+            });
+        }
 
         function initializeDragAndDrop() {
             document.querySelectorAll('.player-item').forEach(player => {
@@ -211,8 +274,8 @@
         // Generate matches based on user input
         function generateMatches() {
             const matchCount = parseInt(document.getElementById('matchCount').value);
-            if (matchCount < 1 || matchCount > 16) {
-                alert('Broj mečeva mora biti između 1 i 16');
+            if (matchCount < 1 || matchCount > 32) {
+                alert('Broj mečeva mora biti između 1 i 32. Ograničenje od 32 meča postoji zbog preglednosti ždrijeba na ekranu.');
                 return;
             }
             

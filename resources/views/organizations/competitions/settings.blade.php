@@ -4,13 +4,13 @@
             
             <!-- Header -->
             <div class="mb-8">
-                <div class="flex items-center justify-between">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div>
-                        <h1 class="text-3xl font-bold text-white mb-2">Postavke Takmičenja</h1>
+                        <h1 class="text-2xl sm:text-3xl font-bold text-white mb-2">Postavke Takmičenja</h1>
                         <p class="text-gray-300">{{ $competition->name }}</p>
                     </div>
                     <a href="{{ route('organizations.competitions.show', [$organization, $competition]) }}" 
-                       class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors">
+                       class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors text-center sm:w-auto w-full">
                         Nazad
                     </a>
                 </div>
@@ -327,22 +327,22 @@
                 </div>
                 @endif
 
-                </div>
-
                 <!-- Save Button -->
-                <div class="flex space-x-4">
-                    <button type="submit" 
-                            {{ $competition->status !== 'draft' ? 'disabled' : '' }}
-                            class="flex-1 {{ $competition->status !== 'draft' ? 'bg-gray-600 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700' }} text-white px-6 py-3 rounded-lg transition-colors font-semibold">
-                        Sačuvaj Postavke
-                    </button>
-                    <a href="{{ route('organizations.competitions.show', [$organization, $competition]) }}"
-                       class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg transition-colors text-center">
-                        Otkaži
-                    </a>
+                <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl">
+                    <div class="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                        <button type="submit"
+                                {{ $competition->status !== 'draft' ? 'disabled' : '' }}
+                                class="flex-1 {{ $competition->status !== 'draft' ? 'bg-gray-600 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700' }} text-white px-4 py-3 sm:px-6 sm:py-3 rounded-lg transition-colors font-semibold text-center">
+                            Sačuvaj Postavke
+                        </button>
+                        <a href="{{ route('organizations.competitions.show', [$organization, $competition]) }}"
+                           class="flex-1 bg-gray-600 hover:bg-gray-700 text-white px-4 py-3 sm:px-6 sm:py-3 rounded-lg transition-colors text-center">
+                            Otkaži
+                        </a>
+                    </div>
                 </div>
 
-                </fieldset>
+                </div>
             </form>
 
         </div>

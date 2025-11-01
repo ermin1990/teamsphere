@@ -7,14 +7,14 @@
 @endphp
 
 @if($knockoutMatches && $knockoutMatches->count() > 0)
-<div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 mb-6">
-    <div class="flex items-center justify-between mb-6">
+<div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-4 md:p-6 border border-gray-700/50 mb-6">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-3 sm:gap-4">
         <div class="flex items-center gap-4">
-            <h3 class="text-2xl font-bold text-white">🏆 Knockout Faza</h3>
+            <h3 class="text-xl sm:text-2xl font-bold text-white">🏆 Knockout Faza</h3>
         </div>
         
         @if($isOwner)
-            <div class="flex gap-2">
+            <div class="flex flex-col sm:flex-row gap-2 sm:gap-2">
                 {{-- Check if current round is complete and show advance button --}}
                 @php
                     $groupedByRound = $knockoutMatches->groupBy('round_number');
@@ -29,14 +29,14 @@
                 
                 @if($allMatchesComplete && !$isFinale)
                     <button type="button" onclick="confirmAdvanceRound({{ $currentRound }})"
-                            class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2">
+                            class="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg transition-colors flex items-center justify-center gap-2 text-sm sm:text-base w-full sm:w-auto">
                         <span>⏭️</span>
                         <span>Generiši narednu rundu</span>
                     </button>
                 @endif
                 
                 <button type="button" onclick="confirmResetKnockout()"
-                        class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors">
+                        class="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg transition-colors text-sm sm:text-base w-full sm:w-auto">
                     🔄 Resetuj
                 </button>
 
@@ -47,7 +47,7 @@
 
     {{-- Bracket visualization --}}
     <div class="overflow-x-auto pb-4">
-        <div class="inline-flex gap-12 min-w-max items-center p-4">
+        <div class="inline-flex gap-4 min-w-max items-center p-1">
             @php
                 $groupedByRound = $knockoutMatches->groupBy('round_number');
                 $totalRounds = $groupedByRound->keys()->max();

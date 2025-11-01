@@ -1,15 +1,15 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex items-center justify-between">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-                <h2 class="font-bold text-3xl bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                <h2 class="font-bold text-2xl sm:text-3xl bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
                     Edituj rezultate utakmice
                 </h2>
-                <p class="text-gray-400 mt-1">{{ $organization->name }} • {{ $competition->name }}</p>
+                <p class="text-gray-400 mt-1 text-sm sm:text-base">{{ $organization->name }} • {{ $competition->name }}</p>
             </div>
-            <div class="flex items-center space-x-4">
+            <div class="flex items-center">
                 <a href="{{ request()->routeIs('referee.*') ? route('referee.competition.match.show', [$competition, $match]) : route('organizations.competitions.show', [$organization, $competition]) }}"
-                   class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors">
+                   class="px-3 py-2 sm:px-4 sm:py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors text-sm sm:text-base w-full sm:w-auto text-center">
                     ← Nazad na takmičenje
                 </a>
             </div>
@@ -18,20 +18,20 @@
 
     <div class="py-12">
         <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-8 border border-gray-700/50 shadow-xl">
+            <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-4 sm:p-6 lg:p-8 border border-gray-700/50 shadow-xl">
                 <form method="POST" action="{{ request()->routeIs('referee.*') ? route('referee.competition.match.update', [$competition, $match]) : route('organizations.competitions.matches.update', [$organization, $competition, $match]) }}" class="space-y-6">
                     @csrf
                     @method('PUT')
 
                     <!-- Match Info -->
-                    <div class="text-center mb-8">
-                        <div class="text-sm text-gray-400 mb-4">{{ $competition->sport->name }} • Match #{{ $match->id }}</div>
+                    <div class="text-center mb-6 sm:mb-8">
+                        <div class="text-sm text-gray-400 mb-4">Stoni Tenis • Match #{{ $match->id }}</div>
 
-                        <div class="flex items-center justify-center space-x-8">
+                        <div class="flex items-center justify-center gap-2 sm:gap-8">
                             <!-- Home Participant -->
                             <div class="text-center">
-                                <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-2">
-                                    <span class="text-lg font-bold text-white">
+                                <div class="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-2">
+                                    <span class="text-sm sm:text-lg font-bold text-white">
                                         @if($competition->is_team_based)
                                             {{ substr($match->homeTeam->name ?? 'TBD', 0, 2) }}
                                         @else
@@ -39,7 +39,7 @@
                                         @endif
                                     </span>
                                 </div>
-                                <h3 class="text-lg font-bold text-white">
+                                <h3 class="text-sm sm:text-lg font-bold text-white">
                                     @if($competition->is_team_based)
                                         {{ $match->homeTeam->name ?? 'TBD' }}
                                     @else
@@ -48,12 +48,12 @@
                                 </h3>
                             </div>
 
-                            <div class="text-2xl font-bold text-gray-400">VS</div>
+                            <div class="text-lg sm:text-2xl font-bold text-gray-400 mx-2 sm:mx-4">VS</div>
 
                             <!-- Away Participant -->
                             <div class="text-center">
-                                <div class="w-16 h-16 bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center mx-auto mb-2">
-                                    <span class="text-lg font-bold text-white">
+                                <div class="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center mx-auto mb-2">
+                                    <span class="text-sm sm:text-lg font-bold text-white">
                                         @if($competition->is_team_based)
                                             {{ substr($match->awayTeam->name ?? 'TBD', 0, 2) }}
                                         @else
@@ -61,7 +61,7 @@
                                         @endif
                                     </span>
                                 </div>
-                                <h3 class="text-lg font-bold text-white">
+                                <h3 class="text-sm sm:text-lg font-bold text-white">
                                     @if($competition->is_team_based)
                                         {{ $match->awayTeam->name ?? 'TBD' }}
                                     @else
@@ -107,7 +107,7 @@
                     </div>
 
                     <!-- Final Scores -->
-                    <div class="grid grid-cols-2 gap-6">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                         <div>
                             <label for="home_score" class="block text-sm font-medium text-gray-300 mb-2">
                                 @if($competition->is_team_based)
@@ -139,9 +139,9 @@
 
                     <!-- Set Details (for table tennis) -->
                     <div id="sets-section" class="space-y-4">
-                        <div class="flex items-center justify-between">
+                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                             <label class="block text-sm font-medium text-gray-300">Detalji setova</label>
-                            <button type="button" id="add-set" class="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition-colors">
+                            <button type="button" id="add-set" class="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition-colors w-full sm:w-auto">
                                 + Dodaj set
                             </button>
                         </div>
@@ -152,16 +152,18 @@
                             @endphp
                             @if($setsArray && count($setsArray) > 0)
                                 @foreach($setsArray as $index => $set)
-                                    <div class="set-row flex items-center space-x-4 p-3 bg-gray-700/50 rounded-lg">
-                                        <span class="text-sm font-medium text-gray-300 w-16">Set {{ $index + 1 }}:</span>
-                                        <input type="number" name="sets[{{ $index }}][home_score]" value="{{ $set['home_score'] ?? $set['home'] ?? 0 }}"
-                                               class="w-20 px-2 py-1 bg-gray-600 border border-gray-500 rounded text-white text-center" min="0">
-                                        <span class="text-gray-400">-</span>
-                                        <input type="number" name="sets[{{ $index }}][away_score]" value="{{ $set['away_score'] ?? $set['away'] ?? 0 }}"
-                                               class="w-20 px-2 py-1 bg-gray-600 border border-gray-500 rounded text-white text-center" min="0">
-                                        <button type="button" class="remove-set px-2 py-1 bg-red-600 hover:bg-red-700 text-white text-sm rounded transition-colors">
-                                            Ukloni
-                                        </button>
+                                    <div class="set-row flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 p-3 bg-gray-700/50 rounded-lg">
+                                        <span class="text-sm font-medium text-gray-300 w-full sm:w-16">Set {{ $index + 1 }}:</span>
+                                        <div class="flex items-center gap-2 sm:gap-4 w-full sm:w-auto">
+                                            <input type="number" name="sets[{{ $index }}][home_score]" value="{{ $set['home_score'] ?? $set['home'] ?? 0 }}"
+                                                   class="w-16 sm:w-20 px-2 py-1 bg-gray-600 border border-gray-500 rounded text-white text-center" min="0">
+                                            <span class="text-gray-400">-</span>
+                                            <input type="number" name="sets[{{ $index }}][away_score]" value="{{ $set['away_score'] ?? $set['away'] ?? 0 }}"
+                                                   class="w-16 sm:w-20 px-2 py-1 bg-gray-600 border border-gray-500 rounded text-white text-center" min="0">
+                                            <button type="button" class="remove-set px-2 py-1 bg-red-600 hover:bg-red-700 text-white text-sm rounded transition-colors">
+                                                Ukloni
+                                            </button>
+                                        </div>
                                     </div>
                                 @endforeach
                             @endif
@@ -235,12 +237,12 @@
                     </div>
 
                     <!-- Submit Button -->
-                    <div class="flex justify-end space-x-4 pt-6 border-t border-gray-700">
+                    <div class="flex flex-col sm:flex-row sm:justify-end gap-3 sm:gap-4 pt-6 border-t border-gray-700">
                         <a href="{{ request()->routeIs('referee.*') ? route('referee.competition.match.show', [$competition, $match]) : route('organizations.competitions.show', [$organization, $competition]) }}"
-                           class="px-6 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors">
+                           class="px-4 py-2 sm:px-6 sm:py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors text-center">
                             Odustani
                         </a>
-                        <button type="submit" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
+                        <button type="submit" class="px-4 py-2 sm:px-6 sm:py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
                             Ažuriraj rezultate
                         </button>
                     </div>
@@ -266,15 +268,19 @@
             const setRow = document.createElement('div');
             setRow.className = 'set-row flex items-center space-x-4 p-3 bg-gray-700/50 rounded-lg';
             setRow.innerHTML = `
-                <span class="text-sm font-medium text-gray-300 w-16">Set ${setCount + 1}:</span>
-                <input type="number" name="sets[${setCount}][home_score]" value="0"
-                       class="w-20 px-2 py-1 bg-gray-600 border border-gray-500 rounded text-white text-center" min="0">
-                <span class="text-gray-400">-</span>
-                <input type="number" name="sets[${setCount}][away_score]" value="0"
-                       class="w-20 px-2 py-1 bg-gray-600 border border-gray-500 rounded text-white text-center" min="0">
-                <button type="button" class="remove-set px-2 py-1 bg-red-600 hover:bg-red-700 text-white text-sm rounded transition-colors">
-                    Ukloni
-                </button>
+                <div class="set-row flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 p-3 bg-gray-700/50 rounded-lg">
+                    <span class="text-sm font-medium text-gray-300 w-full sm:w-16">Set ${setCount + 1}:</span>
+                    <div class="flex items-center gap-2 sm:gap-4 w-full sm:w-auto">
+                        <input type="number" name="sets[${setCount}][home_score]" value="0"
+                               class="w-16 sm:w-20 px-2 py-1 bg-gray-600 border border-gray-500 rounded text-white text-center" min="0">
+                        <span class="text-gray-400">-</span>
+                        <input type="number" name="sets[${setCount}][away_score]" value="0"
+                               class="w-16 sm:w-20 px-2 py-1 bg-gray-600 border border-gray-500 rounded text-white text-center" min="0">
+                        <button type="button" class="remove-set px-2 py-1 bg-red-600 hover:bg-red-700 text-white text-sm rounded transition-colors">
+                            Ukloni
+                        </button>
+                    </div>
+                </div>
             `;
             container.appendChild(setRow);
             setCount++;

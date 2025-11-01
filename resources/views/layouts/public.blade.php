@@ -145,7 +145,7 @@
     <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
 </head>
 <body class="antialiased min-h-screen pb-16 md:pb-8" style="background-color: var(--bg-primary); color: var(--text-primary);">
-    <div class="py-8">
+    <div class="py-8 p-2">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <!-- Navigation Menu (Desktop only) -->
             <nav class="hidden md:block rounded-2xl p-4 mb-6 shadow-xl border" style="background: var(--bg-card); backdrop-filter: var(--backdrop-blur); border-color: var(--border-primary); box-shadow: 0 10px 25px var(--shadow-primary);">

@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', __('Bulk Import Players'))
+@section('title', 'Masovni Uvoz Igrača')
 
 @section('content')
 <div class="py-12">
@@ -8,42 +8,44 @@
 
         <!-- Header -->
         <div class="mb-8">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h1 class="text-3xl font-bold text-white">{{ $competition->name }}</h1>
-                    <p class="text-gray-400 mt-2">{{ __('Bulk Import Players') }}</p>
+            <div class="bg-gray-800/50 backdrop-blur-xl rounded-xl p-6 border border-gray-700/50 shadow-xl">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div>
+                        <h1 class="text-2xl sm:text-3xl font-bold text-white">{{ $competition->name }}</h1>
+                        <p class="text-gray-400 mt-2">Masovni Uvoz Igrača</p>
+                    </div>
+                    <a href="{{ route('organizations.competitions.manage-players', [$organization, $competition]) }}"
+                       class="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors text-center sm:w-auto w-full">
+                        ← Nazad na Upravljanje Igračima
+                    </a>
                 </div>
-                <a href="{{ route('organizations.competitions.manage-players', [$organization, $competition]) }}"
-                   class="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors">
-                    ← {{ __('Back to Manage Players') }}
-                </a>
             </div>
         </div>
 
         <!-- Instructions -->
         <div class="bg-gray-800/50 backdrop-blur-xl rounded-xl p-6 border border-gray-700/50 shadow-xl mb-6">
-            <h2 class="text-xl font-semibold text-white mb-4">{{ __('Import Instructions') }}</h2>
+            <h2 class="text-xl font-semibold text-white mb-4">Upute za Uvoz</h2>
             <div class="space-y-4">
                 <div class="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
-                    <h3 class="text-blue-400 font-medium mb-2">{{ __('Format Requirements') }}</h3>
-                    <p class="text-gray-300 text-sm mb-2">{{ __('Enter each player on a new line in the format:') }}</p>
-                    <code class="bg-gray-700 px-3 py-2 rounded text-sm text-gray-200 block font-mono">{{ __('Name Surname, Club Name;') }}</code>
+                    <h3 class="text-blue-400 font-medium mb-2">Zahtjevi Formata</h3>
+                    <p class="text-gray-300 text-sm mb-2">Unesite svakog igrača u novi red u formatu:</p>
+                    <code class="bg-gray-700 px-3 py-2 rounded text-sm text-gray-200 block font-mono">Ime Prezime, Naziv Kluba;</code>
                     <div class="mt-3 space-y-1">
-                        <p class="text-gray-400 text-xs">{{ __('Examples:') }}</p>
-                        <code class="bg-gray-700 px-2 py-1 rounded text-xs text-gray-200 block">{{ __('John Doe, Tennis Club A;') }}</code>
-                        <code class="bg-gray-700 px-2 py-1 rounded text-xs text-gray-200 block">{{ __('Jane Smith, Table Tennis Club B;') }}</code>
+                        <p class="text-gray-400 text-xs">Primjeri:</p>
+                        <code class="bg-gray-700 px-2 py-1 rounded text-xs text-gray-200 block">Ivan Ivić, Teniski Klub A;</code>
+                        <code class="bg-gray-700 px-2 py-1 rounded text-xs text-gray-200 block">Ana Anić, Stolnoteniski Klub B;</code>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="bg-green-500/10 border border-green-500/20 rounded-lg p-4">
-                        <h4 class="text-green-400 font-medium mb-2">{{ __('What happens with existing players?') }}</h4>
-                        <p class="text-gray-300 text-xs">{{ __('If a player with the same name already exists in your organization, they will be added to the competition. If they are already in the competition, they will be skipped.') }}</p>
+                        <h4 class="text-green-400 font-medium mb-2">Šta se događa sa postojećim igračima?</h4>
+                        <p class="text-gray-300 text-xs">Ako igrač sa istim imenom već postoji u vašoj organizaciji, biće dodan u takmičenje. Ako je već u takmičenju, biće preskočen.</p>
                     </div>
 
                     <div class="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4">
-                        <h4 class="text-yellow-400 font-medium mb-2">{{ __('What happens with new players?') }}</h4>
-                        <p class="text-gray-300 text-xs">{{ __('New players will be created in your organization and automatically added to this competition.') }}</p>
+                        <h4 class="text-yellow-400 font-medium mb-2">Šta se događa sa novim igračima?</h4>
+                        <p class="text-gray-300 text-xs">Novi igrači će biti kreirani u vašoj organizaciji i automatski dodani u ovo takmičenje.</p>
                     </div>
                 </div>
             </div>
@@ -56,15 +58,17 @@
 
                 <div class="mb-6">
                     <label for="players_text" class="block text-sm font-medium text-white mb-2">
-                        {{ __('Player Data') }}
-                        <span class="text-gray-400 text-xs">({{ __('one player per line') }})</span>
+                        Podaci o Igračima
+                        <span class="text-gray-400 text-xs">(jedan igrač po liniji)</span>
                     </label>
                     <textarea name="players_text"
                               id="players_text"
                               rows="12"
                               required
                               class="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm resize-vertical"
-                              placeholder="{{ __('John Doe, Tennis Club A;') . PHP_EOL . __('Jane Smith, Table Tennis Club B;') . PHP_EOL . __('Bob Johnson, Badminton Club C;') }}"></textarea>
+                              placeholder="Ivan Ivić, Teniski Klub A;
+Ana Anić, Stolnoteniski Klub B;
+Marko Marković, Badminton Klub C;"></textarea>
                     @error('players_text')
                         <p class="text-red-400 text-sm mt-1">{{ $message }}</p>
                     @enderror
@@ -73,7 +77,7 @@
                 <!-- Preview Section (if we have data) -->
                 @if(old('players_text'))
                     <div class="mb-6">
-                        <h3 class="text-lg font-medium text-white mb-3">{{ __('Preview') }}</h3>
+                        <h3 class="text-lg font-medium text-white mb-3">Pregled</h3>
                         <div class="bg-gray-700/30 rounded-lg p-4 max-h-64 overflow-y-auto">
                             @php
                                 $previewData = [];
@@ -127,7 +131,7 @@
 
                             @if(!empty($errors))
                                 <div class="mb-4 p-3 bg-red-500/20 border border-red-500/30 rounded">
-                                    <h4 class="text-red-400 font-medium mb-2">{{ __('Errors Found') }}</h4>
+                                    <h4 class="text-red-400 font-medium mb-2">Pronađene Greške</h4>
                                     <ul class="text-red-300 text-sm space-y-1">
                                         @foreach($errors as $error)
                                             <li>• {{ $error }}</li>
@@ -138,7 +142,7 @@
 
                             @if(!empty($previewData))
                                 <div class="space-y-2">
-                                    <p class="text-gray-300 text-sm mb-3">{{ __('Players to be imported') }} ({{ count($previewData) }}):</p>
+                                    <p class="text-gray-300 text-sm mb-3">Igrači koji će biti uvezeni ({{ count($previewData) }}):</p>
                                     @foreach($previewData as $player)
                                         <div class="flex items-center justify-between p-2 rounded {{ isset($player['error']) ? 'bg-red-500/10 border border-red-500/20' : 'bg-gray-600/30' }}">
                                             <div class="flex-1">
@@ -147,11 +151,11 @@
                                             </div>
                                             <div class="text-xs">
                                                 @if($player['status'] === 'new')
-                                                    <span class="px-2 py-1 bg-green-500/20 text-green-400 rounded">{{ __('New') }}</span>
+                                                    <span class="px-2 py-1 bg-green-500/20 text-green-400 rounded">Novi</span>
                                                 @elseif($player['status'] === 'exists_in_org')
-                                                    <span class="px-2 py-1 bg-blue-500/20 text-blue-400 rounded">{{ __('Existing') }}</span>
+                                                    <span class="px-2 py-1 bg-blue-500/20 text-blue-400 rounded">Postojeći</span>
                                                 @elseif($player['status'] === 'exists_in_competition')
-                                                    <span class="px-2 py-1 bg-yellow-500/20 text-yellow-400 rounded">{{ __('Already Added') }}</span>
+                                                    <span class="px-2 py-1 bg-yellow-500/20 text-yellow-400 rounded">Već Dodan</span>
                                                 @endif
                                             </div>
                                         </div>
@@ -163,25 +167,25 @@
                 @endif
 
                 <!-- Action Buttons -->
-                <div class="flex items-center justify-between">
-                    <div class="text-sm text-gray-400">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div class="text-sm text-gray-400 text-center sm:text-left">
                         @if($competition->max_participants)
-                            {{ __('Max participants') }}: {{ $competition->max_participants }}
+                            Maksimalno učesnika: {{ $competition->max_participants }}
                         @else
-                            {{ __('No participant limit') }}
+                            Nema ograničenja broja učesnika
                         @endif
                     </div>
-                    <div class="flex space-x-3">
+                    <div class="flex flex-col sm:flex-row gap-3">
                         <a href="{{ route('organizations.competitions.manage-players', [$organization, $competition]) }}"
-                           class="px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors">
-                            {{ __('Cancel') }}
+                           class="px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors text-center">
+                            Otkaži
                         </a>
                         <button type="submit"
-                                class="px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors flex items-center">
+                                class="px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors flex items-center justify-center">
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                             </svg>
-                            {{ __('Import Players') }}
+                            Uvezi Igrače
                         </button>
                     </div>
                 </div>

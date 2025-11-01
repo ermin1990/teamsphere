@@ -4,17 +4,17 @@
 
 @section('content')
     <!-- Header -->
-    <div class="backdrop-blur-xl rounded-2xl p-8 shadow-xl mb-8 border" style="background: var(--bg-card); border-color: var(--border-primary); box-shadow: 0 10px 25px var(--shadow-primary);">
+    <div class="backdrop-blur-xl rounded-2xl p-4 md:p-8 shadow-xl mb-8 border" style="background: var(--bg-card); border-color: var(--border-primary); box-shadow: 0 10px 25px var(--shadow-primary);">
         <div class="text-center">
-            <h1 class="text-4xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent mb-2">
+            <h1 class="text-2xl md:text-4xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent mb-2">
                 {{ $competition->name }}
             </h1>
-            <p style="color: var(--text-tertiary);">{{ $organization->name }} • {{ $competition->sport->name }}</p>
+            <p class="text-sm md:text-base" style="color: var(--text-tertiary);">{{ $organization->name }} • {{ $competition->sport->name }}</p>
             @if($competition->type === 'tournament')
             <div class="mt-2">
                 <a href="{{ route('public.leagues.tournament.pdf', $competition->slug) }}"
                    target="_blank"
-                   class="inline-flex items-center gap-2 px-3 py-1 text-sm font-medium rounded-lg transition-colors"
+                   class="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-lg transition-colors w-full sm:w-auto justify-center"
                    style="color: var(--accent-blue); background: var(--bg-tertiary); border: 1px solid var(--border-primary);">
                     📄 PDF Export
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

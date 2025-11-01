@@ -41,7 +41,20 @@ class PublicMatchController extends Controller
                 'standings.team',
                 'standings.player',
                 'tournamentGroups', // Load tournament groups for standings
+                'tournamentGroups.standings.player',
             ]);
+
+            // Create player seeding maps for tournaments
+            $playerGroupSeeding = []; // For knockout phase: "A-1" format
+            $playerPositionSeeding = []; // For group phase: just position number
+            if ($competition->type === 'tournament') {
+                foreach ($competition->tournamentGroups as $group) {
+                    foreach ($group->player_ids ?? [] as $index => $playerId) {
+                        $playerGroupSeeding[$playerId] = $group->name . '-' . ($index + 1);
+                        $playerPositionSeeding[$playerId] = $index + 1;
+                    }
+                }
+            }
 
             // Load matches based on competition type
             if ($competition->type === 'league') {
@@ -64,7 +77,7 @@ class PublicMatchController extends Controller
 
             $organization = $competition->organization;
 
-            return view('public.leagues.show', compact('competition', 'organization'));
+            return view('public.leagues.show', compact('competition', 'organization', 'playerGroupSeeding', 'playerPositionSeeding'));
         } catch (\Exception $e) {
             \Log::error('Error loading competition: ' . $e->getMessage(), [
                 'competition_id' => $competition->id,
@@ -353,6 +366,27 @@ class PublicMatchController extends Controller
                 }
             ]);
 
+            // Recalculate standings for all tournament groups to ensure they are up to date
+            foreach ($competition->tournamentGroups as $group) {
+                $groupService = app(\App\Services\TournamentGroupService::class);
+                $groupService->recalculateGroupStandings($group);
+            }
+
+            // Reload standings after recalculation
+            $competition->load([
+                'tournamentGroups.standings.player',
+            ]);
+
+            // Create player seeding maps
+            $playerGroupSeeding = []; // For knockout phase: "A-1" format
+            $playerPositionSeeding = []; // For group phase: just position number
+            foreach ($competition->tournamentGroups as $group) {
+                foreach ($group->player_ids ?? [] as $index => $playerId) {
+                    $playerGroupSeeding[$playerId] = $group->name . '-' . ($index + 1);
+                    $playerPositionSeeding[$playerId] = $index + 1;
+                }
+            }
+
             // Group matches for display
             $groupMatches = $competition->matches->whereNotNull('tournament_group_id')->groupBy('tournament_group_id');
             $knockoutMatches = $competition->matches->where('phase', 'knockout')
@@ -377,7 +411,9 @@ class PublicMatchController extends Controller
                 'hasKnockoutMatches',
                 'showGroupsTab',
                 'showKnockoutTab',
-                'showPdfTab'
+                'showPdfTab',
+                'playerGroupSeeding',
+                'playerPositionSeeding'
             ));
 
         } catch (\Exception $e) {

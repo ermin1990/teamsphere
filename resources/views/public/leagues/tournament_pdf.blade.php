@@ -87,7 +87,7 @@
         </button>
     </div>
 
-    <div class="max-w-3xl mx-auto pt-16">
+    <div class="max-w-3xl mx-auto pt-16 p-2">
         <!-- Tournament Header -->
         <div class="text-center mb-6 tournament-header">
             <p class="text-lg text-gray-600">{{ $competition->organization->name ?? 'TeamSphere' }} - {{ $competition->name }}</p>
@@ -135,7 +135,7 @@
                                 @foreach($groupStandings as $index => $standing)
                                 <tr class="{{ $index < $advancingPlayers ? 'bg-green-50' : 'bg-white' }} border-t border-gray-200">
                                     <td class="px-4 py-2 text-center font-medium">{{ $index + 1 }}</td>
-                                    <td class="px-4 py-2 player-name-table">{{ $standing->player->name }}</td>
+                                    <td class="px-4 py-2 player-name-table">{{ $standing->player->name }}@if($standing->player->position) <span class="text-xs text-gray-500">({{ $standing->player->position }})</span>@endif</td>
                                     <td class="px-4 py-2 text-center">{{ $standing->won ?? 0 }}</td>
                                     <td class="px-4 py-2 text-center">{{ $standing->lost ?? 0 }}</td>
                                     <td class="px-4 py-2 text-center">{{ ($standing->sets_won ?? 0) - ($standing->sets_lost ?? 0) }}</td>
@@ -156,32 +156,40 @@
                         @php
                             $homeSetsWon = 0;
                             $awaySetsWon = 0;
-                            if($match->played_at) {
-                                if(isset($match->sets) && is_array($match->sets) && count($match->sets) > 0) {
-                                    foreach($match->sets as $set) {
-                                        if(($set['home_score'] ?? 0) > ($set['away_score'] ?? 0)) {
-                                            $homeSetsWon++;
-                                        }
-                                        if(($set['away_score'] ?? 0) > ($set['home_score'] ?? 0)) {
-                                            $awaySetsWon++;
-                                        }
-                                    }
-                                } elseif ($match->status === 'completed') {
-                                    $homeSetsWon = $match->home_score ?? 0;
-                                    $awaySetsWon = $match->away_score ?? 0;
+                            $homeFinalScore = $match->home_score ?? null;
+                            $awayFinalScore = $match->away_score ?? null;
+
+                            if(isset($match->sets) && is_array($match->sets) && count($match->sets) > 0) {
+                                foreach($match->sets as $set) {
+                                    $h = $set['home_score'] ?? $set['home'] ?? 0;
+                                    $a = $set['away_score'] ?? $set['away'] ?? 0;
+                                    if($h > $a) { $homeSetsWon++; }
+                                    if($a > $h) { $awaySetsWon++; }
                                 }
+                            }
+
+                            // Prefer explicit final scores if provided, otherwise derive from sets
+                            $homeDisplay = $homeFinalScore !== null ? $homeFinalScore : $homeSetsWon;
+                            $awayDisplay = $awayFinalScore !== null ? $awayFinalScore : $awaySetsWon;
+
+                            // Determine winner for display (only when a clear winner exists)
+                            $matchWinner = null;
+                            if($homeDisplay > $awayDisplay) {
+                                $matchWinner = 'home';
+                            } elseif($awayDisplay > $homeDisplay) {
+                                $matchWinner = 'away';
                             }
                         @endphp
 
                         <div class="border border-gray-300 rounded p-4 bg-white match-card">
                             <div class="flex justify-between items-center mb-2">
                                 <div class="flex items-center space-x-3 flex-1">
-                                    <span class="player-name {{ $homeSetsWon > $awaySetsWon ? 'text-gray-900 font-bold' : 'text-gray-600' }}">{{ $match->homePlayer->name ?? 'Home Player' }}</span>
+                                    <span class="player-name {{ $matchWinner === 'home' ? 'text-gray-900 font-bold' : 'text-gray-600' }}">{{ $match->homePlayer->name ?? 'Home Player' }}@if(isset($playerPositionSeeding[$match->home_player_id])) <span class="text-xs text-gray-500">({{ $playerPositionSeeding[$match->home_player_id] }})</span>@endif</span>
                                     <span class="text-sm text-gray-600">vs</span>
-                                    <span class="player-name {{ $awaySetsWon > $homeSetsWon ? 'text-gray-900 font-bold' : 'text-gray-600' }}">{{ $match->awayPlayer->name ?? 'Away Player' }}</span>
+                                    <span class="player-name {{ $matchWinner === 'away' ? 'text-gray-900 font-bold' : 'text-gray-600' }}">{{ $match->awayPlayer->name ?? 'Away Player' }}@if(isset($playerPositionSeeding[$match->away_player_id])) <span class="text-xs text-gray-500">({{ $playerPositionSeeding[$match->away_player_id] }})</span>@endif</span>
                                 </div>
                                 <div class="text-sm font-medium text-gray-700">
-                                    <span class="font-medium">{{ $homeSetsWon }}</span> - <span class="font-medium">{{ $awaySetsWon }}</span>
+                                    <span class="font-medium">{{ $homeDisplay }}</span> - <span class="font-medium">{{ $awayDisplay }}</span>
                                 </div>
                             </div>
 
@@ -229,12 +237,45 @@
                 }
             }
 
-            if ($finalMatch && $finalMatch->status === 'completed' && $allMatchesCompleted) {
-                $winner = $finalMatch->home_score > $finalMatch->away_score
-                    ? $finalMatch->homePlayer
-                    : $finalMatch->awayPlayer;
+            // Determine final match winner using sets when available, otherwise fall back to final scores
+            if ($finalMatch) {
+                $homeFinal = null;
+                $awayFinal = null;
+
+                if(isset($finalMatch->sets) && is_array($finalMatch->sets) && count($finalMatch->sets) > 0) {
+                    $homeSets = 0;
+                    $awaySets = 0;
+                    foreach($finalMatch->sets as $set) {
+                        $h = $set['home_score'] ?? $set['home'] ?? 0;
+                        $a = $set['away_score'] ?? $set['away'] ?? 0;
+                        if($h > $a) { $homeSets++; }
+                        if($a > $h) { $awaySets++; }
+                    }
+                    $homeFinal = $homeSets;
+                    $awayFinal = $awaySets;
+                }
+
+                if($homeFinal === null || $awayFinal === null) {
+                    $homeFinal = $finalMatch->home_score ?? 0;
+                    $awayFinal = $finalMatch->away_score ?? 0;
+                }
+
+                if (($finalMatch->status === 'completed' || $homeFinal > 0 || $awayFinal > 0) && $allMatchesCompleted) {
+                    if ($homeFinal > $awayFinal) {
+                        $winner = $finalMatch->homePlayer;
+                    } elseif ($awayFinal > $homeFinal) {
+                        $winner = $finalMatch->awayPlayer;
+                    }
+                }
             }
         @endphp
+
+        @if($winner)
+        <div class="winner-section text-center mb-4">
+            <h3 class="text-lg font-semibold text-amber-400 mb-1">ŠAMPION TURNIRA</h3>
+            <p class="text-xl font-black text-gray-900">{{ $winner->name }}</p>
+        </div>
+        @endif
 
         <!-- Tournament Bracket -->
         <div class="bg-gray-50 rounded-xl p-4 md:p-6 border border-gray-300 bracket-container knockout-bracket">
@@ -316,7 +357,7 @@
                                         <div class="flex items-center justify-between mb-1">
                                             <div class="flex items-center gap-1 flex-1 min-w-0">
                                                 <div class="text-xs md:text-sm font-semibold {{ ($homeSetsWon > $awaySetsWon) && ($homeSetsWon > 0 || $awaySetsWon > 0) || ($match->is_bye && $match->homePlayer) ? 'text-gray-900 font-bold' : 'text-gray-600' }} truncate player-name-knockout">
-                                                    {{ $match->homePlayer->name ?? 'NEMA PROTIVNIKA' }}
+                                                    {{ $match->homePlayer->name ?? 'NEMA PROTIVNIKA' }}@if(isset($playerGroupSeeding[$match->home_player_id])) <span class="text-xs text-gray-500">({{ $playerGroupSeeding[$match->home_player_id] }})</span>@endif
                                                 </div>
                                             </div>
                                             <div class="flex-shrink-0 ml-1">
@@ -348,7 +389,7 @@
                                         <div class="flex items-center justify-between">
                                             <div class="flex items-center gap-1 flex-1 min-w-0">
                                                 <div class="text-xs md:text-sm font-semibold {{ ($awaySetsWon > $homeSetsWon) && ($homeSetsWon > 0 || $awaySetsWon > 0) || ($match->is_bye && $match->awayPlayer) ? 'text-gray-900 font-bold' : 'text-gray-600' }} truncate player-name-knockout">
-                                                    {{ $match->awayPlayer->name ?? 'NEMA PROTIVNIKA' }}
+                                                    {{ $match->awayPlayer->name ?? 'NEMA PROTIVNIKA' }}@if(isset($playerGroupSeeding[$match->away_player_id])) <span class="text-xs text-gray-500">({{ $playerGroupSeeding[$match->away_player_id] }})</span>@endif
                                                 </div>
                                             </div>
                                             <div class="flex-shrink-0 ml-1">
