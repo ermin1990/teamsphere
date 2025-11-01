@@ -100,17 +100,17 @@
             <div id="standings-content" class="tab-content mt-4 md:mt-6">
                 @if($competition->standings && $competition->standings->count() > 0)
                 <div class="backdrop-blur-xl rounded-xl p-3 md:p-5 shadow-xl border" style="background: var(--bg-card); border-color: var(--border-primary); box-shadow: 0 10px 25px var(--shadow-primary);">
-                    <div class="px-4 py-3" style="background: var(--bg-tertiary);">
+                    <div class="px-4 py-3 bg-gray-700/20">
                         <table class="w-full text-xs">
                             <thead>
-                                <tr style="color: var(--text-tertiary); border-bottom: 1px solid var(--border-secondary);">
+                                <tr class="text-gray-400 border-b border-gray-700/50">
                                     <th class="text-left py-1 pr-2 font-medium">#</th>
                                     <th class="text-left py-1 font-medium">Igrač</th>
                                     <th class="text-center py-1 px-1 font-medium">M</th>
                                     <th class="text-center py-1 px-1 font-medium">P</th>
                                     <th class="text-center py-1 px-1 font-medium">I</th>
                                     <th class="text-center py-1 px-1 font-medium">S</th>
-                                    <th class="text-center py-1 px-1 font-medium" style="color: var(--accent-green-solid);">Bod</th>
+                                    <th class="text-center py-1 px-1 font-medium text-green-400">Bod</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -118,19 +118,19 @@
                                     $advancingPlayers = $competition->players_advancing_per_group ?? 2;
                                 @endphp
                                 @foreach($competition->standings as $index => $standing)
-                                <tr style="border-bottom: 1px solid var(--border-secondary); transition: background-color 0.2s;" class="hover:bg-[var(--bg-secondary)] {{ $index < $advancingPlayers ? 'bg-green-900/20' : '' }}">
-                                    <td class="py-2 pr-2 font-mono" style="color: var(--text-tertiary);">{{ $standing->position }}</td>
-                                    <td class="py-2 font-medium" style="color: var(--text-primary);">
+                                <tr class="border-b border-gray-700/30 hover:bg-gray-700/30 transition-colors {{ $index < $advancingPlayers ? 'bg-green-900/30' : '' }}">
+                                    <td class="py-2 pr-2 text-gray-400 font-mono">{{ $standing->position }}</td>
+                                    <td class="py-2 text-white font-medium">
                                         {{ $standing->participant->name }}
                                         @if($standing->participant->position)
-                                        <span class="text-xs" style="color: var(--text-tertiary);">({{ $standing->participant->position }})</span>
+                                        <span class="text-gray-400 text-xs">({{ $standing->participant->position }})</span>
                                         @endif
                                     </td>
-                                    <td class="py-2 px-1 text-center" style="color: var(--text-secondary);">{{ ($standing->won ?? 0) + ($standing->drawn ?? 0) + ($standing->lost ?? 0) }}</td>
-                                    <td class="py-2 px-1 text-center" style="color: var(--accent-green-solid);">{{ $standing->won ?? 0 }}</td>
-                                    <td class="py-2 px-1 text-center" style="color: var(--accent-red);">{{ $standing->lost ?? 0 }}</td>
-                                    <td class="py-2 px-1 text-center" style="color: var(--text-secondary);">{{ ($standing->sets_won ?? 0) }}-{{ ($standing->sets_lost ?? 0) }}</td>
-                                    <td class="py-2 px-1 text-center font-bold" style="color: var(--accent-green-solid);">{{ $standing->points ?? 0 }}</td>
+                                    <td class="py-2 px-1 text-center text-gray-300">{{ ($standing->won ?? 0) + ($standing->drawn ?? 0) + ($standing->lost ?? 0) }}</td>
+                                    <td class="py-2 px-1 text-center text-green-400">{{ $standing->won ?? 0 }}</td>
+                                    <td class="py-2 px-1 text-center text-red-400">{{ $standing->lost ?? 0 }}</td>
+                                    <td class="py-2 px-1 text-center text-gray-300">{{ ($standing->sets_won ?? 0) }}-{{ ($standing->sets_lost ?? 0) }}</td>
+                                    <td class="py-2 px-1 text-center text-green-400 font-bold">{{ $standing->points ?? 0 }}</td>
                                 </tr>
                                 @endforeach
                             </tbody>
