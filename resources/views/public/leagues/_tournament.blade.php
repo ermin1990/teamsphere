@@ -165,7 +165,7 @@
                                     <span class="text-cyan-600 dark:text-gray-300 light:text-gray-700 font-bold">{{ ($standing->sets_won ?? 0) - ($standing->sets_lost ?? 0) }}</span>
                                 </div>
                                 <div class="col-span-2 text-center">
-                                    <span class="text-blue-600 dark:text-green-400 light:text-green-600 font-bold">{{ $standing->points ?? 0 }}</span>
+                                    <span class="text-blue-600 dark:text-green-400 light:text-gray-900 font-bold">{{ $standing->points ?? 0 }}</span>
                                 </div>
                             </div>
                             @endforeach
