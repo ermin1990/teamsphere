@@ -138,7 +138,7 @@
 
                         <!-- Table Header -->
                                                 <div class="grid grid-cols-12 gap-2 mb-2 text-xs text-[var(--text-tertiary)] font-medium px-2">
-                            <div class="col-span-7"></div>
+                            <div class="col-span-6"></div>
                             <div class="col-span-1 text-center">P</div>
                             <div class="col-span-1 text-center">I</div>
                             <div class="col-span-1 text-center">Set±</div>
@@ -152,7 +152,7 @@
                             @endphp
                             @foreach($groupStandings as $index => $standing)
                             <div class="grid grid-cols-12 gap-2 items-center py-2 px-2 {{ $index < $advancingPlayers ? 'bg-green-900/20 border border-green-600/30' : 'bg-[var(--bg-tertiary)]' }} hover:bg-[var(--bg-secondary)] rounded text-xs md:text-sm transition-all duration-200">
-                                <div class="col-span-7 flex items-center space-x-2">
+                                <div class="col-span-6 flex items-center space-x-2">
                                     <span class="font-bold text-[var(--text-tertiary)] w-6 text-center">{{ $index + 1 }}</span>
                                     <span class="text-[var(--text-primary)] font-medium text-xs truncate">{{ $standing->player->name }}@if($standing->player->position) <span class="text-[var(--text-tertiary)] text-xs">({{ $standing->player->position }})</span>@endif</span>
                                 </div>
