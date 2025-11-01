@@ -102,19 +102,19 @@
                 <div class="backdrop-blur-xl rounded-xl p-3 md:p-5 shadow-xl border" style="background: var(--bg-card); border-color: var(--border-primary); box-shadow: 0 10px 25px var(--shadow-primary);">
                     <!-- Table Header -->
                     <div class="grid grid-cols-12 gap-2 mb-2 text-xs font-medium px-2" style="color: var(--text-tertiary);">
-                        <div class="col-span-6"></div>
+                        <div class="col-span-7"></div>
                         <div class="col-span-1 text-center">Pob</div>
                         <div class="col-span-1 text-center">Rem</div>
                         <div class="col-span-1 text-center">Por</div>
                         <div class="col-span-1 text-center">Set ±</div>
-                        <div class="col-span-2 text-center">Bod</div>
+                        <div class="col-span-1 text-center">Bod</div>
                     </div>
 
                     <!-- Table Rows -->
                     <div class="space-y-1">
                         @foreach($competition->standings as $standing)
                         <div class="grid grid-cols-12 gap-2 items-center py-2 px-2 rounded text-xs md:text-sm" style="background: var(--bg-tertiary);">
-                            <div class="col-span-6 flex items-center space-x-2">
+                            <div class="col-span-7 flex items-center space-x-2">
                                 <span class="font-bold w-6 text-center" style="color: var(--text-tertiary);">{{ $standing->position }}</span>
                                 <span class="font-medium truncate" style="color: var(--text-primary);">{{ $standing->participant->name }}</span>
                             </div>
@@ -130,7 +130,7 @@
                             <div class="col-span-1 text-center">
                                 <span class="font-bold" style="color: var(--accent-cyan);">{{ $standing->sets_won - $standing->sets_lost }}</span>
                             </div>
-                            <div class="col-span-2 text-center">
+                            <div class="col-span-1 text-center">
                                 <span class="font-bold" style="color: var(--accent-blue);">{{ $standing->points }}</span>
                             </div>
                         </div>
