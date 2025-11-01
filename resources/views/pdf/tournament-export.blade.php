@@ -411,41 +411,51 @@
                         $groupMatches = App\Models\CompetitionMatch::where('competition_id', $competition->id)
                             ->where('tournament_group_id', $group->id)
                             ->with(['homePlayer', 'awayPlayer'])
-                            ->orderBy('id')
+                            ->orderBy('round_number')
+                            ->orderBy('match_order')
                             ->get();
+                        
+                        $matchesByRound = $groupMatches->groupBy('round_number');
                     @endphp
                     
                     @if($groupMatches->count() > 0)
                         <div style="margin-top: 10px;">
-                            <strong style="font-size: 9px; color: #6b7280;">Mečevi:</strong>
-                            @foreach($groupMatches as $match)
-                                <div class="match-box">
-                                    <div class="match-header">
-                                        Meč {{ $loop->iteration }}
-                                        @if($match->status === 'completed')
-                                            <span style="color: #10b981;">✓</span>
-                                        @endif
+                            <strong style="font-size: 9px; color: #6b7280;">Raspored mečeva:</strong>
+                            @foreach($matchesByRound as $roundNumber => $roundMatches)
+                                <div style="margin-top: 8px; margin-bottom: 8px;">
+                                    <div style="background: #e5e7eb; color: #374151; padding: 4px 8px; font-size: 9px; font-weight: bold; border-radius: 3px; margin-bottom: 4px;">
+                                        Kolo {{ $roundNumber }}.
                                     </div>
-                                    <div class="match-player match-home @if($match->winner_id == $match->home_player_id) match-winner @endif">
-                                        {{ $match->homePlayer->name ?? 'TBD' }}
-                                        @if($match->home_score !== null)
-                                            <span class="match-score">{{ $match->home_score }}</span>
-                                        @endif
-                                    </div>
-                                    @if($match->sets && is_array($match->sets))
-                                        <div class="set-scores">
-                                            Setovi: 
-                                            @foreach($match->sets as $set)
-                                                {{ $set['home'] ?? 0 }}-{{ $set['away'] ?? 0 }}@if(!$loop->last), @endif
-                                            @endforeach
+                                    @foreach($roundMatches as $match)
+                                        <div class="match-box">
+                                            <div class="match-header">
+                                                Meč {{ $match->match_order ?? $loop->iteration }}
+                                                @if($match->status === 'completed')
+                                                    <span style="color: #10b981;">✓</span>
+                                                @endif
+                                            </div>
+                                            <div class="match-player match-home @if($match->winner_id == $match->home_player_id) match-winner @endif">
+                                                {{ $match->homePlayer->name ?? 'TBD' }}
+                                                @if($match->home_score !== null)
+                                                    <span class="match-score">{{ $match->home_score }}</span>
+                                                @endif
+                                            </div>
+                                            @if($match->sets && is_array($match->sets))
+                                                <div class="set-scores">
+                                                    Setovi: 
+                                                    @foreach($match->sets as $set)
+                                                        {{ $set['home'] ?? 0 }}-{{ $set['away'] ?? 0 }}@if(!$loop->last), @endif
+                                                    @endforeach
+                                                </div>
+                                            @endif
+                                            <div class="match-player match-away @if($match->winner_id == $match->away_player_id) match-winner @endif">
+                                                {{ $match->awayPlayer->name ?? 'TBD' }}
+                                                @if($match->away_score !== null)
+                                                    <span class="match-score">{{ $match->away_score }}</span>
+                                                @endif
+                                            </div>
                                         </div>
-                                    @endif
-                                    <div class="match-player match-away @if($match->winner_id == $match->away_player_id) match-winner @endif">
-                                        {{ $match->awayPlayer->name ?? 'TBD' }}
-                                        @if($match->away_score !== null)
-                                            <span class="match-score">{{ $match->away_score }}</span>
-                                        @endif
-                                    </div>
+                                    @endforeach
                                 </div>
                             @endforeach
                         </div>

@@ -10,6 +10,7 @@ use App\Models\Sport;
 use App\Models\Standing;
 use App\Models\Team;
 use App\Models\TournamentGroup;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -493,23 +494,35 @@ class CompetitionController extends Controller
                 
                 // Create new standings
                 foreach ($groupData['players'] as $playerId) {
-                    Standing::create([
-                        'competition_id' => $competition->id,
-                        'tournament_group_id' => $group->id,
-                        'player_id' => $playerId,
-                        'played' => 0,
-                        'won' => 0,
-                        'drawn' => 0,
-                        'lost' => 0,
-                        'points' => 0,
-                        'sets_won' => 0,
-                        'sets_lost' => 0,
-                        'points_won' => 0,
-                        'points_lost' => 0,
-                        'goals_for' => 0,
-                        'goals_against' => 0,
-                        'goal_difference' => 0,
-                    ]);
+                    try {
+                        Standing::create([
+                            'competition_id' => $competition->id,
+                            'tournament_group_id' => $group->id,
+                            'player_id' => $playerId,
+                            'played' => 0,
+                            'won' => 0,
+                            'drawn' => 0,
+                            'lost' => 0,
+                            'points' => 0,
+                            'sets_won' => 0,
+                            'sets_lost' => 0,
+                            'points_won' => 0,
+                            'points_lost' => 0,
+                            'goals_for' => 0,
+                            'goals_against' => 0,
+                            'goal_difference' => 0,
+                        ]);
+                    } catch (\Illuminate\Database\QueryException $e) {
+                        // Ignore duplicate entry errors
+                        if ($e->getCode() !== '23000') {
+                            throw $e;
+                        }
+                        \Log::warning('Duplicate standing entry in saveGroups', [
+                            'competition_id' => $competition->id,
+                            'tournament_group_id' => $group->id,
+                            'player_id' => $playerId,
+                        ]);
+                    }
                 }
             } else {
                 // Create new group
@@ -523,28 +536,51 @@ class CompetitionController extends Controller
 
                 // Create Standing records for each player in the group
                 foreach ($groupData['players'] as $playerId) {
-                    Standing::create([
-                        'competition_id' => $competition->id,
-                        'tournament_group_id' => $group->id,
-                        'player_id' => $playerId,
-                        'played' => 0,
-                        'won' => 0,
-                        'drawn' => 0,
-                        'lost' => 0,
-                        'points' => 0,
-                        'sets_won' => 0,
-                        'sets_lost' => 0,
-                        'points_won' => 0,
-                        'points_lost' => 0,
-                        'goals_for' => 0,
-                        'goals_against' => 0,
-                        'goal_difference' => 0,
-                    ]);
+                    try {
+                        Standing::create([
+                            'competition_id' => $competition->id,
+                            'tournament_group_id' => $group->id,
+                            'player_id' => $playerId,
+                            'played' => 0,
+                            'won' => 0,
+                            'drawn' => 0,
+                            'lost' => 0,
+                            'points' => 0,
+                            'sets_won' => 0,
+                            'sets_lost' => 0,
+                            'points_won' => 0,
+                            'points_lost' => 0,
+                            'goals_for' => 0,
+                            'goals_against' => 0,
+                            'goal_difference' => 0,
+                        ]);
+                    } catch (\Illuminate\Database\QueryException $e) {
+                        // Ignore duplicate entry errors
+                        if ($e->getCode() !== '23000') {
+                            throw $e;
+                        }
+                        \Log::warning('Duplicate standing entry in saveGroups', [
+                            'competition_id' => $competition->id,
+                            'tournament_group_id' => $group->id,
+                            'player_id' => $playerId,
+                        ]);
+                    }
                 }
             }
         }
         
         // Delete groups that are no longer in the request
+        $groupsToDelete = $competition->tournamentGroups()
+            ->whereNotIn('group_number', $processedGroupNumbers)
+            ->get();
+        
+        foreach ($groupsToDelete as $groupToDelete) {
+            // Delete standings for this group before deleting the group
+            Standing::where('competition_id', $competition->id)
+                ->where('tournament_group_id', $groupToDelete->id)
+                ->delete();
+        }
+        
         $competition->tournamentGroups()
             ->whereNotIn('group_number', $processedGroupNumbers)
             ->delete();

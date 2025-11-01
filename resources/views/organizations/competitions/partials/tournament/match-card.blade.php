@@ -17,7 +17,12 @@
                     </div>
                     <span class="text-white text-xs truncate">
                         {{ $match->homePlayer->name ?? 'TBD' }}
-                        @if($match->homePlayer && $match->homePlayer->position)
+                        @if($match->homePlayer && $match->tournamentGroup)
+                            @php
+                                $homePosition = array_search($match->home_player_id, $match->tournamentGroup->player_ids ?? []) + 1;
+                            @endphp
+                            <span class="text-gray-400 text-[10px]">({{ $homePosition }})</span>
+                        @elseif($match->homePlayer && $match->homePlayer->position)
                             <span class="text-gray-400 text-[10px]">({{ $match->homePlayer->position }})</span>
                         @endif
                     </span>
@@ -38,7 +43,12 @@
                     </div>
                     <span class="text-white text-xs truncate">
                         {{ $match->awayPlayer->name ?? 'TBD' }}
-                        @if($match->awayPlayer && $match->awayPlayer->position)
+                        @if($match->awayPlayer && $match->tournamentGroup)
+                            @php
+                                $awayPosition = array_search($match->away_player_id, $match->tournamentGroup->player_ids ?? []) + 1;
+                            @endphp
+                            <span class="text-gray-400 text-[10px]">({{ $awayPosition }})</span>
+                        @elseif($match->awayPlayer && $match->awayPlayer->position)
                             <span class="text-gray-400 text-[10px]">({{ $match->awayPlayer->position }})</span>
                         @endif
                     </span>

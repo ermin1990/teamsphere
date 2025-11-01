@@ -151,58 +151,68 @@
                 <!-- Group Matches -->
                 <div>
                     <h4 class="text-lg font-medium text-gray-700 mb-3">Grupa {{ $group->name }}</h4>
-                    <div class="space-y-3">
-                        @foreach($currentGroupMatches as $match)
-                        @php
-                            $homeSetsWon = 0;
-                            $awaySetsWon = 0;
-                            $homeFinalScore = $match->home_score ?? null;
-                            $awayFinalScore = $match->away_score ?? null;
+                    @php
+                        $matchesByRound = $currentGroupMatches->groupBy('round_number');
+                    @endphp
+                    <div class="space-y-4">
+                        @foreach($matchesByRound as $roundNumber => $roundMatches)
+                            <div>
+                                <h5 class="text-md font-medium text-gray-600 mb-2">Kolo {{ $roundNumber }}.</h5>
+                                <div class="space-y-3">
+                                    @foreach($roundMatches as $match)
+                                    @php
+                                        $homeSetsWon = 0;
+                                        $awaySetsWon = 0;
+                                        $homeFinalScore = $match->home_score ?? null;
+                                        $awayFinalScore = $match->away_score ?? null;
 
-                            if(isset($match->sets) && is_array($match->sets) && count($match->sets) > 0) {
-                                foreach($match->sets as $set) {
-                                    $h = $set['home_score'] ?? $set['home'] ?? 0;
-                                    $a = $set['away_score'] ?? $set['away'] ?? 0;
-                                    if($h > $a) { $homeSetsWon++; }
-                                    if($a > $h) { $awaySetsWon++; }
-                                }
-                            }
+                                        if(isset($match->sets) && is_array($match->sets) && count($match->sets) > 0) {
+                                            foreach($match->sets as $set) {
+                                                $h = $set['home_score'] ?? $set['home'] ?? 0;
+                                                $a = $set['away_score'] ?? $set['away'] ?? 0;
+                                                if($h > $a) { $homeSetsWon++; }
+                                                if($a > $h) { $awaySetsWon++; }
+                                            }
+                                        }
 
-                            // Prefer explicit final scores if provided, otherwise derive from sets
-                            $homeDisplay = $homeFinalScore !== null ? $homeFinalScore : $homeSetsWon;
-                            $awayDisplay = $awayFinalScore !== null ? $awayFinalScore : $awaySetsWon;
+                                        // Prefer explicit final scores if provided, otherwise derive from sets
+                                        $homeDisplay = $homeFinalScore !== null ? $homeFinalScore : $homeSetsWon;
+                                        $awayDisplay = $awayFinalScore !== null ? $awayFinalScore : $awaySetsWon;
 
-                            // Determine winner for display (only when a clear winner exists)
-                            $matchWinner = null;
-                            if($homeDisplay > $awayDisplay) {
-                                $matchWinner = 'home';
-                            } elseif($awayDisplay > $homeDisplay) {
-                                $matchWinner = 'away';
-                            }
-                        @endphp
+                                        // Determine winner for display (only when a clear winner exists)
+                                        $matchWinner = null;
+                                        if($homeDisplay > $awayDisplay) {
+                                            $matchWinner = 'home';
+                                        } elseif($awayDisplay > $homeDisplay) {
+                                            $matchWinner = 'away';
+                                        }
+                                    @endphp
 
-                        <div class="border border-gray-300 rounded p-4 bg-white match-card">
-                            <div class="flex justify-between items-center mb-2">
-                                <div class="flex items-center space-x-3 flex-1">
-                                    <span class="player-name {{ $matchWinner === 'home' ? 'text-gray-900 font-bold' : 'text-gray-600' }}">{{ $match->homePlayer->name ?? 'Home Player' }}@if(isset($playerPositionSeeding[$match->home_player_id])) <span class="text-xs text-gray-500">({{ $playerPositionSeeding[$match->home_player_id] }})</span>@endif</span>
-                                    <span class="text-sm text-gray-600">vs</span>
-                                    <span class="player-name {{ $matchWinner === 'away' ? 'text-gray-900 font-bold' : 'text-gray-600' }}">{{ $match->awayPlayer->name ?? 'Away Player' }}@if(isset($playerPositionSeeding[$match->away_player_id])) <span class="text-xs text-gray-500">({{ $playerPositionSeeding[$match->away_player_id] }})</span>@endif</span>
-                                </div>
-                                <div class="text-sm font-medium text-gray-700">
-                                    <span class="font-medium">{{ $homeDisplay }}</span> - <span class="font-medium">{{ $awayDisplay }}</span>
+                                    <div class="border border-gray-300 rounded p-4 bg-white match-card">
+                                        <div class="flex justify-between items-center mb-2">
+                                            <div class="flex items-center space-x-3 flex-1">
+                                                <span class="player-name {{ $matchWinner === 'home' ? 'text-gray-900 font-bold' : 'text-gray-600' }}">{{ $match->homePlayer->name ?? 'Home Player' }}@if(isset($playerPositionSeeding[$match->home_player_id])) <span class="text-xs text-gray-500">({{ $playerPositionSeeding[$match->home_player_id] }})</span>@endif</span>
+                                                <span class="text-sm text-gray-600">vs</span>
+                                                <span class="player-name {{ $matchWinner === 'away' ? 'text-gray-900 font-bold' : 'text-gray-600' }}">{{ $match->awayPlayer->name ?? 'Away Player' }}@if(isset($playerPositionSeeding[$match->away_player_id])) <span class="text-xs text-gray-500">({{ $playerPositionSeeding[$match->away_player_id] }})</span>@endif</span>
+                                            </div>
+                                            <div class="text-sm font-medium text-gray-700">
+                                                <span class="font-medium">{{ $homeDisplay }}</span> - <span class="font-medium">{{ $awayDisplay }}</span>
+                                            </div>
+                                        </div>
+
+                                        @if(isset($match->sets) && is_array($match->sets) && count($match->sets) > 0)
+                                        <div class="text-xs text-gray-600">
+                                            Setovi: {{ collect($match->sets)->map(function($set) {
+                                                $home = $set['home_score'] ?? $set['home'] ?? 0;
+                                                $away = $set['away_score'] ?? $set['away'] ?? 0;
+                                                return $home . '-' . $away;
+                                            })->join(', ') }}
+                                        </div>
+                                        @endif
+                                    </div>
+                                    @endforeach
                                 </div>
                             </div>
-
-                            @if(isset($match->sets) && is_array($match->sets) && count($match->sets) > 0)
-                            <div class="text-xs text-gray-600">
-                                Setovi: {{ collect($match->sets)->map(function($set) {
-                                    $home = $set['home_score'] ?? $set['home'] ?? 0;
-                                    $away = $set['away_score'] ?? $set['away'] ?? 0;
-                                    return $home . '-' . $away;
-                                })->join(', ') }}
-                            </div>
-                            @endif
-                        </div>
                         @endforeach
                     </div>
                 </div>
