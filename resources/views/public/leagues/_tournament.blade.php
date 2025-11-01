@@ -137,7 +137,7 @@
                                                 <h5 class="text-sm md:text-base font-semibold text-[var(--text-secondary)] mb-2 uppercase tracking-wide">Tabela</h5>
 
                         <!-- Table Header -->
-                        <div class="grid grid-cols-12 gap-2 mb-2 text-xs dark:text-[var(--text-tertiary)] light:text-gray-900 font-medium px-2">
+                        <div class="grid grid-cols-12 gap-2 mb-2 text-xs text-gray-900 dark:text-[var(--text-tertiary)] font-medium px-2">
                             <div class="col-span-7"></div>
                             <div class="col-span-1 text-center">P</div>
                             <div class="col-span-1 text-center">I</div>
@@ -149,23 +149,23 @@
                                 $advancingPlayers = $competition->players_advancing_per_group ?? 2;
                             @endphp
                             @foreach($groupStandings as $index => $standing)
-                            <div class="grid grid-cols-12 gap-2 items-center py-2 px-2 {{ $index < $advancingPlayers ? 'bg-green-900/30 dark:bg-green-900/30 light:bg-green-50' : 'bg-[var(--bg-tertiary)]' }} hover:bg-[var(--bg-secondary)] rounded text-xs md:text-sm transition-all duration-200">
+                            <div class="grid grid-cols-12 gap-2 items-center py-2 px-2 {{ $index < $advancingPlayers ? 'bg-green-50 dark:bg-green-900/30' : 'bg-[var(--bg-tertiary)]' }} hover:bg-[var(--bg-secondary)] rounded text-xs md:text-sm transition-all duration-200">
                                 <div class="col-span-7 flex items-center space-x-2">
-                                    <span class="font-bold dark:text-[var(--text-tertiary)] light:text-gray-900 w-6 text-center">{{ $index + 1 }}</span>
-                                    <span class="dark:text-[var(--text-primary)] light:text-gray-900 font-medium text-xs truncate">{{ $standing->player->name }}@if($standing->player->position) <span class="dark:text-[var(--text-tertiary)] light:text-gray-600 text-xs">({{ $standing->player->position }})</span>@endif</span>
+                                    <span class="font-bold text-gray-900 dark:text-[var(--text-tertiary)] w-6 text-center">{{ $index + 1 }}</span>
+                                    <span class="text-gray-900 dark:text-[var(--text-primary)] font-medium text-xs truncate">{{ $standing->player->name }}@if($standing->player->position) <span class="text-gray-600 dark:text-[var(--text-tertiary)] text-xs">({{ $standing->player->position }})</span>@endif</span>
                                 </div>
                                 <div class="col-span-1 text-center">
-                                    <span class="dark:text-gray-300 light:text-gray-900 font-bold">{{ $standing->won ?? 0 }}</span>
+                                    <span class="text-gray-900 dark:text-gray-300 font-bold">{{ $standing->won ?? 0 }}</span>
                                 </div>
                                
                                 <div class="col-span-1 text-center">
-                                    <span class="dark:text-red-400 light:text-gray-900 font-bold">{{ $standing->lost ?? 0 }}</span>
+                                    <span class="text-gray-900 dark:text-red-400 font-bold">{{ $standing->lost ?? 0 }}</span>
                                 </div>
                                 <div class="col-span-1 text-center">
-                                    <span class="dark:text-gray-300 light:text-gray-900 font-bold">{{ ($standing->sets_won ?? 0) - ($standing->sets_lost ?? 0) }}</span>
+                                    <span class="text-gray-900 dark:text-gray-300 font-bold">{{ ($standing->sets_won ?? 0) - ($standing->sets_lost ?? 0) }}</span>
                                 </div>
                                 <div class="col-span-2 text-center">
-                                    <span class="dark:text-green-400 light:text-gray-900 font-bold">{{ $standing->points ?? 0 }}</span>
+                                    <span class="text-gray-900 dark:text-green-400 font-bold">{{ $standing->points ?? 0 }}</span>
                                 </div>
                             </div>
                             @endforeach
