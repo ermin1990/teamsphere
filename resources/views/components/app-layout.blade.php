@@ -9,6 +9,10 @@
 
         <title>{{ config('app.name', 'Laravel') }}</title>
 
+    <!-- PWA manifest -->
+    <link rel="manifest" href="{{ asset('manifest.webmanifest') }}">
+    <meta name="theme-color" content="#4f46e5">
+
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
@@ -82,6 +86,20 @@
                     setTimeout(() => notification.remove(), 300);
                 }, 3000);
             };
+        </script>
+        <script>
+            // Register service worker to enable installability. The service worker
+            // is intentionally network-only (does not cache) per project request.
+            if ('serviceWorker' in navigator) {
+                window.addEventListener('load', function() {
+                    navigator.serviceWorker.register('/sw.js')
+                        .then(function(reg) {
+                            console.log('Service worker registered:', reg.scope);
+                        }).catch(function(err) {
+                            console.warn('Service worker registration failed:', err);
+                        });
+                });
+            }
         </script>
             </main>
         </div>

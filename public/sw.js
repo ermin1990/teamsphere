@@ -1,72 +1,38 @@
-// Service Worker for caching static assets
-const CACHE_NAME = 'teamsphere-v1.0.0';
-const STATIC_CACHE_URLS = [
-    '/',
-    '/css/app.css',
-    '/js/app.js',
-    '/favicon.ico',
-    '/robots.txt'
-];
+// Minimal Service Worker to enable PWA installability WITHOUT caching.
+// This service worker does not store responses in Cache Storage.
 
-// Install event - cache static assets
-self.addEventListener('install', event => {
-    event.waitUntil(
-        caches.open(CACHE_NAME)
-            .then(cache => cache.addAll(STATIC_CACHE_URLS))
-            .then(() => self.skipWaiting())
-    );
+self.addEventListener('install', (event) => {
+    // Activate immediately
+    event.waitUntil(self.skipWaiting());
 });
 
-// Activate event - clean old caches
-self.addEventListener('activate', event => {
-    event.waitUntil(
-        caches.keys().then(cacheNames => {
-            return Promise.all(
-                cacheNames.map(cacheName => {
-                    if (cacheName !== CACHE_NAME) {
-                        return caches.delete(cacheName);
-                    }
-                })
-            );
-        }).then(() => self.clients.claim())
-    );
+self.addEventListener('activate', (event) => {
+    event.waitUntil(self.clients.claim());
 });
 
-// Fetch event - serve from cache when possible
-self.addEventListener('fetch', event => {
-    // Only cache GET requests
+// Network-only fetch handler: forward requests to the network and
+// never persist responses in a cache. This ensures the app is not
+// cached by the service worker while still allowing a service
+// worker to exist (required for some install flows).
+self.addEventListener('fetch', (event) => {
+    // Only handle same-origin GET navigations and requests
     if (event.request.method !== 'GET') return;
-
-    // Skip cross-origin requests
     if (!event.request.url.startsWith(self.location.origin)) return;
 
-    event.respondWith(
-        caches.match(event.request)
-            .then(response => {
-                // Return cached version if available
-                if (response) {
-                    return response;
-                }
-
-                // Otherwise fetch from network
-                return fetch(event.request)
-                    .then(response => {
-                        // Don't cache non-successful responses
-                        if (!response.ok) return response;
-
-                        // Clone the response
-                        const responseClone = response.clone();
-
-                        // Cache successful responses
-                        caches.open(CACHE_NAME)
-                            .then(cache => cache.put(event.request, responseClone));
-
-                        return response;
-                    })
-                    .catch(() => {
-                        // Return offline fallback if available
-                        return caches.match('/');
-                    });
+    // For navigation requests, try the network and fall back to a minimal response
+    if (event.request.mode === 'navigate') {
+        event.respondWith(
+            fetch(event.request).catch(() => {
+                // If offline, return a simple HTML fallback so the browser
+                // can still show an installable context without cached app shell.
+                return new Response('<!doctype html><title>Offline</title><meta name="viewport" content="width=device-width,initial-scale=1"><h1 style="color:#fff;background:#0f172a;padding:2rem">Offline</h1>', {
+                    headers: { 'Content-Type': 'text/html' }
+                });
             })
-    );
+        );
+        return;
+    }
+
+    // For other GET requests, just perform a normal network fetch.
+    event.respondWith(fetch(event.request));
 });
