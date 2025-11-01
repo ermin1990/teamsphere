@@ -154,7 +154,7 @@
                             <div class="grid grid-cols-12 gap-2 items-center py-2 px-2 {{ $index < $advancingPlayers ? 'bg-green-900/20 border border-green-600/30' : 'bg-[var(--bg-tertiary)]' }} hover:bg-[var(--bg-secondary)] rounded text-xs md:text-sm transition-all duration-200">
                                 <div class="col-span-6 flex items-center space-x-2">
                                     <span class="font-bold text-[var(--text-tertiary)] w-6 text-center">{{ $index + 1 }}</span>
-                                    <span class="text-[var(--text-primary)] font-medium text-xs truncate">{{ $standing->player->name }}@if($standing->player->position) <span class="text-[var(--text-tertiary)] text-xs">({{ $standing->player->position }})</span>@endif @if(isset($playerPositionSeeding[$standing->player_id])) <span class="text-[var(--text-tertiary)] text-xs">({{ $playerPositionSeeding[$standing->player_id] }})</span>@endif</span>
+                                    <span class="text-[var(--text-primary)] font-medium text-xs truncate">{{ $standing->player->name }}@if($standing->player->position) <span class="text-[var(--text-tertiary)] text-xs">({{ $standing->player->position }})</span>@endif</span>
                                 </div>
                                 <div class="col-span-1 text-center">
                                     <span class="text-green-600 font-bold">{{ $standing->won ?? 0 }}</span>
