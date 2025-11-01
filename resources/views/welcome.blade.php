@@ -9,11 +9,23 @@
         <script src="https://cdn.tailwindcss.com"></script>
     </head>
     <body class="bg-gray-900 text-white">
+        <!-- Mobile Header -->
+        <header class="md:hidden bg-gray-900/95 backdrop-blur-sm border-b border-gray-800/50 py-4 px-6 sticky top-0 z-50">
+            <div class="flex items-center justify-center space-x-3">
+                <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
+                    <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                    </svg>
+                </div>
+                <span class="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">Team Sphere</span>
+            </div>
+        </header>
+
         <!-- Simple Hero -->
-        <section class="min-h-screen flex items-center justify-center px-6">
-            <div class="max-w-4xl mx-auto text-center">
+        <section class="min-h-screen flex items-center justify-center px-6 md:flex md:items-center md:justify-center pt-8 md:pt-0">
+            <div class="max-w-4xl mx-auto text-center w-full">
                 <!-- Logo -->
-                <div class="flex items-center justify-center space-x-3 mb-8">
+                <div class="hidden md:flex items-center justify-center space-x-3 mb-8">
                     <div class="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center">
                         <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
