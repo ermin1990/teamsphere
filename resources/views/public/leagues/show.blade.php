@@ -5,27 +5,15 @@
 @section('content')
     <!-- Header -->
     <div class="backdrop-blur-xl rounded-2xl p-4 md:p-8 shadow-xl mb-8 border" style="background: var(--bg-card); border-color: var(--border-primary); box-shadow: 0 10px 25px var(--shadow-primary);">
-        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div class="flex-1">
-                <h1 class="text-2xl md:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent mb-2">
+        <!-- Mobile Layout -->
+        <div class="block md:hidden">
+            <div class="text-center">
+                <h1 class="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent mb-2">
                     {{ $competition->name }}
                 </h1>
-                <p class="text-sm md:text-base" style="color: var(--text-tertiary);">{{ $organization->name }} • {{ $competition->sport->name }}</p>
-            </div>
-            <div class="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
-                @if($competition->type === 'tournament')
-                <a href="{{ route('public.leagues.tournament.pdf', $competition->slug) }}"
-                   target="_blank"
-                   class="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-lg transition-colors w-full sm:w-auto justify-center order-2 sm:order-1"
-                   style="color: var(--accent-blue); background: var(--bg-tertiary); border: 1px solid var(--border-primary);">
-                    📄 PDF Export
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
-                    </svg>
-                </a>
-                @endif
-                <div class="flex items-center gap-2 order-1 sm:order-2">
-                    <span class="px-3 py-1 text-xs sm:text-sm rounded-full font-medium"
+                <p class="text-sm mb-4" style="color: var(--text-tertiary);">{{ $organization->name }} • {{ $competition->sport->name }}</p>
+                <div class="flex items-center justify-center gap-2">
+                    <span class="px-3 py-1 text-xs rounded-full font-medium"
                          style="background: var(--accent-blue); color: var(--accent-blue-solid);">
                         @if($competition->status === 'completed')
                             Završeno
@@ -35,7 +23,50 @@
                             Planirano
                         @endif
                     </span>
-                    <span class="px-3 py-1 text-xs sm:text-sm rounded-full font-medium"
+                    <span class="px-3 py-1 text-xs rounded-full font-medium"
+                         style="background: var(--accent-purple); color: var(--accent-purple-solid);">
+                        @if($competition->type === 'tournament')
+                            Turnir
+                        @else
+                            Liga
+                        @endif
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Desktop Layout -->
+        <div class="hidden md:flex md:items-center md:justify-between gap-4">
+            <div class="flex-1">
+                <h1 class="text-3xl lg:text-4xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent mb-2">
+                    {{ $competition->name }}
+                </h1>
+                <p class="text-base" style="color: var(--text-tertiary);">{{ $organization->name }} • {{ $competition->sport->name }}</p>
+            </div>
+            <div class="flex items-center gap-4">
+                @if($competition->type === 'tournament')
+                <a href="{{ route('public.leagues.tournament.pdf', $competition->slug) }}"
+                   target="_blank"
+                   class="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-lg transition-colors"
+                   style="color: var(--accent-blue); background: var(--bg-tertiary); border: 1px solid var(--border-primary);">
+                    📄 PDF Export
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                    </svg>
+                </a>
+                @endif
+                <div class="flex items-center gap-2">
+                    <span class="px-3 py-1 text-sm rounded-full font-medium"
+                         style="background: var(--accent-blue); color: var(--accent-blue-solid);">
+                        @if($competition->status === 'completed')
+                            Završeno
+                        @elseif($competition->status === 'in_progress')
+                            U tijeku
+                        @else
+                            Planirano
+                        @endif
+                    </span>
+                    <span class="px-3 py-1 text-sm rounded-full font-medium"
                          style="background: var(--accent-purple); color: var(--accent-purple-solid);">
                         @if($competition->type === 'tournament')
                             Turnir
