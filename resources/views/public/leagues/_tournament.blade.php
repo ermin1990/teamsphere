@@ -149,7 +149,7 @@
                                 $advancingPlayers = $competition->players_advancing_per_group ?? 2;
                             @endphp
                             @foreach($groupStandings as $index => $standing)
-                            <div class="grid grid-cols-12 gap-2 items-center py-2 px-2 bg-[var(--bg-tertiary)] hover:bg-gray-700/30 rounded text-xs md:text-sm transition-all duration-200">
+                            <div class="grid grid-cols-12 gap-2 items-center py-2 px-2 {{ $index < $advancingPlayers ? 'bg-green-900/30' : 'bg-[var(--bg-tertiary)]' }} hover:bg-gray-700/30 rounded text-xs md:text-sm transition-all duration-200">
                                 <div class="col-span-7 flex items-center space-x-2">
                                     <span class="font-bold text-gray-400 w-6 text-center">{{ $index + 1 }}</span>
                                     <span class="text-white font-medium text-xs truncate">{{ $standing->player->name }}@if($standing->player->position) <span class="text-gray-400 text-xs">({{ $standing->player->position }})</span>@endif</span>
