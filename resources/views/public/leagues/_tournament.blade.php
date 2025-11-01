@@ -137,7 +137,7 @@
                                                 <h5 class="text-sm md:text-base font-semibold text-[var(--text-secondary)] mb-2 uppercase tracking-wide">Tabela</h5>
 
                         <!-- Table Header -->
-                        <div class="grid grid-cols-12 gap-2 mb-2 text-xs text-[var(--text-tertiary)] font-medium px-2">
+                        <div class="grid grid-cols-12 gap-2 mb-2 text-xs dark:text-[var(--text-tertiary)] light:text-gray-900 font-medium px-2">
                             <div class="col-span-7"></div>
                             <div class="col-span-1 text-center">P</div>
                             <div class="col-span-1 text-center">I</div>
