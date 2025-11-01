@@ -151,21 +151,21 @@
                             @foreach($groupStandings as $index => $standing)
                             <div class="grid grid-cols-12 gap-2 items-center py-2 px-2 {{ $index < $advancingPlayers ? 'bg-green-900/30 dark:bg-green-900/30 light:bg-green-50' : 'bg-[var(--bg-tertiary)]' }} hover:bg-[var(--bg-secondary)] rounded text-xs md:text-sm transition-all duration-200">
                                 <div class="col-span-7 flex items-center space-x-2">
-                                    <span class="font-bold dark:text-[var(--text-tertiary)] light:text-gray-600 w-6 text-center">{{ $index + 1 }}</span>
-                                    <span class="dark:text-[var(--text-primary)] light:text-gray-900 font-medium text-xs truncate">{{ $standing->player->name }}@if($standing->player->position) <span class="dark:text-[var(--text-tertiary)] light:text-gray-500 text-xs">({{ $standing->player->position }})</span>@endif</span>
+                                    <span class="font-bold dark:text-[var(--text-tertiary)] light:text-gray-900 w-6 text-center">{{ $index + 1 }}</span>
+                                    <span class="dark:text-[var(--text-primary)] light:text-gray-900 font-medium text-xs truncate">{{ $standing->player->name }}@if($standing->player->position) <span class="dark:text-[var(--text-tertiary)] light:text-gray-600 text-xs">({{ $standing->player->position }})</span>@endif</span>
                                 </div>
                                 <div class="col-span-1 text-center">
                                     <span class="dark:text-gray-300 light:text-gray-900 font-bold">{{ $standing->won ?? 0 }}</span>
                                 </div>
                                
                                 <div class="col-span-1 text-center">
-                                    <span class="dark:text-red-400 light:text-red-700 font-bold">{{ $standing->lost ?? 0 }}</span>
+                                    <span class="dark:text-red-400 light:text-gray-900 font-bold">{{ $standing->lost ?? 0 }}</span>
                                 </div>
                                 <div class="col-span-1 text-center">
                                     <span class="dark:text-gray-300 light:text-gray-900 font-bold">{{ ($standing->sets_won ?? 0) - ($standing->sets_lost ?? 0) }}</span>
                                 </div>
                                 <div class="col-span-2 text-center">
-                                    <span class="dark:text-green-400 light:text-green-700 font-bold">{{ $standing->points ?? 0 }}</span>
+                                    <span class="dark:text-green-400 light:text-gray-900 font-bold">{{ $standing->points ?? 0 }}</span>
                                 </div>
                             </div>
                             @endforeach
