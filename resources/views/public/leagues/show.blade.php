@@ -100,41 +100,41 @@
             <div id="standings-content" class="tab-content mt-4 md:mt-6">
                 @if($competition->standings && $competition->standings->count() > 0)
                 <div class="backdrop-blur-xl rounded-xl p-3 md:p-5 shadow-xl border" style="background: var(--bg-card); border-color: var(--border-primary); box-shadow: 0 10px 25px var(--shadow-primary);">
-                    <!-- Table Header -->
-                    <div class="grid grid-cols-12 gap-2 mb-2 text-xs font-medium px-2" style="color: var(--text-tertiary);">
-                        <div class="col-span-7"></div>
-                        <div class="col-span-1 text-center">Pob</div>
-                        <div class="col-span-1 text-center">Rem</div>
-                        <div class="col-span-1 text-center">Por</div>
-                        <div class="col-span-1 text-center">Set ±</div>
-                        <div class="col-span-1 text-center">Bod</div>
-                    </div>
-
-                    <!-- Table Rows -->
-                    <div class="space-y-1">
-                        @foreach($competition->standings as $standing)
-                        <div class="grid grid-cols-12 gap-2 items-center py-2 px-2 rounded text-xs md:text-sm" style="background: var(--bg-tertiary);">
-                            <div class="col-span-7 flex items-center space-x-2">
-                                <span class="font-bold w-6 text-center" style="color: var(--text-tertiary);">{{ $standing->position }}</span>
-                                <span class="font-medium truncate" style="color: var(--text-primary);">{{ $standing->participant->name }}</span>
-                            </div>
-                            <div class="col-span-1 text-center">
-                                <span class="font-bold" style="color: var(--accent-green-solid);">{{ $standing->won }}</span>
-                            </div>
-                            <div class="col-span-1 text-center">
-                                <span class="font-bold" style="color: var(--accent-yellow);">{{ $standing->drawn }}</span>
-                            </div>
-                            <div class="col-span-1 text-center">
-                                <span class="font-bold" style="color: var(--accent-red);">{{ $standing->lost }}</span>
-                            </div>
-                            <div class="col-span-1 text-center">
-                                <span class="font-bold" style="color: var(--accent-cyan);">{{ $standing->sets_won - $standing->sets_lost }}</span>
-                            </div>
-                            <div class="col-span-1 text-center">
-                                <span class="font-bold" style="color: var(--accent-blue);">{{ $standing->points }}</span>
-                            </div>
-                        </div>
-                        @endforeach
+                    <div class="px-4 py-3" style="background: var(--bg-tertiary);">
+                        <table class="w-full text-xs">
+                            <thead>
+                                <tr style="color: var(--text-tertiary); border-bottom: 1px solid var(--border-secondary);">
+                                    <th class="text-left py-1 pr-2 font-medium">#</th>
+                                    <th class="text-left py-1 font-medium">Igrač</th>
+                                    <th class="text-center py-1 px-1 font-medium">M</th>
+                                    <th class="text-center py-1 px-1 font-medium">P</th>
+                                    <th class="text-center py-1 px-1 font-medium">I</th>
+                                    <th class="text-center py-1 px-1 font-medium">S</th>
+                                    <th class="text-center py-1 px-1 font-medium" style="color: var(--accent-green-solid);">Bod</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @php
+                                    $advancingPlayers = $competition->players_advancing_per_group ?? 2;
+                                @endphp
+                                @foreach($competition->standings as $index => $standing)
+                                <tr style="border-bottom: 1px solid var(--border-secondary); transition: background-color 0.2s;" class="hover:bg-[var(--bg-secondary)] {{ $index < $advancingPlayers ? 'bg-green-900/20' : '' }}">
+                                    <td class="py-2 pr-2 font-mono" style="color: var(--text-tertiary);">{{ $standing->position }}</td>
+                                    <td class="py-2 font-medium" style="color: var(--text-primary);">
+                                        {{ $standing->participant->name }}
+                                        @if($standing->participant->position)
+                                        <span class="text-xs" style="color: var(--text-tertiary);">({{ $standing->participant->position }})</span>
+                                        @endif
+                                    </td>
+                                    <td class="py-2 px-1 text-center" style="color: var(--text-secondary);">{{ ($standing->won ?? 0) + ($standing->drawn ?? 0) + ($standing->lost ?? 0) }}</td>
+                                    <td class="py-2 px-1 text-center" style="color: var(--accent-green-solid);">{{ $standing->won ?? 0 }}</td>
+                                    <td class="py-2 px-1 text-center" style="color: var(--accent-red);">{{ $standing->lost ?? 0 }}</td>
+                                    <td class="py-2 px-1 text-center" style="color: var(--text-secondary);">{{ ($standing->sets_won ?? 0) }}-{{ ($standing->sets_lost ?? 0) }}</td>
+                                    <td class="py-2 px-1 text-center font-bold" style="color: var(--accent-green-solid);">{{ $standing->points ?? 0 }}</td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
                     </div>
                 </div>
                 @else
