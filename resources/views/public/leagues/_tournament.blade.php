@@ -17,7 +17,7 @@
         }
 
         [data-theme="light"] .table-player-name {
-            color: #111827 !important; /* gray-900 */
+            color: #3f4041ff !important; /* gray-900 */
         }
 
         [data-theme="light"] .table-player-position {
@@ -35,6 +35,14 @@
 
         [data-theme="dark"] .table-number-text {
             color: #d1d5db !important; /* gray-300 */
+        }
+
+        [data-theme="dark"] .table-number-text-pints {
+            color: #2be013ff !important; /* gray-300 */
+        }
+
+         [data-theme="dark"] .table-number-text-pints {
+            color: #226818ff !important; /* gray-300 */
         }
 
         [data-theme="dark"] .table-player-name {
@@ -205,17 +213,17 @@
                                     <span class="table-player-name font-medium text-xs truncate">{{ $standing->player->name }}@if($standing->player->position) <span class="table-player-position text-xs">({{ $standing->player->position }})</span>@endif</span>
                                 </div>
                                 <div class="col-span-1 text-center">
-                                    <span class="table-number-text font-bold">{{ $standing->won ?? 0 }}</span>
+                                    <span class="table-number-text ">{{ $standing->won ?? 0 }}</span>
                                 </div>
                                
                                 <div class="col-span-1 text-center">
-                                    <span class="table-number-text table-loss-text font-bold">{{ $standing->lost ?? 0 }}</span>
+                                    <span class="table-number-text ">{{ $standing->lost ?? 0 }}</span>
                                 </div>
                                 <div class="col-span-1 text-center">
-                                    <span class="table-number-text font-bold">{{ ($standing->sets_won ?? 0) - ($standing->sets_lost ?? 0) }}</span>
+                                    <span class="table-number-text ">{{ ($standing->sets_won ?? 0) - ($standing->sets_lost ?? 0) }}</span>
                                 </div>
                                 <div class="col-span-2 text-center">
-                                    <span class="table-number-text table-points-text font-bold">{{ $standing->points ?? 0 }}</span>
+                                    <span class="table-number-text-points table-points-text font-bold">{{ $standing->points ?? 0 }}</span>
                                 </div>
                             </div>
                             @endforeach
@@ -422,7 +430,7 @@
                                                                 $homeScore = $displaySets[$i-1]['home_score'] ?? $displaySets[$i-1]['home'] ?? 0;
                                                                 $awayScore = $displaySets[$i-1]['away_score'] ?? $displaySets[$i-1]['away'] ?? 0;
                                                             @endphp
-                                                            <span class="text-xs px-1 py-0.5 rounded {{ $homeScore > $awayScore ? 'bg-green-900/60 text-green-300 font-bold' : 'text-[var(--text-tertiary)]' }}">
+                                                            <span class="text-xs px-1 py-0.5 rounded {{ $homeScore > $awayScore ? 'bg-green-900 text-white font-bold' : 'text-[var(--text-tertiary)]' }}">
                                                                 {{ $homeScore }}
                                                             </span>
                                                         @else
@@ -455,7 +463,7 @@
                                                                 $homeScore = $displaySets[$i-1]['home_score'] ?? $displaySets[$i-1]['home'] ?? 0;
                                                                 $awayScore = $displaySets[$i-1]['away_score'] ?? $displaySets[$i-1]['away'] ?? 0;
                                                             @endphp
-                                                            <span class="text-xs px-1 py-0.5 rounded {{ $awayScore > $homeScore ? 'bg-green-900/60 text-green-300 font-bold' : 'text-[var(--text-tertiary)]' }}">
+                                                            <span class="text-xs px-1 py-0.5 rounded {{ $awayScore > $homeScore ? 'bg-green-900 text-white font-bold' : 'text-[var(--text-tertiary)]' }}">
                                                                 {{ $awayScore }}
                                                             </span>
                                                         @else
@@ -471,27 +479,27 @@
                                         <div class="flex flex-col items-center justify-center space-y-2 ml-6">
                                             @if($match->status === 'in_progress')
                                                 <div class="flex flex-col items-center space-y-2">
-                                                    <div class="w-10 h-10 bg-green-900/80 rounded-lg flex items-center justify-center">
-                                                        <div class="text-sm font-bold text-green-300">
+                                                    <div class="w-10 h-10 bg-green-900 rounded-lg flex items-center justify-center">
+                                                        <div class="text-sm font-bold text-white">
                                                             {{ $match->home_score ?? 0 }}
                                                         </div>
                                                     </div>
-                                                    <div class="w-10 h-10 bg-green-900/80 rounded-lg flex items-center justify-center">
-                                                        <div class="text-sm font-bold text-green-300">
+                                                    <div class="w-10 h-10 bg-green-900 rounded-lg flex items-center justify-center">
+                                                        <div class="text-sm font-bold text-white">
                                                             {{ $match->away_score ?? 0 }}
                                                         </div>
                                                     </div>
                                                 </div>
                                             @elseif($match->status === 'completed')
                                                 <div class="flex flex-col items-center space-y-2">
-                                                    <div class="w-10 h-10 bg-green-900/80 rounded-lg flex items-center justify-center">
-                                                        <div class="text-sm font-bold text-green-300">
+                                                    <div class="w-10 h-10 bg-green-900 rounded-lg flex items-center justify-center">
+                                                        <div class="text-sm font-bold text-white">
                                                             {{ $homeSetsWon }}
                                                         </div>
                                                     </div>
-                                                    <div class="w-10 h-10 bg-green-900/80 rounded-lg flex items-center justify-center">
-                                                        <div class="text-sm font-bold text-green-300">
-                                                            {{ $awaySetsWon }}
+                                                    <div class="w-10 h-10 bg-green-900 rounded-lg flex items-center justify-center">
+                                                        <div class="text-sm font-bold text-white">
+                                                            {{ $match->away_score ?? 0 }}
                                                         </div>
                                                     </div>
                                                 </div>
