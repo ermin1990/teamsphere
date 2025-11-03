@@ -8,11 +8,23 @@ echo "Starting Laravel application setup..."
 # Wait for database to be ready (if using PostgreSQL)
 if [ "$DB_CONNECTION" = "pgsql" ]; then
     echo "Waiting for PostgreSQL to be ready..."
-    until pg_isready -h "$DB_HOST" -p "${DB_PORT:-5432}" -U "$DB_USERNAME"; do
-        echo "PostgreSQL is unavailable - sleeping"
-        sleep 2
+    max_attempts=30
+    attempt=0
+    
+    while [ $attempt -lt $max_attempts ]; do
+        if pg_isready -h "$DB_HOST" -p "${DB_PORT:-5432}" -U "$DB_USERNAME" 2>/dev/null; then
+            echo "PostgreSQL is ready!"
+            break
+        fi
+        
+        attempt=$((attempt + 1))
+        if [ $attempt -lt $max_attempts ]; then
+            echo "PostgreSQL is unavailable - attempt $attempt/$max_attempts, sleeping..."
+            sleep 2
+        else
+            echo "WARNING: PostgreSQL not ready after $max_attempts attempts, continuing anyway..."
+        fi
     done
-    echo "PostgreSQL is ready!"
 fi
 
 # Ensure storage directories exist
