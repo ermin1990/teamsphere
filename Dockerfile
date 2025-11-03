@@ -48,9 +48,7 @@ RUN mkdir -p storage/framework/sessions storage/framework/views storage/framewor
 RUN php artisan key:generate --no-interaction || true
 
 # Cache Laravel configuration
-RUN php artisan config:cache || true \
-    && php artisan route:cache || true \
-    && php artisan view:cache || true
+RUN php artisan config:cache || true
 
 # Set permissions
 RUN chown -R www-data:www-data /var/www \
@@ -60,6 +58,9 @@ RUN chown -R www-data:www-data /var/www \
 # Copy nginx configuration
 COPY docker/nginx.conf /etc/nginx/nginx.conf
 COPY docker/default.conf /etc/nginx/conf.d/default.conf
+
+# Copy PHP-FPM configuration
+COPY docker/php-fpm.conf /usr/local/etc/php-fpm.d/zz-docker.conf
 
 # Copy supervisor configuration
 COPY docker/supervisord.conf /etc/supervisord.conf

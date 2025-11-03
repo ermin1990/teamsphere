@@ -33,12 +33,19 @@ fi
 # Clear and cache config
 echo "Optimizing application..."
 php artisan config:clear
-php artisan config:cache
 php artisan route:clear
-php artisan route:cache || true
 php artisan view:clear
 
+# Don't cache in entrypoint - let app run dynamically for debugging
+# php artisan config:cache
+# php artisan route:cache
+
 echo "Application setup complete!"
+
+# Show Laravel version and environment for debugging
+php artisan --version
+echo "APP_ENV: ${APP_ENV:-not set}"
+echo "DB_CONNECTION: ${DB_CONNECTION:-not set}"
 
 # Start supervisor
 exec /usr/bin/supervisord -c /etc/supervisord.conf
