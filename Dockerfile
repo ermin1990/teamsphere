@@ -32,17 +32,11 @@ WORKDIR /var/www
 # Copy composer files
 COPY composer.json composer.lock ./
 
-# Install PHP dependencies
-RUN composer install --no-dev --optimize-autoloader --no-interaction
-
-# Copy package files
-COPY package.json package-lock.json ./
-
-# Install Node.js dependencies and build assets
-RUN npm ci && npm run build
-
 # Copy application code
 COPY . .
+
+# Install PHP dependencies
+RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
 
 # Generate application key if not set
 RUN php artisan key:generate --no-interaction || true
