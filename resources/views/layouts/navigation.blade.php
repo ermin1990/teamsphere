@@ -17,9 +17,17 @@
 
                 <!-- Navigation Links -->
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                    <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')" class="text-white hover:text-blue-400 transition-colors">
+
+                <x-nav-link :href="route('home')" :active="request()->routeIs('home')" class="text-white hover:text-blue-400 transition-colors">
+                        {{ __('Početna') }}
+                    </x-nav-link>
+                <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')" class="text-white hover:text-blue-400 transition-colors">
                         {{ __('Dashboard') }}
                     </x-nav-link>
+                    <x-nav-link :href="route('public.leagues.index')" :active="request()->routeIs('public.leagues.index')" class="text-white hover:text-blue-400 transition-colors">
+                        {{ __('Javna takmičenja') }}
+                    </x-nav-link>
+                     
                 </div>
             </div>
 
@@ -85,8 +93,18 @@
     <!-- Responsive Navigation Menu -->
     <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden bg-gray-800/95 backdrop-blur-xl border-t border-gray-700/50 relative z-50">
         <div class="pt-2 pb-3 space-y-1">
+            <x-responsive-nav-link :href="route('home')" :active="request()->routeIs('home')" class="text-white hover:text-blue-400 transition-colors">
+                {{ __('Početna') }}
+            </x-responsive-nav-link>
+        </div>
+        <div class="pt-2 pb-3 space-y-1"> 
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')" class="text-white hover:bg-gray-700/50" @click="open = false">
                 {{ __('Dashboard') }}
+            </x-responsive-nav-link>
+        </div>
+        <div class="pt-2 pb-3 space-y-1"> 
+            <x-responsive-nav-link :href="route('public.leagues.index')" :active="request()->routeIs('public.leagues.index')" class="text-white hover:bg-gray-700/50" @click="open = false">
+                {{ __('Javna takmičenja') }}
             </x-responsive-nav-link>
         </div>
 
