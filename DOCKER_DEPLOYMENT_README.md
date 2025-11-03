@@ -85,6 +85,20 @@ docker-compose -f docker-compose.yml up --build
 # Aplikacija će biti dostupna na http://localhost:8000
 ```
 
+### Testiranje Docker Build-a
+
+Da testirate da li Dockerfile radi ispravno:
+
+```bash
+# Build image
+docker build -t teamsphere:test .
+
+# Run container
+docker run -p 8000:80 --env-file .env teamsphere:test
+
+# Aplikacija će biti dostupna na http://localhost:8000
+```
+
 ## 📁 Struktura fajlova
 
 ```
@@ -117,3 +131,17 @@ docker-compose -f docker-compose.yml up --build
 ## 📞 Support
 
 Za pomoć kontaktirajte development tim.
+
+## 🐛 Poznati problemi i rješenja
+
+### Composer install greška
+Ako se javlja greška prilikom `composer install` sa porukom "Could not open input file: artisan", to znači da se Laravel skripti pokušavaju pokrenuti prije nego što je aplikacioni kod kopiran. Dockerfile koristi `--no-scripts` flag da spriječi ovo.
+
+### PHP ekstenzije u Alpine Linux-u
+Dockerfile koristi Alpine Linux pakete:
+- `oniguruma-dev` (ne `libonig-dev`)
+- `libzip-dev` za zip ekstenziju
+- `freetype-dev` i `libjpeg-turbo-dev` za GD ekstenziju
+
+### Environment varijable
+Railway automatski dodaje neke varijable (DATABASE_URL, REDIS_URL). Provjerite Railway dashboard za tačne nazive.
