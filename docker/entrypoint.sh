@@ -46,6 +46,15 @@ echo "Application setup complete!"
 php artisan --version
 echo "APP_ENV: ${APP_ENV:-not set}"
 echo "DB_CONNECTION: ${DB_CONNECTION:-not set}"
+echo "APP_DEBUG: ${APP_DEBUG:-not set}"
+
+# Test database connection
+if [ -n "$DATABASE_URL" ] || [ -n "$DB_HOST" ]; then
+    echo "Testing database connection..."
+    php artisan db:show || echo "Database connection test failed - continuing anyway"
+fi
+
+echo "Application setup complete!"
 
 # Start supervisor
 exec /usr/bin/supervisord -c /etc/supervisord.conf

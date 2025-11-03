@@ -59,6 +59,9 @@ RUN chown -R www-data:www-data /var/www \
 COPY docker/nginx.conf /etc/nginx/nginx.conf
 COPY docker/default.conf /etc/nginx/conf.d/default.conf
 
+# Copy PHP configuration
+COPY docker/php.ini /usr/local/etc/php/conf.d/custom.ini
+
 # Copy PHP-FPM configuration
 COPY docker/php-fpm.conf /usr/local/etc/php-fpm.d/zz-docker.conf
 
