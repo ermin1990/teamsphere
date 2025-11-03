@@ -6,17 +6,22 @@ RUN apk add --no-cache \
     git \
     curl \
     libpng-dev \
-    libonig-dev \
+    oniguruma-dev \
     libxml2-dev \
+    libzip-dev \
+    freetype-dev \
+    libjpeg-turbo-dev \
     zip \
     unzip \
     nodejs \
     npm \
     nginx \
-    supervisor
+    supervisor \
+    linux-headers
 
 # Install PHP extensions
-RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip
 
 # Get latest Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
