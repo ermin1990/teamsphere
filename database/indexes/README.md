@@ -23,6 +23,7 @@ mysql -u username -p database_name < database/indexes/01_add_indexes.sql
 
 ### `02_rebuild_indexes.sql` - **Obnavljanje indeksa**
 - ⚠️ Briše postojeće i kreira nove indekse
+- Koristi **sigurne conditional DROP** operacije (kompatibilno sa starijim MySQL verzijama)
 - Koristi se kada sumneš da su indeksi oštećeni
 - Preporučeno pokretanje van radnog vremena (za velike baze)
 
