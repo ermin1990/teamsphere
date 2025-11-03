@@ -7,6 +7,9 @@ Ovaj projekat je konfigurisan za deployment na Railway platformi koristeći Dock
 #### Railway "docker executable not found" greška
 Uklonite `startCommand` iz `railway.json` - Railway automatski koristi `CMD` iz Dockerfile-a.
 
+#### Nginx "unknown app_key variable" greška
+Uklonite `fastcgi_param APP_KEY $APP_KEY;` iz nginx konfiguracije. Nginx ne može interpretirati environment varijable na ovaj način. Laravel čita environment varijable direktno.
+
 #### Composer install greška
 Ako se javlja greška prilikom `composer install` sa porukom "Could not open input file: artisan", to znači da se Laravel skripti pokušavaju pokrenuti prije nego što je aplikacioni kod kopiran. Dockerfile koristi `--no-scripts` flag da spriječi ovo.
 
