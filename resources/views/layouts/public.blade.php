@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
+    <!-- PWA Configuration -->
+    <link rel="manifest" href="/manifest.webmanifest">
+    <meta name="theme-color" content="#1e40af">
+    <link rel="apple-touch-icon" href="/icons/icon-192.svg">
+
     <title>@yield('title', 'TeamSphere')</title>
 
     <!-- Fonts -->
@@ -222,6 +227,25 @@
                 themeIcon.textContent = theme === 'dark' ? '🌙' : '☀️';
             }
         });
+    </script>
+
+    <!-- PWA Install Prompt -->
+    <x-pwa-install-prompt />
+
+    <!-- Service Worker Registration -->
+    <script>
+        // Register Service Worker for PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(function(registration) {
+                        console.log('Service Worker registered successfully:', registration.scope);
+                    })
+                    .catch(function(error) {
+                        console.log('Service Worker registration failed:', error);
+                    });
+            });
+        }
     </script>
 
     @stack('scripts')

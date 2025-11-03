@@ -4,6 +4,11 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
+        
+        <!-- PWA Configuration -->
+        <link rel="manifest" href="/manifest.webmanifest">
+        <meta name="theme-color" content="#1e40af">
+        <link rel="apple-touch-icon" href="/icons/icon-192.svg">
 
         <title>{{ config('app.name', 'Laravel') }}</title>
 
@@ -52,21 +57,12 @@
             </main>
         </div>
 
-        <!-- Service Worker Registration - Disabled for development -->
+        <!-- PWA Install Prompt -->
+        <x-pwa-install-prompt />
+
+        <!-- Service Worker Registration -->
         <script>
-            // Unregister any existing service workers to prevent caching issues
-            if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.getRegistrations().then(function(registrations) {
-                    for(let registration of registrations) {
-                        registration.unregister().then(function(success) {
-                            console.log('Service Worker unregistered:', success);
-                        });
-                    }
-                });
-            }
-            
-            // Only register in production
-            @if(app()->environment('production'))
+            // Register Service Worker for PWA
             if ('serviceWorker' in navigator) {
                 window.addEventListener('load', function() {
                     navigator.serviceWorker.register('/sw.js')
@@ -78,7 +74,6 @@
                         });
                 });
             }
-            @endif
         </script>
 
         @livewireScripts
