@@ -236,15 +236,18 @@
     <script>
         // Register Service Worker for PWA
         if ('serviceWorker' in navigator) {
+            console.log('PWA: Service Worker supported');
             window.addEventListener('load', function() {
                 navigator.serviceWorker.register('/sw.js')
                     .then(function(registration) {
-                        console.log('Service Worker registered successfully:', registration.scope);
+                        console.log('PWA: Service Worker registered successfully:', registration.scope);
                     })
                     .catch(function(error) {
-                        console.log('Service Worker registration failed:', error);
+                        console.log('PWA: Service Worker registration failed:', error);
                     });
             });
+        } else {
+            console.log('PWA: Service Worker not supported');
         }
     </script>
 

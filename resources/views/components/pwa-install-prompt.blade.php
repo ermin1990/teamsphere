@@ -97,7 +97,14 @@
 let deferredPrompt;
 let promptShown = false;
 
-// Capture the beforeinstallprompt event
+console.log('PWA: Install prompt component loaded');
+
+// Check if PWA is supported
+if ('serviceWorker' in navigator && 'BeforeInstallPromptEvent' in window) {
+    console.log('PWA: Browser supports PWA');
+} else {
+    console.log('PWA: Browser does not fully support PWA');
+}
 window.addEventListener('beforeinstallprompt', (e) => {
     console.log('PWA: beforeinstallprompt event fired');
     e.preventDefault();
@@ -109,7 +116,10 @@ window.addEventListener('beforeinstallprompt', (e) => {
     
     // Show prompt if not dismissed or if dismissed more than 7 days ago
     if (!dismissed || (dismissedTime && Date.now() - parseInt(dismissedTime) > 7 * 24 * 60 * 60 * 1000)) {
+        console.log('PWA: Showing install prompt');
         showPWAPrompt();
+    } else {
+        console.log('PWA: Prompt dismissed recently, not showing');
     }
 });
 
