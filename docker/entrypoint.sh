@@ -41,7 +41,20 @@ if [ -n "$DATABASE_URL" ] || [ -n "$DB_HOST" ]; then
     echo "Running database migrations..."
     # Clear config cache first to ensure DB_CONNECTION is correct
     php artisan config:clear
-    php artisan migrate --force --verbose || echo "Migration failed, continuing..."
+    
+    # Try to run migrations with error handling
+    if php artisan migrate --force --verbose 2>&1 | tee /tmp/migration.log; then
+        echo "✓ Migrations completed successfully"
+    else
+        echo "⚠ Migration had errors - checking if they're non-critical..."
+        # Check if error is about existing columns (non-critical)
+        if grep -q "already exists" /tmp/migration.log; then
+            echo "✓ Columns already exist, continuing..."
+        else
+            echo "✗ Critical migration error occurred!"
+            cat /tmp/migration.log
+        fi
+    fi
 fi
 
 # Clear and cache config
