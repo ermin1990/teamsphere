@@ -256,4 +256,8 @@ Route::prefix('public')->name('public.')->group(function () {
     Route::get('/embed/matches/{match}', [App\Http\Controllers\PublicMatchController::class, 'embedMatch'])->name('matches.embed');
 });
 
+// API Documentation
+Route::get('/api-docs', [App\Http\Controllers\ApiDocumentationController::class, 'index'])->name('api.documentation');
+Route::get('/api-docs/test', [App\Http\Controllers\ApiDocumentationController::class, 'test'])->name('api.test');
+
 require __DIR__.'/auth.php';

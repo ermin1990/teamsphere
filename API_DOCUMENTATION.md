@@ -77,6 +77,9 @@ Get all public organizations.
 #### GET /api/v1/organizations/{organization}
 Get a specific public organization.
 
+#### GET /api/v1/organizations/{organization}/competitions
+Get competitions for an organization.
+
 ### Players
 
 #### GET /api/v1/players
@@ -128,6 +131,38 @@ Update organization.
 
 #### DELETE /api/v1/organizations/{organization}
 Delete organization.
+
+### Competitions
+
+#### GET /api/v1/organizations/{organization}/competitions
+Get competitions for an organization.
+
+#### POST /api/v1/organizations/{organization}/competitions
+Create competition in organization.
+
+#### GET /api/v1/competitions/{competition}
+Get a specific competition.
+
+#### PUT /api/v1/competitions/{competition}
+Update competition.
+
+#### DELETE /api/v1/competitions/{competition}
+Delete competition.
+
+#### POST /api/v1/competitions/{competition}/players
+Add player to competition.
+
+#### DELETE /api/v1/competitions/{competition}/players/{player}
+Remove player from competition.
+
+#### POST /api/v1/competitions/{competition}/start
+Start competition.
+
+#### POST /api/v1/competitions/{competition}/complete
+Complete competition.
+
+#### POST /api/v1/competitions/{competition}/reset
+Reset competition.
 
 ### Leagues
 

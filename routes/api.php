@@ -40,6 +40,9 @@ Route::prefix('v1')->group(function () {
     // Sports
     Route::get('/sports', [App\Http\Controllers\Api\V1\SportController::class, 'index']);
     Route::get('/sports/{sport}', [App\Http\Controllers\Api\V1\SportController::class, 'show']);
+
+    // Public competitions (only for public organizations)
+    Route::get('/organizations/{organizationId}/competitions', [App\Http\Controllers\Api\V1\CompetitionController::class, 'publicIndex']);
 });
 
 // Protected API routes (authentication required)
@@ -73,6 +76,18 @@ Route::middleware(['auth:sanctum'])->prefix('v1')->group(function () {
     Route::post('/leagues/{league}/players', [App\Http\Controllers\Api\V1\PlayerController::class, 'store']);
     Route::put('/players/{player}', [App\Http\Controllers\Api\V1\PlayerController::class, 'update']);
     Route::delete('/players/{player}', [App\Http\Controllers\Api\V1\PlayerController::class, 'destroy']);
+
+    // Competitions
+    Route::get('/organizations/{organization}/competitions', [App\Http\Controllers\Api\V1\CompetitionController::class, 'index']);
+    Route::post('/organizations/{organization}/competitions', [App\Http\Controllers\Api\V1\CompetitionController::class, 'store']);
+    Route::get('/competitions/{competition}', [App\Http\Controllers\Api\V1\CompetitionController::class, 'show']);
+    Route::put('/competitions/{competition}', [App\Http\Controllers\Api\V1\CompetitionController::class, 'update']);
+    Route::delete('/competitions/{competition}', [App\Http\Controllers\Api\V1\CompetitionController::class, 'destroy']);
+    Route::post('/competitions/{competition}/players', [App\Http\Controllers\Api\V1\CompetitionController::class, 'addPlayer']);
+    Route::delete('/competitions/{competition}/players/{player}', [App\Http\Controllers\Api\V1\CompetitionController::class, 'removePlayer']);
+    Route::post('/competitions/{competition}/start', [App\Http\Controllers\Api\V1\CompetitionController::class, 'start']);
+    Route::post('/competitions/{competition}/complete', [App\Http\Controllers\Api\V1\CompetitionController::class, 'complete']);
+    Route::post('/competitions/{competition}/reset', [App\Http\Controllers\Api\V1\CompetitionController::class, 'reset']);
 
     // Match results/scoring
     Route::post('/matches/{match}/score', [App\Http\Controllers\Api\V1\MatchController::class, 'updateScore']);
