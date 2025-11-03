@@ -1,0 +1,23 @@
+{
+  "build": {
+    "builder": "dockerfile"
+  },
+  "deploy": {
+    "startCommand": "docker run -p $PORT:80 --env-file .env.production teamsphere:latest"
+  },
+  "environments": {
+    "production": {
+      "variables": {
+        "APP_ENV": "production",
+        "APP_DEBUG": "false",
+        "LOG_CHANNEL": "stack",
+        "LOG_LEVEL": "error",
+        "DB_CONNECTION": "mysql",
+        "CACHE_DRIVER": "redis",
+        "QUEUE_CONNECTION": "database",
+        "SESSION_DRIVER": "redis",
+        "MAIL_MAILER": "smtp"
+      }
+    }
+  }
+}
