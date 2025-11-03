@@ -2,7 +2,22 @@
 
 Ovaj projekat je konfigurisan za deployment na Railway platformi koristeći Docker.
 
-## 🚀 Deployment na Railway
+## 🚀 De### Poznati problemi i rješenja
+
+#### Railway "docker executable not found" greška
+Uklonite `startCommand` iz `railway.json` - Railway automatski koristi `CMD` iz Dockerfile-a.
+
+#### Composer install greška
+Ako se javlja greška prilikom `composer install` sa porukom "Could not open input file: artisan", to znači da se Laravel skripti pokušavaju pokrenuti prije nego što je aplikacioni kod kopiran. Dockerfile koristi `--no-scripts` flag da spriječi ovo.
+
+#### PHP ekstenzije u Alpine Linux-u
+Dockerfile koristi Alpine Linux pakete:
+- `oniguruma-dev` (ne `libonig-dev`)
+- `libzip-dev` za zip ekstenziju
+- `freetype-dev` i `libjpeg-turbo-dev` za GD ekstenziju
+
+#### Environment varijable
+Railway automatski dodaje neke varijable (DATABASE_URL, REDIS_URL). Provjerite Railway dashboard za tačne nazive.ailway
 
 ### 1. Priprema
 
