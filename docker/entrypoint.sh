@@ -43,18 +43,37 @@ php artisan view:clear
 echo "Application setup complete!"
 
 # Show Laravel version and environment for debugging
+echo "==== Laravel Configuration ===="
 php artisan --version
 echo "APP_ENV: ${APP_ENV:-not set}"
-echo "DB_CONNECTION: ${DB_CONNECTION:-not set}"
+echo "APP_KEY: ${APP_KEY:0:20}..." # Show only first 20 chars for security
 echo "APP_DEBUG: ${APP_DEBUG:-not set}"
+echo "DB_CONNECTION: ${DB_CONNECTION:-not set}"
+echo "DB_HOST: ${DB_HOST:-not set}"
+
+# Check if .env file exists
+if [ -f "/var/www/.env" ]; then
+    echo ".env file: EXISTS"
+else
+    echo ".env file: NOT FOUND"
+fi
+
+# List storage permissions
+echo "==== Storage Permissions ===="
+ls -la /var/www/storage/ || echo "Storage directory issue"
+ls -la /var/www/bootstrap/cache/ || echo "Bootstrap cache issue"
 
 # Test database connection
 if [ -n "$DATABASE_URL" ] || [ -n "$DB_HOST" ]; then
-    echo "Testing database connection..."
+    echo "==== Testing Database Connection ===="
     php artisan db:show || echo "Database connection test failed - continuing anyway"
 fi
 
-echo "Application setup complete!"
+# Try to show any Laravel errors
+echo "==== Testing Laravel Bootstrap ===="
+php artisan env || echo "Laravel env command failed"
+
+echo "==== Application setup complete ===="
 
 # Start supervisor
 exec /usr/bin/supervisord -c /etc/supervisord.conf
