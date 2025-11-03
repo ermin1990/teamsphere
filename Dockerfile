@@ -55,8 +55,8 @@ COPY docker/default.conf /etc/nginx/conf.d/default.conf
 # Copy supervisor configuration
 COPY docker/supervisord.conf /etc/supervisord.conf
 
-# Expose port 80
-EXPOSE 80
+# Expose port (Railway sets PORT environment variable)
+EXPOSE ${PORT:-80}
 
 # Start supervisor
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]
