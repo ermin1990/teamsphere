@@ -48,8 +48,8 @@ RUN mkdir -p storage/framework/sessions storage/framework/views storage/framewor
 # Generate application key if not set
 RUN php artisan key:generate --no-interaction || true
 
-# Cache Laravel configuration
-RUN php artisan config:cache || true
+# Don't cache config during build - let runtime handle it with proper env vars
+# RUN php artisan config:cache || true
 
 # Set permissions
 RUN chown -R www-data:www-data /var/www \

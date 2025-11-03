@@ -12,17 +12,17 @@ APP_KEY=base64:L7FgKPDXKIhr2rvF5QfMsQYoJAD6VzGD7g6sYh2vDeE=
 APP_DEBUG=false
 APP_URL=https://teamsphere-production.up.railway.app
 
-# Database - PostgreSQL (from Railway)
-# Railway provides DATABASE_URL automatically, but we need to set individual values too:
+# Database - PostgreSQL (Railway provides DATABASE_URL automatically)
+# Use this if Railway already provides DATABASE_URL:
+DATABASE_URL=postgresql://postgres:djglFGhffLhWQHeVeWQtSKSSdOcTyqbV@maglev.proxy.rlwy.net:31352/railway
+
+# OR set these individual variables (Railway will use them):
 DB_CONNECTION=pgsql
 DB_HOST=maglev.proxy.rlwy.net
 DB_PORT=31352
 DB_DATABASE=railway
 DB_USERNAME=postgres
 DB_PASSWORD=djglFGhffLhWQHeVeWQtSKSSdOcTyqbV
-
-# Alternative: Use DATABASE_URL directly (Railway format)
-DATABASE_URL=postgresql://postgres:djglFGhffLhWQHeVeWQtSKSSdOcTyqbV@maglev.proxy.rlwy.net:31352/railway
 
 # Cache & Sessions (using file for now, can switch to Redis later)
 CACHE_DRIVER=file

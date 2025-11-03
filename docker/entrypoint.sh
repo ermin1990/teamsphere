@@ -39,7 +39,9 @@ chmod -R 775 /var/www/storage /var/www/bootstrap/cache
 # Run migrations (only if DATABASE_URL is set)
 if [ -n "$DATABASE_URL" ] || [ -n "$DB_HOST" ]; then
     echo "Running database migrations..."
-    php artisan migrate --force || echo "Migration failed, continuing..."
+    # Clear config cache first to ensure DB_CONNECTION is correct
+    php artisan config:clear
+    php artisan migrate --force --verbose || echo "Migration failed, continuing..."
 fi
 
 # Clear and cache config
