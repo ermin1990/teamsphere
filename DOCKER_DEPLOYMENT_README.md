@@ -51,8 +51,13 @@ APP_KEY=base64:your-app-key-here
 APP_DEBUG=false
 APP_URL=https://your-railway-url.railway.app
 
-# Database (Railway će automatski dodati ove)
-DATABASE_URL=mysql://user:password@host:port/database
+# Database (Railway PostgreSQL)
+DB_CONNECTION=pgsql
+DB_HOST=postgres.railway.internal
+DB_PORT=5432
+DB_DATABASE=railway
+DB_USERNAME=postgres
+DB_PASSWORD=your-postgres-password
 
 # Cache (Railway Redis)
 REDIS_URL=redis://user:password@host:port
@@ -77,16 +82,12 @@ LOG_LEVEL=error
 
 ### 4. Database Setup
 
-1. Railway će automatski kreirati MySQL bazu
-2. Pokrenite migracije nakon deployment-a:
-   ```bash
-   php artisan migrate
-   ```
+Railway automatski kreira PostgreSQL bazu. Nakon deployment-a pokrenite:
 
-3. Seed-ujte bazu ako je potrebno:
-   ```bash
-   php artisan db:seed
-   ```
+```bash
+php artisan migrate
+php artisan db:seed  # ako želite test podatke
+```
 
 ### 5. Storage Permissions
 
@@ -162,4 +163,9 @@ Dockerfile koristi Alpine Linux pakete:
 - `freetype-dev` i `libjpeg-turbo-dev` za GD ekstenziju
 
 ### Environment varijable
-Railway automatski dodaje neke varijable (DATABASE_URL, REDIS_URL). Provjerite Railway dashboard za tačne nazive.
+Railway automatski dodaje neke varijable:
+- `DATABASE_URL` - PostgreSQL connection string (automatski parsiran)
+- `REDIS_URL` - Redis connection string  
+- `PORT` - Port na kojem aplikacija treba da sluša
+
+Provjerite Railway dashboard za tačne nazive i vrijednosti.

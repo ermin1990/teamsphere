@@ -40,8 +40,17 @@ COPY . .
 # Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
 
+# Create required directories and set permissions
+RUN mkdir -p storage/framework/sessions storage/framework/views storage/framework/cache \
+    && mkdir -p bootstrap/cache
+
 # Generate application key if not set
 RUN php artisan key:generate --no-interaction || true
+
+# Cache Laravel configuration
+RUN php artisan config:cache || true \
+    && php artisan route:cache || true \
+    && php artisan view:cache || true
 
 # Set permissions
 RUN chown -R www-data:www-data /var/www \
@@ -55,8 +64,12 @@ COPY docker/default.conf /etc/nginx/conf.d/default.conf
 # Copy supervisor configuration
 COPY docker/supervisord.conf /etc/supervisord.conf
 
+# Copy entrypoint script
+COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
 # Expose port (Railway sets PORT environment variable)
-EXPOSE ${PORT:-80}
+EXPOSE 80
 
 # Start supervisor
-CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]
+CMD ["/usr/local/bin/entrypoint.sh"]
