@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Sport extends Model
 {
@@ -24,11 +25,11 @@ class Sport extends Model
     ];
 
     /**
-     * Get the route key for the model.
+     * Get the leagues for the sport.
      */
-    public function getRouteKeyName()
+    public function leagues(): HasMany
     {
-        return 'slug';
+        return $this->hasMany(League::class);
     }
 
     /**

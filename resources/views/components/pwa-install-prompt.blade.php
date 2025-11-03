@@ -1,5 +1,5 @@
 <!-- PWA Install Prompt -->
-<div id="pwa-install-prompt" class="fixed bottom-0 left-0 right-0 z-50 transform translate-y-full transition-transform duration-500 ease-out md:bottom-4 md:left-auto md:right-4 md:max-w-sm">
+<div id="pwa-install-prompt" class="fixed bottom-0 left-0 right-0 z-50 transform translate-y-full transition-transform duration-500 ease-out md:bottom-4 md:left-auto md:right-4 md:max-w-sm" style="display: none;">
     <div class="bg-gradient-to-br from-blue-600 via-blue-700 to-purple-700 text-white shadow-2xl rounded-t-2xl md:rounded-2xl border-2 border-blue-400/30 overflow-hidden">
         <!-- Header with gradient accent -->
         <div class="bg-white/10 backdrop-blur-sm px-6 py-4 flex items-center justify-between border-b border-white/20">
@@ -125,18 +125,18 @@ window.addEventListener('beforeinstallprompt', (e) => {
 
 function showPWAPrompt() {
     if (promptShown) return;
-    
+
     const prompt = document.getElementById('pwa-install-prompt');
     if (prompt) {
+        // Show the prompt first
+        prompt.style.display = 'block';
         // Wait a bit before showing to not overwhelm the user
         setTimeout(() => {
             prompt.classList.add('show');
             promptShown = true;
         }, 2000); // Show after 2 seconds
     }
-}
-
-function installPWA() {
+}function installPWA() {
     const prompt = document.getElementById('pwa-install-prompt');
     
     if (!deferredPrompt) {
