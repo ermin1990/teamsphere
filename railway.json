@@ -2,9 +2,6 @@
   "build": {
     "builder": "dockerfile"
   },
-  "deploy": {
-    "startCommand": "docker run -p $PORT:80 --env-file .env.production teamsphere:latest"
-  },
   "environments": {
     "production": {
       "variables": {
