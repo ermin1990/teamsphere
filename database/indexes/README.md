@@ -99,7 +99,7 @@ mysql -u username -p database_name < database/indexes/03_rollback_indexes.sql
 - `slug` - public lookup
 
 ### **Users**
-- `email` - login lookup
+- `email` (255 chars) - login lookup (TEXT kolona sa ograničenjem)
 - `created_at` - novi korisnici
 
 ---

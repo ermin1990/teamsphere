@@ -264,7 +264,7 @@ SET @sql = IF((SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS WHERE TABLE_SC
 PREPARE stmt FROM @sql;
 EXECUTE stmt;
 DEALLOCATE PREPARE stmt;
-ALTER TABLE `users` ADD INDEX `idx_users_email` (`email`);
+ALTER TABLE `users` ADD INDEX `idx_users_email` (`email`(255));
 
 SET @sql = IF((SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users' AND INDEX_NAME = 'idx_users_created_at') > 0, 'DROP INDEX `idx_users_created_at` ON `users`', 'SELECT 1');
 PREPARE stmt FROM @sql;

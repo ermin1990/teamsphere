@@ -193,7 +193,7 @@ PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
 -- Email (obično već postoji unique, ali dodajemo za sigurnost)
 SELECT COUNT(*) INTO @cnt FROM information_schema.statistics WHERE table_schema=@db AND table_name='users' AND index_name='idx_users_email';
-SET @sql = IF(@cnt=0,'ALTER TABLE `users` ADD INDEX `idx_users_email` (`email`)','SELECT "idx_users_email već postoji (ili je unique)" AS status');
+SET @sql = IF(@cnt=0,'ALTER TABLE `users` ADD INDEX `idx_users_email` (`email`(255))','SELECT "idx_users_email već postoji (ili je unique)" AS status');
 PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
 -- Created_at za sortiranje novih korisnika
