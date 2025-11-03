@@ -259,11 +259,10 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
                                     </svg>
                                 </div>
-                                <h4 class="text-xl md:text-2xl font-bold text-white mb-2">Sanel Morankić</h4>
+                                <h4 class="text-xl md:text-2xl font-bold text-white mb-2">Sanel Moranjkić</h4>
                                 <p class="text-purple-400 font-semibold text-sm md:text-base mb-3 md:mb-4">Analiza & Takmičarska Logika</p>
                                 <p class="text-gray-400 text-sm mb-4 md:mb-6 leading-relaxed">
-                                    Stručnjak za sportsku analitiku i sistem takmičenja, odgovoran za razvoj
-                                    algoritama rangiranja, turnirske logike i sistema bodovanja.
+                                    Tehnička podrška u razvoju aplikacije
                                 </p>
                             </div>
                         </div>
