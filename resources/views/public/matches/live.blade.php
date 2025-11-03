@@ -86,11 +86,36 @@
             }
         }
         
-        // Update every 3 seconds
-        setInterval(updateMatchData, 3000);
+        // Update every 5 seconds when page is visible
+        let updateInterval;
+
+        function startUpdates() {
+            if (updateInterval) clearInterval(updateInterval);
+            updateInterval = setInterval(updateMatchData, 5000);
+        }
+
+        function stopUpdates() {
+            if (updateInterval) {
+                clearInterval(updateInterval);
+                updateInterval = null;
+            }
+        }
+
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden) {
+                stopUpdates();
+            } else {
+                startUpdates();
+            }
+        });
 
         // Initial update after a short delay
-        setTimeout(updateMatchData, 1000);
+        setTimeout(function() {
+            updateMatchData();
+            if (!document.hidden) {
+                startUpdates();
+            }
+        }, 1000);
     });
     </script>
 @endsection

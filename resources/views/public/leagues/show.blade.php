@@ -551,12 +551,34 @@
         // This function is now handled by updateLiveMatchesSection
     }
 
-    // Update every 3 seconds
-    setInterval(updateCompetitionMatches, 3000);
+    let updateInterval;
+
+    function startUpdates() {
+        if (updateInterval) clearInterval(updateInterval);
+        updateInterval = setInterval(updateCompetitionMatches, 5000);
+    }
+
+    function stopUpdates() {
+        if (updateInterval) {
+            clearInterval(updateInterval);
+            updateInterval = null;
+        }
+    }
+
+    document.addEventListener('visibilitychange', function() {
+        if (document.hidden) {
+            stopUpdates();
+        } else {
+            startUpdates();
+        }
+    });
 
     // Initial update
     document.addEventListener('DOMContentLoaded', function() {
         updateCompetitionMatches();
+        if (!document.hidden) {
+            startUpdates();
+        }
     });
 </script>
 @endpush

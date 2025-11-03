@@ -187,12 +187,35 @@
             });
         }
 
-        // Update every 3 seconds
-        setInterval(updateLiveMatches, 3000);
+        // Update every 5 seconds when page is visible
+        let updateInterval;
+
+        function startUpdates() {
+            if (updateInterval) clearInterval(updateInterval);
+            updateInterval = setInterval(updateLiveMatches, 5000);
+        }
+
+        function stopUpdates() {
+            if (updateInterval) {
+                clearInterval(updateInterval);
+                updateInterval = null;
+            }
+        }
+
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden) {
+                stopUpdates();
+            } else {
+                startUpdates();
+            }
+        });
 
         // Initial update
         document.addEventListener('DOMContentLoaded', function() {
             updateLiveMatches();
+            if (!document.hidden) {
+                startUpdates();
+            }
         });
     </script>
 @endpush

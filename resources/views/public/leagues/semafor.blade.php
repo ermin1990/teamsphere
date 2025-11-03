@@ -452,7 +452,7 @@ function startAutoRefresh() {
         if (!document.hidden) {
             location.reload();
         }
-    }, 30000); // Refresh every 30 seconds
+    }, 5000); // Refresh every 5 seconds
 }
 
 function stopAutoRefresh() {
