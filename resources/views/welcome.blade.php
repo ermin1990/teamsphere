@@ -169,6 +169,58 @@
             </div>
         </section>
 
+        <!-- About Section -->
+        <section class="py-20 px-6 bg-gray-900/50">
+            <div class="max-w-4xl mx-auto text-center">
+                <h2 class="text-3xl font-bold mb-8 text-white">O Aplikaciji</h2>
+
+                <div class="bg-gray-800/50 rounded-2xl p-8 mb-8">
+                    <h3 class="text-xl font-semibold text-white mb-4">Svrha Aplikacije</h3>
+                    <p class="text-gray-300 text-lg leading-relaxed mb-6">
+                        Team Sphere je sveobuhvatna platforma za organizaciju i upravljanje sportskim takmičenjima,
+                        posebno dizajnirana za stoni tenis. Naša aplikacija omogućava jednostavno kreiranje liga,
+                        turnira i praćenje rezultata u realnom vremenu.
+                    </p>
+                    <p class="text-gray-400 text-base">
+                        Aplikacija je <strong class="text-green-400">besplatna za korištenje</strong> ukoliko klijent
+                        ne želi više takmičenja i igrača od osnovnog paketa.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-gray-800/50 rounded-2xl p-6">
+                        <h4 class="text-lg font-semibold text-white mb-4">Razvoj</h4>
+                        <div class="text-left">
+                            <p class="text-gray-300 mb-2">
+                                <strong class="text-blue-400">Ermin Selimović</strong>
+                            </p>
+                            <p class="text-gray-400 text-sm">
+                                Dizajn & Razvoj
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-800/50 rounded-2xl p-6">
+                        <h4 class="text-lg font-semibold text-white mb-4">Saradnja</h4>
+                        <div class="text-left">
+                            <p class="text-gray-300 mb-2">
+                                <strong class="text-purple-400">Sanel Morankić</strong>
+                            </p>
+                            <p class="text-gray-400 text-sm">
+                                Analiza & Takmičarska Logika
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-8 text-center">
+                    <p class="text-gray-400 text-sm">
+                        Zahvaljujemo se svim korisnicima i partnerima na podršci tokom razvoja.
+                    </p>
+                </div>
+            </div>
+        </section>
+
         <!-- Simple Footer -->
         <footer class="border-t border-gray-800 py-8">
             <div class="max-w-7xl mx-auto px-6 text-center">
