@@ -89,11 +89,11 @@ SELECT 'Matches indeksi obnovljeni ✓' AS status;
 -- STANDINGS TABLE
 -- ===========================================
 
-SET @sql = IF((SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'standings' AND INDEX_NAME = 'idx_standings_league') > 0, 'DROP INDEX `idx_standings_league` ON `standings`', 'SELECT 1');
+SET @sql = IF((SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'standings' AND INDEX_NAME = 'idx_standings_competition') > 0, 'DROP INDEX `idx_standings_competition` ON `standings`', 'SELECT 1');
 PREPARE stmt FROM @sql;
 EXECUTE stmt;
 DEALLOCATE PREPARE stmt;
-ALTER TABLE `standings` ADD INDEX `idx_standings_league` (`league_id`);
+ALTER TABLE `standings` ADD INDEX `idx_standings_competition` (`competition_id`);
 
 SET @sql = IF((SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'standings' AND INDEX_NAME = 'idx_standings_team_player') > 0, 'DROP INDEX `idx_standings_team_player` ON `standings`', 'SELECT 1');
 PREPARE stmt FROM @sql;
@@ -149,11 +149,11 @@ SELECT 'Players indeksi obnovljeni ✓' AS status;
 -- TEAMS TABLE
 -- ===========================================
 
-SET @sql = IF((SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'teams' AND INDEX_NAME = 'idx_teams_league') > 0, 'DROP INDEX `idx_teams_league` ON `teams`', 'SELECT 1');
+SET @sql = IF((SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'teams' AND INDEX_NAME = 'idx_teams_competition') > 0, 'DROP INDEX `idx_teams_competition` ON `teams`', 'SELECT 1');
 PREPARE stmt FROM @sql;
 EXECUTE stmt;
 DEALLOCATE PREPARE stmt;
-ALTER TABLE `teams` ADD INDEX `idx_teams_league` (`league_id`);
+ALTER TABLE `teams` ADD INDEX `idx_teams_competition` (`competition_id`);
 
 SET @sql = IF((SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'teams' AND INDEX_NAME = 'idx_teams_captain') > 0, 'DROP INDEX `idx_teams_captain` ON `teams`', 'SELECT 1');
 PREPARE stmt FROM @sql;
@@ -180,61 +180,61 @@ EXECUTE stmt;
 DEALLOCATE PREPARE stmt;
 ALTER TABLE `team_user` ADD INDEX `idx_team_user_user` (`user_id`);
 
--- league_user
-SET @sql = IF((SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'league_user' AND INDEX_NAME = 'idx_league_user_league') > 0, 'DROP INDEX `idx_league_user_league` ON `league_user`', 'SELECT 1');
+-- competition_user
+SET @sql = IF((SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'competition_user' AND INDEX_NAME = 'idx_competition_user_competition') > 0, 'DROP INDEX `idx_competition_user_competition` ON `competition_user`', 'SELECT 1');
 PREPARE stmt FROM @sql;
 EXECUTE stmt;
 DEALLOCATE PREPARE stmt;
-ALTER TABLE `league_user` ADD INDEX `idx_league_user_league` (`league_id`);
+ALTER TABLE `competition_user` ADD INDEX `idx_competition_user_competition` (`competition_id`);
 
-SET @sql = IF((SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'league_user' AND INDEX_NAME = 'idx_league_user_user') > 0, 'DROP INDEX `idx_league_user_user` ON `league_user`', 'SELECT 1');
+SET @sql = IF((SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'competition_user' AND INDEX_NAME = 'idx_competition_user_user') > 0, 'DROP INDEX `idx_competition_user_user` ON `competition_user`', 'SELECT 1');
 PREPARE stmt FROM @sql;
 EXECUTE stmt;
 DEALLOCATE PREPARE stmt;
-ALTER TABLE `league_user` ADD INDEX `idx_league_user_user` (`user_id`);
+ALTER TABLE `competition_user` ADD INDEX `idx_competition_user_user` (`user_id`);
 
--- league_player
-SET @sql = IF((SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'league_player' AND INDEX_NAME = 'idx_league_player_league') > 0, 'DROP INDEX `idx_league_player_league` ON `league_player`', 'SELECT 1');
+-- competition_player
+SET @sql = IF((SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'competition_player' AND INDEX_NAME = 'idx_competition_player_competition') > 0, 'DROP INDEX `idx_competition_player_competition` ON `competition_player`', 'SELECT 1');
 PREPARE stmt FROM @sql;
 EXECUTE stmt;
 DEALLOCATE PREPARE stmt;
-ALTER TABLE `league_player` ADD INDEX `idx_league_player_league` (`league_id`);
+ALTER TABLE `competition_player` ADD INDEX `idx_competition_player_competition` (`competition_id`);
 
-SET @sql = IF((SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'league_player' AND INDEX_NAME = 'idx_league_player_player') > 0, 'DROP INDEX `idx_league_player_player` ON `league_player`', 'SELECT 1');
+SET @sql = IF((SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'competition_player' AND INDEX_NAME = 'idx_competition_player_player') > 0, 'DROP INDEX `idx_competition_player_player` ON `competition_player`', 'SELECT 1');
 PREPARE stmt FROM @sql;
 EXECUTE stmt;
 DEALLOCATE PREPARE stmt;
-ALTER TABLE `league_player` ADD INDEX `idx_league_player_player` (`player_id`);
+ALTER TABLE `competition_player` ADD INDEX `idx_competition_player_player` (`player_id`);
 
 SELECT 'Pivot table indeksi obnovljeni ✓' AS status;
 
 -- ===========================================
--- LEAGUES TABLE
+-- COMPETITIONS TABLE
 -- ===========================================
 
-SET @sql = IF((SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'leagues' AND INDEX_NAME = 'idx_leagues_organization') > 0, 'DROP INDEX `idx_leagues_organization` ON `leagues`', 'SELECT 1');
+SET @sql = IF((SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'competitions' AND INDEX_NAME = 'idx_competitions_organization') > 0, 'DROP INDEX `idx_competitions_organization` ON `competitions`', 'SELECT 1');
 PREPARE stmt FROM @sql;
 EXECUTE stmt;
 DEALLOCATE PREPARE stmt;
-ALTER TABLE `leagues` ADD INDEX `idx_leagues_organization` (`organization_id`);
+ALTER TABLE `competitions` ADD INDEX `idx_competitions_organization` (`organization_id`);
 
-SET @sql = IF((SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'leagues' AND INDEX_NAME = 'idx_leagues_sport') > 0, 'DROP INDEX `idx_leagues_sport` ON `leagues`', 'SELECT 1');
+SET @sql = IF((SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'competitions' AND INDEX_NAME = 'idx_competitions_sport') > 0, 'DROP INDEX `idx_competitions_sport` ON `competitions`', 'SELECT 1');
 PREPARE stmt FROM @sql;
 EXECUTE stmt;
 DEALLOCATE PREPARE stmt;
-ALTER TABLE `leagues` ADD INDEX `idx_leagues_sport` (`sport_id`);
+ALTER TABLE `competitions` ADD INDEX `idx_competitions_sport` (`sport_id`);
 
-SET @sql = IF((SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'leagues' AND INDEX_NAME = 'idx_leagues_slug') > 0, 'DROP INDEX `idx_leagues_slug` ON `leagues`', 'SELECT 1');
+SET @sql = IF((SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'competitions' AND INDEX_NAME = 'idx_competitions_slug') > 0, 'DROP INDEX `idx_competitions_slug` ON `competitions`', 'SELECT 1');
 PREPARE stmt FROM @sql;
 EXECUTE stmt;
 DEALLOCATE PREPARE stmt;
-ALTER TABLE `leagues` ADD INDEX `idx_leagues_slug` (`slug`);
+ALTER TABLE `competitions` ADD INDEX `idx_competitions_slug` (`slug`);
 
-SET @sql = IF((SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'leagues' AND INDEX_NAME = 'idx_leagues_status') > 0, 'DROP INDEX `idx_leagues_status` ON `leagues`', 'SELECT 1');
+SET @sql = IF((SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'competitions' AND INDEX_NAME = 'idx_competitions_status') > 0, 'DROP INDEX `idx_competitions_status` ON `competitions`', 'SELECT 1');
 PREPARE stmt FROM @sql;
 EXECUTE stmt;
 DEALLOCATE PREPARE stmt;
-ALTER TABLE `leagues` ADD INDEX `idx_leagues_status` (`status`);
+ALTER TABLE `competitions` ADD INDEX `idx_competitions_status` (`status`);
 
 SELECT 'Leagues indeksi obnovljeni ✓' AS status;
 

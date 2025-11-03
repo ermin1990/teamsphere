@@ -42,7 +42,7 @@ SELECT 'Matches indeksi obrisani ✓' AS status;
 -- STANDINGS TABLE
 -- ===========================================
 
-DROP INDEX IF EXISTS `idx_standings_league` ON `standings`;
+DROP INDEX IF EXISTS `idx_standings_competition` ON `standings`;
 DROP INDEX IF EXISTS `idx_standings_team_player` ON `standings`;
 DROP INDEX IF EXISTS `idx_standings_position` ON `standings`;
 
@@ -64,7 +64,7 @@ SELECT 'Players indeksi obrisani ✓' AS status;
 -- TEAMS TABLE
 -- ===========================================
 
-DROP INDEX IF EXISTS `idx_teams_league` ON `teams`;
+DROP INDEX IF EXISTS `idx_teams_competition` ON `teams`;
 DROP INDEX IF EXISTS `idx_teams_captain` ON `teams`;
 
 SELECT 'Teams indeksi obrisani ✓' AS status;
@@ -75,21 +75,21 @@ SELECT 'Teams indeksi obrisani ✓' AS status;
 
 DROP INDEX IF EXISTS `idx_team_user_team` ON `team_user`;
 DROP INDEX IF EXISTS `idx_team_user_user` ON `team_user`;
-DROP INDEX IF EXISTS `idx_league_user_league` ON `league_user`;
-DROP INDEX IF EXISTS `idx_league_user_user` ON `league_user`;
-DROP INDEX IF EXISTS `idx_league_player_league` ON `league_player`;
-DROP INDEX IF EXISTS `idx_league_player_player` ON `league_player`;
+DROP INDEX IF EXISTS `idx_competition_user_competition` ON `competition_user`;
+DROP INDEX IF EXISTS `idx_competition_user_user` ON `competition_user`;
+DROP INDEX IF EXISTS `idx_competition_player_competition` ON `competition_player`;
+DROP INDEX IF EXISTS `idx_competition_player_player` ON `competition_player`;
 
 SELECT 'Pivot table indeksi obrisani ✓' AS status;
 
 -- ===========================================
--- LEAGUES TABLE
+-- COMPETITIONS TABLE
 -- ===========================================
 
-DROP INDEX IF EXISTS `idx_leagues_organization` ON `leagues`;
-DROP INDEX IF EXISTS `idx_leagues_sport` ON `leagues`;
-DROP INDEX IF EXISTS `idx_leagues_slug` ON `leagues`;
-DROP INDEX IF EXISTS `idx_leagues_status` ON `leagues`;
+DROP INDEX IF EXISTS `idx_competitions_organization` ON `competitions`;
+DROP INDEX IF EXISTS `idx_competitions_sport` ON `competitions`;
+DROP INDEX IF EXISTS `idx_competitions_slug` ON `competitions`;
+DROP INDEX IF EXISTS `idx_competitions_status` ON `competitions`;
 
 SELECT 'Leagues indeksi obrisani ✓' AS status;
 

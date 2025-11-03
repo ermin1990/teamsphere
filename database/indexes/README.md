@@ -68,7 +68,7 @@ mysql -u username -p database_name < database/indexes/03_rollback_indexes.sql
 - `created_at` - sortiranje
 
 ### **Standings**
-- `league_id` - standings po ligi
+- `competition_id` - standings po natjecanju
 - `team_id` + `player_id` - kombinovani lookup
 - `position` - sortiranje
 
@@ -80,19 +80,19 @@ mysql -u username -p database_name < database/indexes/03_rollback_indexes.sql
 - `created_at` - novi igrači
 
 ### **Teams**
-- `league_id` - timovi u ligi
+- `competition_id` - timovi u natjecanju
 - `captain_id` - kapiten tima
 
 ### **Pivot Tables**
 - `team_user`: `team_id`, `user_id`
-- `league_user`: `league_id`, `user_id`
-- `league_player`: `league_id`, `player_id`
+- `competition_user`: `competition_id`, `user_id`
+- `competition_player`: `competition_id`, `player_id`
 
-### **Leagues**
-- `organization_id` - lige organizacije
+### **Competitions** (prije Leagues)
+- `organization_id` - natjecanja organizacije
 - `sport_id` - filter po sportu
 - `slug` - public URL lookup
-- `status` - aktivne/završene lige
+- `status` - aktivna/završena natjecanja
 
 ### **Organizations**
 - `user_id` - organizacije korisnika

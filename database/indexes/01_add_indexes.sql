@@ -60,9 +60,9 @@ PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 -- STANDINGS TABLE
 -- ===========================================
 
--- League standings lookup
-SELECT COUNT(*) INTO @cnt FROM information_schema.statistics WHERE table_schema=@db AND table_name='standings' AND index_name='idx_standings_league';
-SET @sql = IF(@cnt=0,'ALTER TABLE `standings` ADD INDEX `idx_standings_league` (`league_id`)','SELECT "idx_standings_league već postoji" AS status');
+-- Competition standings lookup
+SELECT COUNT(*) INTO @cnt FROM information_schema.statistics WHERE table_schema=@db AND table_name='standings' AND index_name='idx_standings_competition';
+SET @sql = IF(@cnt=0,'ALTER TABLE `standings` ADD INDEX `idx_standings_competition` (`competition_id`)','SELECT "idx_standings_competition već postoji" AS status');
 PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
 -- Composite za brže pronalaženje standinsa po učesniku
@@ -108,9 +108,9 @@ PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 -- TEAMS TABLE
 -- ===========================================
 
--- League teams lookup
-SELECT COUNT(*) INTO @cnt FROM information_schema.statistics WHERE table_schema=@db AND table_name='teams' AND index_name='idx_teams_league';
-SET @sql = IF(@cnt=0,'ALTER TABLE `teams` ADD INDEX `idx_teams_league` (`league_id`)','SELECT "idx_teams_league već postoji" AS status');
+-- Competition teams lookup
+SELECT COUNT(*) INTO @cnt FROM information_schema.statistics WHERE table_schema=@db AND table_name='teams' AND index_name='idx_teams_competition';
+SET @sql = IF(@cnt=0,'ALTER TABLE `teams` ADD INDEX `idx_teams_competition` (`competition_id`)','SELECT "idx_teams_competition već postoji" AS status');
 PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
 -- Captain lookup
@@ -131,46 +131,46 @@ SELECT COUNT(*) INTO @cnt FROM information_schema.statistics WHERE table_schema=
 SET @sql = IF(@cnt=0,'ALTER TABLE `team_user` ADD INDEX `idx_team_user_user` (`user_id`)','SELECT "idx_team_user_user već postoji" AS status');
 PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
--- league_user pivot
-SELECT COUNT(*) INTO @cnt FROM information_schema.statistics WHERE table_schema=@db AND table_name='league_user' AND index_name='idx_league_user_league';
-SET @sql = IF(@cnt=0,'ALTER TABLE `league_user` ADD INDEX `idx_league_user_league` (`league_id`)','SELECT "idx_league_user_league već postoji" AS status');
+-- competition_user pivot
+SELECT COUNT(*) INTO @cnt FROM information_schema.statistics WHERE table_schema=@db AND table_name='competition_user' AND index_name='idx_competition_user_competition';
+SET @sql = IF(@cnt=0,'ALTER TABLE `competition_user` ADD INDEX `idx_competition_user_competition` (`competition_id`)','SELECT "idx_competition_user_competition već postoji" AS status');
 PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
-SELECT COUNT(*) INTO @cnt FROM information_schema.statistics WHERE table_schema=@db AND table_name='league_user' AND index_name='idx_league_user_user';
-SET @sql = IF(@cnt=0,'ALTER TABLE `league_user` ADD INDEX `idx_league_user_user` (`user_id`)','SELECT "idx_league_user_user već postoji" AS status');
+SELECT COUNT(*) INTO @cnt FROM information_schema.statistics WHERE table_schema=@db AND table_name='competition_user' AND index_name='idx_competition_user_user';
+SET @sql = IF(@cnt=0,'ALTER TABLE `competition_user` ADD INDEX `idx_competition_user_user` (`user_id`)','SELECT "idx_competition_user_user već postoji" AS status');
 PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
--- league_player pivot
-SELECT COUNT(*) INTO @cnt FROM information_schema.statistics WHERE table_schema=@db AND table_name='league_player' AND index_name='idx_league_player_league';
-SET @sql = IF(@cnt=0,'ALTER TABLE `league_player` ADD INDEX `idx_league_player_league` (`league_id`)','SELECT "idx_league_player_league već postoji" AS status');
+-- competition_player pivot
+SELECT COUNT(*) INTO @cnt FROM information_schema.statistics WHERE table_schema=@db AND table_name='competition_player' AND index_name='idx_competition_player_competition';
+SET @sql = IF(@cnt=0,'ALTER TABLE `competition_player` ADD INDEX `idx_competition_player_competition` (`competition_id`)','SELECT "idx_competition_player_competition već postoji" AS status');
 PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
-SELECT COUNT(*) INTO @cnt FROM information_schema.statistics WHERE table_schema=@db AND table_name='league_player' AND index_name='idx_league_player_player';
-SET @sql = IF(@cnt=0,'ALTER TABLE `league_player` ADD INDEX `idx_league_player_player` (`player_id`)','SELECT "idx_league_player_player već postoji" AS status');
+SELECT COUNT(*) INTO @cnt FROM information_schema.statistics WHERE table_schema=@db AND table_name='competition_player' AND index_name='idx_competition_player_player';
+SET @sql = IF(@cnt=0,'ALTER TABLE `competition_player` ADD INDEX `idx_competition_player_player` (`player_id`)','SELECT "idx_competition_player_player već postoji" AS status');
 PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
 -- ===========================================
--- LEAGUES TABLE
+-- COMPETITIONS TABLE
 -- ===========================================
 
--- Organization's leagues
-SELECT COUNT(*) INTO @cnt FROM information_schema.statistics WHERE table_schema=@db AND table_name='leagues' AND index_name='idx_leagues_organization';
-SET @sql = IF(@cnt=0,'ALTER TABLE `leagues` ADD INDEX `idx_leagues_organization` (`organization_id`)','SELECT "idx_leagues_organization već postoji" AS status');
+-- Organization's competitions
+SELECT COUNT(*) INTO @cnt FROM information_schema.statistics WHERE table_schema=@db AND table_name='competitions' AND index_name='idx_competitions_organization';
+SET @sql = IF(@cnt=0,'ALTER TABLE `competitions` ADD INDEX `idx_competitions_organization` (`organization_id`)','SELECT "idx_competitions_organization već postoji" AS status');
 PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
 -- Sport filter
-SELECT COUNT(*) INTO @cnt FROM information_schema.statistics WHERE table_schema=@db AND table_name='leagues' AND index_name='idx_leagues_sport';
-SET @sql = IF(@cnt=0,'ALTER TABLE `leagues` ADD INDEX `idx_leagues_sport` (`sport_id`)','SELECT "idx_leagues_sport već postoji" AS status');
+SELECT COUNT(*) INTO @cnt FROM information_schema.statistics WHERE table_schema=@db AND table_name='competitions' AND index_name='idx_competitions_sport';
+SET @sql = IF(@cnt=0,'ALTER TABLE `competitions` ADD INDEX `idx_competitions_sport` (`sport_id`)','SELECT "idx_competitions_sport već postoji" AS status');
 PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
 -- Slug lookup (public URLs)
-SELECT COUNT(*) INTO @cnt FROM information_schema.statistics WHERE table_schema=@db AND table_name='leagues' AND index_name='idx_leagues_slug';
-SET @sql = IF(@cnt=0,'ALTER TABLE `leagues` ADD INDEX `idx_leagues_slug` (`slug`)','SELECT "idx_leagues_slug već postoji" AS status');
+SELECT COUNT(*) INTO @cnt FROM information_schema.statistics WHERE table_schema=@db AND table_name='competitions' AND index_name='idx_competitions_slug';
+SET @sql = IF(@cnt=0,'ALTER TABLE `competitions` ADD INDEX `idx_competitions_slug` (`slug`)','SELECT "idx_competitions_slug već postoji" AS status');
 PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
--- Status filter (active/completed leagues)
-SELECT COUNT(*) INTO @cnt FROM information_schema.statistics WHERE table_schema=@db AND table_name='leagues' AND index_name='idx_leagues_status';
-SET @sql = IF(@cnt=0,'ALTER TABLE `leagues` ADD INDEX `idx_leagues_status` (`status`)','SELECT "idx_leagues_status već postoji" AS status');
+-- Status filter (active/completed competitions)
+SELECT COUNT(*) INTO @cnt FROM information_schema.statistics WHERE table_schema=@db AND table_name='competitions' AND index_name='idx_competitions_status';
+SET @sql = IF(@cnt=0,'ALTER TABLE `competitions` ADD INDEX `idx_competitions_status` (`status`)','SELECT "idx_competitions_status već postoji" AS status');
 PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
 -- ===========================================
