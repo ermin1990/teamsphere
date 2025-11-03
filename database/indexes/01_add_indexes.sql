@@ -91,7 +91,7 @@ PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
 -- Name search
 SELECT COUNT(*) INTO @cnt FROM information_schema.statistics WHERE table_schema=@db AND table_name='players' AND index_name='idx_players_name';
-SET @sql = IF(@cnt=0,'ALTER TABLE `players` ADD INDEX `idx_players_name` (`name`)','SELECT "idx_players_name već postoji" AS status');
+SET @sql = IF(@cnt=0,'ALTER TABLE `players` ADD INDEX `idx_players_name` (`name`(255))','SELECT "idx_players_name već postoji" AS status');
 PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
 -- Email search (ako se koristi)

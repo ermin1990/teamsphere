@@ -129,7 +129,7 @@ SET @sql = IF((SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS WHERE TABLE_SC
 PREPARE stmt FROM @sql;
 EXECUTE stmt;
 DEALLOCATE PREPARE stmt;
-ALTER TABLE `players` ADD INDEX `idx_players_name` (`name`);
+ALTER TABLE `players` ADD INDEX `idx_players_name` (`name`(255));
 
 SET @sql = IF((SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'players' AND INDEX_NAME = 'idx_players_email') > 0, 'DROP INDEX `idx_players_email` ON `players`', 'SELECT 1');
 PREPARE stmt FROM @sql;

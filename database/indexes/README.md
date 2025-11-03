@@ -75,7 +75,7 @@ mysql -u username -p database_name < database/indexes/03_rollback_indexes.sql
 ### **Players**
 - `organization_id` - svi igrači organizacije
 - `user_id` - player profile korisnika
-- `name` - pretraga po imenu
+- `name` (255 chars) - pretraga po imenu (TEXT kolona sa ograničenjem)
 - `email` - lookup po emailu
 - `created_at` - novi igrači
 
