@@ -3,7 +3,48 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>{{ config('app.name', 'Laravel') }}</title>
+        <title>{{ config('app.name', 'Team Sphere') }} — Upravljanje sportskim takmičenjima (Beta)</title>
+        <meta name="description" content="Team Sphere je platforma za organizaciju turnira, praćenje rezultata uživo i upravljanje sportskim organizacijama. Idealno za interne firme turnire (stoni tenis), uskoro i ostali sportovi.">
+        <meta name="robots" content="index, follow">
+        <link rel="canonical" href="{{ url('/') }}">
+
+        <!-- Open Graph -->
+        <meta property="og:type" content="website">
+        <meta property="og:site_name" content="{{ config('app.name', 'Team Sphere') }}">
+        <meta property="og:title" content="{{ config('app.name', 'Team Sphere') }} — Upravljanje sportskim takmičenjima (Beta)">
+        <meta property="og:description" content="Platforma za organizaciju turnira, rezultate uživo i upravljanje sportskim organizacijama.">
+        <meta property="og:url" content="{{ url('/') }}">
+        <meta property="og:image" content="{{ url('/icons/icon-512.png') }}">
+
+        <!-- Twitter -->
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:title" content="{{ config('app.name', 'Team Sphere') }} — Upravljanje sportskim takmičenjima (Beta)">
+        <meta name="twitter:description" content="Platforma za organizaciju turnira, rezultate uživo i upravljanje sportskim organizacijama.">
+        <meta name="twitter:image" content="{{ url('/icons/icon-512.png') }}">
+
+        <!-- PWA / Theming -->
+        <meta name="theme-color" content="#4f46e5">
+        <link rel="manifest" href="/manifest.webmanifest">
+        <link rel="icon" href="/favicon.ico">
+        <link rel="apple-touch-icon" href="/icons/icon-192.png">
+        <link rel="alternate" hreflang="bs" href="{{ url('/') }}" />
+
+        <!-- Structured Data -->
+        <script type="application/ld+json">
+        {
+          "@context": "https://schema.org",
+          "@type": "SoftwareApplication",
+          "name": "Team Sphere",
+          "applicationCategory": "SportsApplication",
+          "operatingSystem": "Web",
+          "url": "{{ url('/') }}",
+          "description": "Platforma za organizaciju turnira, praćenje rezultata uživo i upravljanje sportskim organizacijama.",
+          "softwareVersion": "1.0.0-beta",
+          "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+          "publisher": { "@type": "Organization", "name": "Team Sphere" }
+        }
+        </script>
+
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
         <script src="https://cdn.tailwindcss.com"></script>

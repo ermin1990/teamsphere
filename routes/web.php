@@ -25,6 +25,31 @@ Route::get('/', function () {
     return view('welcome', compact('liveMatchesCount'));
 })->name('home');
 
+// SEO: Sitemap
+Route::get('/sitemap.xml', function () {
+    $urls = [
+        url('/'),
+        route('public.leagues.index'),
+        route('public.live-matches'),
+    ];
+    if (\Illuminate\Support\Facades\Route::has('login')) { $urls[] = route('login'); }
+    if (\Illuminate\Support\Facades\Route::has('register')) { $urls[] = route('register'); }
+
+    $lastmod = now()->toAtomString();
+    $xml = '<?xml version="1.0" encoding="UTF-8"?>';
+    $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
+    foreach ($urls as $loc) {
+        $xml .= '<url>';
+        $xml .= '<loc>' . e($loc) . '</loc>';
+        $xml .= '<lastmod>' . $lastmod . '</lastmod>';
+        $xml .= '<changefreq>daily</changefreq>';
+        $xml .= '<priority>0.8</priority>';
+        $xml .= '</url>';
+    }
+    $xml .= '</urlset>';
+    return response($xml, 200)->header('Content-Type', 'application/xml');
+});
+
 Route::get('/dashboard', [DashboardController::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
 
 // Display routes (Live Matches Display Screen)
