@@ -609,6 +609,11 @@ class CompetitionController extends Controller
             abort(404);
         }
 
+        // Route to futsal-specific settings if this is a futsal competition
+        if ($competition->isFutsal()) {
+            return view('organizations.competitions.futsal.settings', compact('organization', 'competition'));
+        }
+
         return view('organizations.competitions.settings', compact('organization', 'competition'));
     }
 
@@ -625,35 +630,75 @@ class CompetitionController extends Controller
             return back()->with('error', 'Cannot change settings after competition has started.');
         }
 
-        $request->validate([
-            'sets_to_win' => ['required', 'integer', 'min:1', 'max:7'],
-            'points_per_set' => ['required', 'integer', 'min:7', 'max:21'],
-            'deuce_at' => ['nullable', 'integer', 'min:5'],
-            'must_win_by_two' => ['boolean'],
-            'points_for_win' => ['required', 'integer', 'min:0', 'max:10'],
-            'points_for_draw' => ['required', 'integer', 'min:0', 'max:10'],
-            'points_for_loss' => ['required', 'integer', 'min:0', 'max:10'],
-            'has_tiebreak' => ['boolean'],
-            'tiebreak_points' => ['nullable', 'integer', 'min:5', 'max:15'],
-            // Tournament-specific validation
-            'players_advancing_per_group' => ['nullable', 'integer', 'min:1', 'max:4'],
-            'group_rounds' => ['nullable', 'integer', 'min:1', 'max:2'],
-        ]);
+        // Different validation for futsal vs table tennis
+        if ($competition->isFutsal()) {
+            $request->validate([
+                // Futsal match settings
+                'match_duration' => ['required', 'integer', 'min:20', 'max:90'],
+                'halftime_duration' => ['required', 'integer', 'min:5', 'max:20'],
+                'max_players_on_pitch' => ['required', 'integer', 'min:3', 'max:11'],
+                'min_players_on_pitch' => ['required', 'integer', 'min:2', 'max:7'],
+                'max_substitutes' => ['required', 'integer', 'min:0', 'max:15'],
+                'unlimited_substitutions' => ['required', 'integer', 'in:0,1'],
+                'yellow_card_limit' => ['required', 'integer', 'min:1', 'max:5'],
+                'red_card_suspension' => ['required', 'integer', 'min:0', 'max:10'],
+                'has_overtime' => ['boolean'],
+                'overtime_duration' => ['nullable', 'integer', 'min:5', 'max:30'],
+                'has_penalty_shootout' => ['boolean'],
+                // Points system
+                'points_for_win' => ['required', 'integer', 'min:0', 'max:10'],
+                'points_for_draw' => ['required', 'integer', 'min:0', 'max:10'],
+                'points_for_loss' => ['required', 'integer', 'min:0', 'max:10'],
+            ]);
 
-        $competition->update([
-            'sets_to_win' => $request->sets_to_win,
-            'points_per_set' => $request->points_per_set,
-            'deuce_at' => $request->deuce_at,
-            'must_win_by_two' => $request->boolean('must_win_by_two'),
-            'points_for_win' => $request->points_for_win,
-            'points_for_draw' => $request->points_for_draw,
-            'points_for_loss' => $request->points_for_loss,
-            'has_tiebreak' => $request->boolean('has_tiebreak'),
-            'tiebreak_points' => $request->tiebreak_points,
-            // Tournament-specific updates
-            'players_advancing_per_group' => $request->players_advancing_per_group,
-            'group_rounds' => $request->group_rounds,
-        ]);
+            $competition->update([
+                'match_duration' => $request->match_duration,
+                'halftime_duration' => $request->halftime_duration,
+                'max_players_on_pitch' => $request->max_players_on_pitch,
+                'min_players_on_pitch' => $request->min_players_on_pitch,
+                'max_substitutes' => $request->max_substitutes,
+                'unlimited_substitutions' => $request->unlimited_substitutions,
+                'yellow_card_limit' => $request->yellow_card_limit,
+                'red_card_suspension' => $request->red_card_suspension,
+                'has_overtime' => $request->boolean('has_overtime'),
+                'overtime_duration' => $request->overtime_duration,
+                'has_penalty_shootout' => $request->boolean('has_penalty_shootout'),
+                'points_for_win' => $request->points_for_win,
+                'points_for_draw' => $request->points_for_draw,
+                'points_for_loss' => $request->points_for_loss,
+            ]);
+        } else {
+            // Table tennis settings
+            $request->validate([
+                'sets_to_win' => ['required', 'integer', 'min:1', 'max:7'],
+                'points_per_set' => ['required', 'integer', 'min:7', 'max:21'],
+                'deuce_at' => ['nullable', 'integer', 'min:5'],
+                'must_win_by_two' => ['boolean'],
+                'points_for_win' => ['required', 'integer', 'min:0', 'max:10'],
+                'points_for_draw' => ['required', 'integer', 'min:0', 'max:10'],
+                'points_for_loss' => ['required', 'integer', 'min:0', 'max:10'],
+                'has_tiebreak' => ['boolean'],
+                'tiebreak_points' => ['nullable', 'integer', 'min:5', 'max:15'],
+                // Tournament-specific validation
+                'players_advancing_per_group' => ['nullable', 'integer', 'min:1', 'max:4'],
+                'group_rounds' => ['nullable', 'integer', 'min:1', 'max:2'],
+            ]);
+
+            $competition->update([
+                'sets_to_win' => $request->sets_to_win,
+                'points_per_set' => $request->points_per_set,
+                'deuce_at' => $request->deuce_at,
+                'must_win_by_two' => $request->boolean('must_win_by_two'),
+                'points_for_win' => $request->points_for_win,
+                'points_for_draw' => $request->points_for_draw,
+                'points_for_loss' => $request->points_for_loss,
+                'has_tiebreak' => $request->boolean('has_tiebreak'),
+                'tiebreak_points' => $request->tiebreak_points,
+                // Tournament-specific updates
+                'players_advancing_per_group' => $request->players_advancing_per_group,
+                'group_rounds' => $request->group_rounds,
+            ]);
+        }
 
         return redirect()
             ->route('organizations.competitions.show', [$organization, $competition])

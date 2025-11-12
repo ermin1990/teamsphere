@@ -52,6 +52,18 @@ class Competition extends Model
         'has_tiebreak',
         'tiebreak_points',
         'manual_knockout_selection',
+        // Futsal match settings
+        'match_duration',
+        'halftime_duration',
+        'max_players_on_pitch',
+        'min_players_on_pitch',
+        'max_substitutes',
+        'unlimited_substitutions',
+        'yellow_card_limit',
+        'red_card_suspension',
+        'has_overtime',
+        'overtime_duration',
+        'has_penalty_shootout',
     ];
 
     protected $casts = [
@@ -84,6 +96,18 @@ class Competition extends Model
         'has_tiebreak' => 'boolean',
         'tiebreak_points' => 'integer',
         'manual_knockout_selection' => 'boolean',
+        // Futsal match settings casts
+        'match_duration' => 'integer',
+        'halftime_duration' => 'integer',
+        'max_players_on_pitch' => 'integer',
+        'min_players_on_pitch' => 'integer',
+        'max_substitutes' => 'integer',
+        'unlimited_substitutions' => 'integer',
+        'yellow_card_limit' => 'integer',
+        'red_card_suspension' => 'integer',
+        'has_overtime' => 'boolean',
+        'overtime_duration' => 'integer',
+        'has_penalty_shootout' => 'boolean',
     ];
 
     /**
