@@ -6,7 +6,7 @@
                 {{ $competition->name }}
             </h2>
             <p class="text-gray-400 text-sm mb-4">{{ $organization->name }}</p>
-            <div class="flex items-center justify-center gap-2">
+            <div class="flex items-center justify-center gap-2 flex-wrap">
                 <span class="px-3 py-1 text-xs rounded-full
                     @if($competition->status === 'active') bg-green-500/20 text-green-400
                     @elseif($competition->status === 'draft') bg-yellow-500/20 text-yellow-400
@@ -25,6 +25,15 @@
                 @else
                 <span class="px-3 py-1 text-xs rounded-full bg-blue-500/20 text-blue-400">
                     Liga
+                </span>
+                @endif
+                @if($competition->isFutsal())
+                <span class="px-3 py-1 text-xs rounded-full bg-green-500/20 text-green-400">
+                    ⚽ Futsal
+                </span>
+                @else
+                <span class="px-3 py-1 text-xs rounded-full bg-orange-500/20 text-orange-400">
+                    🏓 Stolni Tenis
                 </span>
                 @endif
             </div>
@@ -58,6 +67,15 @@
             @else
             <span class="px-3 py-1 text-sm rounded-full bg-blue-500/20 text-blue-400">
                 Liga
+            </span>
+            @endif
+            @if($competition->isFutsal())
+            <span class="px-3 py-1 text-sm rounded-full bg-green-500/20 text-green-400">
+                ⚽ Futsal
+            </span>
+            @else
+            <span class="px-3 py-1 text-sm rounded-full bg-orange-500/20 text-orange-400">
+                🏓 Stolni Tenis
             </span>
             @endif
         </div>
