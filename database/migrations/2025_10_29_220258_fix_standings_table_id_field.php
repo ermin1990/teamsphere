@@ -12,6 +12,11 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Skip for SQLite - this migration was for MySQL
+        if (DB::connection()->getDriverName() === 'sqlite') {
+            return;
+        }
+        
         // Check if id column exists and has proper auto_increment
         $hasId = Schema::hasColumn('standings', 'id');
         
