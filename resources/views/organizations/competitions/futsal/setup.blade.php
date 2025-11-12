@@ -167,7 +167,27 @@
                             <!-- Tournament Settings (hidden initially) -->
                             <div id="tournamentSettings" style="display: none;">
                                 <div class="border-t pt-6 space-y-6">
-                                    <h4 class="font-semibold text-gray-900">Postavke Turnira</h4>
+                                    <div class="flex items-center justify-between mb-4">
+                                        <h4 class="font-semibold text-gray-900">Postavke Turnira</h4>
+                                        <a href="{{ route('organizations.competitions.futsal.setup-groups', [$organization, $competition]) }}"
+                                           class="inline-flex items-center px-3 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors">
+                                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+                                            </svg>
+                                            Ručno Kreiranje Grupa
+                                        </a>
+                                    </div>
+
+                                    <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
+                                        <div class="flex">
+                                            <svg class="w-5 h-5 text-green-600 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                                            </svg>
+                                            <p class="text-sm text-green-800">
+                                                Želite li sami izabrati timove za svaku grupu? Koristite <strong>Ručno Kreiranje Grupa</strong> sa drag & drop interfejsom!
+                                            </p>
+                                        </div>
+                                    </div>
 
                                     <!-- Group Count -->
                                     <div>
