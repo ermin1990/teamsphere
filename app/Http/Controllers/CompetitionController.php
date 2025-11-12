@@ -1754,6 +1754,152 @@ class CompetitionController extends Controller
     }
 
     /**
+     * Show futsal groups setup page (drag & drop).
+     */
+    public function setupFutsalGroups(Organization $organization, Competition $competition)
+    {
+        $this->authorize('update', $organization);
+
+        if (!$competition->isFutsal()) {
+            return back()->with('error', 'Ovo nije futsal takmičenje.');
+        }
+
+        $teams = $competition->futsalTeams()->where('is_active', true)->get();
+        
+        if ($teams->count() < 2) {
+            return redirect()
+                ->route('organizations.competitions.futsal.teams.index', [$organization, $competition])
+                ->with('error', 'Potrebna su najmanje 2 tima za kreiranje grupa.');
+        }
+
+        // Get existing groups or create default structure
+        $groups = $competition->tournamentGroups()->with('futsalTeams')->get();
+        
+        if ($groups->isEmpty()) {
+            // Create default groups (A, B, C, D)
+            $groupCount = min(4, ceil($teams->count() / 3)); // At least 3 teams per group
+            $groupLetters = range('A', 'Z');
+            
+            $groupsData = [];
+            for ($i = 0; $i < $groupCount; $i++) {
+                $groupsData[] = [
+                    'name' => $groupLetters[$i],
+                    'teams' => [],
+                ];
+            }
+        } else {
+            $groupsData = $groups->map(function ($group) {
+                return [
+                    'name' => $group->name,
+                    'teams' => $group->futsalTeams->pluck('id')->toArray(),
+                ];
+            })->toArray();
+        }
+
+        // Get available teams (not assigned to any group)
+        $assignedTeamIds = collect($groupsData)->pluck('teams')->flatten()->toArray();
+        $availableTeams = $teams->whereNotIn('id', $assignedTeamIds);
+
+        return view('organizations.competitions.futsal.setup-groups', compact(
+            'organization',
+            'competition',
+            'teams',
+            'availableTeams',
+            'groups',
+            'groupsData'
+        ));
+    }
+
+    /**
+     * Save futsal groups configuration and generate matches.
+     */
+    public function saveFutsalGroups(Request $request, Organization $organization, Competition $competition)
+    {
+        $this->authorize('update', $organization);
+
+        if (!$competition->isFutsal()) {
+            return back()->with('error', 'Ovo nije futsal takmičenje.');
+        }
+
+        $validated = $request->validate([
+            'groups' => 'required|array|min:2',
+            'groups.*.name' => 'required|string',
+            'groups.*.teams' => 'required|array|min:2',
+            'groups.*.teams.*' => 'exists:futsal_teams,id',
+            'round_robin_type' => 'required|in:single,double',
+            'teams_advancing_per_group' => 'nullable|integer|min:1|max:4',
+        ]);
+
+        try {
+            \DB::beginTransaction();
+
+            // Delete existing groups
+            $competition->tournamentGroups()->delete();
+
+            $futsalService = app(\App\Services\FutsalCompetitionService::class);
+
+            // Create groups with teams
+            foreach ($validated['groups'] as $groupData) {
+                $group = $competition->tournamentGroups()->create([
+                    'name' => $groupData['name'],
+                    'competition_id' => $competition->id,
+                ]);
+
+                // Attach teams to group
+                $group->futsalTeams()->attach($groupData['teams']);
+
+                // Create standings for each team
+                foreach ($groupData['teams'] as $teamId) {
+                    \App\Models\FutsalStanding::create([
+                        'competition_id' => $competition->id,
+                        'futsal_team_id' => $teamId,
+                        'tournament_group_id' => $group->id,
+                        'played' => 0,
+                        'won' => 0,
+                        'drawn' => 0,
+                        'lost' => 0,
+                        'goals_for' => 0,
+                        'goals_against' => 0,
+                        'goal_difference' => 0,
+                        'points' => 0,
+                        'position' => 0,
+                    ]);
+                }
+
+                // Generate group matches
+                $doubleRoundRobin = $validated['round_robin_type'] === 'double';
+                $futsalService->generateGroupMatches($group, $doubleRoundRobin);
+            }
+
+            // Update competition
+            $competition->update([
+                'type' => 'tournament',
+                'current_phase' => 'groups',
+                'status' => 'active',
+                'group_count' => count($validated['groups']),
+                'players_advancing_per_group' => $validated['teams_advancing_per_group'] ?? 2,
+            ]);
+
+            \DB::commit();
+
+            $roundType = $validated['round_robin_type'] === 'double' ? 'dvokružnim' : 'jednokružnim';
+            return redirect()
+                ->route('organizations.competitions.futsal.schedule', [$organization, $competition])
+                ->with('success', "Grupe su uspješno kreirane sa {$roundType} sistemom!");
+
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            \Log::error('Error saving futsal groups', [
+                'competition_id' => $competition->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return back()->with('error', 'Greška pri kreiranju grupa: ' . $e->getMessage());
+        }
+    }
+
+    /**
      * Show futsal competition schedule.
      */
     public function showFutsalSchedule(Organization $organization, Competition $competition)

@@ -165,6 +165,8 @@ Route::middleware('auth')->group(function () {
 
     // Futsal competition management routes
     Route::get('organizations/{organization}/competitions/{competition}/futsal/setup', [CompetitionController::class, 'setupFutsalCompetition'])->name('organizations.competitions.futsal.setup');
+    Route::get('organizations/{organization}/competitions/{competition}/futsal/setup-groups', [CompetitionController::class, 'setupFutsalGroups'])->name('organizations.competitions.futsal.setup-groups');
+    Route::post('organizations/{organization}/competitions/{competition}/futsal/save-groups', [CompetitionController::class, 'saveFutsalGroups'])->name('organizations.competitions.futsal.save-groups');
     Route::post('organizations/{organization}/competitions/{competition}/futsal/generate', [CompetitionController::class, 'generateFutsalCompetition'])->name('organizations.competitions.futsal.generate');
     Route::get('organizations/{organization}/competitions/{competition}/futsal/schedule', [CompetitionController::class, 'showFutsalSchedule'])->name('organizations.competitions.futsal.schedule');
     Route::get('organizations/{organization}/competitions/{competition}/futsal/standings', [CompetitionController::class, 'showFutsalStandings'])->name('organizations.competitions.futsal.standings');

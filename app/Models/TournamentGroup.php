@@ -230,4 +230,33 @@ class TournamentGroup extends Model
     {
         return $this->getSortedStandings()->take($count)->pluck('player_id');
     }
+
+    /**
+     * Get futsal teams in this group (for futsal tournaments).
+     */
+    public function futsalTeams()
+    {
+        return $this->belongsToMany(
+            \App\Models\FutsalTeam::class,
+            'tournament_group_futsal_team',
+            'tournament_group_id',
+            'futsal_team_id'
+        );
+    }
+
+    /**
+     * Get futsal matches for this group.
+     */
+    public function futsalMatches(): HasMany
+    {
+        return $this->hasMany(\App\Models\FutsalMatch::class)->where('phase', 'group');
+    }
+
+    /**
+     * Get futsal standings for this group.
+     */
+    public function futsalStandings(): HasMany
+    {
+        return $this->hasMany(\App\Models\FutsalStanding::class);
+    }
 }
