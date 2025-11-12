@@ -129,6 +129,14 @@ class Competition extends Model
     }
 
     /**
+     * Get the futsal teams for this competition.
+     */
+    public function futsalTeams(): HasMany
+    {
+        return $this->hasMany(FutsalTeam::class, 'competition_id');
+    }
+
+    /**
      * Get the players for this competition.
      */
     public function players(): BelongsToMany
@@ -151,6 +159,14 @@ class Competition extends Model
     }
 
     /**
+     * Get the futsal matches for this competition.
+     */
+    public function futsalMatches(): HasMany
+    {
+        return $this->hasMany(FutsalMatch::class, 'competition_id');
+    }
+
+    /**
      * Get the league matches for this competition.
      */
     public function leagueMatches(): HasMany
@@ -164,6 +180,14 @@ class Competition extends Model
     public function standings(): HasMany
     {
         return $this->hasMany(Standing::class, 'competition_id')->orderBy('position');
+    }
+
+    /**
+     * Get the futsal standings for this competition.
+     */
+    public function futsalStandings(): HasMany
+    {
+        return $this->hasMany(FutsalStanding::class, 'competition_id')->orderByStandings();
     }
 
     /**
@@ -196,6 +220,22 @@ class Competition extends Model
     public function isKnockout(): bool
     {
         return $this->type === 'knockout';
+    }
+
+    /**
+     * Check if this is a futsal competition.
+     */
+    public function isFutsal(): bool
+    {
+        return $this->sport && $this->sport->slug === 'mali-fudbal';
+    }
+
+    /**
+     * Check if this is a table tennis competition.
+     */
+    public function isTableTennis(): bool
+    {
+        return $this->sport && $this->sport->slug === 'stoni-tenis';
     }
 
     /**
