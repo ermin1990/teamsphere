@@ -1607,5 +1607,296 @@ class CompetitionController extends Controller
             return back()->with('error', 'Greška pri resetovanju grupne faze: ' . $e->getMessage());
         }
     }
+
+    /**
+     * Show futsal competition setup form.
+     */
+    public function setupFutsalCompetition(Organization $organization, Competition $competition)
+    {
+        $this->authorize('update', $organization);
+
+        if (!$competition->isFutsal()) {
+            return redirect()
+                ->route('organizations.competitions.show', [$organization, $competition])
+                ->with('error', 'Ovo nije futsal takmičenje.');
+        }
+
+        $teams = $competition->futsalTeams()->where('is_active', true)->get();
+
+        return view('organizations.competitions.futsal.setup', compact('organization', 'competition', 'teams'));
+    }
+
+    /**
+     * Generate futsal competition (league or tournament).
+     */
+    public function generateFutsalCompetition(Request $request, Organization $organization, Competition $competition)
+    {
+        $this->authorize('update', $organization);
+
+        if (!$competition->isFutsal()) {
+            return back()->with('error', 'Ovo nije futsal takmičenje.');
+        }
+
+        $validated = $request->validate([
+            'competition_format' => 'required|in:league,tournament',
+            'round_robin_type' => 'required|in:single,double',
+            'group_count' => 'nullable|integer|min:2|max:8',
+            'teams_per_group' => 'nullable|integer|min:2|max:8',
+            'teams_advancing_per_group' => 'nullable|integer|min:1|max:4',
+        ]);
+
+        $futsalService = app(\App\Services\FutsalCompetitionService::class);
+        $teams = $competition->futsalTeams()->where('is_active', true)->get();
+
+        if ($teams->count() < 2) {
+            return back()->with('error', 'Potrebna su najmanje 2 tima za kreiranje takmičenja.');
+        }
+
+        try {
+            \DB::beginTransaction();
+
+            if ($validated['competition_format'] === 'league') {
+                // Generate league matches
+                $doubleRoundRobin = $validated['round_robin_type'] === 'double';
+                $futsalService->generateLeagueMatches($competition, $doubleRoundRobin);
+
+                $competition->update([
+                    'type' => 'league',
+                    'current_phase' => 'league',
+                    'status' => 'in_progress',
+                ]);
+
+                $message = 'Liga je uspješno generisana sa ' . ($doubleRoundRobin ? 'dvokružnim' : 'jednokružnim') . ' sistemom!';
+            } else {
+                // Generate tournament with groups
+                $groupCount = $validated['group_count'] ?? 2;
+                $doubleRoundRobin = $validated['round_robin_type'] === 'double';
+                
+                $futsalService->generateTournamentGroups($competition, $groupCount, $doubleRoundRobin);
+
+                $competition->update([
+                    'type' => 'tournament',
+                    'current_phase' => 'groups',
+                    'status' => 'in_progress',
+                    'group_count' => $groupCount,
+                    'players_advancing_per_group' => $validated['teams_advancing_per_group'] ?? 2,
+                ]);
+
+                $message = 'Turnir je uspješno generisan sa ' . $groupCount . ' grupe/a (' . ($doubleRoundRobin ? 'dvokružni' : 'jednokružni') . ' sistem)!';
+            }
+
+            \DB::commit();
+
+            return redirect()
+                ->route('organizations.competitions.futsal.schedule', [$organization, $competition])
+                ->with('success', $message);
+
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            \Log::error('Error generating futsal competition', [
+                'competition_id' => $competition->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return back()->with('error', 'Greška pri generisanju takmičenja: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Show futsal competition schedule.
+     */
+    public function showFutsalSchedule(Organization $organization, Competition $competition)
+    {
+        $this->authorize('view', $organization);
+
+        if (!$competition->isFutsal()) {
+            return redirect()
+                ->route('organizations.competitions.show', [$organization, $competition])
+                ->with('error', 'Ovo nije futsal takmičenje.');
+        }
+
+        if ($competition->type === 'league') {
+            // League schedule grouped by rounds
+            $matches = $competition->futsalMatches()
+                ->with(['homeTeam', 'awayTeam'])
+                ->orderBy('round')
+                ->orderBy('id')
+                ->get()
+                ->groupBy('round');
+
+            return view('organizations.competitions.futsal.league-schedule', compact('organization', 'competition', 'matches'));
+        } else {
+            // Tournament schedule with groups
+            $groups = \App\Models\TournamentGroup::where('competition_id', $competition->id)
+                ->with([
+                    'futsalMatches' => function ($query) {
+                        $query->with(['homeTeam', 'awayTeam'])->orderBy('round');
+                    },
+                    'futsalStandings' => function ($query) {
+                        $query->with('futsalTeam')->orderByStandings();
+                    }
+                ])
+                ->orderBy('group_number')
+                ->get();
+
+            $knockoutMatches = $competition->futsalMatches()
+                ->where('phase', 'knockout')
+                ->with(['homeTeam', 'awayTeam'])
+                ->orderBy('round')
+                ->orderBy('match_order')
+                ->get()
+                ->groupBy('round');
+
+            return view('organizations.competitions.futsal.tournament-schedule', compact('organization', 'competition', 'groups', 'knockoutMatches'));
+        }
+    }
+
+    /**
+     * Show futsal standings.
+     */
+    public function showFutsalStandings(Organization $organization, Competition $competition)
+    {
+        $this->authorize('view', $organization);
+
+        if (!$competition->isFutsal()) {
+            return redirect()
+                ->route('organizations.competitions.show', [$organization, $competition])
+                ->with('error', 'Ovo nije futsal takmičenje.');
+        }
+
+        if ($competition->type === 'league') {
+            // League standings
+            $standings = $competition->futsalStandings()
+                ->with('futsalTeam')
+                ->orderByStandings()
+                ->get();
+
+            return view('organizations.competitions.futsal.league-standings', compact('organization', 'competition', 'standings'));
+        } else {
+            // Tournament standings by groups
+            $groups = \App\Models\TournamentGroup::where('competition_id', $competition->id)
+                ->with([
+                    'futsalStandings' => function ($query) {
+                        $query->with('futsalTeam')->orderByStandings();
+                    }
+                ])
+                ->orderBy('group_number')
+                ->get();
+
+            return view('organizations.competitions.futsal.tournament-standings', compact('organization', 'competition', 'groups'));
+        }
+    }
+
+    /**
+     * Generate knockout bracket from group stage.
+     */
+    public function generateFutsalKnockout(Organization $organization, Competition $competition)
+    {
+        $this->authorize('update', $organization);
+
+        if (!$competition->isFutsal() || $competition->type !== 'tournament') {
+            return back()->with('error', 'Ova akcija je dostupna samo za futsal turnire.');
+        }
+
+        try {
+            $futsalService = app(\App\Services\FutsalCompetitionService::class);
+            $teamsPerGroup = $competition->players_advancing_per_group ?? 2;
+
+            $futsalService->generateKnockoutBracket($competition, $teamsPerGroup);
+
+            $competition->update([
+                'current_phase' => 'knockout',
+            ]);
+
+            return redirect()
+                ->route('organizations.competitions.futsal.schedule', [$organization, $competition])
+                ->with('success', 'Knockout faza je uspješno generisana!');
+
+        } catch (\Exception $e) {
+            \Log::error('Error generating futsal knockout', [
+                'competition_id' => $competition->id,
+                'error' => $e->getMessage()
+            ]);
+
+            return back()->with('error', 'Greška: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Advance futsal knockout round.
+     */
+    public function advanceFutsalKnockout(Organization $organization, Competition $competition, Request $request)
+    {
+        $this->authorize('update', $organization);
+
+        if (!$competition->isFutsal() || $competition->current_phase !== 'knockout') {
+            return back()->with('error', 'Ova akcija je dostupna samo u knockout fazi.');
+        }
+
+        $validated = $request->validate([
+            'current_round' => 'required|integer|min:1',
+        ]);
+
+        try {
+            $futsalService = app(\App\Services\FutsalCompetitionService::class);
+            $futsalService->advanceKnockoutRound($competition, $validated['current_round']);
+
+            return back()->with('success', 'Sljedeća runda je uspješno generisana!');
+
+        } catch (\Exception $e) {
+            return back()->with('error', 'Greška: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Remove team from futsal competition.
+     */
+    public function removeFutsalTeam(Organization $organization, Competition $competition, \App\Models\FutsalTeam $team)
+    {
+        $this->authorize('update', $organization);
+
+        if (!$competition->isFutsal()) {
+            return back()->with('error', 'Ova akcija je dostupna samo za futsal takmičenja.');
+        }
+
+        try {
+            $futsalService = app(\App\Services\FutsalCompetitionService::class);
+            $futsalService->removeTeamFromCompetition($competition, $team);
+
+            return back()->with('success', 'Tim ' . $team->name . ' je uklonjen iz takmičenja, svi rezultati su poništeni.');
+
+        } catch (\Exception $e) {
+            \Log::error('Error removing futsal team', [
+                'competition_id' => $competition->id,
+                'team_id' => $team->id,
+                'error' => $e->getMessage()
+            ]);
+
+            return back()->with('error', 'Greška pri uklanjanju tima: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Award walkover for futsal match.
+     */
+    public function awardFutsalWalkover(Organization $organization, Competition $competition, \App\Models\FutsalMatch $match, Request $request)
+    {
+        $this->authorize('update', $organization);
+
+        $validated = $request->validate([
+            'winner' => 'required|in:home,away',
+        ]);
+
+        try {
+            $futsalService = app(\App\Services\FutsalCompetitionService::class);
+            $futsalService->awardWalkover($match, $validated['winner']);
+
+            return back()->with('success', 'Službena pobeda (walkover 3-0) je dodijeljena.');
+
+        } catch (\Exception $e) {
+            return back()->with('error', 'Greška: ' . $e->getMessage());
+        }
+    }
 }
 

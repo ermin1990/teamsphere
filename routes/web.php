@@ -163,6 +163,16 @@ Route::middleware('auth')->group(function () {
     Route::patch('organizations/{organization}/competitions/{competition}/futsal/teams/{team}/players/{player}/remove', [\App\Http\Controllers\FutsalTeamController::class, 'removePlayer'])->name('organizations.competitions.futsal.teams.players.remove');
     Route::delete('organizations/{organization}/competitions/{competition}/futsal/teams/{team}/players/{player}', [\App\Http\Controllers\FutsalTeamController::class, 'deletePlayer'])->name('organizations.competitions.futsal.teams.players.delete');
 
+    // Futsal competition management routes
+    Route::get('organizations/{organization}/competitions/{competition}/futsal/setup', [CompetitionController::class, 'setupFutsalCompetition'])->name('organizations.competitions.futsal.setup');
+    Route::post('organizations/{organization}/competitions/{competition}/futsal/generate', [CompetitionController::class, 'generateFutsalCompetition'])->name('organizations.competitions.futsal.generate');
+    Route::get('organizations/{organization}/competitions/{competition}/futsal/schedule', [CompetitionController::class, 'showFutsalSchedule'])->name('organizations.competitions.futsal.schedule');
+    Route::get('organizations/{organization}/competitions/{competition}/futsal/standings', [CompetitionController::class, 'showFutsalStandings'])->name('organizations.competitions.futsal.standings');
+    Route::post('organizations/{organization}/competitions/{competition}/futsal/generate-knockout', [CompetitionController::class, 'generateFutsalKnockout'])->name('organizations.competitions.futsal.generate-knockout');
+    Route::post('organizations/{organization}/competitions/{competition}/futsal/advance-knockout', [CompetitionController::class, 'advanceFutsalKnockout'])->name('organizations.competitions.futsal.advance-knockout');
+    Route::delete('organizations/{organization}/competitions/{competition}/futsal/teams/{team}/remove', [CompetitionController::class, 'removeFutsalTeam'])->name('organizations.competitions.futsal.teams.remove');
+    Route::post('organizations/{organization}/competitions/{competition}/futsal/matches/{match}/walkover', [CompetitionController::class, 'awardFutsalWalkover'])->name('organizations.competitions.futsal.matches.walkover');
+
     // League routes
     Route::get('leagues/create/{organization}', [LeagueController::class, 'create'])->name('leagues.create');
     Route::get('leagues/{league}', [LeagueController::class, 'show'])->name('leagues.show');
