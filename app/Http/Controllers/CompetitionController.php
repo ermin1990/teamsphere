@@ -244,6 +244,11 @@ class CompetitionController extends Controller
             ] : null
         ]);
 
+        // Route to futsal-specific view if this is a futsal competition
+        if ($competition->isFutsal()) {
+            return view('organizations.competitions.futsal.show', compact('organization', 'competition', 'isOwner', 'isPlayer', 'isReferee'));
+        }
+
         return view('organizations.competitions.show', compact('organization', 'competition', 'isOwner', 'isPlayer', 'isReferee', 'knockoutMatches'));
     }
 
