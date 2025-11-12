@@ -148,6 +148,21 @@ Route::middleware('auth')->group(function () {
     Route::post('organizations/{organization}/competitions/{competition}/reset-knockout', [CompetitionController::class, 'resetKnockout'])->name('organizations.competitions.reset-knockout');
     Route::post('organizations/{organization}/competitions/{competition}/reset-groups', [CompetitionController::class, 'resetGroups'])->name('organizations.competitions.reset-groups');
 
+    // Futsal team routes
+    Route::get('organizations/{organization}/competitions/{competition}/futsal/teams', [\App\Http\Controllers\FutsalTeamController::class, 'index'])->name('organizations.competitions.futsal.teams.index');
+    Route::get('organizations/{organization}/competitions/{competition}/futsal/teams/create', [\App\Http\Controllers\FutsalTeamController::class, 'create'])->name('organizations.competitions.futsal.teams.create');
+    Route::post('organizations/{organization}/competitions/{competition}/futsal/teams', [\App\Http\Controllers\FutsalTeamController::class, 'store'])->name('organizations.competitions.futsal.teams.store');
+    Route::get('organizations/{organization}/competitions/{competition}/futsal/teams/{team}', [\App\Http\Controllers\FutsalTeamController::class, 'show'])->name('organizations.competitions.futsal.teams.show');
+    Route::get('organizations/{organization}/competitions/{competition}/futsal/teams/{team}/edit', [\App\Http\Controllers\FutsalTeamController::class, 'edit'])->name('organizations.competitions.futsal.teams.edit');
+    Route::put('organizations/{organization}/competitions/{competition}/futsal/teams/{team}', [\App\Http\Controllers\FutsalTeamController::class, 'update'])->name('organizations.competitions.futsal.teams.update');
+    Route::delete('organizations/{organization}/competitions/{competition}/futsal/teams/{team}', [\App\Http\Controllers\FutsalTeamController::class, 'destroy'])->name('organizations.competitions.futsal.teams.destroy');
+    
+    // Futsal roster management routes
+    Route::post('organizations/{organization}/competitions/{competition}/futsal/teams/{team}/players', [\App\Http\Controllers\FutsalTeamController::class, 'addPlayer'])->name('organizations.competitions.futsal.teams.players.add');
+    Route::put('organizations/{organization}/competitions/{competition}/futsal/teams/{team}/players/{player}', [\App\Http\Controllers\FutsalTeamController::class, 'updatePlayer'])->name('organizations.competitions.futsal.teams.players.update');
+    Route::patch('organizations/{organization}/competitions/{competition}/futsal/teams/{team}/players/{player}/remove', [\App\Http\Controllers\FutsalTeamController::class, 'removePlayer'])->name('organizations.competitions.futsal.teams.players.remove');
+    Route::delete('organizations/{organization}/competitions/{competition}/futsal/teams/{team}/players/{player}', [\App\Http\Controllers\FutsalTeamController::class, 'deletePlayer'])->name('organizations.competitions.futsal.teams.players.delete');
+
     // League routes
     Route::get('leagues/create/{organization}', [LeagueController::class, 'create'])->name('leagues.create');
     Route::get('leagues/{league}', [LeagueController::class, 'show'])->name('leagues.show');
