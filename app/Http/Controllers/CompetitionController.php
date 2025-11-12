@@ -151,6 +151,20 @@ class CompetitionController extends Controller
 
         file_put_contents($logFile, "Starting tournament checks...\n", FILE_APPEND);
 
+        // Load relationships early so they're available throughout the method
+        $competition->load([
+            'sport',
+            'teams.players',
+            'matches.homeTeam',
+            'matches.awayTeam',
+            'matches.homePlayer',
+            'matches.awayPlayer',
+            'players',
+            'standings',
+            'tournamentGroups.standings.player',
+            'tournamentGroups.standings.team'
+        ]);
+
         // Generate group matches if tournament is active but no matches exist
         if ($competition->isTournament() && $competition->status === 'active' && $competition->tournamentGroups()->count() > 0) {
             file_put_contents($logFile, "Checking group matches...\n", FILE_APPEND);
@@ -168,55 +182,49 @@ class CompetitionController extends Controller
         // Ensure standings exist for tournament groups (but don't reset existing ones)
         if ($competition->isTournament() && $competition->tournamentGroups()->count() > 0) {
             file_put_contents($logFile, "Processing tournament groups...\n", FILE_APPEND);
-            foreach ($competition->tournamentGroups as $group) {
-                foreach ($group->player_ids as $playerId) {
-                    try {
-                        // Only create if doesn't exist - don't update/reset existing standings
-                        \App\Models\Standing::firstOrCreate(
-                            [
-                                'competition_id' => $competition->id,
-                                'tournament_group_id' => $group->id,
-                                'player_id' => $playerId,
-                            ],
-                            [
-                                'played' => 0,
-                                'won' => 0,
-                                'drawn' => 0,
-                                'lost' => 0,
-                                'points' => 0,
-                                'sets_won' => 0,
-                                'sets_lost' => 0,
-                                'points_won' => 0,
-                                'points_lost' => 0,
-                                'goals_for' => 0,
-                                'goals_against' => 0,
-                                'goal_difference' => 0,
-                            ]
-                        );
-                    } catch (\Illuminate\Database\QueryException $e) {
-                        // Ignore duplicate entry errors (race condition)
-                        if ($e->getCode() !== '23000') {
-                            throw $e;
+            try {
+                $groups = $competition->tournamentGroups()->get();
+                file_put_contents($logFile, "Groups count: " . $groups->count() . "\n", FILE_APPEND);
+                
+                foreach ($groups as $group) {
+                    foreach ($group->player_ids as $playerId) {
+                        try {
+                            // Only create if doesn't exist - don't update/reset existing standings
+                            \App\Models\Standing::firstOrCreate(
+                                [
+                                    'competition_id' => $competition->id,
+                                    'tournament_group_id' => $group->id,
+                                    'player_id' => $playerId,
+                                ],
+                                [
+                                    'played' => 0,
+                                    'won' => 0,
+                                    'drawn' => 0,
+                                    'lost' => 0,
+                                    'points' => 0,
+                                    'sets_won' => 0,
+                                    'sets_lost' => 0,
+                                    'points_won' => 0,
+                                    'points_lost' => 0,
+                                    'goals_for' => 0,
+                                    'goals_against' => 0,
+                                    'goal_difference' => 0,
+                                ]
+                            );
+                        } catch (\Illuminate\Database\QueryException $e) {
+                            // Ignore duplicate entry errors (race condition)
+                            if ($e->getCode() !== '23000') {
+                                throw $e;
+                            }
                         }
                     }
                 }
+            } catch (\Exception $e) {
+                file_put_contents($logFile, "ERROR processing tournament groups: " . $e->getMessage() . "\n", FILE_APPEND);
+                file_put_contents($logFile, "Stack trace: " . $e->getTraceAsString() . "\n", FILE_APPEND);
+                // Continue execution - don't let this block the page load
             }
         }
-
-        file_put_contents($logFile, "Loading relationships...\n", FILE_APPEND);
-
-        $competition->load([
-            'sport',
-            'teams.players',
-            'matches.homeTeam',
-            'matches.awayTeam',
-            'matches.homePlayer',
-            'matches.awayPlayer',
-            'players',
-            'standings',
-            'tournamentGroups.standings.player',
-            'tournamentGroups.standings.team'
-        ]);
 
         file_put_contents($logFile, "Loading organization players...\n", FILE_APPEND);
         $organization->load('players');
@@ -246,7 +254,15 @@ class CompetitionController extends Controller
 
         // Route to futsal-specific view if this is a futsal competition
         if ($competition->isFutsal()) {
-            return view('organizations.competitions.futsal.show', compact('organization', 'competition', 'isOwner', 'isPlayer', 'isReferee'));
+            // Load knockout matches for futsal tournaments
+            $knockoutMatches = \App\Models\CompetitionMatch::where('competition_id', $competition->id)
+                ->where('phase', 'knockout')
+                ->with('homeTeam', 'awayTeam')
+                ->orderBy('round_number')
+                ->orderBy('match_order')
+                ->get();
+
+            return view('organizations.competitions.futsal.show', compact('organization', 'competition', 'isOwner', 'isPlayer', 'isReferee', 'knockoutMatches'));
         }
 
         return view('organizations.competitions.show', compact('organization', 'competition', 'isOwner', 'isPlayer', 'isReferee', 'knockoutMatches'));
@@ -1839,10 +1855,11 @@ class CompetitionController extends Controller
             $futsalService = app(\App\Services\FutsalCompetitionService::class);
 
             // Create groups with teams
-            foreach ($validated['groups'] as $groupData) {
+            foreach ($validated['groups'] as $index => $groupData) {
                 $group = $competition->tournamentGroups()->create([
                     'name' => $groupData['name'],
                     'competition_id' => $competition->id,
+                    'group_number' => $index + 1,
                 ]);
 
                 // Attach teams to group

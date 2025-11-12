@@ -81,9 +81,9 @@ class FutsalTeam extends Model
     }
 
     /**
-     * Get all matches (home + away).
+     * Get all matches (home + away) for this team.
      */
-    public function matches()
+    public function getAllMatches()
     {
         return FutsalMatch::where('home_team_id', $this->id)
             ->orWhere('away_team_id', $this->id);

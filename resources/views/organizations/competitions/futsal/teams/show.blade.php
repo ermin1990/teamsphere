@@ -107,7 +107,7 @@
                                 </div>
                                 <div class="flex justify-between">
                                     <span class="text-sm text-gray-600">Odigrane utakmice:</span>
-                                    <span class="font-medium">{{ $team->matches->count() }}</span>
+                                    <span class="font-medium">{{ $team->getAllMatches()->count() }}</span>
                                 </div>
                             </div>
                         </div>

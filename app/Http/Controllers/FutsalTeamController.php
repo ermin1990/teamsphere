@@ -85,9 +85,6 @@ class FutsalTeamController extends Controller
             'activePlayers' => function ($query) {
                 $query->orderBy('jersey_number');
             },
-            'matches' => function ($query) {
-                $query->orderBy('scheduled_at', 'desc')->limit(10);
-            },
             'standings',
         ]);
 

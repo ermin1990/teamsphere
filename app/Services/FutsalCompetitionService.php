@@ -200,15 +200,16 @@ class FutsalCompetitionService
 
     /**
      * Generate matches for a tournament group using Berger algorithm.
-     * 
-     * @param Competition $competition
+     *
      * @param TournamentGroup $group
-     * @param \Illuminate\Support\Collection $teams
      * @param bool $doubleRoundRobin
      * @return void
      */
-    private function generateGroupMatches(Competition $competition, TournamentGroup $group, $teams, bool $doubleRoundRobin = false)
+    public function generateGroupMatches(TournamentGroup $group, bool $doubleRoundRobin = false)
     {
+        $competition = $group->competition;
+        $teams = $group->futsalTeams;
+
         if ($teams->count() < 2) {
             return;
         }

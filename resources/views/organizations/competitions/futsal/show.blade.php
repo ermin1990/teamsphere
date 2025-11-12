@@ -313,6 +313,11 @@
                 </div>
                 @endif
 
+                {{-- Tournament Content (Active Status) --}}
+                @if($competition->status !== 'draft' && $competition->type === 'tournament')
+                    @include('organizations.competitions.futsal.partials.tournament-content')
+                @endif
+
                 {{-- Main Content Area --}}
                 @if($competition->status !== 'draft')
                 <div class="bg-gray-800/50 border border-gray-700 rounded-xl p-6">

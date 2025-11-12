@@ -192,7 +192,7 @@
                                     </div>
                                     <div class="bg-gray-700/30 rounded-lg p-3 text-center">
                                         <div class="text-2xl font-bold text-green-400">
-                                            {{ $team->matches->count() }}
+                                            {{ $team->getAllMatches()->count() }}
                                         </div>
                                         <div class="text-xs text-gray-400 mt-1">Utakmica</div>
                                     </div>
