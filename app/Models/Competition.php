@@ -469,6 +469,20 @@ class Competition extends Model
             'total_players' => $totalPlayers
         ]);
         
+        // Validate all groups are completed
+        foreach ($groups as $group) {
+            if (!$group->is_completed) {
+                throw new \Exception("Group {$group->name} is not completed yet. All groups must be completed before generating knockout stage.");
+            }
+        }
+        
+        // Force recalculation of all group standings
+        \Log::info('Forcing recalculation of all group standings before knockout');
+        $tournamentGroupService = app(\App\Services\TournamentGroupService::class);
+        foreach ($groups as $group) {
+            $tournamentGroupService->recalculateGroupStandings($this, $group);
+        }
+        
         // Sort groups by name for consistent ordering
         $sortedGroups = $groups->sortBy('name')->values();
         
@@ -484,10 +498,12 @@ class Competition extends Model
             
             // Use Standing models instead of standings array
             $standings = $group->standings()
-                ->orderByRaw('position IS NULL, position ASC')
                 ->orderByDesc('points')
                 ->orderByDesc(\DB::raw('sets_won - sets_lost'))
+                ->orderByDesc(\DB::raw('points_won - points_lost'))
                 ->orderByDesc('sets_won')
+                ->orderByDesc('won')
+                ->orderBy('id')
                 ->get()
                 ->map(function ($standing) {
                     return [
@@ -527,14 +543,28 @@ class Competition extends Model
                     'player_id' => $playerId,
                     'group' => $group->name,
                     'position' => $i + 1,
-                    'points' => $standings[$i]['points']
+                    'points' => $standings[$i]['points'],
+                    'sets_won' => $standings[$i]['sets_won'],
+                    'sets_lost' => $standings[$i]['sets_lost']
                 ];
+                
+                \Log::info('Player advancing from group', [
+                    'competition_id' => $this->id,
+                    'group_name' => $group->name,
+                    'position' => $i + 1,
+                    'player_id' => $playerId,
+                    'points' => $standings[$i]['points'],
+                    'set_diff' => $standings[$i]['sets_won'] - $standings[$i]['sets_lost']
+                ]);
             }
         }
 
         \Log::info('Advancing players extracted', [
             'advancing_players' => $advancingPlayers
         ]);
+
+        // Save original advancing players for later lookup (before modifying the array)
+        $originalAdvancingPlayers = $advancingPlayers;
 
         // Separate winners (position 1) and other advancing players
         $winners = [];
@@ -632,11 +662,11 @@ class Competition extends Model
             $homePlayerId = $bracketPositions[$pairing['home']] ?? null;
             $awayPlayerId = $bracketPositions[$pairing['away']] ?? null;
 
-            // Find group and position info for home player
+            // Find group and position info for home player from original list
             $homeGroup = null;
             $homePosition = null;
             if ($homePlayerId) {
-                foreach ($advancingPlayers as $groupName => $players) {
+                foreach ($originalAdvancingPlayers as $groupName => $players) {
                     foreach ($players as $player) {
                         if ($player['player_id'] == $homePlayerId) {
                             $homeGroup = $groupName;
@@ -647,11 +677,11 @@ class Competition extends Model
                 }
             }
 
-            // Find group and position info for away player
+            // Find group and position info for away player from original list
             $awayGroup = null;
             $awayPosition = null;
             if ($awayPlayerId) {
-                foreach ($advancingPlayers as $groupName => $players) {
+                foreach ($originalAdvancingPlayers as $groupName => $players) {
                     foreach ($players as $player) {
                         if ($player['player_id'] == $awayPlayerId) {
                             $awayGroup = $groupName;

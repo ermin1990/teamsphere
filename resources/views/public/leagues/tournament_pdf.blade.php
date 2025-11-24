@@ -135,7 +135,7 @@
                                 @foreach($groupStandings as $index => $standing)
                                 <tr class="{{ $index < $advancingPlayers ? 'bg-green-50' : 'bg-white' }} border-t border-gray-200">
                                     <td class="px-4 py-2 text-center font-medium">{{ $index + 1 }}</td>
-                                    <td class="px-4 py-2 player-name-table">{{ $standing->player->name }}@if($standing->player->position) <span class="text-xs text-gray-500">({{ $standing->player->position }})</span>@endif</td>
+                                    <td class="px-4 py-2 player-name-table">{{ $standing->player->name }}</td>
                                     <td class="px-4 py-2 text-center">{{ $standing->won ?? 0 }}</td>
                                     <td class="px-4 py-2 text-center">{{ $standing->lost ?? 0 }}</td>
                                     <td class="px-4 py-2 text-center">{{ ($standing->sets_won ?? 0) - ($standing->sets_lost ?? 0) }}</td>
@@ -367,7 +367,7 @@
                                         <div class="flex items-center justify-between mb-1">
                                             <div class="flex items-center gap-1 flex-1 min-w-0">
                                                 <div class="text-xs md:text-sm font-semibold {{ ($homeSetsWon > $awaySetsWon) && ($homeSetsWon > 0 || $awaySetsWon > 0) || ($match->is_bye && $match->homePlayer) ? 'text-gray-900 font-bold' : 'text-gray-600' }} truncate player-name-knockout">
-                                                    {{ $match->homePlayer->name ?? 'NEMA PROTIVNIKA' }}@if(isset($playerGroupSeeding[$match->home_player_id])) <span class="text-xs text-gray-500">({{ $playerGroupSeeding[$match->home_player_id] }})</span>@endif
+                                                    {{ $match->homePlayer->name ?? 'NEMA PROTIVNIKA' }}
                                                 </div>
                                             </div>
                                             <div class="flex-shrink-0 ml-1">
@@ -399,7 +399,7 @@
                                         <div class="flex items-center justify-between">
                                             <div class="flex items-center gap-1 flex-1 min-w-0">
                                                 <div class="text-xs md:text-sm font-semibold {{ ($awaySetsWon > $homeSetsWon) && ($homeSetsWon > 0 || $awaySetsWon > 0) || ($match->is_bye && $match->awayPlayer) ? 'text-gray-900 font-bold' : 'text-gray-600' }} truncate player-name-knockout">
-                                                    {{ $match->awayPlayer->name ?? 'NEMA PROTIVNIKA' }}@if(isset($playerGroupSeeding[$match->away_player_id])) <span class="text-xs text-gray-500">({{ $playerGroupSeeding[$match->away_player_id] }})</span>@endif
+                                                    {{ $match->awayPlayer->name ?? 'NEMA PROTIVNIKA' }}
                                                 </div>
                                             </div>
                                             <div class="flex-shrink-0 ml-1">

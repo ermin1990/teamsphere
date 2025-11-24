@@ -190,10 +190,13 @@ class TournamentGroupService
         // Recalculate positions
         $ordered = Standing::where('competition_id', $competition->id)
             ->where('tournament_group_id', $group->id)
-            ->get()
-            ->sortByDesc(function ($s) {
-                return [$s->points ?? 0, ($s->sets_won - $s->sets_lost) ?? 0, $s->points_won ?? 0];
-            })->values();
+            ->orderByDesc('points')
+            ->orderByRaw('(sets_won - sets_lost) DESC')
+            ->orderByRaw('(points_won - points_lost) DESC')
+            ->orderByDesc('sets_won')
+            ->orderByDesc('won')
+            ->orderBy('id')
+            ->get();
 
         \Log::info('Ordered standings before position update', [
             'standings' => $ordered->map(fn($s) => [
@@ -261,11 +264,11 @@ class TournamentGroupService
             if ($match->home_score > $match->away_score) {
                 $standings[$homeId]['won']++;
                 $standings[$awayId]['lost']++;
-                $standings[$homeId]['points'] += $competition->points_for_win ?? 2;
+                $standings[$homeId]['points'] += $competition->points_for_win ?? 3;
             } elseif ($match->away_score > $match->home_score) {
                 $standings[$awayId]['won']++;
                 $standings[$homeId]['lost']++;
-                $standings[$awayId]['points'] += $competition->points_for_win ?? 2;
+                $standings[$awayId]['points'] += $competition->points_for_win ?? 3;
             } else {
                 // Draw
                 $standings[$homeId]['points'] += $competition->points_for_draw ?? 1;

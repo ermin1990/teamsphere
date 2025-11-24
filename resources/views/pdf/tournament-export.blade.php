@@ -371,9 +371,12 @@
                         $standings = App\Models\Standing::where('competition_id', $competition->id)
                             ->where('tournament_group_id', $group->id)
                             ->with('player')
-                            ->orderBy('points', 'desc')
-                            ->orderByRaw('(sets_won - sets_lost) desc')
-                            ->orderByRaw('(points_won - points_lost) desc')
+                            ->orderByDesc('points')
+                            ->orderByRaw('(sets_won - sets_lost) DESC')
+                            ->orderByRaw('(points_won - points_lost) DESC')
+                            ->orderByDesc('sets_won')
+                            ->orderByDesc('won')
+                            ->orderBy('id')
                             ->get();
                     @endphp
                     
@@ -391,9 +394,12 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach($standings as $standing)
-                                    <tr class="@if($standing->position <= ($competition->players_advancing_per_group ?? 2)) position-{{ $standing->position }} @endif">
-                                        <td>{{ $standing->position }}</td>
+                                @foreach($standings as $index => $standing)
+                                    @php
+                                        $actualPosition = $index + 1;
+                                    @endphp
+                                    <tr class="@if($actualPosition <= ($competition->players_advancing_per_group ?? 2)) position-{{ $actualPosition }} @endif">
+                                        <td>{{ $actualPosition }}</td>
                                         <td>{{ $standing->player->name ?? 'N/A' }}</td>
                                         <td>{{ $standing->played }}</td>
                                         <td>{{ $standing->won }}</td>
@@ -427,6 +433,29 @@
                                         Kolo {{ $roundNumber }}.
                                     </div>
                                     @foreach($roundMatches as $match)
+                                        @php
+                                            // Get positions for players in this match
+                                            $homePosition = null;
+                                            $awayPosition = null;
+                                            
+                                            if($match->home_player_id) {
+                                                $homeStanding = $standings->firstWhere('player_id', $match->home_player_id);
+                                                if($homeStanding) {
+                                                    $homePosition = $standings->search(function($s) use ($match) {
+                                                        return $s->player_id == $match->home_player_id;
+                                                    }) + 1;
+                                                }
+                                            }
+                                            
+                                            if($match->away_player_id) {
+                                                $awayStanding = $standings->firstWhere('player_id', $match->away_player_id);
+                                                if($awayStanding) {
+                                                    $awayPosition = $standings->search(function($s) use ($match) {
+                                                        return $s->player_id == $match->away_player_id;
+                                                    }) + 1;
+                                                }
+                                            }
+                                        @endphp
                                         <div class="match-box">
                                             <div class="match-header">
                                                 Meč {{ $match->match_order ?? $loop->iteration }}
@@ -436,6 +465,9 @@
                                             </div>
                                             <div class="match-player match-home @if($match->winner_id == $match->home_player_id) match-winner @endif">
                                                 {{ $match->homePlayer->name ?? 'TBD' }}
+                                                @if($homePosition)
+                                                    ({{ $homePosition }})
+                                                @endif
                                                 @if($match->home_score !== null)
                                                     <span class="match-score">{{ $match->home_score }}</span>
                                                 @endif
@@ -450,6 +482,9 @@
                                             @endif
                                             <div class="match-player match-away @if($match->winner_id == $match->away_player_id) match-winner @endif">
                                                 {{ $match->awayPlayer->name ?? 'TBD' }}
+                                                @if($awayPosition)
+                                                    ({{ $awayPosition }})
+                                                @endif
                                                 @if($match->away_score !== null)
                                                     <span class="match-score">{{ $match->away_score }}</span>
                                                 @endif
@@ -671,36 +706,79 @@
                                         {{-- Players --}}
                                         <div style="padding: 8px;">
                                             @php
-                                                // Get player's group and position info
+                                                // Get player's group and position info from match data (saved when knockout was created)
                                                 $homePlayerInfo = null;
                                                 $awayPlayerInfo = null;
                                                 
-                                                if($match->homePlayer) {
+                                                if($match->homePlayer && $match->home_player_group && $match->home_player_position) {
+                                                    $homePlayerInfo = [
+                                                        'group' => $match->home_player_group,
+                                                        'position' => $match->home_player_position
+                                                    ];
+                                                } elseif($match->homePlayer) {
+                                                    // Fallback: calculate position from current standings
                                                     foreach($competition->tournamentGroups as $group) {
-                                                        $standings = App\Models\Standing::where('competition_id', $competition->id)
+                                                        $allStandings = App\Models\Standing::where('competition_id', $competition->id)
                                                             ->where('tournament_group_id', $group->id)
-                                                            ->where('player_id', $match->home_player_id)
-                                                            ->first();
-                                                        if($standings) {
+                                                            ->orderByDesc('points')
+                                                            ->orderByRaw('(sets_won - sets_lost) DESC')
+                                                            ->orderByRaw('(points_won - points_lost) DESC')
+                                                            ->orderByDesc('sets_won')
+                                                            ->orderByDesc('won')
+                                                            ->orderBy('id')
+                                                            ->get();
+                                                        
+                                                        // Find position in sorted list
+                                                        $position = $allStandings->search(function($s) use ($match) {
+                                                            return $s->player_id == $match->home_player_id;
+                                                        });
+                                                        
+                                                        if($position !== false) {
                                                             $homePlayerInfo = [
                                                                 'group' => $group->name,
-                                                                'position' => $standings->position
+                                                                'position' => $position + 1
                                                             ];
                                                             break;
                                                         }
                                                     }
                                                 }
                                                 
-                                                if($match->awayPlayer) {
+                                                if($match->awayPlayer && $match->away_player_group && $match->away_player_position) {
+                                                    $awayPlayerInfo = [
+                                                        'group' => $match->away_player_group,
+                                                        'position' => $match->away_player_position
+                                                    ];
+                                                } elseif($match->awayPlayer) {
+                                                    // Fallback: calculate position from current standings
                                                     foreach($competition->tournamentGroups as $group) {
-                                                        $standings = App\Models\Standing::where('competition_id', $competition->id)
+                        $allStandings = App\Models\Standing::where('competition_id', $competition->id)
+                            ->where('tournament_group_id', $group->id)
+                            ->orderByDesc('points')
+                            ->orderByRaw('(sets_won - sets_lost) DESC')
+                            ->orderByRaw('(points_won - points_lost) DESC')
+                            ->orderByDesc('sets_won')
+                            ->orderByDesc('won')
+                            ->orderBy('id')
+                            ->get();
+                        
+                                                        $allStandings = App\Models\Standing::where('competition_id', $competition->id)
                                                             ->where('tournament_group_id', $group->id)
-                                                            ->where('player_id', $match->away_player_id)
-                                                            ->first();
-                                                        if($standings) {
+                                                            ->orderByDesc('points')
+                                                            ->orderByRaw('(sets_won - sets_lost) DESC')
+                                                            ->orderByRaw('(points_won - points_lost) DESC')
+                                                            ->orderByDesc('sets_won')
+                                                            ->orderByDesc('won')
+                                                            ->orderBy('id')
+                                                            ->get();
+                                                        
+                                                        $position = $allStandings->search(function($s) use ($match) {
+                                                            return $s->player_id == $match->away_player_id;
+                                                        });
+                                                        
+                                                        if($position !== false) {
                                                             $awayPlayerInfo = [
                                                                 'group' => $group->name,
-                                                                'position' => $standings->position
+                                                                'position' => $position + 1
                                                             ];
                                                             break;
                                                         }
@@ -728,9 +806,6 @@
                                                             @endif
                                                             <span style="color: white; font-size: 12px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block;">{{ $match->homePlayer->name }}</span>
                                                         </div>
-                                                        @if($homePlayerInfo)
-                                                            <div style="font-size: 10px; color: #9ca3af; margin-top: 2px; margin-left: 16px;">{{ $homePlayerInfo['group'] }}-{{ $homePlayerInfo['position'] }}</div>
-                                                        @endif
                                                     @else
                                                         <span style="color: #6b7280; font-style: italic; font-size: 10px;">TBD</span>
                                                     @endif
@@ -765,9 +840,6 @@
                                                             @endif
                                                             <span style="color: white; font-size: 12px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block;">{{ $match->awayPlayer->name }}</span>
                                                         </div>
-                                                        @if($awayPlayerInfo)
-                                                            <div style="font-size: 10px; color: #9ca3af; margin-top: 2px; margin-left: 16px;">{{ $awayPlayerInfo['group'] }}-{{ $awayPlayerInfo['position'] }}</div>
-                                                        @endif
                                                     @else
                                                         <span style="color: #6b7280; font-style: italic; font-size: 10px;">TBD</span>
                                                     @endif

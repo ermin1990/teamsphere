@@ -271,14 +271,6 @@
                                 <div class="block md:hidden p-4">
                                     <div class="flex items-center justify-between mb-3">
                                         <div class="flex items-center gap-3 flex-1 min-w-0">
-                                            <!-- Sets won indicator -->
-                                            <div class="w-8 h-8 rounded bg-white/20 flex items-center justify-center text-xs font-bold text-[var(--text-primary)] flex-shrink-0">
-                                                @if($match->status === 'completed' || $match->status === 'in_progress')
-                                                    {{ $homeSetsWon }}
-                                                @else
-                                                    <span class="text-[var(--text-muted)]">-</span>
-                                                @endif
-                                            </div>
                                             <div class="text-sm font-semibold {{ $homeSetsWon > $awaySetsWon ? 'font-bold' : '' }} text-[var(--text-primary)] truncate">
                                                 {{ $match->homePlayer->name ?? 'Home Player' }}@if(isset($playerPositionSeeding[$match->home_player_id])) <span class="text-[var(--text-tertiary)] text-xs">({{ $playerPositionSeeding[$match->home_player_id] }})</span>@endif
                                             </div>
@@ -306,14 +298,6 @@
 
                                     <div class="flex items-center justify-between">
                                         <div class="flex items-center gap-3 flex-1 min-w-0">
-                                            <!-- Sets won indicator -->
-                                            <div class="w-8 h-8 rounded bg-white/20 flex items-center justify-center text-xs font-bold text-[var(--text-primary)] flex-shrink-0">
-                                                @if($match->status === 'completed' || $match->status === 'in_progress')
-                                                    {{ $awaySetsWon }}
-                                                @else
-                                                    <span class="text-[var(--text-muted)]">-</span>
-                                                @endif
-                                            </div>
                                             <div class="text-sm font-semibold {{ $awaySetsWon > $homeSetsWon ? 'font-bold' : '' }} text-[var(--text-primary)] truncate">
                                                 {{ $match->awayPlayer->name ?? 'Away Player' }}@if(isset($playerPositionSeeding[$match->away_player_id])) <span class="text-[var(--text-tertiary)] text-xs">({{ $playerPositionSeeding[$match->away_player_id] }})</span>@endif
                                             </div>
@@ -407,14 +391,6 @@
                                         <div class="flex-1 space-y-4">
                                             <!-- Home Player -->
                                             <div class="flex items-center gap-3">
-                                                <!-- Sets won indicator -->
-                                                <div class="w-8 h-8 rounded bg-white/20 flex items-center justify-center text-xs font-bold text-[var(--text-primary)] flex-shrink-0">
-                                                    @if($match->status === 'completed' || $match->status === 'in_progress')
-                                                        {{ $homeSetsWon }}
-                                                    @else
-                                                        <span class="text-[var(--text-muted)]">-</span>
-                                                    @endif
-                                                </div>
                                                 <div class="text-xs md:text-sm font-semibold {{ $homeSetsWon > $awaySetsWon ? 'font-bold' : '' }} text-[var(--text-primary)] truncate flex-1 min-w-0">
                                                     {{ $match->homePlayer->name ?? 'Home Player' }}@if(isset($playerPositionSeeding[$match->home_player_id])) <span class="text-[var(--text-tertiary)] text-xs">({{ $playerPositionSeeding[$match->home_player_id] }})</span>@endif
                                                 </div>
@@ -443,14 +419,6 @@
 
                                             <!-- Away Player -->
                                             <div class="flex items-center gap-3">
-                                                <!-- Sets won indicator -->
-                                                <div class="w-8 h-8 rounded bg-white/20 flex items-center justify-center text-xs font-bold text-[var(--text-primary)] flex-shrink-0">
-                                                    @if($match->status === 'completed' || $match->status === 'in_progress')
-                                                        {{ $awaySetsWon }}
-                                                    @else
-                                                        <span class="text-[var(--text-muted)]">-</span>
-                                                    @endif
-                                                </div>
                                                 <div class="text-xs md:text-sm font-semibold {{ $awaySetsWon > $homeSetsWon ? 'font-bold' : '' }} text-[var(--text-primary)] truncate flex-1 min-w-0">
                                                     {{ $match->awayPlayer->name ?? 'Away Player' }}@if(isset($playerPositionSeeding[$match->away_player_id])) <span class="text-[var(--text-tertiary)] text-xs">({{ $playerPositionSeeding[$match->away_player_id] }})</span>@endif
                                                 </div>
@@ -670,7 +638,7 @@
                                             <div class="flex items-center justify-between mb-2">
                                                 <div class="flex items-center gap-2 flex-1 min-w-0 player-container" data-player-id="{{ $match->homePlayer->id ?? '' }}">
                                                     <div class="text-xs md:text-sm font-semibold {{ ($homeSetsWon > $awaySetsWon) && ($homeSetsWon > 0 || $awaySetsWon > 0) || ($match->is_bye && $match->homePlayer) ? 'text-green-600' : 'text-[var(--text-tertiary)]' }} truncate">
-                                                        {{ $match->homePlayer->name ?? 'NEMA PROTIVNIKA' }}@if(isset($playerGroupSeeding[$match->home_player_id])) <span class="text-[var(--text-tertiary)] text-xs">({{ $playerGroupSeeding[$match->home_player_id] }})</span>@endif
+                                                        {{ $match->homePlayer->name ?? 'NEMA PROTIVNIKA' }}
                                                     </div>
                                                 </div>
                                                 <div class="flex-shrink-0 ml-2">
@@ -702,7 +670,7 @@
                                             <div class="flex items-center justify-between">
                                                 <div class="flex items-center gap-2 flex-1 min-w-0 player-container" data-player-id="{{ $match->awayPlayer->id ?? '' }}">
                                                     <div class="text-xs md:text-sm font-semibold {{ ($awaySetsWon > $homeSetsWon) && ($homeSetsWon > 0 || $awaySetsWon > 0) || ($match->is_bye && $match->awayPlayer) ? 'text-green-600' : 'text-[var(--text-tertiary)]' }} truncate">
-                                                        {{ $match->awayPlayer->name ?? 'NEMA PROTIVNIKA' }}@if(isset($playerGroupSeeding[$match->away_player_id])) <span class="text-[var(--text-tertiary)] text-xs">({{ $playerGroupSeeding[$match->away_player_id] }})</span>@endif
+                                                        {{ $match->awayPlayer->name ?? 'NEMA PROTIVNIKA' }}
                                                     </div>
                                                 </div>
                                                 <div class="flex-shrink-0 ml-2">

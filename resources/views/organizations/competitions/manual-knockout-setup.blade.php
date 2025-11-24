@@ -115,13 +115,13 @@
                             </div>
                             
                                                         <div id="knockoutMatchesContainer" class="mb-4">
-                                <div id="topBracket" class="grid gap-2 md:gap-3 mb-4 md:mb-6 lg:grid-cols-4 xl:grid-cols-6 knockout-grid">
+                                <div id="topBracket" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 md:gap-3 mb-4 md:mb-6 knockout-grid">
                                     <!-- Top half matches -->
                                 </div>
                                 <div class="flex items-center justify-center mb-4 md:mb-6">
                                     <div class="w-full max-w-md h-px bg-gradient-to-r from-transparent via-blue-500 to-transparent"></div>
                                 </div>
-                                <div id="bottomBracket" class="grid gap-2 md:gap-3 mb-4 md:mb-6 lg:grid-cols-4 xl:grid-cols-6 knockout-grid">
+                                <div id="bottomBracket" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 md:gap-3 mb-4 md:mb-6 knockout-grid">
                                     <!-- Bottom half matches -->
                                 </div>
                             </div>
@@ -295,7 +295,7 @@
                 });
                 
                 const matchDiv = document.createElement('div');
-                matchDiv.className = 'bg-gray-700/30 rounded-lg p-2 md:p-3 border border-gray-600/30';
+                matchDiv.className = 'bg-gray-700/30 rounded-lg p-3 md:p-4 border border-gray-600/30';
                 matchDiv.innerHTML = `
                     <div class="flex items-center justify-between mb-1 md:mb-2">
                         <h5 class="text-white font-semibold text-xs md:text-sm">Meč ${i + 1}</h5>

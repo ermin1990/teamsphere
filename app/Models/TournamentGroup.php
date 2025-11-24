@@ -158,12 +158,12 @@ class TournamentGroup extends Model
 
                 if (($match->home_score ?? 0) > ($match->away_score ?? 0)) {
                     $standings[$homePlayerIndex]['won']++;
-                    $standings[$homePlayerIndex]['points'] += 3; // Win = 3 points
+                    $standings[$homePlayerIndex]['points'] += $this->competition->points_for_win ?? 3;
                 } elseif (($match->home_score ?? 0) < ($match->away_score ?? 0)) {
                     $standings[$homePlayerIndex]['lost']++;
-                    $standings[$homePlayerIndex]['points'] += 0; // Loss = 0 points
+                    $standings[$homePlayerIndex]['points'] += $this->competition->points_for_loss ?? 0;
                 } else {
-                    $standings[$homePlayerIndex]['points'] += 1; // Draw = 1 point
+                    $standings[$homePlayerIndex]['points'] += $this->competition->points_for_draw ?? 1;
                 }
             }
 
@@ -174,12 +174,12 @@ class TournamentGroup extends Model
 
                 if (($match->away_score ?? 0) > ($match->home_score ?? 0)) {
                     $standings[$awayPlayerIndex]['won']++;
-                    $standings[$awayPlayerIndex]['points'] += 3;
+                    $standings[$awayPlayerIndex]['points'] += $this->competition->points_for_win ?? 3;
                 } elseif (($match->away_score ?? 0) < ($match->home_score ?? 0)) {
                     $standings[$awayPlayerIndex]['lost']++;
-                    $standings[$awayPlayerIndex]['points'] += 0;
+                    $standings[$awayPlayerIndex]['points'] += $this->competition->points_for_loss ?? 0;
                 } else {
-                    $standings[$awayPlayerIndex]['points'] += 1;
+                    $standings[$awayPlayerIndex]['points'] += $this->competition->points_for_draw ?? 1;
                 }
             }
         }
@@ -201,7 +201,7 @@ class TournamentGroup extends Model
 
         $completedMatches = $this->matches()->where('status', 'completed')->count();
 
-        if ($completedMatches >= $requiredMatches) {
+        if ($completedMatches == $requiredMatches) {
             $this->update([
                 'is_completed' => true,
                 'completed_at' => now(),
@@ -218,7 +218,9 @@ class TournamentGroup extends Model
             return [
                 $player['points'] ?? 0,
                 ($player['sets_won'] ?? 0) - ($player['sets_lost'] ?? 0),
+                ($player['points_won'] ?? 0) - ($player['points_lost'] ?? 0),
                 $player['sets_won'] ?? 0,
+                $player['won'] ?? 0,
             ];
         })->values();
     }
