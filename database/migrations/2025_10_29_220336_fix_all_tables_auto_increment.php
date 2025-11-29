@@ -55,6 +55,11 @@ return new class extends Migration
             }
 
             try {
+                // Skip for SQLite as it doesn't support SHOW COLUMNS or ALTER MODIFY
+                if (DB::connection()->getDriverName() === 'sqlite') {
+                    continue;
+                }
+                
                 // Get column information
                 $result = DB::select("SHOW COLUMNS FROM `{$table}` WHERE Field = 'id'");
                 

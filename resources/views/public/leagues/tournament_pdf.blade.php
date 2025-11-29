@@ -123,23 +123,26 @@
                         <table class="w-full text-sm">
                             <thead class="bg-gray-100">
                                 <tr>
-                                    <th class="px-4 py-2 text-left font-semibold text-gray-700">#</th>
-                                    <th class="px-4 py-2 text-left font-semibold text-gray-700">Igrač</th>
-                                    <th class="px-4 py-2 text-center font-semibold text-gray-700">P</th>
-                                    <th class="px-4 py-2 text-center font-semibold text-gray-700">I</th>
-                                    <th class="px-4 py-2 text-center font-semibold text-gray-700">Set±</th>
-                                    <th class="px-4 py-2 text-center font-semibold text-gray-700">B</th>
+                                    <th class="px-3 py-2 text-left font-semibold text-gray-700 text-xs">#</th>
+                                    <th class="px-3 py-2 text-left font-semibold text-gray-700 text-xs">Igrač</th>
+                                    <th class="px-3 py-2 text-center font-semibold text-gray-700 text-xs">P</th>
+                                    <th class="px-3 py-2 text-center font-semibold text-gray-700 text-xs">I</th>
+                                    <th class="px-3 py-2 text-center font-semibold text-gray-700 text-xs">Set±</th>
+                                    <th class="px-3 py-2 text-center font-semibold text-gray-700 text-xs">Gem±</th>
+                                    <th class="px-3 py-2 text-center font-semibold text-gray-700 text-xs">B</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach($groupStandings as $index => $standing)
+                                @php $gemDiff = ($standing->points_won ?? 0) - ($standing->points_lost ?? 0); @endphp
                                 <tr class="{{ $index < $advancingPlayers ? 'bg-green-50' : 'bg-white' }} border-t border-gray-200">
-                                    <td class="px-4 py-2 text-center font-medium">{{ $index + 1 }}</td>
-                                    <td class="px-4 py-2 player-name-table">{{ $standing->player->name }}</td>
-                                    <td class="px-4 py-2 text-center">{{ $standing->won ?? 0 }}</td>
-                                    <td class="px-4 py-2 text-center">{{ $standing->lost ?? 0 }}</td>
-                                    <td class="px-4 py-2 text-center">{{ ($standing->sets_won ?? 0) - ($standing->sets_lost ?? 0) }}</td>
-                                    <td class="px-4 py-2 text-center font-semibold">{{ $standing->points ?? 0 }}</td>
+                                    <td class="px-3 py-2 text-center font-medium text-xs">{{ $index + 1 }}</td>
+                                    <td class="px-3 py-2 player-name-table text-xs">{{ $standing->player->name }}</td>
+                                    <td class="px-3 py-2 text-center text-xs">{{ $standing->won ?? 0 }}</td>
+                                    <td class="px-3 py-2 text-center text-xs">{{ $standing->lost ?? 0 }}</td>
+                                    <td class="px-3 py-2 text-center text-xs">{{ ($standing->sets_won ?? 0) - ($standing->sets_lost ?? 0) }}</td>
+                                    <td class="px-3 py-2 text-center text-xs {{ $gemDiff >= 0 ? 'text-green-600' : 'text-red-600' }}">{{ $gemDiff >= 0 ? '+' : '' }}{{ $gemDiff }}</td>
+                                    <td class="px-3 py-2 text-center font-semibold text-xs">{{ $standing->points ?? 0 }}</td>
                                 </tr>
                                 @endforeach
                             </tbody>

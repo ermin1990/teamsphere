@@ -68,14 +68,14 @@
             color: #374151;
             padding: 6px 8px;
             text-align: left;
-            font-size: 9px;
+            font-size: 8px;
             font-weight: bold;
             border-bottom: 2px solid #d1d5db;
         }
         td {
             padding: 5px 8px;
             border-bottom: 1px solid #e5e7eb;
-            font-size: 9px;
+            font-size: 8px;
         }
         tr:hover {
             background: #f9fafb;
@@ -388,8 +388,9 @@
                                     <th>Igrač</th>
                                     <th>M</th>
                                     <th>P</th>
-                                    <th>G</th>
                                     <th>I</th>
+                                    <th>S</th>
+                                    <th>G</th>
                                     <th>Bod</th>
                                 </tr>
                             </thead>
@@ -405,6 +406,7 @@
                                         <td>{{ $standing->won }}</td>
                                         <td>{{ $standing->lost }}</td>
                                         <td>{{ $standing->sets_won }}-{{ $standing->sets_lost }}</td>
+                                        <td>{{ ($standing->points_won - $standing->points_lost) >= 0 ? '+' : '' }}{{ $standing->points_won - $standing->points_lost }}</td>
                                         <td><strong>{{ $standing->points }}</strong></td>
                                     </tr>
                                 @endforeach
@@ -723,6 +725,7 @@
                                                             ->orderByDesc('points')
                                                             ->orderByRaw('(sets_won - sets_lost) DESC')
                                                             ->orderByRaw('(points_won - points_lost) DESC')
+                                                            ->orderByDesc('points_won')
                                                             ->orderByDesc('sets_won')
                                                             ->orderByDesc('won')
                                                             ->orderBy('id')
@@ -756,9 +759,12 @@
                             ->orderByDesc('points')
                             ->orderByRaw('(sets_won - sets_lost) DESC')
                             ->orderByRaw('(points_won - points_lost) DESC')
+                            ->orderByDesc('points_won')
                             ->orderByDesc('sets_won')
                             ->orderByDesc('won')
                             ->orderBy('id')
+                            ->get();y('id')
+                            ->get();y('id')
                             ->get();
                         
                                                         $allStandings = App\Models\Standing::where('competition_id', $competition->id)

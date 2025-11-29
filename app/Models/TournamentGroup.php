@@ -219,6 +219,7 @@ class TournamentGroup extends Model
                 $player['points'] ?? 0,
                 ($player['sets_won'] ?? 0) - ($player['sets_lost'] ?? 0),
                 ($player['points_won'] ?? 0) - ($player['points_lost'] ?? 0),
+                $player['points_won'] ?? 0,
                 $player['sets_won'] ?? 0,
                 $player['won'] ?? 0,
             ];

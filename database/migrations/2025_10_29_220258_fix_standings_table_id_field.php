@@ -21,15 +21,18 @@ return new class extends Migration
                 $table->id()->first();
             });
         } else {
-            // Check if id has auto_increment
-            $result = DB::select("SHOW COLUMNS FROM standings WHERE Field = 'id'");
-            
-            if (!empty($result)) {
-                $extra = $result[0]->Extra ?? '';
+            // For SQLite, skip the check as it handles auto_increment differently
+            if (DB::connection()->getDriverName() === 'mysql') {
+                // Check if id has auto_increment
+                $result = DB::select("SHOW COLUMNS FROM standings WHERE Field = 'id'");
                 
-                // If auto_increment is missing, fix it
-                if (strpos($extra, 'auto_increment') === false) {
-                    DB::statement('ALTER TABLE standings MODIFY id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY');
+                if (!empty($result)) {
+                    $extra = $result[0]->Extra ?? '';
+                    
+                    // If auto_increment is missing, fix it
+                    if (strpos($extra, 'auto_increment') === false) {
+                        DB::statement('ALTER TABLE standings MODIFY id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY');
+                    }
                 }
             }
         }

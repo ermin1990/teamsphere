@@ -501,6 +501,7 @@ class Competition extends Model
                 ->orderByDesc('points')
                 ->orderByDesc(\DB::raw('sets_won - sets_lost'))
                 ->orderByDesc(\DB::raw('points_won - points_lost'))
+                ->orderByDesc('points_won')
                 ->orderByDesc('sets_won')
                 ->orderByDesc('won')
                 ->orderBy('id')
