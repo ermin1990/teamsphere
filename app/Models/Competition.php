@@ -496,8 +496,9 @@ class Competition extends Model
                 'standings_count' => $group->standings()->count()
             ]);
             
-            // Use Standing models instead of standings array
+            // Use Standing models instead of standings array - respect manual_order if set
             $standings = $group->standings()
+                ->orderByRaw('CASE WHEN manual_order IS NULL THEN 1 ELSE 0 END ASC, manual_order ASC')
                 ->orderByDesc('points')
                 ->orderByDesc(\DB::raw('sets_won - sets_lost'))
                 ->orderByDesc(\DB::raw('points_won - points_lost'))

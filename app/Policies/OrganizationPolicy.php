@@ -91,7 +91,13 @@ class OrganizationPolicy
      */
     public function update(User $user, Organization $organization): bool
     {
-        return $user->id === $organization->user_id;
+        // Owner can update
+        if ($user->id === $organization->user_id) {
+            return true;
+        }
+        
+        // Organization members can also update (manage players, competitions, etc.)
+        return $organization->users()->where('users.id', $user->id)->exists();
     }
 
     /**

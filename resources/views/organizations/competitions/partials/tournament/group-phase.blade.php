@@ -113,10 +113,12 @@
                                 <tr class="border-b border-gray-700/30 hover:bg-gray-700/30 transition-colors {{ $index < $competition->players_advancing_per_group ? 'bg-green-900/30' : '' }}">
                                     <td class="py-2 pr-2 text-gray-400 font-mono">{{ $index + 1 }}</td>
                                     <td class="py-2 text-white font-medium">
-                                        {{ $standing->player->name }}
-                                        @if($standing->player->position)
-                                            <span class="text-gray-400 text-xs">({{ $standing->player->position }})</span>
-                                        @endif
+                                        <a href="{{ route('organizations.players.show', [$organization, $standing->player]) }}" class="hover:text-blue-400 transition-colors">
+                                            {{ $standing->player->name }}
+                                            @if($standing->player->position)
+                                                <span class="text-gray-400 text-xs">({{ $standing->player->position }})</span>
+                                            @endif
+                                        </a>
                                     </td>
                                     <td class="py-2 px-1 text-center text-gray-300">{{ $standing->played }}</td>
                                     <td class="py-2 px-1 text-center text-green-400">{{ $standing->won }}</td>

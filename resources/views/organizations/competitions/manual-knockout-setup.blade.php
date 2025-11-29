@@ -52,15 +52,22 @@
                                         $standings = App\Models\Standing::where('competition_id', $competition->id)
                                             ->where('tournament_group_id', $group->id)
                                             ->with('player')
-                                            ->orderBy('position', 'asc')
+                                            ->orderByRaw('CASE WHEN manual_order IS NULL THEN 1 ELSE 0 END ASC, manual_order ASC')
+                                            ->orderBy('points', 'desc')
+                                            ->orderByRaw('(sets_won - sets_lost) desc')
+                                            ->orderByRaw('(points_won - points_lost) desc')
+                                            ->orderByDesc('points_won')
+                                            ->orderByDesc('sets_won')
+                                            ->orderByDesc('won')
+                                            ->orderBy('id')
                                             ->limit($competition->players_advancing_per_group ?? 2)
                                             ->get();
-                                        foreach($standings as $standing) {
+                                        foreach($standings as $index => $standing) {
                                             if($standing->player) {
                                                 $qualifiedPlayers->push([
                                                     'player' => $standing->player,
                                                     'group' => $group->name,
-                                                    'position' => $standing->position
+                                                    'position' => $index + 1
                                                 ]);
                                             }
                                         }

@@ -107,15 +107,13 @@ class PlayerController extends Controller
     /**
      * Show the form for editing the specified player.
      */
-    public function edit(Organization $organization, Player $player)
+    public function edit(Player $player)
     {
+        // Get organization from player
+        $organization = $player->organization;
+        
         // Use policy for authorization
         $this->authorize('update', $organization);
-        
-        // Ensure player belongs to organization
-        if ($player->organization_id !== $organization->id) {
-            abort(404);
-        }
 
         return view('organizations.players.edit', compact('organization', 'player'));
     }
@@ -123,15 +121,13 @@ class PlayerController extends Controller
     /**
      * Update the specified player.
      */
-    public function update(Request $request, Organization $organization, Player $player)
+    public function update(Request $request, Player $player)
     {
+        // Get organization from player
+        $organization = $player->organization;
+        
         // Use policy for authorization
         $this->authorize('update', $organization);
-        
-        // Ensure player belongs to organization
-        if ($player->organization_id !== $organization->id) {
-            abort(404);
-        }
 
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -180,15 +176,13 @@ class PlayerController extends Controller
     /**
      * Remove the specified player.
      */
-    public function destroy(Organization $organization, Player $player)
+    public function destroy(Player $player)
     {
+        // Get organization from player
+        $organization = $player->organization;
+        
         // Use policy for authorization
         $this->authorize('update', $organization);
-        
-        // Ensure player belongs to organization
-        if ($player->organization_id !== $organization->id) {
-            abort(404);
-        }
 
         $player->delete();
 

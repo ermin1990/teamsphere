@@ -149,7 +149,7 @@ Route::middleware('auth')->group(function () {
     Route::post('organizations/{organization}/competitions/{competition}/reset-groups', [CompetitionController::class, 'resetGroups'])->name('organizations.competitions.reset-groups');
 
     // Manual standings adjustment
-    Route::get('organizations/{organization}/competitions/{competition}/groups/{group}/manual-standings', function($organization, $competition, $group) {
+    Route::get('organizations/{organization}/competitions/{competition}/groups/{group}/manual-standings', function(\App\Models\Organization $organization, \App\Models\Competition $competition, \App\Models\TournamentGroup $group) {
         return view('organizations.competitions.manual-standings', compact('organization', 'competition', 'group'));
     })->name('organizations.competitions.groups.manual-standings');
     Route::get('leagues/create/{organization}', [LeagueController::class, 'create'])->name('leagues.create');

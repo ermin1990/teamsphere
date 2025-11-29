@@ -34,28 +34,25 @@ class ManualStandingsAdjustment extends Component
             ->orderBy('id')
             ->get();
 
-        $this->standingsOrder = $standings->pluck('id')->toArray();
-    }
-
-    public function updateOrder($orderedIds)
-    {
-        $this->standingsOrder = $orderedIds;
+        $this->standingsOrder = $standings->map(function($standing, $index) {
+            return [
+                'id' => $standing->id,
+                'position' => $standing->manual_order ?? ($index + 1)
+            ];
+        })->toArray();
     }
 
     public function saveOrder()
     {
-        foreach ($this->standingsOrder as $index => $standingId) {
-            Standing::where('id', $standingId)->update(['manual_order' => $index + 1]);
+        // Sort by entered position
+        $ordered = collect($this->standingsOrder)->sortBy('position')->values();
+        
+        foreach ($ordered as $index => $item) {
+            Standing::where('id', $item['id'])->update(['manual_order' => $index + 1]);
         }
 
-        // Clear manual_order for standings not in the list (if any removed, but shouldn't)
-        Standing::where('competition_id', $this->competitionId)
-            ->where('tournament_group_id', $this->groupId)
-            ->whereNotIn('id', $this->standingsOrder)
-            ->update(['manual_order' => null]);
-
         session()->flash('message', 'Pozicije su uspješno ažurirane.');
-        $this->loadStandings(); // Reload
+        $this->loadStandings();
     }
 
     public function resetOrder()
@@ -70,10 +67,15 @@ class ManualStandingsAdjustment extends Component
 
     public function render()
     {
-        $standings = Standing::whereIn('id', $this->standingsOrder)
+        $standingIds = collect($this->standingsOrder)->pluck('id')->toArray();
+        
+        $standings = Standing::whereIn('id', $standingIds)
             ->with('player')
-            ->orderByRaw('FIELD(id, ' . implode(',', $this->standingsOrder) . ')')
-            ->get();
+            ->get()
+            ->sortBy(function($standing) use ($standingIds) {
+                return array_search($standing->id, $standingIds);
+            })
+            ->values();
 
         return view('livewire.manual-standings-adjustment', compact('standings'));
     }
