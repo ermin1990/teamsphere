@@ -62,6 +62,9 @@
                         ->orderBy('points', 'desc')
                         ->orderByRaw('(sets_won - sets_lost) desc')
                         ->orderByRaw('(points_won - points_lost) desc')
+                        ->orderByDesc('points_won')
+                        ->orderByDesc('sets_won')
+                        ->orderByDesc('won')
                         ->orderBy('id')
                         ->get();
                 @endphp
@@ -92,6 +95,7 @@
                                     <th class="text-center py-1 px-1 font-medium">P</th>
                                     <th class="text-center py-1 px-1 font-medium">I</th>
                                     <th class="text-center py-1 px-1 font-medium">S</th>
+                                    <th class="text-center py-1 px-1 font-medium">G</th>
                                     <th class="text-center py-1 px-1 font-medium text-green-400">Bod</th>
                                 </tr>
                             </thead>
@@ -109,11 +113,12 @@
                                     <td class="py-2 px-1 text-center text-green-400">{{ $standing->won }}</td>
                                     <td class="py-2 px-1 text-center text-red-400">{{ $standing->lost }}</td>
                                     <td class="py-2 px-1 text-center text-gray-300">{{ $standing->sets_won }}-{{ $standing->sets_lost }}</td>
+                                    <td class="py-2 px-1 text-center {{ ($standing->points_won - $standing->points_lost) >= 0 ? 'text-green-400' : 'text-red-400' }}">{{ ($standing->points_won - $standing->points_lost) >= 0 ? '+' : '' }}{{ $standing->points_won - $standing->points_lost }}</td>
                                     <td class="py-2 px-1 text-center text-green-400 font-bold">{{ $standing->points }}</td>
                                 </tr>
                                 @empty
                                 <tr>
-                                    <td colspan="7" class="py-4 text-center text-gray-400">Nema podataka o bodovima</td>
+                                    <td colspan="8" class="py-4 text-center text-gray-400">Nema podataka o bodovima</td>
                                 </tr>
                                 @endforelse
                             </tbody>

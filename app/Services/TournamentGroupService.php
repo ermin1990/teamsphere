@@ -193,6 +193,7 @@ class TournamentGroupService
             ->orderByDesc('points')
             ->orderByRaw('(sets_won - sets_lost) DESC')
             ->orderByRaw('(points_won - points_lost) DESC')
+            ->orderByDesc('points_won')
             ->orderByDesc('sets_won')
             ->orderByDesc('won')
             ->orderBy('id')

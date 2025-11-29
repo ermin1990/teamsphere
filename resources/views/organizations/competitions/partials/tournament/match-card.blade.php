@@ -81,7 +81,7 @@
                    class="bg-purple-600 hover:bg-purple-700 text-white text-[10px] px-2 py-1 rounded transition-colors text-center whitespace-nowrap">
                     ✏️ {{ __('Edit') }}
                 </a>
-                <a href="{{ $isRefereeForMatch($match) ? route('referee.competition.match.live', [$match]) : route('competitions.live-score', [$match->id]) }}" 
+                <a href="{{ $isRefereeForMatch($match) ? route('referee.competition.match.live', [$competition, $match]) : route('competitions.live-score', [$match->id]) }}" 
                    class="bg-gray-600 text-gray-400 text-[10px] px-2 py-1 rounded text-center whitespace-nowrap cursor-not-allowed opacity-50"
                    disabled
                    title="Live unos rezultata je trenutno onemogućen">
@@ -101,7 +101,7 @@
                     🔴 {{ __('Live') }}
                 </span>
                 @if($isOwner || $isRefereeForMatch($match))
-                <a href="{{ $isRefereeForMatch($match) ? route('referee.competition.match.live', [$match]) : route('competitions.live-score', [$match->id]) }}" 
+                <a href="{{ $isRefereeForMatch($match) ? route('referee.competition.match.live', [$competition, $match]) : route('competitions.live-score', [$match->id]) }}" 
                    class="text-blue-400 hover:text-blue-300 text-[10px] text-center whitespace-nowrap">
                     👁️ {{ __('Watch') }}
                 </a>
@@ -113,7 +113,7 @@
                     👁️ Detalji
                 </a>
                 @if($isOwner || $isRefereeForMatch($match))
-                <a href="{{ $isRefereeForMatch($match) ? route('referee.competition.match.edit', [$match]) : route('organizations.competitions.matches.edit', [$organization, $competition, $match]) }}" 
+                <a href="{{ $isRefereeForMatch($match) ? route('referee.competition.match.edit', [$competition, $match]) : route('organizations.competitions.matches.edit', [$organization, $competition, $match]) }}" 
                    onclick="event.stopPropagation()"
                    class="text-blue-400 hover:text-blue-300 text-[10px] text-center whitespace-nowrap">
                     ✏️ {{ __('Edit') }}

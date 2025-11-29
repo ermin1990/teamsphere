@@ -169,6 +169,10 @@ class CompetitionController extends Controller
         if ($competition->isTournament() && $competition->tournamentGroups()->count() > 0) {
             file_put_contents($logFile, "Processing tournament groups...\n", FILE_APPEND);
             foreach ($competition->tournamentGroups as $group) {
+                // Skip if player_ids is null or empty
+                if (empty($group->player_ids)) {
+                    continue;
+                }
                 foreach ($group->player_ids as $playerId) {
                     try {
                         // Only create if doesn't exist - don't update/reset existing standings

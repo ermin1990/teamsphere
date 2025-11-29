@@ -196,10 +196,11 @@
 
                         <!-- Table Header -->
                         <div class="grid grid-cols-12 gap-2 mb-2 text-xs table-header-text font-medium px-2">
-                            <div class="col-span-7"></div>
+                            <div class="col-span-6"></div>
                             <div class="col-span-1 text-center">P</div>
                             <div class="col-span-1 text-center">I</div>
                             <div class="col-span-1 text-center">Set±</div>
+                            <div class="col-span-1 text-center">Gem±</div>
                             <div class="col-span-2 text-center">B</div>
                         </div>                        <!-- Table Rows -->
                         <div class="space-y-1">
@@ -208,7 +209,7 @@
                             @endphp
                             @foreach($groupStandings as $index => $standing)
                             <div class="grid grid-cols-12 gap-2 items-center py-2 px-2 {{ $index < $advancingPlayers ? 'table-advancing-bg' : 'bg-[var(--bg-tertiary)]' }} hover:bg-[var(--bg-secondary)] rounded text-xs md:text-sm transition-all duration-200">
-                                <div class="col-span-7 flex items-center space-x-2">
+                                <div class="col-span-6 flex items-center space-x-2">
                                     <span class="font-bold table-number-text w-6 text-center">{{ $index + 1 }}</span>
                                     <span class="table-player-name font-medium text-xs truncate">{{ $standing->player->name }}@if($standing->player->position) <span class="table-player-position text-xs">({{ $standing->player->position }})</span>@endif</span>
                                 </div>
@@ -221,6 +222,10 @@
                                 </div>
                                 <div class="col-span-1 text-center">
                                     <span class="table-number-text ">{{ ($standing->sets_won ?? 0) - ($standing->sets_lost ?? 0) }}</span>
+                                </div>
+                                <div class="col-span-1 text-center">
+                                    @php $gemDiff = ($standing->points_won ?? 0) - ($standing->points_lost ?? 0); @endphp
+                                    <span class="table-number-text {{ $gemDiff >= 0 ? 'text-green-400' : 'text-red-400' }}">{{ $gemDiff >= 0 ? '+' : '' }}{{ $gemDiff }}</span>
                                 </div>
                                 <div class="col-span-2 text-center">
                                     <span class="table-number-text-points table-points-text font-bold">{{ $standing->points ?? 0 }}</span>
