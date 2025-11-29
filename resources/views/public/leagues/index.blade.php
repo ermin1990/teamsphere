@@ -48,10 +48,10 @@
                        class="rounded-lg p-3 md:p-4 border transition-all duration-200 hover:scale-[1.02] group" style="background: var(--bg-tertiary); border-color: var(--border-secondary);">
                         <div class="flex items-start justify-between mb-2">
                             <div class="flex-1 min-w-0">
-                                <h3 class="text-sm md:text-base font-semibold group-hover:text-blue-400 transition-colors truncate" style="color: var(--text-primary);">
+                                <h3 class="text-sm md:text-base font-semibold group-hover:text-blue-400 transition-colors" style="color: var(--text-primary); word-break: break-word;">
                                     {{ $competition->name }}
                                 </h3>
-                                <p class="text-xs md:text-sm truncate" style="color: var(--text-tertiary);">
+                                <p class="text-xs md:text-sm" style="color: var(--text-tertiary); word-break: break-word;">
                                     {{ $competition->organization->name }}
                                 </p>
                             </div>

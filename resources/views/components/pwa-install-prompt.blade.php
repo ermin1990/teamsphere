@@ -1,26 +1,6 @@
 <!-- PWA Install Prompt -->
-<div id="pwa-install-prompt" class="fixed bottom-0 left-0 right-0 z-50 transform translate-y-full transition-transform duration-500 ease-out md:bottom-4 md:left-auto md:right-4 md:max-w-sm">
+<div id="pwa-install-prompt" class="fixed bottom-0 left-0 right-0 z-50 transform translate-y-full transition-transform duration-500 ease-out md:bottom-4 md:left-auto md:right-4 md:max-w-sm" style="display: none;">
     <div class="bg-gradient-to-br from-blue-600 via-blue-700 to-purple-700 text-white shadow-2xl rounded-t-2xl md:rounded-2xl border-2 border-blue-400/30 overflow-hidden">
-        <!-- Header with gradient accent -->
-        <div class="bg-white/10 backdrop-blur-sm px-6 py-4 flex items-center justify-between border-b border-white/20">
-            <div class="flex items-center space-x-3">
-                <div class="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-lg">
-                    <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
-                    </svg>
-                </div>
-                <div>
-                    <h3 class="text-lg font-bold">Instaliraj TeamSphere</h3>
-                    <p class="text-xs text-blue-100">Brži pristup iz aplikacije</p>
-                </div>
-            </div>
-            <button onclick="dismissPWAPrompt()" class="text-white/70 hover:text-white transition-colors p-2 hover:bg-white/10 rounded-lg">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                </svg>
-            </button>
-        </div>
-
         <!-- Body -->
         <div class="px-6 py-5">
             <p class="text-sm text-blue-50 mb-4 leading-relaxed">

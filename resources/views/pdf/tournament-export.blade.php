@@ -68,14 +68,14 @@
             color: #374151;
             padding: 6px 8px;
             text-align: left;
-            font-size: 9px;
+            font-size: 8px;
             font-weight: bold;
             border-bottom: 2px solid #d1d5db;
         }
         td {
             padding: 5px 8px;
             border-bottom: 1px solid #e5e7eb;
-            font-size: 9px;
+            font-size: 8px;
         }
         tr:hover {
             background: #f9fafb;
