@@ -59,6 +59,7 @@
                     $standings = App\Models\Standing::where('competition_id', $competition->id)
                         ->where('tournament_group_id', $group->id)
                         ->with('player')
+                        ->orderByRaw('CASE WHEN manual_order IS NULL THEN 1 ELSE 0 END ASC, manual_order ASC')
                         ->orderBy('points', 'desc')
                         ->orderByRaw('(sets_won - sets_lost) desc')
                         ->orderByRaw('(points_won - points_lost) desc')
@@ -78,9 +79,17 @@
                                     Grupa {{ $group->name }}
                                 </span>
                             </h4>
-                            <span class="text-gray-400 text-xs">
-                                {{ $matchesInGroup->where('status', 'completed')->count() }}/{{ $matchesInGroup->count() }} mečeva
-                            </span>
+                            <div class="flex items-center space-x-2">
+                                @if($isOwner)
+                                    <a href="{{ route('organizations.competitions.groups.manual-standings', [$organization, $competition, $group]) }}"
+                                       class="bg-yellow-600 hover:bg-yellow-700 text-white text-xs px-3 py-1 rounded-lg transition-colors font-semibold">
+                                        ✏️ Ručno prilagodi
+                                    </a>
+                                @endif
+                                <span class="text-gray-400 text-xs">
+                                    {{ $matchesInGroup->where('status', 'completed')->count() }}/{{ $matchesInGroup->count() }} mečeva
+                                </span>
+                            </div>
                         </div>
                     </div>
 

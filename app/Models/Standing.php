@@ -28,6 +28,7 @@ class Standing extends Model
         'goals_against',
         'goal_difference',
         'position',
+        'manual_order',
     ];
 
     protected $casts = [
@@ -48,6 +49,7 @@ class Standing extends Model
         'goals_against' => 'integer',
         'goal_difference' => 'integer',
         'position' => 'integer',
+        'manual_order' => 'integer',
     ];
 
     /**

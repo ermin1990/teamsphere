@@ -109,7 +109,16 @@
             @foreach($competition->tournamentGroups as $group)
             @php
                 $currentGroupMatches = $groupMatches->get($group->id) ?? collect();
-                $groupStandings = $group->standings()->with('player')->orderBy('position')->get();
+                $groupStandings = $group->standings()->with('player')
+                    ->orderByRaw('CASE WHEN manual_order IS NULL THEN 1 ELSE 0 END ASC, manual_order ASC')
+                    ->orderBy('points', 'desc')
+                    ->orderByRaw('(sets_won - sets_lost) desc')
+                    ->orderByRaw('(points_won - points_lost) desc')
+                    ->orderByDesc('points_won')
+                    ->orderByDesc('sets_won')
+                    ->orderByDesc('won')
+                    ->orderBy('id')
+                    ->get();
                 $advancingPlayers = $competition->players_advancing_per_group ?? 2;
             @endphp
 

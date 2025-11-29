@@ -148,7 +148,10 @@ Route::middleware('auth')->group(function () {
     Route::post('organizations/{organization}/competitions/{competition}/reset-knockout', [CompetitionController::class, 'resetKnockout'])->name('organizations.competitions.reset-knockout');
     Route::post('organizations/{organization}/competitions/{competition}/reset-groups', [CompetitionController::class, 'resetGroups'])->name('organizations.competitions.reset-groups');
 
-    // League routes
+    // Manual standings adjustment
+    Route::get('organizations/{organization}/competitions/{competition}/groups/{group}/manual-standings', function($organization, $competition, $group) {
+        return view('organizations.competitions.manual-standings', compact('organization', 'competition', 'group'));
+    })->name('organizations.competitions.groups.manual-standings');
     Route::get('leagues/create/{organization}', [LeagueController::class, 'create'])->name('leagues.create');
     Route::get('leagues/{league}', [LeagueController::class, 'show'])->name('leagues.show');
     Route::get('leagues/{league}/team-management', [LeagueController::class, 'teamManagement'])->name('leagues.team-management');
