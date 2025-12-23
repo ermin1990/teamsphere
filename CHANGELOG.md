@@ -1,6 +1,27 @@
-# Release Notes
+# TeamSphere Release Notes
+
+## [v2.0.0](https://github.com/ermin1990/teamsphere/compare/v1.0.0...v2.0.0) - 2025-12-23
+
+### ✨ New Features
+- **Categories System**: Add categories for organizing competitions within organizations
+- **Competition Completion**: Ability to mark competitions as completed with dedicated UI
+- **Flexible Player Import**: Allow bulk import of players without requiring club assignment
+
+### 🔧 Technical Improvements
+- New Category model with organization relationships and active scope
+- Enhanced Competition model with category_id and status fields
+- CategoryController with full CRUD operations
+- Nested resource routes for organization categories
+- Updated organization dashboard to display categories and separate active/completed competitions
+
+### 📝 Changes
+- Modified bulk import to make club field optional
+- Added competition completion functionality with confirmation dialog
+- Enhanced UI for better competition management
 
 ## [Unreleased](https://github.com/laravel/laravel/compare/v12.4.0...12.x)
+
+## [v12.4.0](https://github.com/laravel/laravel/compare/v12.3.1...v12.4.0) - 2025-08-29
 
 ## [v12.4.0](https://github.com/laravel/laravel/compare/v12.3.1...v12.4.0) - 2025-08-29
 
