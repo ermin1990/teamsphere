@@ -54,7 +54,15 @@
             Obriši
         </button>
     </form>
-    @else
+    @else        {{-- Complete competition button --}}
+        @if($competition->status === 'active')
+            <form method="POST" action="{{ route('organizations.competitions.complete', [$organization, $competition]) }}" onsubmit="return confirm('Da li ste sigurni da želite završiti ovo takmičenje?');">
+                @csrf
+                <button type="submit" class="inline-flex items-center px-3 py-2 sm:px-4 sm:py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors font-semibold text-sm sm:text-base">
+                    🏆 Završi takmičenje
+                </button>
+            </form>
+        @endif
         {{-- Reset competition to factory defaults --}}
         <form method="POST" action="{{ route('organizations.competitions.reset', [$organization, $competition]) }}" class="sm:ml-auto" onsubmit="return confirm('Resetovati takmičenje na fabrička podešavanja? Svi mečevi, grupe i rezultati biće obrisani.');">
             @csrf

@@ -28,8 +28,9 @@ class CompetitionController extends Controller
         $this->authorize('update', $organization);
 
         $sports = Sport::active()->get();
+        $categories = $organization->categories()->active()->get();
 
-        return view('organizations.competitions.create', compact('organization', 'sports'));
+        return view('organizations.competitions.create', compact('organization', 'sports', 'categories'));
     }
 
     /**
@@ -50,6 +51,7 @@ class CompetitionController extends Controller
             $request->validate([
                 'name' => ['required', 'string', 'max:255'],
                 'sport_id' => ['required', 'exists:sports,id'],
+                'category_id' => ['nullable', 'exists:categories,id'],
                 'type' => ['required', 'in:tournament'],
                 'start_date' => ['required', 'date'],
                 // Tournament specific validation
@@ -71,6 +73,7 @@ class CompetitionController extends Controller
             'description' => $request->description,
             'organization_id' => $organization->id,
             'sport_id' => $request->sport_id,
+            'category_id' => $request->category_id,
             'type' => $request->type,
             'start_date' => $request->start_date,
             'end_date' => $request->end_date,
@@ -608,7 +611,9 @@ class CompetitionController extends Controller
             abort(404);
         }
 
-        return view('organizations.competitions.settings', compact('organization', 'competition'));
+        $categories = $organization->categories()->active()->get();
+
+        return view('organizations.competitions.settings', compact('organization', 'competition', 'categories'));
     }
 
     /**
@@ -625,6 +630,8 @@ class CompetitionController extends Controller
         }
 
         $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'category_id' => ['nullable', 'exists:categories,id'],
             'sets_to_win' => ['required', 'integer', 'min:1', 'max:7'],
             'points_per_set' => ['required', 'integer', 'min:7', 'max:21'],
             'deuce_at' => ['nullable', 'integer', 'min:5'],
@@ -640,6 +647,8 @@ class CompetitionController extends Controller
         ]);
 
         $competition->update([
+            'name' => $request->name,
+            'category_id' => $request->category_id,
             'sets_to_win' => $request->sets_to_win,
             'points_per_set' => $request->points_per_set,
             'deuce_at' => $request->deuce_at,
@@ -1193,16 +1202,11 @@ class CompetitionController extends Controller
             // Remove trailing semicolon
             $line = rtrim($line, ';');
             
-            // Split by comma to get name and club
+            // Split by comma to get name and club (club is optional)
             $parts = explode(',', $line, 2);
             
-            if (count($parts) !== 2) {
-                $errors[] = "Line " . ($lineNumber + 1) . ": Format must be 'Name, Club'";
-                continue;
-            }
-            
             $name = trim($parts[0]);
-            $club = trim($parts[1]);
+            $club = isset($parts[1]) ? trim($parts[1]) : null;
             
             if (empty($name)) {
                 $errors[] = "Line " . ($lineNumber + 1) . ": Player name is required";
@@ -1249,7 +1253,7 @@ class CompetitionController extends Controller
                         continue;
                     }
                     
-                    // Update club/position if provided
+                    // Update club/position if provided and different
                     if (!empty($playerClub) && $existingPlayer->position !== $playerClub) {
                         $existingPlayer->update(['position' => $playerClub]);
                     }
@@ -1258,13 +1262,19 @@ class CompetitionController extends Controller
                     $competition->players()->attach($existingPlayer->id);
                     $imported++;
                 } else {
-                    // Create new player with club
-                    $player = Player::create([
+                    // Create new player with club (if provided)
+                    $playerData = [
                         'organization_id' => $organization->id,
                         'name' => $playerName,
-                        'position' => $playerClub, // Club name stored in position field
                         'is_active' => true,
-                    ]);
+                    ];
+                    
+                    // Only add position if club is provided
+                    if (!empty($playerClub)) {
+                        $playerData['position'] = $playerClub;
+                    }
+                    
+                    $player = Player::create($playerData);
                     
                     // Add to competition
                     $competition->players()->attach($player->id);

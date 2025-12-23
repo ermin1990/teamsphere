@@ -30,10 +30,13 @@
                     <h3 class="text-blue-400 font-medium mb-2">Zahtjevi Formata</h3>
                     <p class="text-gray-300 text-sm mb-2">Unesite svakog igrača u novi red u formatu:</p>
                     <code class="bg-gray-700 px-3 py-2 rounded text-sm text-gray-200 block font-mono">Ime Prezime, Naziv Kluba;</code>
+                    <p class="text-gray-300 text-sm mb-2">ili samo:</p>
+                    <code class="bg-gray-700 px-3 py-2 rounded text-sm text-gray-200 block font-mono">Ime Prezime;</code>
                     <div class="mt-3 space-y-1">
                         <p class="text-gray-400 text-xs">Primjeri:</p>
                         <code class="bg-gray-700 px-2 py-1 rounded text-xs text-gray-200 block">Ivan Ivić, Teniski Klub A;</code>
-                        <code class="bg-gray-700 px-2 py-1 rounded text-xs text-gray-200 block">Ana Anić, Stolnoteniski Klub B;</code>
+                        <code class="bg-gray-700 px-2 py-1 rounded text-xs text-gray-200 block">Ana Anić;</code>
+                        <code class="bg-gray-700 px-2 py-1 rounded text-xs text-gray-200 block">Marko Marković, Stolnoteniski Klub B;</code>
                     </div>
                 </div>
 
@@ -67,8 +70,8 @@
                               required
                               class="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm resize-vertical"
                               placeholder="Ivan Ivić, Teniski Klub A;
-Ana Anić, Stolnoteniski Klub B;
-Marko Marković, Badminton Klub C;"></textarea>
+Ana Anić;
+Marko Marković, Stolnoteniski Klub B;"></textarea>
                     @error('players_text')
                         <p class="text-red-400 text-sm mt-1">{{ $message }}</p>
                     @enderror
@@ -96,13 +99,8 @@ Marko Marković, Badminton Klub C;"></textarea>
                                     $line = rtrim($line, ';');
                                     $parts = explode(',', $line, 2);
 
-                                    if (count($parts) !== 2) {
-                                        $errors[] = "Linija " . ($lineNumber + 1) . ": Format mora biti 'Ime i prezime, Klub'";
-                                        continue;
-                                    }
-
                                     $name = trim($parts[0]);
-                                    $club = trim($parts[1]);
+                                    $club = isset($parts[1]) ? trim($parts[1]) : null;
 
                                     if (empty($name)) {
                                         $errors[] = "Linija " . ($lineNumber + 1) . ": Ime igrača je obavezno";
@@ -147,7 +145,7 @@ Marko Marković, Badminton Klub C;"></textarea>
                                         <div class="flex items-center justify-between p-2 rounded {{ isset($player['error']) ? 'bg-red-500/10 border border-red-500/20' : 'bg-gray-600/30' }}">
                                             <div class="flex-1">
                                                 <div class="text-white text-sm">{{ $player['name'] }}</div>
-                                                <div class="text-gray-400 text-xs">{{ $player['club'] }}</div>
+                                                <div class="text-gray-400 text-xs">{{ $player['club'] ?: 'Bez kluba' }}</div>
                                             </div>
                                             <div class="text-xs">
                                                 @if($player['status'] === 'new')

@@ -89,6 +89,43 @@
 
                 <fieldset {{ $competition->status !== 'draft' ? 'disabled' : '' }}>
 
+                <!-- Basic Info -->
+                <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl mb-6">
+                    <h3 class="text-xl font-semibold text-white mb-4">Osnovne Informacije</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Competition Name -->
+                        <div>
+                            <label for="name" class="block text-sm font-medium text-white mb-2">
+                                Naziv Takmičenja <span class="text-red-400">*</span>
+                            </label>
+                            <input type="text" 
+                                   id="name" 
+                                   name="name" 
+                                   value="{{ old('name', $competition->name) }}" 
+                                   required
+                                   class="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+                        </div>
+
+                        <!-- Category -->
+                        <div>
+                            <label for="category_id" class="block text-sm font-medium text-white mb-2">
+                                Kategorija
+                            </label>
+                            <select id="category_id" 
+                                    name="category_id" 
+                                    class="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+                                <option value="">Bez kategorije</option>
+                                @foreach($categories as $category)
+                                    <option value="{{ $category->id }}" {{ old('category_id', $competition->category_id) == $category->id ? 'selected' : '' }}>
+                                        {{ $category->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Match Format -->
                 <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl mb-6">
                     <h3 class="text-xl font-semibold text-white mb-4">Format Meča</h3>

@@ -69,6 +69,27 @@
                         @enderror
                     </div>
 
+                    <!-- Category Selection -->
+                    <div>
+                        <label for="category_id" class="block text-sm font-medium text-white mb-2">
+                            Kategorija
+                        </label>
+                        <select id="category_id"
+                                name="category_id"
+                                class="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200">
+                            <option value="">Bez kategorije</option>
+                            @foreach($categories as $category)
+                                <option value="{{ $category->id }}" {{ old('category_id') == $category->id ? 'selected' : '' }}>
+                                    {{ $category->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('category_id')
+                            <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
+                        @enderror
+                        <p class="mt-1 text-xs text-gray-400">Opcionalno: Odaberite kategoriju za ovaj turnir (npr. Veterani, U18, Amateri...)</p>
+                    </div>
+
                     <!-- Competition Type -->
                     <div>
                         <label for="type" class="block text-sm font-medium text-white mb-2">

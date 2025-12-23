@@ -88,6 +88,9 @@ Route::middleware('auth')->group(function () {
     // Organization routes
     Route::resource('organizations', OrganizationController::class);
 
+    // Category routes (nested under organizations)
+    Route::resource('organizations.categories', CategoryController::class)->shallow();
+
     // Organization users routes
     Route::get('organizations/{organization}/users', [\App\Http\Controllers\OrganizationUserController::class, 'index'])->name('organizations.users.index');
     Route::get('organizations/{organization}/users/create', [\App\Http\Controllers\OrganizationUserController::class, 'create'])->name('organizations.users.create');

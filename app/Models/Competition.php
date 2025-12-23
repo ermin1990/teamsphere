@@ -21,6 +21,7 @@ class Competition extends Model
         'description',
         'organization_id',
         'sport_id',
+        'category_id',
         'status',
         'start_date',
         'end_date',
@@ -57,6 +58,7 @@ class Competition extends Model
     protected $casts = [
         'organization_id' => 'integer',
         'sport_id' => 'integer',
+        'category_id' => 'integer',
         'start_date' => 'date',
         'end_date' => 'date',
         'max_teams' => 'integer',
@@ -118,6 +120,14 @@ class Competition extends Model
     public function sport(): BelongsTo
     {
         return $this->belongsTo(Sport::class);
+    }
+
+    /**
+     * Get the category for this competition.
+     */
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(Category::class);
     }
 
     /**

@@ -85,6 +85,14 @@ class Organization extends Model
     }
 
     /**
+     * Get the categories for this organization.
+     */
+    public function categories(): HasMany
+    {
+        return $this->hasMany(Category::class);
+    }
+
+    /**
      * Get the organization users for this organization.
      */
     public function organizationUsers(): HasMany

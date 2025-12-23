@@ -99,12 +99,17 @@
 
                 @if($organization->competitions->count() > 0)
                     @php
-                        $tournaments = $organization->competitions->where('type', 'tournament');
+                        $activeTournaments = $organization->competitions->where('type', 'tournament')->whereIn('status', ['active', 'draft']);
+                        $completedTournaments = $organization->competitions->where('type', 'tournament')->where('status', 'completed');
                     @endphp
 
-                    @if($tournaments->count() > 0)
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        @foreach($tournaments as $competition)
+                    @if($activeTournaments->count() > 0)
+                    <h4 class="text-white font-semibold mb-4 flex items-center">
+                        <span class="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></span>
+                        Aktivni Turniri
+                    </h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+                        @foreach($activeTournaments as $competition)
                             <div class="bg-gray-700/30 rounded-xl p-4 hover:bg-gray-600/30 transition-all duration-200 relative group">
                                 <a href="{{ route('organizations.competitions.show', [$organization, $competition]) }}" class="block">
                                     <div class="flex items-center space-x-3 mb-3">
@@ -153,7 +158,39 @@
                             </div>
                         @endforeach
                     </div>
-                    @else
+                    @endif
+
+                    @if($completedTournaments->count() > 0)
+                    <h4 class="text-gray-400 font-semibold mb-4 flex items-center">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        Završeni Turniri
+                    </h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        @foreach($completedTournaments as $competition)
+                            <div class="bg-gray-900/30 rounded-xl p-4 hover:bg-gray-800/30 transition-all duration-200 opacity-75 hover:opacity-100">
+                                <a href="{{ route('organizations.competitions.show', [$organization, $competition]) }}" class="block">
+                                    <div class="flex items-center space-x-3 mb-3">
+                                        <div class="w-10 h-10 bg-gray-700 rounded-xl flex items-center justify-center">
+                                            <span class="text-gray-400 font-bold text-sm">{{ substr($competition->name, 0, 2) }}</span>
+                                        </div>
+                                        <div class="flex-1">
+                                            <h4 class="text-gray-300 font-semibold">{{ $competition->name }}</h4>
+                                            <p class="text-gray-500 text-sm">{{ $competition->sport->name }}</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex justify-between text-sm">
+                                        <span class="text-gray-500">Završeno:</span>
+                                        <span class="text-gray-400">{{ $competition->updated_at->format('d.m.Y') }}</span>
+                                    </div>
+                                </a>
+                            </div>
+                        @endforeach
+                    </div>
+                    @endif
+
+                    @if($activeTournaments->count() === 0 && $completedTournaments->count() === 0)
                         <div class="text-center py-8">
                             <div class="w-16 h-16 bg-gray-700/50 rounded-full flex items-center justify-center mx-auto mb-4">
                                 <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -192,6 +229,35 @@
                         </a>
                     @endif
                 </div>
+            </div>
+
+            <!-- Categories Section -->
+            <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                    <h3 class="text-lg sm:text-xl font-bold text-white">Kategorije</h3>
+                    @if($organization->user_id === Auth::id())
+                        <a href="{{ route('organizations.categories.index', $organization) }}" class="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-3 py-2 sm:px-4 sm:py-2 rounded-xl transition-all duration-200 transform hover:scale-[1.02] hover:shadow-lg hover:shadow-blue-500/25 inline-flex items-center justify-center">
+                            <span class="flex items-center space-x-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                                </svg>
+                                <span class="text-sm sm:text-base">Upravljaj Kategorijama</span>
+                            </span>
+                        </a>
+                    @endif
+                </div>
+                
+                @if($organization->categories->count() > 0)
+                    <div class="flex flex-wrap gap-2">
+                        @foreach($organization->categories as $category)
+                            <span class="px-3 py-1 bg-gray-700/50 border border-gray-600/50 rounded-full text-gray-300 text-sm">
+                                {{ $category->name }}
+                            </span>
+                        @endforeach
+                    </div>
+                @else
+                    <p class="text-gray-500 italic text-sm">Nema definisanih kategorija.</p>
+                @endif
             </div>
 
             <!-- Leagues Section - Coming Soon -->

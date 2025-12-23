@@ -25,6 +25,7 @@ class DatabaseSeeder extends Seeder
             PlanSeeder::class,
             UserPlanSeeder::class,
             OrganizationUserSeeder::class,
+            AdminUserSeeder::class,
         ]);
     }
 }
