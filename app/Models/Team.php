@@ -14,23 +14,33 @@ class Team extends Model
     protected $fillable = [
         'name',
         'description',
+        'organization_id',
         'competition_id',
         'captain_id',
         'status',
     ];
 
     protected $casts = [
+        'organization_id' => 'integer',
         'competition_id' => 'integer',
         'captain_id' => 'integer',
         'status' => 'string',
     ];
 
     /**
+     * Get the organization that owns the team.
+     */
+    public function organization(): BelongsTo
+    {
+        return $this->belongsTo(Organization::class);
+    }
+
+    /**
      * Get the league that owns the team.
      */
     public function league(): BelongsTo
     {
-        return $this->belongsTo(League::class, 'competition_id');
+        return $this->belongsTo(Competition::class, 'competition_id');
     }
 
     /**
@@ -42,12 +52,13 @@ class Team extends Model
     }
 
     /**
-     * Get the players for this team.
+     * Get the players for this team (roster).
      */
     public function players(): BelongsToMany
     {
-        return $this->belongsToMany(Player::class, 'competition_player', 'team_id', 'player_id')
-                    ->withPivot('joined_at', 'competition_id');
+        return $this->belongsToMany(Player::class, 'team_player', 'team_id', 'player_id')
+                    ->withPivot('role')
+                    ->withTimestamps();
     }
 
     /**

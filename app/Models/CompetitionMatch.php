@@ -14,6 +14,9 @@ class CompetitionMatch extends Model
 
     protected $fillable = [
         'competition_id',
+        'team_match_id',
+        'position_code',
+        'match_order',
         'home_team_id',
         'away_team_id',
         'home_player_id',
@@ -48,6 +51,7 @@ class CompetitionMatch extends Model
 
     protected $casts = [
         'competition_id' => 'integer',
+        'team_match_id' => 'integer',
         'home_team_id' => 'integer',
         'away_team_id' => 'integer',
         'home_player_id' => 'integer',
@@ -63,18 +67,35 @@ class CompetitionMatch extends Model
         'home_score' => 'integer',
         'away_score' => 'integer',
         'round' => 'integer',
+        'match_order' => 'integer',
         'forfeited_by' => 'string',
         'first_server' => 'string',
         'current_server' => 'string',
         // Tournament casts
         'round_number' => 'integer',
-        'match_order' => 'integer',
         'bracket_position' => 'integer',
         'is_bye' => 'boolean',
         // Player group info casts
         'home_player_position' => 'integer',
         'away_player_position' => 'integer',
     ];
+
+    protected static function booted()
+    {
+        static::updated(function ($match) {
+            if ($match->team_match_id) {
+                $match->teamMatch->checkCompletion();
+            }
+        });
+    }
+
+    /**
+     * Get the team match this individual match belongs to.
+     */
+    public function teamMatch(): BelongsTo
+    {
+        return $this->belongsTo(TeamMatch::class, 'team_match_id');
+    }
 
     /**
      * Get the league this match belongs to (for league matches).

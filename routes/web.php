@@ -10,6 +10,7 @@ use App\Http\Controllers\LeagueController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SemaforController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\TeamController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/locale/{locale}', function ($locale) {
@@ -88,6 +89,21 @@ Route::middleware('auth')->group(function () {
 
     // Organization routes
     Route::resource('organizations', OrganizationController::class);
+
+    // Team routes
+    Route::resource('organizations.teams', TeamController::class);
+    Route::get('organizations/{organization}/teams/{team}/roster', [TeamController::class, 'roster'])->name('organizations.teams.roster');
+    Route::post('organizations/{organization}/teams/{team}/roster', [TeamController::class, 'addPlayer'])->name('organizations.teams.roster.add');
+    Route::delete('organizations/{organization}/teams/{team}/roster/{player}', [TeamController::class, 'removePlayer'])->name('organizations.teams.roster.remove');
+    Route::post('organizations/{organization}/teams/suggest', [TeamController::class, 'suggestTeams'])->name('organizations.teams.suggest');
+
+    // Team Matches
+    Route::get('organizations/{organization}/competitions/{competition}/team-matches/{teamMatch}', [\App\Http\Controllers\TeamMatchController::class, 'show'])
+        ->name('organizations.competitions.team-matches.show');
+    Route::get('organizations/{organization}/competitions/{competition}/team-matches/{teamMatch}/protocol', [\App\Http\Controllers\TeamMatchController::class, 'protocol'])
+        ->name('organizations.competitions.team-matches.protocol');
+    Route::post('organizations/{organization}/competitions/{competition}/team-matches/{teamMatch}/protocol', [\App\Http\Controllers\TeamMatchController::class, 'storeProtocol'])
+        ->name('organizations.competitions.team-matches.store-protocol');
 
     // Category routes (nested under organizations)
     Route::resource('organizations.categories', CategoryController::class)->shallow();

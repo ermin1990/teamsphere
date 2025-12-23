@@ -104,6 +104,13 @@
                                 </label>
                             </div>
                             <div class="flex items-center">
+                                <input type="radio" id="league" name="type" value="league" {{ old('type') === 'league' ? 'checked' : '' }}
+                                       class="border-gray-600/50 bg-gray-700/50 text-blue-600 focus:ring-blue-500 focus:ring-2" onchange="toggleCompetitionType()">
+                                <label for="league" class="ml-3 text-sm font-medium text-white">
+                                    Liga - Ekipno takmičenje (Corbillon sistem)
+                                </label>
+                            </div>
+                            <div class="flex items-center">
                                 <input type="radio" id="knockout" name="type" value="knockout" {{ old('type') === 'knockout' ? 'checked' : '' }}
                                        class="border-gray-600/50 bg-gray-700/50 text-blue-600 focus:ring-blue-500 focus:ring-2" onchange="toggleCompetitionType()" disabled>
                                 <label for="knockout" class="ml-3 text-sm font-medium text-gray-500">
@@ -129,10 +136,37 @@
                                     Individualno takmičenje
                                 </label>
                             </div>
+                            <div class="flex items-center">
+                                <input type="radio" id="team_based" name="is_team_based" value="1" {{ old('is_team_based') === '1' ? 'checked' : '' }}
+                                       class="border-gray-600/50 bg-gray-700/50 text-blue-600 focus:ring-blue-500 focus:ring-2">
+                                <label for="team_based" class="ml-3 text-sm font-medium text-white">
+                                    Ekipno takmičenje
+                                </label>
+                            </div>
                         </div>
                         @error('is_team_based')
                             <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
                         @enderror
+                    </div>
+
+                    <!-- League Settings -->
+                    <div id="leagueSettings" style="display: none;" class="space-y-6 p-6 bg-gray-800/30 rounded-2xl border border-gray-700/50">
+                        <h3 class="text-lg font-bold text-white flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                            Postavke Lige
+                        </h3>
+                        
+                        <div class="flex items-center">
+                            <input type="checkbox" id="is_double_round" name="is_double_round" value="1" {{ old('is_double_round') ? 'checked' : '' }}
+                                   class="w-5 h-5 border-gray-600/50 bg-gray-700/50 text-blue-600 focus:ring-blue-500 focus:ring-2 rounded">
+                            <label for="is_double_round" class="ml-3 text-sm font-medium text-white">
+                                Dvokružni sistem (Domaćin i Gost)
+                            </label>
+                        </div>
+                        <p class="text-xs text-gray-400 ml-8">Ako je označeno, svaka ekipa će igrati protiv svake ekipe dva puta (jednom kod kuće, jednom u gostima).</p>
                     </div>
 
                     <!-- Tournament Settings -->
@@ -250,20 +284,33 @@
     <script>
         function toggleCompetitionType() {
             const tournamentRadio = document.getElementById('tournament');
+            const leagueRadio = document.getElementById('league');
             const knockoutRadio = document.getElementById('knockout');
             const tournamentSettings = document.getElementById('tournamentSettings');
+            const leagueSettings = document.getElementById('leagueSettings');
             const playerFormatSection = document.getElementById('playerFormatSection');
 
             if (tournamentRadio.checked) {
                 tournamentSettings.style.display = 'block';
+                leagueSettings.style.display = 'none';
                 playerFormatSection.style.display = 'none';
                 // Make tournament fields required
                 document.getElementById('players_advancing_per_group').required = true;
                 document.getElementById('advancement_method').required = true;
                 // Set is_team_based to 0 for tournaments
                 document.getElementById('individual_based').checked = true;
+            } else if (leagueRadio.checked) {
+                tournamentSettings.style.display = 'none';
+                leagueSettings.style.display = 'block';
+                playerFormatSection.style.display = 'block';
+                // Remove required from tournament fields
+                document.getElementById('players_advancing_per_group').required = false;
+                document.getElementById('advancement_method').required = false;
+                // Set is_team_based to 1 for leagues
+                document.getElementById('team_based').checked = true;
             } else if (knockoutRadio.checked) {
                 tournamentSettings.style.display = 'none';
+                leagueSettings.style.display = 'none';
                 playerFormatSection.style.display = 'none';
                 // Remove required from tournament fields
                 document.getElementById('players_advancing_per_group').required = false;
@@ -272,6 +319,7 @@
                 document.getElementById('individual_based').checked = true;
             } else {
                 tournamentSettings.style.display = 'none';
+                leagueSettings.style.display = 'none';
                 playerFormatSection.style.display = 'block';
                 // Remove required from tournament fields
                 document.getElementById('players_advancing_per_group').required = false;

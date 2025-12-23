@@ -4,12 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Models\Competition;
 use App\Models\CompetitionMatch;
+use App\Models\TeamMatch;
 use App\Models\Organization;
 use App\Models\Player;
 use App\Models\Sport;
 use App\Models\Standing;
 use App\Models\Team;
 use App\Models\TournamentGroup;
+use App\Http\Controllers\TeamMatchController;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -52,7 +54,9 @@ class CompetitionController extends Controller
                 'name' => ['required', 'string', 'max:255'],
                 'sport_id' => ['required', 'exists:sports,id'],
                 'category_id' => ['nullable', 'exists:categories,id'],
-                'type' => ['required', 'in:tournament'],
+                'type' => ['required', 'in:tournament,league'],
+                'is_team_based' => ['required_if:type,league', 'boolean'],
+                'is_double_round' => ['nullable', 'boolean'],
                 'start_date' => ['required', 'date'],
                 // Tournament specific validation
                 'players_advancing_per_group' => ['required_if:type,tournament', 'integer', 'min:1', 'max:4'],
@@ -79,6 +83,7 @@ class CompetitionController extends Controller
             'end_date' => $request->end_date,
             'max_teams' => $request->max_teams ?: 8,
             'is_team_based' => (bool) ($request->input('is_team_based', 0)),
+            'is_double_round' => (bool) ($request->input('is_double_round', 0)),
             'status' => 'draft',
             'is_active' => true,
             // Tournament fields - use defaults if not provided, but keep flexible
@@ -166,6 +171,13 @@ class CompetitionController extends Controller
             }
         }
 
+        // Generate team matches if league is active but no matches exist
+        if (!$competition->isTournament() && $competition->is_team_based && $competition->status === 'active') {
+            if ($competition->teamMatches()->count() === 0) {
+                $competition->generateTeamMatches();
+            }
+        }
+
         file_put_contents($logFile, "Checking standings...\n", FILE_APPEND);
 
         // Ensure standings exist for tournament groups (but don't reset existing ones)
@@ -210,6 +222,25 @@ class CompetitionController extends Controller
             }
         }
 
+        // Ensure standings exist for team-based leagues
+        if (!$competition->isTournament() && $competition->is_team_based && $competition->status === 'active') {
+            foreach ($competition->teams as $team) {
+                \App\Models\Standing::firstOrCreate(
+                    [
+                        'competition_id' => $competition->id,
+                        'team_id' => $team->id,
+                    ],
+                    [
+                        'played' => 0,
+                        'won' => 0,
+                        'drawn' => 0,
+                        'lost' => 0,
+                        'points' => 0,
+                    ]
+                );
+            }
+        }
+
         file_put_contents($logFile, "Loading relationships...\n", FILE_APPEND);
 
         $competition->load([
@@ -219,6 +250,8 @@ class CompetitionController extends Controller
             'matches.awayTeam',
             'matches.homePlayer',
             'matches.awayPlayer',
+            'teamMatches.homeTeam',
+            'teamMatches.awayTeam',
             'players',
             'standings',
             'tournamentGroups.standings.player',
@@ -641,12 +674,13 @@ class CompetitionController extends Controller
             'points_for_loss' => ['required', 'integer', 'min:0', 'max:10'],
             'has_tiebreak' => ['boolean'],
             'tiebreak_points' => ['nullable', 'integer', 'min:5', 'max:15'],
+            'is_double_round' => ['nullable', 'boolean'],
             // Tournament-specific validation
             'players_advancing_per_group' => ['nullable', 'integer', 'min:1', 'max:4'],
             'group_rounds' => ['nullable', 'integer', 'min:1', 'max:2'],
         ]);
 
-        $competition->update([
+        $updateData = [
             'name' => $request->name,
             'category_id' => $request->category_id,
             'sets_to_win' => $request->sets_to_win,
@@ -658,10 +692,20 @@ class CompetitionController extends Controller
             'points_for_loss' => $request->points_for_loss,
             'has_tiebreak' => $request->boolean('has_tiebreak'),
             'tiebreak_points' => $request->tiebreak_points,
-            // Tournament-specific updates
-            'players_advancing_per_group' => $request->players_advancing_per_group,
-            'group_rounds' => $request->group_rounds,
-        ]);
+            'is_double_round' => $request->boolean('is_double_round'),
+        ];
+
+        // Only update tournament-specific fields if it's a tournament
+        if ($competition->isTournament()) {
+            if ($request->has('players_advancing_per_group')) {
+                $updateData['players_advancing_per_group'] = $request->players_advancing_per_group;
+            }
+            if ($request->has('group_rounds')) {
+                $updateData['group_rounds'] = $request->group_rounds;
+            }
+        }
+
+        $competition->update($updateData);
 
         return redirect()
             ->route('organizations.competitions.show', [$organization, $competition])
@@ -686,9 +730,11 @@ class CompetitionController extends Controller
         }
 
         // Update competition status and current phase
-        $currentPhase = null;
+        $currentPhase = 'groups';
         if ($competition->isTournament()) {
             $currentPhase = 'groups';
+        } elseif ($competition->isLeague()) {
+            $currentPhase = 'league';
         }
 
         $competition->update([
@@ -700,8 +746,12 @@ class CompetitionController extends Controller
         if ($competition->isTournament()) {
             $competition->generateGroupMatches();
         } elseif ($competition->isLeague()) {
-            $competition->generateLeagueMatches();
-            $competition->generateLeagueStandings();
+            if ($competition->is_team_based) {
+                $competition->generateTeamMatches();
+            } else {
+                $competition->generateLeagueMatches();
+                $competition->generateLeagueStandings();
+            }
         }
 
         return back()->with('success', 'Competition started successfully! Matches have been generated.');
@@ -952,9 +1002,34 @@ class CompetitionController extends Controller
         $isOwner = $organization->user_id === auth()->id();
 
         // Load relationships
-        $match->load(['homePlayer', 'awayPlayer', 'homeTeam', 'awayTeam', 'tournamentGroup']);
+        $match->load(['homePlayer', 'awayPlayer', 'homeTeam', 'awayTeam', 'tournamentGroup', 'teamMatch']);
 
-        return view('organizations.competitions.matches.show', compact('organization', 'competition', 'match', 'isOwner'));
+        $doublesPlayers = [
+            'home_1' => null,
+            'home_2' => null,
+            'away_1' => null,
+            'away_2' => null,
+        ];
+
+        if ($match->position_code === 'Dubl' && $match->teamMatch && $match->teamMatch->lineup) {
+            $lineup = $match->teamMatch->lineup;
+            $playerIds = [
+                $lineup['home_dubl_1'] ?? null,
+                $lineup['home_dubl_2'] ?? null,
+                $lineup['away_dubl_1'] ?? null,
+                $lineup['away_dubl_2'] ?? null,
+            ];
+            $players = Player::whereIn('id', array_filter($playerIds))->get()->keyBy('id');
+            
+            $doublesPlayers = [
+                'home_1' => $players->get($lineup['home_dubl_1'] ?? null),
+                'home_2' => $players->get($lineup['home_dubl_2'] ?? null),
+                'away_1' => $players->get($lineup['away_dubl_1'] ?? null),
+                'away_2' => $players->get($lineup['away_dubl_2'] ?? null),
+            ];
+        }
+
+        return view('organizations.competitions.matches.show', compact('organization', 'competition', 'match', 'isOwner', 'doublesPlayers'));
     }
 
     /**

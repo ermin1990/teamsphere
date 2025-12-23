@@ -322,8 +322,20 @@
                 <!-- League Scoring -->
                 @if($competition->type === 'league')
                 <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl mb-6">
-                    <h3 class="text-xl font-semibold text-white mb-4">Bodovanje Lige</h3>
+                    <h3 class="text-xl font-semibold text-white mb-4">Postavke Lige</h3>
                     
+                    <div class="mb-6">
+                        <label class="flex items-center space-x-3 cursor-pointer">
+                            <input type="checkbox" id="is_double_round" name="is_double_round" value="1"
+                                   {{ old('is_double_round', $competition->is_double_round) ? 'checked' : '' }}
+                                   class="w-5 h-5 bg-gray-700 border-gray-600 rounded text-blue-600 focus:ring-blue-500">
+                            <div>
+                                <span class="text-white font-medium">Dvokružni sistem (Domaćin i Gost)</span>
+                                <p class="text-gray-400 text-xs">Svaka ekipa igra protiv svake ekipe dva puta</p>
+                            </div>
+                        </label>
+                    </div>
+
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <!-- Points for Win -->
                         <div>

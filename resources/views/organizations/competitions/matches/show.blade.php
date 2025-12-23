@@ -63,15 +63,33 @@
                         <div class="flex items-center justify-center space-x-8">
                             <!-- Home Player -->
                             <div class="text-center">
-                                <div class="w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-3">
-                                    <span class="text-2xl font-bold text-white">
-                                        {{ substr($match->homePlayer->name ?? 'TBD', 0, 2) }}
-                                    </span>
-                                </div>
-                                <h3 class="text-xl font-bold text-white">
-                                    {{ $match->homePlayer->name ?? 'TBD' }}
-                                </h3>
-                                @if($match->homePlayer && $match->homePlayer->position)
+                                @if($match->position_code === 'Dubl')
+                                    <div class="flex -space-x-4 justify-center mb-3">
+                                        <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center border-4 border-gray-800 z-10">
+                                            <span class="text-xl font-bold text-white">
+                                                {{ substr($doublesPlayers['home_1']->name ?? '?', 0, 2) }}
+                                            </span>
+                                        </div>
+                                        <div class="w-16 h-16 bg-gradient-to-br from-blue-400 to-blue-500 rounded-full flex items-center justify-center border-4 border-gray-800">
+                                            <span class="text-xl font-bold text-white">
+                                                {{ substr($doublesPlayers['home_2']->name ?? '?', 0, 2) }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <h3 class="text-xl font-bold text-white">
+                                        {{ $doublesPlayers['home_1']->name ?? '?' }} / {{ $doublesPlayers['home_2']->name ?? '?' }}
+                                    </h3>
+                                @else
+                                    <div class="w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-3">
+                                        <span class="text-2xl font-bold text-white">
+                                            {{ substr($match->homePlayer->name ?? 'TBD', 0, 2) }}
+                                        </span>
+                                    </div>
+                                    <h3 class="text-xl font-bold text-white">
+                                        {{ $match->homePlayer->name ?? 'TBD' }}
+                                    </h3>
+                                @endif
+                                @if($match->homePlayer && $match->homePlayer->position && $match->position_code !== 'Dubl')
                                     <p class="text-sm text-gray-400 mt-1">({{ $match->homePlayer->position }})</p>
                                 @endif
                                 @if($match->status === 'forfeited')
@@ -118,15 +136,33 @@
 
                             <!-- Away Player -->
                             <div class="text-center">
-                                <div class="w-20 h-20 bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center mx-auto mb-3">
-                                    <span class="text-2xl font-bold text-white">
-                                        {{ substr($match->awayPlayer->name ?? 'TBD', 0, 2) }}
-                                    </span>
-                                </div>
-                                <h3 class="text-xl font-bold text-white">
-                                    {{ $match->awayPlayer->name ?? 'TBD' }}
-                                </h3>
-                                @if($match->awayPlayer && $match->awayPlayer->position)
+                                @if($match->position_code === 'Dubl')
+                                    <div class="flex -space-x-4 justify-center mb-3">
+                                        <div class="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center border-4 border-gray-800 z-10">
+                                            <span class="text-xl font-bold text-white">
+                                                {{ substr($doublesPlayers['away_1']->name ?? '?', 0, 2) }}
+                                            </span>
+                                        </div>
+                                        <div class="w-16 h-16 bg-gradient-to-br from-purple-400 to-purple-500 rounded-full flex items-center justify-center border-4 border-gray-800">
+                                            <span class="text-xl font-bold text-white">
+                                                {{ substr($doublesPlayers['away_2']->name ?? '?', 0, 2) }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <h3 class="text-xl font-bold text-white">
+                                        {{ $doublesPlayers['away_1']->name ?? '?' }} / {{ $doublesPlayers['away_2']->name ?? '?' }}
+                                    </h3>
+                                @else
+                                    <div class="w-20 h-20 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-3">
+                                        <span class="text-2xl font-bold text-white">
+                                            {{ substr($match->awayPlayer->name ?? 'TBD', 0, 2) }}
+                                        </span>
+                                    </div>
+                                    <h3 class="text-xl font-bold text-white">
+                                        {{ $match->awayPlayer->name ?? 'TBD' }}
+                                    </h3>
+                                @endif
+                                @if($match->awayPlayer && $match->awayPlayer->position && $match->position_code !== 'Dubl')
                                     <p class="text-sm text-gray-400 mt-1">({{ $match->awayPlayer->position }})</p>
                                 @endif
                                 @if($match->status === 'forfeited')

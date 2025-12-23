@@ -93,6 +93,14 @@ class Organization extends Model
     }
 
     /**
+     * Get the teams for this organization.
+     */
+    public function teams(): HasMany
+    {
+        return $this->hasMany(Team::class);
+    }
+
+    /**
      * Get the organization users for this organization.
      */
     public function organizationUsers(): HasMany

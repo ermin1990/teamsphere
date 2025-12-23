@@ -27,6 +27,7 @@ class Competition extends Model
         'end_date',
         'max_teams',
         'is_team_based',
+        'is_double_round',
         'settings',
         'is_active',
         'is_public',
@@ -63,6 +64,7 @@ class Competition extends Model
         'end_date' => 'date',
         'max_teams' => 'integer',
         'is_team_based' => 'boolean',
+        'is_double_round' => 'boolean',
         'settings' => 'array',
         'is_active' => 'boolean',
         'is_public' => 'boolean',
@@ -153,11 +155,105 @@ class Competition extends Model
     }
 
     /**
+     * Generate round-robin team matches for the competition.
+     */
+    public function generateTeamMatches()
+    {
+        if (!$this->is_team_based) return;
+
+        $teams = $this->teams->pluck('id')->toArray();
+        if (count($teams) < 2) return;
+
+        // Create initial standings for all teams
+        foreach ($teams as $teamId) {
+            Standing::firstOrCreate([
+                'competition_id' => $this->id,
+                'team_id' => $teamId,
+            ], [
+                'played' => 0,
+                'won' => 0,
+                'drawn' => 0,
+                'lost' => 0,
+                'points' => 0,
+            ]);
+        }
+
+        if (count($teams) % 2 != 0) {
+            $teams[] = null; // Bye
+        }
+
+        $numTeams = count($teams);
+        $numRounds = $numTeams - 1;
+        $half = $numTeams / 2;
+
+        // First half of the season
+        for ($round = 1; $round <= $numRounds; $round++) {
+            for ($i = 0; $i < $half; $i++) {
+                $home = $teams[$i];
+                $away = $teams[$numTeams - 1 - $i];
+
+                if ($home !== null && $away !== null) {
+                    $this->teamMatches()->create([
+                        'home_team_id' => $home,
+                        'away_team_id' => $away,
+                        'round' => $round,
+                        'status' => 'scheduled',
+                    ]);
+                }
+            }
+
+            // Rotate teams
+            $last = array_pop($teams);
+            array_splice($teams, 1, 0, [$last]);
+        }
+
+        // Second half of the season (if double round)
+        if ($this->is_double_round) {
+            // Reset teams array for rotation (or just use the current state but swap home/away)
+            // Actually, it's better to just repeat the logic but swap home/away and increment round
+            
+            // We need to reset the teams array to its original state to ensure the same pairings
+            $teams = $this->teams->pluck('id')->toArray();
+            if (count($teams) % 2 != 0) {
+                $teams[] = null;
+            }
+            
+            for ($round = 1; $round <= $numRounds; $round++) {
+                for ($i = 0; $i < $half; $i++) {
+                    $home = $teams[$i];
+                    $away = $teams[$numTeams - 1 - $i];
+
+                    if ($home !== null && $away !== null) {
+                        $this->teamMatches()->create([
+                            'home_team_id' => $away, // Swapped
+                            'away_team_id' => $home, // Swapped
+                            'round' => $round + $numRounds, // Next half
+                            'status' => 'scheduled',
+                        ]);
+                    }
+                }
+
+                // Rotate teams
+                $last = array_pop($teams);
+                array_splice($teams, 1, 0, [$last]);
+            }
+        }
+    }
+
+    /**
      * Get the matches for this competition.
      */
     public function matches(): HasMany
     {
         return $this->hasMany(CompetitionMatch::class, 'competition_id');
+    }
+
+    /**
+     * Get the team matches for this competition.
+     */
+    public function teamMatches(): HasMany
+    {
+        return $this->hasMany(TeamMatch::class, 'competition_id');
     }
 
     /**
