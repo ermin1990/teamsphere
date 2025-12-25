@@ -85,13 +85,13 @@ class TeamMatchController extends Controller
 
         // Generate 7 individual matches based on BiH Corbillon system
         $matches = [
-            ['home' => $lineup['home_a'], 'away' => $lineup['away_x'], 'code' => 'A-X', 'order' => 1],
-            ['home' => $lineup['home_b'], 'away' => $lineup['away_y'], 'code' => 'B-Y', 'order' => 2],
-            ['home' => $lineup['home_c'], 'away' => $lineup['away_z'], 'code' => 'C-Z', 'order' => 3],
-            ['home' => null, 'away' => null, 'code' => 'Dubl', 'order' => 4, 'is_dubl' => true],
-            ['home' => $lineup['home_a'], 'away' => $lineup['away_y'], 'code' => 'A-Y', 'order' => 5],
-            ['home' => $lineup['home_c'], 'away' => $lineup['away_x'], 'code' => 'C-X', 'order' => 6],
-            ['home' => $lineup['home_b'], 'away' => $lineup['away_z'], 'code' => 'B-Z', 'order' => 7],
+            ['home' => $lineup['home_a'], 'away' => $lineup['away_x'], 'code' => 'A-X', 'order' => 1, 'round' => 1],
+            ['home' => $lineup['home_b'], 'away' => $lineup['away_y'], 'code' => 'B-Y', 'order' => 2, 'round' => 1],
+            ['home' => $lineup['home_c'], 'away' => $lineup['away_z'], 'code' => 'C-Z', 'order' => 3, 'round' => 1],
+            ['home' => null, 'away' => null, 'code' => 'Dubl', 'order' => 4, 'round' => 1, 'is_dubl' => true],
+            ['home' => $lineup['home_a'], 'away' => $lineup['away_y'], 'code' => 'A-Y', 'order' => 5, 'round' => 2],
+            ['home' => $lineup['home_c'], 'away' => $lineup['away_x'], 'code' => 'C-X', 'order' => 6, 'round' => 2],
+            ['home' => $lineup['home_b'], 'away' => $lineup['away_z'], 'code' => 'B-Z', 'order' => 7, 'round' => 3],
         ];
 
         foreach ($matches as $m) {
@@ -103,6 +103,7 @@ class TeamMatchController extends Controller
                 'away_player_id' => $m['away'],
                 'position_code' => $m['code'],
                 'match_order' => $m['order'],
+                'round_number' => $m['round'],
                 'status' => 'scheduled',
                 'sets_to_win' => $competition->sets_to_win ?? 3,
                 'points_per_set' => $competition->points_per_set ?? 11,

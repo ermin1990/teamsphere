@@ -38,23 +38,32 @@
             <div class="px-6 py-4 border-b bg-gray-50">
                 <h3 class="font-bold text-gray-700">Pojedinačni Mečevi (Corbillon sistem)</h3>
             </div>
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Poz.</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Domaćin</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Gost</th>
-                            <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Rezultat</th>
-                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Akcija</th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
-                        @foreach($teamMatch->individualMatches->sortBy('match_order') as $match)
-                        <tr class="{{ $match->status === 'completed' ? 'bg-gray-50' : 'hover:bg-gray-50' }} transition-colors duration-150 border-b last:border-b-0">
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">
-                                {{ $match->position_code }}
-                            </td>
+            <div class="divide-y divide-gray-200">
+                @php
+                    // Group matches by round_number
+                    $matchesByRound = $teamMatch->individualMatches->groupBy('round_number');
+                @endphp
+
+                @foreach($matchesByRound as $roundNumber => $roundMatches)
+                    <div class="px-6 py-4 {{ $loop->first ? '' : 'border-t border-gray-200' }}">
+                        <h4 class="text-lg font-semibold text-gray-800 mb-4">Kolo {{ $roundNumber }}</h4>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">#</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Domaćin</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Gost</th>
+                                        <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Rezultat</th>
+                                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Akcija</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    @foreach($roundMatches->sortBy('match_order') as $match)
+                                    <tr class="{{ $match->status === 'completed' ? 'bg-gray-50' : 'hover:bg-gray-50' }} transition-colors duration-150 border-b last:border-b-0">
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">
+                                            {{ $match->match_order }}
+                                        </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                 @if($match->position_code === 'Dubl')
                                     <div class="flex flex-col">
@@ -109,8 +118,11 @@
                             </td>
                         </tr>
                         @endforeach
-                    </tbody>
-                </table>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                @endforeach
             </div>
         </div>
     </div>
