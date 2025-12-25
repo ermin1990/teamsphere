@@ -35,13 +35,13 @@
         <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50">
             <h3 class="text-xl font-bold text-white mb-4">Raspored i Rezultati</h3>
             <div class="space-y-4">
-                @foreach($competition->teamMatches->sortBy('round') as $match)
+                @foreach($competition->teamMatches->sortBy('round') as $index => $match)
                 <div class="bg-gray-900/50 rounded-xl p-4 border border-gray-700/30 flex items-center justify-between">
                     <div class="flex-1 text-right pr-4">
                         <span class="text-white font-medium">{{ $match->homeTeam->name }}</span>
                     </div>
                     <div class="flex flex-col items-center px-4 min-w-[100px]">
-                        <div class="text-xs text-gray-500 mb-1">Kolo {{ $match->round }}</div>
+                        <div class="text-xs text-gray-500 mb-1">Meč {{ $index + 1 }}</div>
                         @if($match->status === 'scheduled')
                             <a href="{{ route('organizations.competitions.team-matches.protocol', [$organization, $competition, $match]) }}" class="bg-blue-600/20 text-blue-400 px-3 py-1 rounded-lg text-xs font-bold hover:bg-blue-600/30 transition">
                                 PROTOKOL
