@@ -81,7 +81,110 @@
                         </div>
                     </div>
                 </div>
-            </div>            <!-- Competitions Section (Tournaments) -->
+            </div>            <!-- Leagues Section -->
+            <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                    <h3 class="text-lg sm:text-xl font-bold text-white">Lige</h3>
+                    @if($organization->user_id === Auth::id())
+                        <a href="{{ route('organizations.competitions.create', $organization) }}" class="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-3 py-2 sm:px-4 sm:py-2 rounded-xl transition-all duration-200 transform hover:scale-[1.02] hover:shadow-lg hover:shadow-blue-500/25 inline-flex items-center justify-center">
+                            <span class="flex items-center space-x-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                </svg>
+                                <span class="text-sm sm:text-base">Kreiraj Ligu</span>
+                            </span>
+                        </a>
+                    @endif
+                </div>
+
+                @php
+                    $activeLeagues = $organization->competitions->where('type', 'league')->whereIn('status', ['active', 'draft', 'in_progress']);
+                    $completedLeagues = $organization->competitions->where('type', 'league')->where('status', 'completed');
+                @endphp
+
+                @if($activeLeagues->count() > 0)
+                    <h4 class="text-white font-semibold mb-4 flex items-center">
+                        <span class="w-2 h-2 bg-blue-500 rounded-full mr-2 animate-pulse"></span>
+                        Aktivne Lige
+                    </h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+                        @foreach($activeLeagues as $competition)
+                            <div class="bg-gray-700/30 rounded-xl p-4 hover:bg-gray-600/30 transition-all duration-200 relative group">
+                                <a href="{{ route('organizations.competitions.show', [$organization, $competition]) }}" class="block">
+                                    <div class="flex items-center space-x-3 mb-3">
+                                        <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center">
+                                            <span class="text-white font-bold text-sm">{{ substr($competition->name, 0, 2) }}</span>
+                                        </div>
+                                        <div class="flex-1">
+                                            <h4 class="text-white font-semibold">{{ $competition->name }}</h4>
+                                            <p class="text-gray-400 text-sm">{{ $competition->sport->name }}</p>
+                                        </div>
+                                    </div>
+                                    <div class="space-y-2">
+                                        <div class="flex justify-between text-sm">
+                                            <span class="text-gray-400">Timovi:</span>
+                                            <span class="text-white">{{ $competition->teams->count() }}/{{ $competition->max_teams }}</span>
+                                        </div>
+                                        <div class="flex justify-between text-sm">
+                                            <span class="text-gray-400">Status:</span>
+                                            <span class="
+                                                @if($competition->status === 'active' || $competition->status === 'in_progress') text-green-400
+                                                @elseif($competition->status === 'draft') text-yellow-400
+                                                @else text-red-400 @endif">
+                                                {{ $competition->status === 'in_progress' ? 'U tijeku' : ucfirst($competition->status) }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
+
+                @if($completedLeagues->count() > 0)
+                    <h4 class="text-gray-400 font-semibold mb-4 flex items-center">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        Završene Lige
+                    </h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        @foreach($completedLeagues as $competition)
+                            <div class="bg-gray-900/30 rounded-xl p-4 hover:bg-gray-800/30 transition-all duration-200 opacity-75 hover:opacity-100">
+                                <a href="{{ route('organizations.competitions.show', [$organization, $competition]) }}" class="block">
+                                    <div class="flex items-center space-x-3 mb-3">
+                                        <div class="w-10 h-10 bg-gray-700 rounded-xl flex items-center justify-center">
+                                            <span class="text-gray-400 font-bold text-sm">{{ substr($competition->name, 0, 2) }}</span>
+                                        </div>
+                                        <div class="flex-1">
+                                            <h4 class="text-gray-300 font-semibold">{{ $competition->name }}</h4>
+                                            <p class="text-gray-500 text-sm">{{ $competition->sport->name }}</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex justify-between text-sm">
+                                        <span class="text-gray-500">Završeno:</span>
+                                        <span class="text-gray-400">{{ $competition->updated_at->format('d.m.Y') }}</span>
+                                    </div>
+                                </a>
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
+
+                @if($activeLeagues->count() === 0 && $completedLeagues->count() === 0)
+                    <div class="text-center py-8">
+                        <div class="w-16 h-16 bg-gray-700/50 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                        <h4 class="text-white font-semibold mb-2">Još nema liga</h4>
+                        <p class="text-gray-400 mb-4">Kreirajte svoju prvu ligu</p>
+                    </div>
+                @endif
+            </div>
+
+            <!-- Competitions Section (Tournaments) -->
             <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl">
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
                     <h3 class="text-lg sm:text-xl font-bold text-white">Turniri</h3>
@@ -124,7 +227,13 @@
                                 <div class="space-y-2">
                                     <div class="flex justify-between text-sm">
                                         <span class="text-gray-400">Učesnici:</span>
-                                        <span class="text-white">{{ $competition->max_participants }}</span>
+                                        <span class="text-white">
+                                            @if($competition->is_team_based)
+                                                {{ $competition->teams->count() }}/{{ $competition->max_teams }}
+                                            @else
+                                                {{ $competition->players->count() }}/{{ $competition->max_participants }}
+                                            @endif
+                                        </span>
                                     </div>
                                     <div class="flex justify-between text-sm">
                                         <span class="text-gray-400">Status:</span>
@@ -214,52 +323,6 @@
                 @endif
             </div>
 
-            <!-- Tables Section -->
-            <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl">
-                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-                    <h3 class="text-lg sm:text-xl font-bold text-white">Stolovi</h3>
-                    @if($organization->user_id === Auth::id())
-                        <a href="{{ route('organizations.tables.index', $organization) }}" class="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white px-3 py-2 sm:px-4 sm:py-2 rounded-xl transition-all duration-200 transform hover:scale-[1.02] hover:shadow-lg hover:shadow-purple-500/25 inline-flex items-center justify-center">
-                            <span class="flex items-center space-x-2">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
-                                </svg>
-                                <span class="text-sm sm:text-base">Upravljaj Stolovima</span>
-                            </span>
-                        </a>
-                    @endif
-                </div>
-            </div>
-
-            <!-- Categories Section -->
-            <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl">
-                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-                    <h3 class="text-lg sm:text-xl font-bold text-white">Kategorije</h3>
-                    @if($organization->user_id === Auth::id())
-                        <a href="{{ route('organizations.categories.index', $organization) }}" class="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-3 py-2 sm:px-4 sm:py-2 rounded-xl transition-all duration-200 transform hover:scale-[1.02] hover:shadow-lg hover:shadow-blue-500/25 inline-flex items-center justify-center">
-                            <span class="flex items-center space-x-2">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
-                                </svg>
-                                <span class="text-sm sm:text-base">Upravljaj Kategorijama</span>
-                            </span>
-                        </a>
-                    @endif
-                </div>
-                
-                @if($organization->categories->count() > 0)
-                    <div class="flex flex-wrap gap-2">
-                        @foreach($organization->categories as $category)
-                            <span class="px-3 py-1 bg-gray-700/50 border border-gray-600/50 rounded-full text-gray-300 text-sm">
-                                {{ $category->name }}
-                            </span>
-                        @endforeach
-                    </div>
-                @else
-                    <p class="text-gray-500 italic text-sm">Nema definisanih kategorija.</p>
-                @endif
-            </div>
-
             <!-- Teams Section -->
             <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl">
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
@@ -288,31 +351,6 @@
                 @else
                     <p class="text-gray-500 italic text-sm">Nema definisanih timova.</p>
                 @endif
-            </div>
-
-            <!-- Leagues Section - Coming Soon -->
-            <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl opacity-50">
-                <div class="flex items-center justify-between mb-6">
-                    <h3 class="text-xl font-bold text-white">Lige</h3>
-                    <span class="bg-gray-600 text-gray-400 px-4 py-2 rounded-xl">
-                        <span class="flex items-center space-x-2">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                            </svg>
-                            <span>Uskoro</span>
-                        </span>
-                    </span>
-                </div>
-
-                <div class="text-center py-12">
-                    <div class="w-20 h-20 bg-gradient-to-r from-blue-500/20 to-purple-600/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <svg class="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                    </div>
-                    <h4 class="text-white font-semibold text-lg mb-2">Lige dolaze uskoro!</h4>
-                    <p class="text-gray-400">Radimo na implementaciji liga. Hvala na strpljenju.</p>
-                </div>
             </div>
 
             <!-- Players Section -->
@@ -349,7 +387,13 @@
                                         </div>
                                         <div class="flex-1">
                                             <h4 class="text-white font-semibold">{{ $player->name }}</h4>
-                                            <p class="text-gray-400 text-sm">{{ $player->position ?: 'Nema kluba' }}</p>
+                                            <p class="text-gray-400 text-sm">
+                                                @if($player->teams->count() > 0)
+                                                    {{ $player->teams->first()->name }}
+                                                @else
+                                                    {{ $player->position ?: 'Nema kluba' }}
+                                                @endif
+                                            </p>
                                         </div>
                                         @if($player->jersey_number)
                                             <div class="bg-gradient-to-r from-orange-500 to-red-500 text-white px-2 py-1 rounded-lg text-xs font-bold">
@@ -389,6 +433,52 @@
                 @endif
             </div>
 
+            <!-- Categories Section -->
+            <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                    <h3 class="text-lg sm:text-xl font-bold text-white">Kategorije</h3>
+                    @if($organization->user_id === Auth::id())
+                        <a href="{{ route('organizations.categories.index', $organization) }}" class="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-3 py-2 sm:px-4 sm:py-2 rounded-xl transition-all duration-200 transform hover:scale-[1.02] hover:shadow-lg hover:shadow-blue-500/25 inline-flex items-center justify-center">
+                            <span class="flex items-center space-x-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                                </svg>
+                                <span class="text-sm sm:text-base">Upravljaj Kategorijama</span>
+                            </span>
+                        </a>
+                    @endif
+                </div>
+                
+                @if($organization->categories->count() > 0)
+                    <div class="flex flex-wrap gap-2">
+                        @foreach($organization->categories as $category)
+                            <span class="px-3 py-1 bg-gray-700/50 border border-gray-600/50 rounded-full text-gray-300 text-sm">
+                                {{ $category->name }}
+                            </span>
+                        @endforeach
+                    </div>
+                @else
+                    <p class="text-gray-500 italic text-sm">Nema definisanih kategorija.</p>
+                @endif
+            </div>
+
+            <!-- Tables Section -->
+            <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                    <h3 class="text-lg sm:text-xl font-bold text-white">Stolovi</h3>
+                    @if($organization->user_id === Auth::id())
+                        <a href="{{ route('organizations.tables.index', $organization) }}" class="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white px-3 py-2 sm:px-4 sm:py-2 rounded-xl transition-all duration-200 transform hover:scale-[1.02] hover:shadow-lg hover:shadow-purple-500/25 inline-flex items-center justify-center">
+                            <span class="flex items-center space-x-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                                </svg>
+                                <span class="text-sm sm:text-base">Upravljaj Stolovima</span>
+                            </span>
+                        </a>
+                    @endif
+                </div>
+            </div>
+
             <!-- Recent Friendly Matches -->
             <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl">
                 <div class="flex flex-col sm:flex-row gap-4 mb-6">
@@ -409,8 +499,6 @@
                         </a>
                     </div>
                 </div>
-
-                <livewire:friendly-matches-list :organization-id="$organization->id" :organization="$organization" :limit="6" />
             </div>
 
             <!-- Organization Info -->

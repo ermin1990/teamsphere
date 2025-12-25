@@ -16,10 +16,10 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-700">
-                        @foreach($competition->standings->sortByDesc('points') as $index => $standing)
+                        @foreach($competition->standings->sortByDesc('points') as $standing)
                         <tr>
-                            <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-300">{{ $index + 1 }}.</td>
-                            <td class="px-4 py-4 whitespace-nowrap text-sm font-medium text-white">{{ $standing->team->name }}</td>
+                            <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-300">{{ $loop->iteration }}.</td>
+                            <td class="px-4 py-4 whitespace-nowrap text-sm font-medium text-white">{{ $standing->team->name ?? 'Nepoznato' }}</td>
                             <td class="px-4 py-4 whitespace-nowrap text-center text-sm text-gray-300">{{ $standing->played }}</td>
                             <td class="px-4 py-4 whitespace-nowrap text-center text-sm text-gray-300">{{ $standing->won }}</td>
                             <td class="px-4 py-4 whitespace-nowrap text-center text-sm text-gray-300">{{ $standing->lost }}</td>
@@ -33,36 +33,178 @@
 
         <!-- Team Matches -->
         <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50">
-            <h3 class="text-xl font-bold text-white mb-4">Raspored i Rezultati</h3>
-            <div class="space-y-4">
-                @foreach($competition->teamMatches->sortBy('round') as $index => $match)
-                <div class="bg-gray-900/50 rounded-xl p-4 border border-gray-700/30 flex items-center justify-between">
-                    <div class="flex-1 text-right pr-4">
-                        <span class="text-white font-medium">{{ $match->homeTeam->name }}</span>
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-bold text-white">Raspored i Rezultati</h3>
+                @if($isOwner)
+                    <button onclick="document.getElementById('addMatchModal').classList.remove('hidden')" 
+                            class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-bold transition flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                        </svg>
+                        Dodaj Meč
+                    </button>
+                @endif
+            </div>
+            <div class="space-y-8">
+                @foreach($competition->teamMatches->sortBy('round')->groupBy('round') as $round => $matches)
+                    @php
+                        $isRoundFinished = $matches->every(fn($m) => $m->status === 'completed');
+                    @endphp
+                    <div x-data="{ open: {{ $isRoundFinished ? 'false' : 'true' }} }" class="space-y-4">
+                        <div @click="open = !open" class="flex items-center space-x-4 cursor-pointer group">
+                            <div class="h-px flex-1 bg-gray-700 group-hover:bg-blue-500/50 transition-colors"></div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-sm font-bold text-gray-400 uppercase tracking-wider group-hover:text-blue-400 transition-colors">Kolo {{ $round }}</span>
+                                @if($isRoundFinished)
+                                    <span class="text-[10px] bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full font-bold">ZAVRŠENO</span>
+                                @endif
+                                <svg :class="{'rotate-180': open}" class="w-4 h-4 text-gray-500 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                            </div>
+                            <div class="h-px flex-1 bg-gray-700 group-hover:bg-blue-500/50 transition-colors"></div>
+                        </div>
+                        
+                        <div x-show="open" class="grid grid-cols-1 gap-4">
+                            @foreach($matches as $match)
+                                <div class="bg-gray-900/50 rounded-xl p-4 border border-gray-700/30 flex items-center justify-between hover:border-gray-600 transition-colors">
+                                    <div class="flex-1 text-right pr-4">
+                                        <span class="text-white font-medium">{{ $match->homeTeam->name ?? 'Nepoznato' }}</span>
+                                    </div>
+                                    <div class="flex flex-col items-center px-4 min-w-[120px]">
+                                        @if($match->scheduled_at)
+                                            <span class="text-[10px] text-gray-500 uppercase mb-1">{{ $match->scheduled_at->format('d.m.Y H:i') }}</span>
+                                        @endif
+                                        @if($match->status === 'scheduled')
+                                            <div class="flex flex-col items-center gap-2">
+                                                <a href="{{ route('organizations.competitions.team-matches.protocol', [$organization, $competition, $match]) }}" class="bg-blue-600/20 text-blue-400 px-3 py-1 rounded-lg text-xs font-bold hover:bg-blue-600/30 transition">
+                                                    PROTOKOL
+                                                </a>
+                                                @if($match->individualMatches->count() < 7)
+                                                    <form action="{{ route('organizations.competitions.team-matches.initialize', [$organization, $competition, $match]) }}" method="POST">
+                                                        @csrf
+                                                        <button type="submit" class="text-[9px] text-gray-500 hover:text-blue-400 transition uppercase font-bold">
+                                                            + Inicijalizuj mečeve
+                                                        </button>
+                                                    </form>
+                                                @endif
+                                            </div>
+                                        @else
+                                            <div class="flex flex-col items-center gap-1">
+                                                <a href="{{ route('organizations.competitions.team-matches.show', [$organization, $competition, $match]) }}" class="text-2xl font-black text-white hover:text-blue-400 transition">
+                                                    {{ $match->home_score }} : {{ $match->away_score }}
+                                                </a>
+                                                @if($match->individualMatches->count() < 7)
+                                                    <form action="{{ route('organizations.competitions.team-matches.initialize', [$organization, $competition, $match]) }}" method="POST">
+                                                        @csrf
+                                                        <button type="submit" class="text-[9px] text-yellow-500/70 hover:text-yellow-400 transition uppercase font-bold">
+                                                            + Dodaj mečeve koji fale
+                                                        </button>
+                                                    </form>
+                                                @endif
+                                            </div>
+                                        @endif
+                                    </div>
+                                    <div class="flex-1 text-left pl-4 flex items-center justify-between">
+                                        <span class="text-white font-medium">{{ $match->awayTeam->name ?? 'Nepoznato' }}</span>
+                                        
+                                        @if($isOwner)
+                                            <form action="{{ route('organizations.competitions.team-matches.destroy', [$organization, $competition, $match]) }}" method="POST" onsubmit="return confirm('Sigurno želite obrisati ovaj meč?')">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="text-gray-600 hover:text-red-500 transition-colors p-1">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                                    </svg>
+                                                </button>
+                                            </form>
+                                        @endif
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
                     </div>
-                    <div class="flex flex-col items-center px-4 min-w-[100px]">
-                        <div class="text-xs text-gray-500 mb-1">Meč {{ $index + 1 }}</div>
-                        @if($match->status === 'scheduled')
-                            <a href="{{ route('organizations.competitions.team-matches.protocol', [$organization, $competition, $match]) }}" class="bg-blue-600/20 text-blue-400 px-3 py-1 rounded-lg text-xs font-bold hover:bg-blue-600/30 transition">
-                                PROTOKOL
-                            </a>
-                        @else
-                            <a href="{{ route('organizations.competitions.team-matches.show', [$organization, $competition, $match]) }}" class="text-2xl font-black text-white hover:text-blue-400 transition">
-                                {{ $match->home_score }} : {{ $match->away_score }}
-                            </a>
-                        @endif
-                    </div>
-                    <div class="flex-1 text-left pl-4">
-                        <span class="text-white font-medium">{{ $match->awayTeam->name }}</span>
-                    </div>
-                </div>
                 @endforeach
             </div>
         </div>
     </div>
 @else
-    <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50">
-        <h3 class="text-2xl font-bold text-white mb-4">🏆 Liga</h3>
-        <p class="text-gray-400">Liga sadržaj će biti dodat uskoro.</p>
+    <div class="space-y-6">
+        <!-- Standings -->
+        <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50">
+            <h3 class="text-xl font-bold text-white mb-4">Tabela</h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-700">
+                    <thead>
+                        <tr>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Poz</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Igrač</th>
+                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider">OU</th>
+                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider">P</th>
+                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider">I</th>
+                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider">Bod</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-700">
+                        @foreach($competition->standings->sortByDesc('points') as $standing)
+                        <tr>
+                            <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-300">{{ $loop->iteration }}.</td>
+                            <td class="px-4 py-4 whitespace-nowrap text-sm font-medium text-white">{{ $standing->player->name ?? 'Nepoznato' }}</td>
+                            <td class="px-4 py-4 whitespace-nowrap text-center text-sm text-gray-300">{{ $standing->played }}</td>
+                            <td class="px-4 py-4 whitespace-nowrap text-center text-sm text-gray-300">{{ $standing->won }}</td>
+                            <td class="px-4 py-4 whitespace-nowrap text-center text-sm text-gray-300">{{ $standing->lost }}</td>
+                            <td class="px-4 py-4 whitespace-nowrap text-center text-sm font-bold text-blue-400">{{ $standing->points }}</td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Matches -->
+        <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50">
+            <h3 class="text-xl font-bold text-white mb-6">Raspored i Rezultati</h3>
+            <div class="space-y-8">
+                @foreach($competition->matches->sortBy('round')->groupBy('round') as $round => $matches)
+                    <div class="space-y-4">
+                        <div class="flex items-center space-x-4">
+                            <div class="h-px flex-1 bg-gray-700"></div>
+                            <span class="text-sm font-bold text-gray-400 uppercase tracking-wider">Kolo {{ $round }}</span>
+                            <div class="h-px flex-1 bg-gray-700"></div>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 gap-4">
+                            @foreach($matches as $match)
+                                <div class="bg-gray-900/50 rounded-xl p-4 border border-gray-700/30 flex items-center justify-between">
+                                    <div class="flex-1 text-right pr-4">
+                                        <span class="text-white font-medium">{{ $match->homePlayer->name ?? 'TBD' }}</span>
+                                    </div>
+                                    <div class="flex flex-col items-center px-4 min-w-[100px]">
+                                        <span class="text-xl font-black text-white">
+                                            {{ $match->status === 'scheduled' ? '-' : $match->home_score }} : {{ $match->status === 'scheduled' ? '-' : $match->away_score }}
+                                        </span>
+                                    </div>
+                                    <div class="flex-1 text-left pl-4 flex items-center justify-between">
+                                        <span class="text-white font-medium">{{ $match->awayPlayer->name ?? 'TBD' }}</span>
+                                        
+                                        @if($isOwner)
+                                            <form action="{{ route('organizations.competitions.matches.destroy', [$organization, $competition, $match]) }}" method="POST" onsubmit="return confirm('Sigurno želite obrisati ovaj meč?')">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="text-gray-600 hover:text-red-500 transition-colors p-1">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                                    </svg>
+                                                </button>
+                                            </form>
+                                        @endif
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        </div>
     </div>
 @endif

@@ -13,9 +13,45 @@ use Illuminate\Http\Request;
 
 class TeamMatchController extends Controller
 {
+    public function store(Request $request, Organization $organization, Competition $competition)
+    {
+        $this->authorize('update', $organization);
+
+        $request->validate([
+            'home_team_id' => 'required|exists:teams,id',
+            'away_team_id' => 'required|exists:teams,id|different:home_team_id',
+            'round' => 'required|integer|min:1',
+            'scheduled_at' => 'nullable|date',
+        ]);
+
+        $competition->teamMatches()->create([
+            'home_team_id' => $request->home_team_id,
+            'away_team_id' => $request->away_team_id,
+            'round' => $request->round,
+            'scheduled_at' => $request->scheduled_at,
+            'status' => 'scheduled',
+        ]);
+
+        // Ensure standings exist for these teams
+        foreach ([$request->home_team_id, $request->away_team_id] as $teamId) {
+            Standing::firstOrCreate([
+                'competition_id' => $competition->id,
+                'team_id' => $teamId,
+            ], [
+                'played' => 0,
+                'won' => 0,
+                'drawn' => 0,
+                'lost' => 0,
+                'points' => 0,
+            ]);
+        }
+
+        return back()->with('success', 'Meč uspješno dodan!');
+    }
+
     public function show(Organization $organization, Competition $competition, TeamMatch $teamMatch)
     {
-        $teamMatch->load(['homeTeam', 'awayTeam', 'individualMatches.homePlayer', 'individualMatches.awayPlayer']);
+        $teamMatch->load(['homeTeam', 'awayTeam', 'individualMatches.homePlayer', 'individualMatches.awayPlayer', 'homeCaptain', 'awayCaptain']);
         
         $doublesPlayers = [
             'home_1' => null,
@@ -41,7 +77,10 @@ class TeamMatchController extends Controller
             ];
         }
 
-        return view('organizations.competitions.team-matches.show', compact('organization', 'competition', 'teamMatch', 'doublesPlayers'));
+        $homePlayers = $teamMatch->homeTeam->players;
+        $awayPlayers = $teamMatch->awayTeam->players;
+
+        return view('organizations.competitions.team-matches.show', compact('organization', 'competition', 'teamMatch', 'doublesPlayers', 'homePlayers', 'awayPlayers'));
     }
 
     public function protocol(Organization $organization, Competition $competition, TeamMatch $teamMatch)
@@ -112,5 +151,163 @@ class TeamMatchController extends Controller
 
         return redirect()->route('organizations.competitions.team-matches.show', [$organization, $competition, $teamMatch])
             ->with('success', 'Protokol sačuvan i mečevi generisani.');
+    }
+
+    public function initializeIndividualMatches(Organization $organization, Competition $competition, TeamMatch $teamMatch)
+    {
+        $this->authorize('update', $organization);
+
+        $lineup = $teamMatch->lineup ?? [];
+        
+        $matchDefinitions = [
+            ['home' => $lineup['home_a'] ?? null, 'away' => $lineup['away_x'] ?? null, 'code' => 'A-X', 'order' => 1, 'round' => 1],
+            ['home' => $lineup['home_b'] ?? null, 'away' => $lineup['away_y'] ?? null, 'code' => 'B-Y', 'order' => 2, 'round' => 1],
+            ['home' => $lineup['home_c'] ?? null, 'away' => $lineup['away_z'] ?? null, 'code' => 'C-Z', 'order' => 3, 'round' => 1],
+            ['home' => null, 'away' => null, 'code' => 'Dubl', 'order' => 4, 'round' => 1],
+            ['home' => $lineup['home_a'] ?? null, 'away' => $lineup['away_y'] ?? null, 'code' => 'A-Y', 'order' => 5, 'round' => 2],
+            ['home' => $lineup['home_c'] ?? null, 'away' => $lineup['away_x'] ?? null, 'code' => 'C-X', 'order' => 6, 'round' => 2],
+            ['home' => $lineup['home_b'] ?? null, 'away' => $lineup['away_z'] ?? null, 'code' => 'B-Z', 'order' => 7, 'round' => 3],
+        ];
+
+        $addedCount = 0;
+        foreach ($matchDefinitions as $m) {
+            // Check if match with this order already exists
+            $exists = $teamMatch->individualMatches()->where('match_order', $m['order'])->exists();
+            
+            if (!$exists) {
+                $competition->matches()->create([
+                    'team_match_id' => $teamMatch->id,
+                    'home_team_id' => $teamMatch->home_team_id,
+                    'away_team_id' => $teamMatch->away_team_id,
+                    'home_player_id' => $m['home'],
+                    'away_player_id' => $m['away'],
+                    'position_code' => $m['code'],
+                    'match_order' => $m['order'],
+                    'round_number' => $m['round'],
+                    'status' => 'scheduled',
+                    'sets_to_win' => $competition->sets_to_win ?? 3,
+                    'points_per_set' => $competition->points_per_set ?? 11,
+                ]);
+                $addedCount++;
+            }
+        }
+
+        if ($teamMatch->status === 'scheduled' && $addedCount > 0) {
+            $teamMatch->update(['status' => 'in_progress']);
+        }
+
+        return back()->with('success', "Dodano $addedCount mečeva koji su nedostajali.");
+    }
+
+    public function addSingleMatch(Request $request, Organization $organization, Competition $competition, TeamMatch $teamMatch)
+    {
+        $this->authorize('update', $organization);
+
+        $request->validate([
+            'match_order' => 'required|integer|min:1|max:20',
+            'position_code' => 'required|string|max:10',
+        ]);
+
+        $competition->matches()->create([
+            'team_match_id' => $teamMatch->id,
+            'home_team_id' => $teamMatch->home_team_id,
+            'away_team_id' => $teamMatch->away_team_id,
+            'position_code' => $request->position_code,
+            'match_order' => $request->match_order,
+            'round_number' => ceil($request->match_order / 3),
+            'status' => 'scheduled',
+            'sets_to_win' => $competition->sets_to_win ?? 3,
+            'points_per_set' => $competition->points_per_set ?? 11,
+        ]);
+
+        if ($teamMatch->status === 'scheduled') {
+            $teamMatch->update(['status' => 'in_progress']);
+        }
+
+        return back()->with('success', 'Pojedinačni meč uspješno dodan.');
+    }
+
+    public function destroyIndividualMatch(Organization $organization, Competition $competition, TeamMatch $teamMatch, CompetitionMatch $match)
+    {
+        $this->authorize('update', $organization);
+
+        if ($match->team_match_id !== $teamMatch->id) {
+            abort(403);
+        }
+
+        $match->delete();
+
+        return back()->with('success', 'Pojedinačni meč obrisan.');
+    }
+
+    public function updateIndividualPlayers(Request $request, Organization $organization, Competition $competition, TeamMatch $teamMatch, CompetitionMatch $match)
+    {
+        $this->authorize('update', $organization);
+
+        if ($match->team_match_id !== $teamMatch->id) {
+            abort(403);
+        }
+
+        $request->validate([
+            'home_player_id' => 'nullable|exists:players,id',
+            'away_player_id' => 'nullable|exists:players,id',
+        ]);
+
+        $match->update($request->only(['home_player_id', 'away_player_id']));
+
+        return response()->json(['success' => true]);
+    }
+
+    public function updateLineup(Request $request, Organization $organization, Competition $competition, TeamMatch $teamMatch)
+    {
+        $this->authorize('update', $organization);
+
+        $request->validate([
+            'field' => 'required|string',
+            'player_id' => 'nullable|exists:players,id',
+        ]);
+
+        $lineup = $teamMatch->lineup ?? [];
+        $lineup[$request->field] = $request->player_id;
+        
+        $teamMatch->update(['lineup' => $lineup]);
+
+        return response()->json(['success' => true]);
+    }
+
+    public function updateCaptainsAndReferee(Request $request, Organization $organization, Competition $competition, TeamMatch $teamMatch)
+    {
+        $this->authorize('update', $organization);
+
+        $request->validate([
+            'home_captain_id' => 'nullable|exists:players,id',
+            'away_captain_id' => 'nullable|exists:players,id',
+            'referee_name' => 'nullable|string|max:255',
+        ]);
+
+        // Validate that captains belong to their respective teams
+        if ($request->home_captain_id && !in_array($request->home_captain_id, $teamMatch->homeTeam->players->pluck('id')->toArray())) {
+            return response()->json(['error' => 'Kapetan domaćina mora biti iz tima domaćina.'], 422);
+        }
+
+        if ($request->away_captain_id && !in_array($request->away_captain_id, $teamMatch->awayTeam->players->pluck('id')->toArray())) {
+            return response()->json(['error' => 'Kapetan gosta mora biti iz tima gosta.'], 422);
+        }
+
+        $teamMatch->update($request->only(['home_captain_id', 'away_captain_id', 'referee_name']));
+
+        return response()->json(['success' => true]);
+    }
+
+    public function destroy(Organization $organization, Competition $competition, TeamMatch $teamMatch)
+    {
+        $this->authorize('update', $organization);
+
+        // Delete all individual matches first
+        $teamMatch->individualMatches()->delete();
+        
+        $teamMatch->delete();
+
+        return back()->with('success', 'Ekipni meč je uspješno obrisan.');
     }
 }

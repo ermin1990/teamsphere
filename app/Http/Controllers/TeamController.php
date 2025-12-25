@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Organization;
 use App\Models\Team;
 use App\Models\Player;
+use App\Models\TeamCoach;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -45,6 +46,7 @@ class TeamController extends Controller
         
         $request->validate([
             'name' => 'required|string|max:255',
+            'coach' => 'nullable|string|max:255',
             'description' => 'nullable|string|max:1000',
             'competition_id' => 'nullable|exists:competitions,id',
         ]);
@@ -71,6 +73,7 @@ class TeamController extends Controller
         
         $request->validate([
             'name' => 'required|string|max:255',
+            'coach' => 'nullable|string|max:255',
             'description' => 'nullable|string|max:1000',
         ]);
 
@@ -98,7 +101,71 @@ class TeamController extends Controller
             ->orderBy('name')
             ->get();
 
-        return view('organizations.teams.roster', compact('organization', 'team', 'teamPlayers', 'availablePlayers'));
+        $coaches = collect();
+        try {
+            $coaches = $team->coaches()->orderBy('is_active', 'desc')->orderBy('created_at', 'desc')->get();
+        } catch (\Exception $e) {
+            // Table might not exist on production yet
+        }
+
+        // Fallback: if no coaches found in table, but team has a coach string
+        if ($coaches->isEmpty() && $team->coach) {
+            $coaches->push((object)[
+                'id' => 0,
+                'name' => $team->coach,
+                'is_active' => true,
+                'start_date' => null,
+                'end_date' => null,
+                'team_id' => $team->id
+            ]);
+        }
+
+        $recentMatches = $team->matches()
+            ->with(['homeTeam', 'awayTeam', 'competition'])
+            ->orderBy('scheduled_at', 'desc')
+            ->take(5)
+            ->get();
+
+        return view('organizations.teams.roster', compact('organization', 'team', 'teamPlayers', 'availablePlayers', 'recentMatches', 'coaches'));
+    }
+
+    public function bulkAddPlayers(Request $request, Organization $organization, Team $team)
+    {
+        $this->authorize('update', $organization);
+        
+        $request->validate([
+            'player_ids' => 'nullable|array',
+            'player_ids.*' => 'exists:players,id',
+            'names_list' => 'nullable|string',
+        ]);
+
+        $addedCount = 0;
+
+        // Handle existing players
+        if ($request->has('player_ids')) {
+            $team->players()->syncWithoutDetaching($request->player_ids);
+            $addedCount += count($request->player_ids);
+        }
+
+        // Handle new players from list
+        if ($request->filled('names_list')) {
+            $names = preg_split('/[\n,]+/', $request->names_list);
+            foreach ($names as $name) {
+                $name = trim($name);
+                if (empty($name)) continue;
+
+                // Create player in organization
+                $player = $organization->players()->create([
+                    'name' => $name,
+                    'type' => 'single',
+                ]);
+
+                $team->players()->attach($player->id);
+                $addedCount++;
+            }
+        }
+
+        return redirect()->back()->with('success', $addedCount . ' igrača dodano u tim.');
     }
 
     public function addPlayer(Request $request, Organization $organization, Team $team)
@@ -112,6 +179,69 @@ class TeamController extends Controller
         $team->players()->attach($request->player_id);
 
         return redirect()->back()->with('success', 'Igrač dodan u tim.');
+    }
+
+    public function addCoach(Request $request, Organization $organization, Team $team)
+    {
+        $this->authorize('update', $organization);
+        
+        $request->validate([
+            'name' => 'required|string|max:255',
+        ]);
+
+        try {
+            // Deactivate other coaches if this one is active (default)
+            $team->coaches()->update(['is_active' => false]);
+
+            $team->coaches()->create([
+                'name' => $request->name,
+                'is_active' => true,
+                'start_date' => now(),
+            ]);
+        } catch (\Exception $e) {
+            // Fallback: update the simple coach field on the team table
+            $team->update(['coach' => $request->name]);
+        }
+
+        return redirect()->back()->with('success', 'Trener uspješno dodan.');
+    }
+
+    public function toggleCoachStatus(Organization $organization, Team $team, TeamCoach $coach)
+    {
+        $this->authorize('update', $organization);
+        
+        if ($coach->team_id !== $team->id) abort(403);
+
+        try {
+            if (!$coach->is_active) {
+                // Deactivate others
+                $team->coaches()->where('id', '!=', $coach->id)->update(['is_active' => false]);
+                $coach->update(['is_active' => true, 'end_date' => null]);
+            } else {
+                $coach->update(['is_active' => false, 'end_date' => now()]);
+            }
+        } catch (\Exception $e) {
+            // Table might not exist
+            return redirect()->back()->with('error', 'Greška pri ažuriranju statusa trenera.');
+        }
+
+        return redirect()->back()->with('success', 'Status trenera ažuriran.');
+    }
+
+    public function removeCoach(Organization $organization, Team $team, TeamCoach $coach)
+    {
+        $this->authorize('update', $organization);
+        
+        if ($coach->team_id !== $team->id) abort(403);
+
+        try {
+            $coach->delete();
+        } catch (\Exception $e) {
+            // Table might not exist
+            return redirect()->back()->with('error', 'Greška pri brisanju trenera.');
+        }
+
+        return redirect()->back()->with('success', 'Trener uklonjen.');
     }
 
     public function removePlayer(Organization $organization, Team $team, Player $player)

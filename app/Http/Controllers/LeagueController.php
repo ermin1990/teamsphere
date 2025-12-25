@@ -889,7 +889,31 @@ class LeagueController extends Controller
         $isOwner = $organization->user_id === auth()->id();
         $isReferee = ($match->referee_user_id === auth()->id() || $match->moderator_id === auth()->id());
 
-        return view('organizations.leagues.matches.edit', compact('organization', 'league', 'match', 'isOwner', 'isReferee'));
+        $homePlayers = collect();
+        $awayPlayers = collect();
+
+        if ($match->home_team_id) {
+            $homePlayers = Team::find($match->home_team_id)->players;
+        }
+        if ($match->away_team_id) {
+            $awayPlayers = Team::find($match->away_team_id)->players;
+        }
+
+        // Get unique referee names for autocomplete
+        $referees = LeagueMatch::whereNotNull('referee_name')
+            ->distinct()
+            ->pluck('referee_name');
+
+        return view('organizations.leagues.matches.edit', compact(
+            'organization', 
+            'league', 
+            'match', 
+            'isOwner', 
+            'isReferee',
+            'homePlayers',
+            'awayPlayers',
+            'referees'
+        ));
     }
 
     /**
@@ -920,6 +944,9 @@ class LeagueController extends Controller
             'moderator_id' => 'nullable|exists:users,id',
             'referee_user_id' => 'nullable|exists:users,id',
             'table_id' => 'nullable|exists:tables,id',
+            'home_captain_id' => 'nullable|exists:players,id',
+            'away_captain_id' => 'nullable|exists:players,id',
+            'referee_name' => 'nullable|string|max:255',
         ]);
 
         // Check if user is owner (only owners can assign referees)
@@ -966,6 +993,11 @@ class LeagueController extends Controller
         if (isset($validated['table_id'])) {
             $updateData['table_id'] = $validated['table_id'] ?: null;
         }
+
+        // Add captains and referee name
+        $updateData['home_captain_id'] = $validated['home_captain_id'] ?? null;
+        $updateData['away_captain_id'] = $validated['away_captain_id'] ?? null;
+        $updateData['referee_name'] = $validated['referee_name'] ?? null;
 
         if ($validated['status'] === 'scheduled') {
             // Reset everything

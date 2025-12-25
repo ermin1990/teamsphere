@@ -47,6 +47,16 @@ class Player extends Model
     }
 
     /**
+     * Get the teams this player belongs to.
+     */
+    public function teams(): BelongsToMany
+    {
+        return $this->belongsToMany(Team::class, 'team_player', 'player_id', 'team_id')
+                    ->withPivot('role')
+                    ->withTimestamps();
+    }
+
+    /**
      * Get the leagues this player participates in.
      */
     public function leagues(): BelongsToMany

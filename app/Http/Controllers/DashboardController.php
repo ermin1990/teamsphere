@@ -71,8 +71,8 @@ class DashboardController extends Controller
         // Calculate usage statistics
         $usageStats = [
             'organizations_used' => $user->organizations()->count(),
-            'competitions_used' => \App\Models\Competition::whereIn('organization_id', $allOrganizationIds)->count(),
-            'leagues_used' => \App\Models\League::whereIn('organization_id', $allOrganizationIds)->count(),
+            'competitions_used' => \App\Models\Competition::whereIn('organization_id', $allOrganizationIds)->where('type', 'tournament')->count(),
+            'leagues_used' => \App\Models\Competition::whereIn('organization_id', $allOrganizationIds)->where('type', 'league')->count(),
             'max_organizations' => $currentPlan ? $currentPlan->max_organizations : null,
             'max_competitions_per_organization' => $currentPlan ? $currentPlan->max_competitions_per_organization : null,
             'max_leagues_per_organization' => $currentPlan ? $currentPlan->max_leagues_per_organization : null,

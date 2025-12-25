@@ -84,6 +84,49 @@
                         </select>
                     </div>
 
+                    @if($league->is_team_based)
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Home Captain -->
+                        <div>
+                            <label for="home_captain_id" class="block text-sm font-medium text-gray-300 mb-2">Kapiten ({{ $match->homeTeam->name ?? 'Domaći' }})</label>
+                            <select name="home_captain_id" id="home_captain_id" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <option value="">Odaberite kapitena</option>
+                                @foreach($homePlayers as $player)
+                                    <option value="{{ $player->id }}" {{ $match->home_captain_id == $player->id ? 'selected' : '' }}>
+                                        {{ $player->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <!-- Away Captain -->
+                        <div>
+                            <label for="away_captain_id" class="block text-sm font-medium text-gray-300 mb-2">Kapiten ({{ $match->awayTeam->name ?? 'Gosti' }})</label>
+                            <select name="away_captain_id" id="away_captain_id" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <option value="">Odaberite kapitena</option>
+                                @foreach($awayPlayers as $player)
+                                    <option value="{{ $player->id }}" {{ $match->away_captain_id == $player->id ? 'selected' : '' }}>
+                                        {{ $player->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                    @endif
+
+                    <!-- Referee -->
+                    <div>
+                        <label for="referee_name" class="block text-sm font-medium text-gray-300 mb-2">Sudija</label>
+                        <input type="text" name="referee_name" id="referee_name" list="referees-list" value="{{ old('referee_name', $match->referee_name) }}" 
+                               class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                               placeholder="Upišite ime sudije...">
+                        <datalist id="referees-list">
+                            @foreach($referees as $refName)
+                                <option value="{{ $refName }}">
+                            @endforeach
+                        </datalist>
+                    </div>
+
                     <!-- Forfeited By (only shown when status is forfeited) -->
                     <div id="forfeited-section" class="hidden">
                         <label for="forfeited_by" class="block text-sm font-medium text-gray-300 mb-2">Forfeited By</label>

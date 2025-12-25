@@ -42,7 +42,7 @@
 <div class="bg-gradient-to-r from-yellow-500/20 to-orange-500/20 backdrop-blur-xl rounded-2xl p-6 border border-yellow-500/30 shadow-xl">
     <div class="text-center">
         <div class="text-sm text-yellow-400 font-medium mb-1">Pobjednik/Pobjednica turnira</div>
-        <div class="text-xl font-bold text-white">{{ $tournamentWinner->name }}</div>
+        <div class="text-xl font-bold text-white">{{ $tournamentWinner->name ?? 'Nepoznato' }}</div>
     </div>
 </div>
 @endif

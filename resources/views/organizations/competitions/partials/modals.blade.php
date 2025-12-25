@@ -43,10 +43,10 @@
                 <!-- Set Scores (Optional) -->
                 <div class="bg-gray-700/30 rounded-lg p-4">
                     <div class="flex items-center justify-between mb-3">
-                        <label class="text-sm font-medium text-gray-300">Set Scores (Optional)</label>
+                        <label class="text-sm font-medium text-gray-300">Rezultati setova (opcionalno)</label>
                         <button type="button" onclick="addSetScore()" 
                                 class="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded transition-colors">
-                            ➕ Add set score
+                            ➕ Dodaj set
                         </button>
                     </div>
                     <div id="setScoresContainer" class="space-y-2">
@@ -70,8 +70,85 @@
     </div>
 </div>
 
-{{-- Add Match Modal --}}
+{{-- Add Team Match Modal --}}
 <div id="addMatchModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-gray-800 rounded-2xl p-6 max-w-md w-full border border-gray-700 shadow-xl">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="text-xl font-semibold text-white">➕ Dodaj novi meč</h3>
+            <button onclick="document.getElementById('addMatchModal').classList.add('hidden')" class="text-gray-400 hover:text-white">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+
+        <form action="{{ route('organizations.competitions.team-matches.store', [$organization, $competition]) }}" method="POST">
+            @csrf
+            <div class="space-y-4">
+                <!-- Round -->
+                <div>
+                    <label for="round" class="block text-sm font-medium text-gray-300 mb-2">
+                        Kolo
+                    </label>
+                    <input type="number" id="round" name="round" required min="1" value="{{ ($competition->teamMatches->max('round') ?? 0) + 1 }}"
+                           class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+
+                <!-- Home Team -->
+                <div>
+                    <label for="home_team_id" class="block text-sm font-medium text-gray-300 mb-2">
+                        Domaća Ekipa
+                    </label>
+                    <select id="home_team_id" name="home_team_id" required
+                            class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="">Odaberite ekipu...</option>
+                        @foreach($competition->teams as $team)
+                            <option value="{{ $team->id }}">{{ $team->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <!-- Away Team -->
+                <div>
+                    <label for="away_team_id" class="block text-sm font-medium text-gray-300 mb-2">
+                        Gostujuća Ekipa
+                    </label>
+                    <select id="away_team_id" name="away_team_id" required
+                            class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="">Odaberite ekipu...</option>
+                        @foreach($competition->teams as $team)
+                            <option value="{{ $team->id }}">{{ $team->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <!-- Date -->
+                <div>
+                    <label for="scheduled_at" class="block text-sm font-medium text-gray-300 mb-2">
+                        Datum i Vrijeme (opcionalno)
+                    </label>
+                    <input type="datetime-local" id="scheduled_at" name="scheduled_at"
+                           class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+
+                <div class="flex space-x-3 pt-4">
+                    <button type="button" 
+                            onclick="document.getElementById('addMatchModal').classList.add('hidden')"
+                            class="flex-1 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors">
+                        Odustani
+                    </button>
+                    <button type="submit" 
+                            class="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors font-bold">
+                        ➕ Dodaj meč
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+{{-- Add Match Modal --}}
+<div id="addMatchModal_old" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
     <div class="bg-gray-800 rounded-2xl p-6 max-w-md w-full border border-gray-700 shadow-xl">
         <div class="flex items-center justify-between mb-6">
             <h3 class="text-xl font-semibold text-white">➕ Dodaj novi meč</h3>

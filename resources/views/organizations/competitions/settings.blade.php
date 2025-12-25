@@ -64,20 +64,17 @@
                 <h3 class="text-xl font-semibold text-white mb-4">Brzi Predlošci</h3>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <button onclick="applyPreset('standard')" 
-                            {{ $competition->status !== 'draft' ? 'disabled' : '' }}
-                            class="{{ $competition->status !== 'draft' ? 'bg-gray-600/20 border-gray-500 cursor-not-allowed' : 'bg-blue-600/20 hover:bg-blue-600/30 border-blue-500' }} border-2 text-white p-4 rounded-lg transition-colors text-left">
-                        <h4 class="font-semibold mb-2">� Standard (11 poena)</h4>
+                            class="bg-blue-600/20 hover:bg-blue-600/30 border-blue-500 border-2 text-white p-4 rounded-lg transition-colors text-left">
+                        <h4 class="font-semibold mb-2">🏆 Standard (11 poena)</h4>
                         <p class="text-sm text-gray-300">Najbolji od 3, 11 poena, završetak pri 10</p>
                     </button>
                     <button onclick="applyPreset('extended')" 
-                            {{ $competition->status !== 'draft' ? 'disabled' : '' }}
-                            class="{{ $competition->status !== 'draft' ? 'bg-gray-600/20 border-gray-500 cursor-not-allowed' : 'bg-purple-600/20 hover:bg-purple-600/30 border-purple-500' }} border-2 text-white p-4 rounded-lg transition-colors text-left">
+                            class="bg-purple-600/20 hover:bg-purple-600/30 border-purple-500 border-2 text-white p-4 rounded-lg transition-colors text-left">
                         <h4 class="font-semibold mb-2">🎯 Produženo (15 poena)</h4>
                         <p class="text-sm text-gray-300">Najbolji od 3, 15 poena, završetak pri 14</p>
                     </button>
                     <button onclick="applyPreset('classic')" 
-                            {{ $competition->status !== 'draft' ? 'disabled' : '' }}
-                            class="{{ $competition->status !== 'draft' ? 'bg-gray-600/20 border-gray-500 cursor-not-allowed' : 'bg-green-600/20 hover:bg-green-600/30 border-green-500' }} border-2 text-white p-4 rounded-lg transition-colors text-left">
+                            class="bg-green-600/20 hover:bg-green-600/30 border-green-500 border-2 text-white p-4 rounded-lg transition-colors text-left">
                         <h4 class="font-semibold mb-2">⚡ Classic (21 pts)</h4>
                         <p class="text-sm text-gray-300">Best of 3, 21 points, deuce at 20</p>
                     </button>
@@ -87,7 +84,7 @@
             <form action="{{ route('organizations.competitions.update-settings', [$organization, $competition]) }}" method="POST" onsubmit="return validateSettingsForm(event)">
                 @csrf
 
-                <fieldset {{ $competition->status !== 'draft' ? 'disabled' : '' }}>
+                <fieldset>
 
                 <!-- Basic Info -->
                 <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl mb-6">
@@ -380,8 +377,7 @@
                 <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl">
                     <div class="flex flex-col sm:flex-row gap-3 sm:gap-4">
                         <button type="submit"
-                                {{ $competition->status !== 'draft' ? 'disabled' : '' }}
-                                class="flex-1 {{ $competition->status !== 'draft' ? 'bg-gray-600 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700' }} text-white px-4 py-3 sm:px-6 sm:py-3 rounded-lg transition-colors font-semibold text-center">
+                                class="flex-1 bg-green-600 hover:bg-green-700 text-white px-4 py-3 sm:px-6 sm:py-3 rounded-lg transition-colors font-semibold text-center">
                             Sačuvaj Postavke
                         </button>
                         <a href="{{ route('organizations.competitions.show', [$organization, $competition]) }}"
@@ -507,39 +503,6 @@
 
         // Validate settings form submission
         function validateSettingsForm(event) {
-            const competitionStatus = '{{ $competition->status }}';
-            
-            if (competitionStatus !== 'draft') {
-                // Check if only knockout_matches_count is being changed
-                const knockoutInput = document.getElementById('knockout_matches_count');
-                const originalValue = '{{ $competition->knockout_matches_count ?? 7 }}';
-                const currentValue = knockoutInput.value;
-                
-                // Check if any other inputs have changed (simple check)
-                const allInputs = event.target.querySelectorAll('input:not([type="hidden"]), select');
-                let otherFieldsChanged = false;
-                
-                allInputs.forEach(input => {
-                    if (input.id !== 'knockout_matches_count' && input.name !== '_token') {
-                        // For simplicity, just check if knockout_matches_count is the only field that might have changed
-                        // In a real scenario, you'd want to track original values
-                    }
-                });
-                
-                // Allow submission if only knockout_matches_count changed
-                if (currentValue !== originalValue) {
-                    // Confirm with user
-                    if (!confirm('Da li ste sigurni da želite promijeniti broj mečeva u eliminacionoj fazi? Ovo može uticati na već planirane mečeve.')) {
-                        return false;
-                    }
-                    return true;
-                }
-                
-                // Prevent submission for other changes
-                showNotification('Postavke se mogu mijenjati samo u draft fazi turnira.', 'error');
-                return false;
-            }
-            
             return true;
         }
     </script>

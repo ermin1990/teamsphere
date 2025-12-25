@@ -71,14 +71,14 @@
                 <!-- Club/Team -->
                 <div>
                     <label for="position" class="block text-sm font-medium text-white mb-2">
-                        Klub <span class="text-white/50">(Opcionalno)</span>
+                        Pozicija / Vanjski Klub <span class="text-white/50">(Opcionalno)</span>
                     </label>
                     <input type="text"
                            id="position"
                            name="position"
                            value="{{ old('position', $player->position) }}"
                            class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
-                           placeholder="Npr. ŠTK Maglaj, FK Željezničar, RK Borac">
+                           placeholder="Npr. Napadač, ŠTK Maglaj, FK Željezničar">
                     @error('position')
                         <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
                     @enderror

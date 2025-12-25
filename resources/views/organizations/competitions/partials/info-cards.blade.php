@@ -4,7 +4,7 @@
         <div class="flex items-center justify-between">
             <div>
                 <p class="text-gray-400 text-xs uppercase">Sport</p>
-                <p class="text-white text-base font-bold mt-1">{{ $competition->sport->name }}</p>
+                <p class="text-white text-base font-bold mt-1">{{ $competition->sport->name ?? 'Nepoznato' }}</p>
             </div>
             <div class="w-8 h-8 bg-blue-600/20 rounded-lg flex items-center justify-center flex-shrink-0">
                 <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -18,7 +18,13 @@
         <div class="flex items-center justify-between">
             <div>
                 <p class="text-gray-400 text-xs uppercase">Učesnici</p>
-                <p class="text-white text-base font-bold mt-1">{{ $competition->players->count() }}</p>
+                <p class="text-white text-base font-bold mt-1">
+                    @if($competition->is_team_based)
+                        {{ $competition->teams->count() }}
+                    @else
+                        {{ $competition->players->count() }}
+                    @endif
+                </p>
             </div>
             <div class="w-8 h-8 bg-purple-600/20 rounded-lg flex items-center justify-center flex-shrink-0">
                 <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

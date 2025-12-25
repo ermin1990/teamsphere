@@ -91,19 +91,43 @@ Route::middleware('auth')->group(function () {
     Route::resource('organizations', OrganizationController::class);
 
     // Team routes
-    Route::resource('organizations.teams', TeamController::class);
+    Route::get('organizations/{organization}/teams', [TeamController::class, 'index'])->name('organizations.teams.index');
+    Route::resource('organizations.teams', TeamController::class)->except(['index']);
     Route::get('organizations/{organization}/teams/{team}/roster', [TeamController::class, 'roster'])->name('organizations.teams.roster');
     Route::post('organizations/{organization}/teams/{team}/roster', [TeamController::class, 'addPlayer'])->name('organizations.teams.roster.add');
+    Route::post('organizations/{organization}/teams/{team}/roster/bulk', [TeamController::class, 'bulkAddPlayers'])->name('organizations.teams.roster.bulk-add');
     Route::delete('organizations/{organization}/teams/{team}/roster/{player}', [TeamController::class, 'removePlayer'])->name('organizations.teams.roster.remove');
+    
+    // Coach management
+    Route::post('organizations/{organization}/teams/{team}/coaches', [TeamController::class, 'addCoach'])->name('organizations.teams.coaches.add');
+    Route::post('organizations/{organization}/teams/{team}/coaches/{coach}/toggle', [TeamController::class, 'toggleCoachStatus'])->name('organizations.teams.coaches.toggle');
+    Route::delete('organizations/{organization}/teams/{team}/coaches/{coach}', [TeamController::class, 'removeCoach'])->name('organizations.teams.coaches.remove');
+
     Route::post('organizations/{organization}/teams/suggest', [TeamController::class, 'suggestTeams'])->name('organizations.teams.suggest');
 
     // Team Matches
     Route::get('organizations/{organization}/competitions/{competition}/team-matches/{teamMatch}', [\App\Http\Controllers\TeamMatchController::class, 'show'])
         ->name('organizations.competitions.team-matches.show');
+    Route::post('organizations/{organization}/competitions/{competition}/team-matches', [\App\Http\Controllers\TeamMatchController::class, 'store'])
+        ->name('organizations.competitions.team-matches.store');
     Route::get('organizations/{organization}/competitions/{competition}/team-matches/{teamMatch}/protocol', [\App\Http\Controllers\TeamMatchController::class, 'protocol'])
         ->name('organizations.competitions.team-matches.protocol');
     Route::post('organizations/{organization}/competitions/{competition}/team-matches/{teamMatch}/protocol', [\App\Http\Controllers\TeamMatchController::class, 'storeProtocol'])
         ->name('organizations.competitions.team-matches.store-protocol');
+    Route::post('organizations/{organization}/competitions/{competition}/team-matches/{teamMatch}/initialize', [\App\Http\Controllers\TeamMatchController::class, 'initializeIndividualMatches'])
+        ->name('organizations.competitions.team-matches.initialize');
+    Route::post('organizations/{organization}/competitions/{competition}/team-matches/{teamMatch}/add-single', [\App\Http\Controllers\TeamMatchController::class, 'addSingleMatch'])
+        ->name('organizations.competitions.team-matches.add-single');
+    Route::delete('organizations/{organization}/competitions/{competition}/team-matches/{teamMatch}/individual/{match}', [\App\Http\Controllers\TeamMatchController::class, 'destroyIndividualMatch'])
+        ->name('organizations.competitions.team-matches.individual.destroy');
+    Route::post('organizations/{organization}/competitions/{competition}/team-matches/{teamMatch}/individual/{match}/players', [\App\Http\Controllers\TeamMatchController::class, 'updateIndividualPlayers'])
+        ->name('organizations.competitions.team-matches.individual.players');
+    Route::post('organizations/{organization}/competitions/{competition}/team-matches/{teamMatch}/lineup', [\App\Http\Controllers\TeamMatchController::class, 'updateLineup'])
+        ->name('organizations.competitions.team-matches.lineup.update');
+    Route::post('organizations/{organization}/competitions/{competition}/team-matches/{teamMatch}/captains-referee', [\App\Http\Controllers\TeamMatchController::class, 'updateCaptainsAndReferee'])
+        ->name('organizations.competitions.team-matches.captains-referee.update');
+    Route::delete('organizations/{organization}/competitions/{competition}/team-matches/{teamMatch}', [\App\Http\Controllers\TeamMatchController::class, 'destroy'])
+        ->name('organizations.competitions.team-matches.destroy');
 
     // Category routes (nested under organizations)
     Route::resource('organizations.categories', CategoryController::class)->shallow();
@@ -129,6 +153,8 @@ Route::middleware('auth')->group(function () {
     Route::get('organizations/{organization}/friendly-matches/{match}', [OrganizationController::class, 'showFriendlyMatch'])->name('organizations.friendly-matches.show');
 
     // Player routes (nested under organizations)
+    Route::delete('organizations/{organization}/players/bulk-delete', [PlayerController::class, 'bulkDelete'])->name('organizations.players.bulk-delete');
+    Route::post('organizations/{organization}/players/bulk-store', [PlayerController::class, 'bulkStore'])->name('organizations.players.bulk-store');
     Route::resource('organizations.players', PlayerController::class)->shallow();
 
     // Player details route (override the resource show route)
@@ -137,6 +163,7 @@ Route::middleware('auth')->group(function () {
     Route::get('organizations/{organization}/competitions/{competition}/matches/{match}', [CompetitionController::class, 'showMatch'])->name('organizations.competitions.matches.show');
     Route::get('organizations/{organization}/competitions/{competition}/matches/{match}/edit', [CompetitionController::class, 'editMatch'])->name('organizations.competitions.matches.edit');
     Route::put('organizations/{organization}/competitions/{competition}/matches/{match}', [CompetitionController::class, 'updateMatch'])->name('organizations.competitions.matches.update');
+    Route::delete('organizations/{organization}/competitions/{competition}/matches/{match}', [CompetitionController::class, 'destroyMatch'])->name('organizations.competitions.matches.destroy');
 
     // Competition routes (nested under organizations)
     Route::get('organizations/{organization}/competitions/create', [CompetitionController::class, 'create'])->name('organizations.competitions.create');
@@ -264,7 +291,12 @@ Route::prefix('public')->name('public.')->group(function () {
 
     // Public match routes
     Route::get('/leagues/{competition}/matches/{match}', [App\Http\Controllers\PublicMatchController::class, 'showMatch'])->name('matches.show');
+    Route::get('/leagues/{competition}/team-matches/{teamMatch}', [App\Http\Controllers\PublicMatchController::class, 'showTeamMatch'])->name('team-matches.show');
     Route::get('/leagues/{competition}/matches/{match}/live', [App\Http\Controllers\PublicMatchController::class, 'liveScore'])->name('matches.live');
+
+    // Public team/club profile
+    Route::get('/teams/{team}', [App\Http\Controllers\PublicMatchController::class, 'showTeam'])->name('teams.show');
+    Route::get('/teams/{team}/competitions/{competition}/matches', [App\Http\Controllers\PublicMatchController::class, 'showTeamCompetitionMatches'])->name('teams.competition-matches');
 
     // Live matches overview
     Route::get('/live-matches', [App\Http\Controllers\PublicMatchController::class, 'liveMatches'])->name('live-matches');

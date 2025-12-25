@@ -5,6 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\Competition;
 use App\Models\League;
 use App\Models\LeagueMatch;
+use App\Models\TeamMatch;
+use App\Models\Organization;
+use App\Models\Player;
+use App\Models\Team;
 use Illuminate\Http\Request;
 
 class PublicMatchController extends Controller
@@ -38,6 +42,9 @@ class PublicMatchController extends Controller
             $competition->load([
                 'organization',
                 'sport',
+                'standings' => function ($query) {
+                    $query->orderBy('position', 'asc');
+                },
                 'standings.team',
                 'standings.player',
                 'tournamentGroups', // Load tournament groups for standings
@@ -58,12 +65,24 @@ class PublicMatchController extends Controller
 
             // Load matches based on competition type
             if ($competition->type === 'league') {
-                $competition->load([
-                    'leagueMatches' => function ($query) {
-                        $query->orderBy('scheduled_at', 'desc')
-                              ->with(['homeTeam', 'awayTeam', 'homePlayer', 'awayPlayer']);
-                    }
-                ]);
+                $competition->load(['standings.team', 'standings.player']);
+                if ($competition->is_team_based) {
+                    $competition->load([
+                        'teamMatches' => function ($query) {
+                            $query->orderBy('round')
+                                  ->orderBy('scheduled_at', 'desc')
+                                  ->with(['homeTeam', 'awayTeam']);
+                        }
+                    ]);
+                } else {
+                    $competition->load([
+                        'leagueMatches' => function ($query) {
+                            $query->orderBy('round')
+                                  ->orderBy('scheduled_at', 'desc')
+                                  ->with(['homeTeam', 'awayTeam', 'homePlayer', 'awayPlayer']);
+                        }
+                    ]);
+                }
             } else {
                 // For tournaments, matches are CompetitionMatch
                 $competition->load([
@@ -113,6 +132,57 @@ class PublicMatchController extends Controller
         $organization = $competition->organization;
 
         return view('public.matches.show', compact('organization', 'competition', 'match'));
+    }
+
+    /**
+     * Display public team match details.
+     */
+    public function showTeamMatch(Competition $competition, TeamMatch $teamMatch)
+    {
+        // Ensure match belongs to competition
+        if ($teamMatch->competition_id !== $competition->id) {
+            abort(404, 'Team match not found.');
+        }
+
+        // Load necessary relationships
+        $teamMatch->load([
+            'homeTeam',
+            'awayTeam',
+            'competition.organization',
+            'individualMatches.homePlayer',
+            'individualMatches.awayPlayer',
+            'homeCaptain',
+            'awayCaptain',
+        ]);
+
+        $doublesPlayers = [
+            'home_1' => null,
+            'home_2' => null,
+            'away_1' => null,
+            'away_2' => null,
+        ];
+
+        if ($teamMatch->lineup) {
+            $playerIds = [
+                $teamMatch->lineup['home_dubl_1'] ?? null,
+                $teamMatch->lineup['home_dubl_2'] ?? null,
+                $teamMatch->lineup['away_dubl_1'] ?? null,
+                $teamMatch->lineup['away_dubl_2'] ?? null,
+            ];
+            $players = Player::whereIn('id', array_filter($playerIds))->get()->keyBy('id');
+            
+            $doublesPlayers = [
+                'home_1' => $players->get($teamMatch->lineup['home_dubl_1'] ?? null),
+                'home_2' => $players->get($teamMatch->lineup['home_dubl_2'] ?? null),
+                'away_1' => $players->get($teamMatch->lineup['away_dubl_1'] ?? null),
+                'away_2' => $players->get($teamMatch->lineup['away_dubl_2'] ?? null),
+            ];
+        }
+
+        $organization = $competition->organization;
+        $matches = $teamMatch->individualMatches()->orderBy('match_order')->get();
+
+        return view('public.team-matches.show', compact('organization', 'competition', 'teamMatch', 'matches', 'doublesPlayers'));
     }
 
     /**
@@ -475,5 +545,47 @@ class PublicMatchController extends Controller
             \Log::error('Competition semafor error: ' . $e->getMessage());
             abort(500, 'Error loading competition data.');
         }
+    }
+
+    /**
+     * Display a public team/club profile.
+     */
+    public function showTeam(Team $team)
+    {
+        $team->load(['organization', 'players']);
+        
+        try {
+            $team->load(['coaches' => function($query) {
+                $query->where('is_active', true);
+            }]);
+        } catch (\Exception $e) {
+            // Table might not exist yet
+            \Log::warning('Could not load coaches for team: ' . $e->getMessage());
+        }
+        
+        $matches = TeamMatch::where('home_team_id', $team->id)
+            ->orWhere('away_team_id', $team->id)
+            ->with(['homeTeam', 'awayTeam', 'competition'])
+            ->orderBy('scheduled_at', 'desc')
+            ->get()
+            ->groupBy('competition_id');
+
+        return view('public.teams.show', compact('team', 'matches'));
+    }
+
+    public function showTeamCompetitionMatches(Team $team, Competition $competition)
+    {
+        $team->load(['organization']);
+        
+        $matches = TeamMatch::where('competition_id', $competition->id)
+            ->where(function($query) use ($team) {
+                $query->where('home_team_id', $team->id)
+                      ->orWhere('away_team_id', $team->id);
+            })
+            ->with(['homeTeam', 'awayTeam', 'competition'])
+            ->orderBy('scheduled_at', 'desc')
+            ->paginate(20);
+
+        return view('public.teams.competition-matches', compact('team', 'competition', 'matches'));
     }
 }

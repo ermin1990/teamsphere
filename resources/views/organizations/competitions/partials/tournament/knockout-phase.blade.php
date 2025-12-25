@@ -227,6 +227,16 @@
                                                     👁️
                                                 </a>
                                             @endif
+
+                                            @if($isOwner)
+                                                <form action="{{ route('organizations.competitions.matches.destroy', [$organization, $competition, $match]) }}" method="POST" onsubmit="return confirm('Sigurno želite obrisati ovaj meč?')" class="inline">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white px-1.5 py-0.5 rounded text-xs transition-colors" title="Obriši meč">
+                                                        🗑️
+                                                    </button>
+                                                </form>
+                                            @endif
                                         </div>
                                     @endif
                                 </div>

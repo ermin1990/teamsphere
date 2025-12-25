@@ -47,6 +47,9 @@ class CompetitionMatch extends Model
         'home_player_position',
         'away_player_group',
         'away_player_position',
+        'home_captain_id',
+        'away_captain_id',
+        'referee_name',
     ];
 
     protected $casts = [
@@ -136,7 +139,15 @@ class CompetitionMatch extends Model
     {
         return $this->belongsTo(Team::class, 'away_team_id');
     }
+    public function homeCaptain(): BelongsTo
+    {
+        return $this->belongsTo(Player::class, 'home_captain_id');
+    }
 
+    public function awayCaptain(): BelongsTo
+    {
+        return $this->belongsTo(Player::class, 'away_captain_id');
+    }
     /**
      * Get the home player for this match.
      */

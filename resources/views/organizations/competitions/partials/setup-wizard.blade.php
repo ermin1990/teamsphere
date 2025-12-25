@@ -131,8 +131,12 @@
                 @if(($competition->type === 'tournament' && $competition->players->count() > 0 && $competition->tournamentGroups->count() > 0) ||
                     ($competition->is_team_based && $competition->teams->count() >= 2) ||
                     (!$competition->is_team_based && $competition->type === 'league' && $competition->players->count() > 0))
-                <form method="POST" action="{{ route('organizations.competitions.start', [$organization, $competition]) }}" class="inline">
+                <form method="POST" action="{{ route('organizations.competitions.start', [$organization, $competition]) }}" class="flex flex-col items-end gap-2">
                     @csrf
+                    <div class="flex items-center gap-2 mb-1">
+                        <input type="checkbox" name="manual_matches" id="manual_matches" value="1" class="rounded border-gray-700 bg-gray-900 text-blue-600 focus:ring-blue-500">
+                        <label for="manual_matches" class="text-[10px] text-gray-400 uppercase font-bold cursor-pointer">Ručno dodavanje mečeva</label>
+                    </div>
                     <button type="submit"
                             class="bg-green-600 hover:bg-green-700 text-white text-sm px-4 py-2 rounded-lg transition-colors font-semibold">
                         🚀 {{ __('Start') }}

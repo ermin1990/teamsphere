@@ -187,6 +187,46 @@
                     </div>
                 </div>
 
+                <!-- Match Officials & Captains -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    @if($league->is_team_based && ($match->home_captain_id || $match->away_captain_id))
+                    <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl">
+                        <h3 class="text-sm font-black text-gray-400 uppercase tracking-widest mb-4">Captains</h3>
+                        <div class="space-y-4">
+                            @if($match->home_captain_id)
+                            <div class="flex items-center justify-between">
+                                <span class="text-gray-400 text-sm">{{ $match->homeTeam->name ?? 'Home' }}</span>
+                                <span class="text-white font-bold">{{ $match->homeCaptain->name }}</span>
+                            </div>
+                            @endif
+                            @if($match->away_captain_id)
+                            <div class="flex items-center justify-between">
+                                <span class="text-gray-400 text-sm">{{ $match->awayTeam->name ?? 'Away' }}</span>
+                                <span class="text-white font-bold">{{ $match->awayCaptain->name }}</span>
+                            </div>
+                            @endif
+                        </div>
+                    </div>
+                    @endif
+
+                    @if($match->referee_name || $match->referee_user_id)
+                    <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl">
+                        <h3 class="text-sm font-black text-gray-400 uppercase tracking-widest mb-4">Match Officials</h3>
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-lg bg-purple-500/20 flex items-center justify-center text-xl">
+                                ⚖️
+                            </div>
+                            <div>
+                                <div class="text-[10px] font-black text-purple-400 uppercase tracking-widest">Referee</div>
+                                <div class="font-bold text-white">
+                                    {{ $match->referee_name ?: ($match->referee ? $match->referee->name : 'Not assigned') }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    @endif
+                </div>
+
                 <!-- Match Sets (if applicable) -->
                 @if($league->sport->slug === 'stoni-tenis' && $match->sets)
                 <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl">

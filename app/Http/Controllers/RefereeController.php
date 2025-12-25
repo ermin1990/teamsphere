@@ -7,6 +7,7 @@ use App\Models\LeagueMatch;
 use App\Models\Competition;
 use App\Models\CompetitionMatch;
 use App\Models\Standing;
+use App\Models\Team;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -342,6 +343,9 @@ class RefereeController extends Controller
             'moderator_id' => 'nullable|exists:users,id',
             'referee_user_id' => 'nullable|exists:users,id',
             'table_id' => 'nullable|exists:tables,id',
+            'home_captain_id' => 'nullable|exists:players,id',
+            'away_captain_id' => 'nullable|exists:players,id',
+            'referee_name' => 'nullable|string|max:255',
         ]);
 
         // Check moderator assignment permissions
@@ -370,7 +374,7 @@ class RefereeController extends Controller
             }
         }
 
-        $updateData = $request->only(['home_score', 'away_score', 'status', 'forfeited_by', 'moderator_id', 'referee_user_id', 'table_id']);
+        $updateData = $request->only(['home_score', 'away_score', 'status', 'forfeited_by', 'moderator_id', 'referee_user_id', 'table_id', 'home_captain_id', 'away_captain_id', 'referee_name']);
 
         // Set played_at when match is completed or cancelled
         if (in_array($request->status, ['completed', 'cancelled']) && !$match->played_at) {
@@ -601,7 +605,33 @@ class RefereeController extends Controller
         $organization = $competition->organization;
         $isOwner = $organization->user_id === $user->id;
 
-        return view('organizations.competitions.matches.edit', compact('organization', 'competition', 'match', 'isOwner', 'isReferee'));
+        $homePlayers = collect();
+        $awayPlayers = collect();
+
+        if ($competition->is_team_based) {
+            if ($match->home_team_id) {
+                $homePlayers = Team::find($match->home_team_id)->players;
+            }
+            if ($match->away_team_id) {
+                $awayPlayers = Team::find($match->away_team_id)->players;
+            }
+        }
+
+        // Get unique referee names for autocomplete
+        $referees = CompetitionMatch::whereNotNull('referee_name')
+            ->distinct()
+            ->pluck('referee_name');
+
+        return view('organizations.competitions.matches.edit', compact(
+            'organization', 
+            'competition', 
+            'match', 
+            'isOwner', 
+            'isReferee',
+            'homePlayers',
+            'awayPlayers',
+            'referees'
+        ));
     }
 
     /**
@@ -664,6 +694,9 @@ class RefereeController extends Controller
             'forfeited_by' => 'nullable|in:home,away',
             'referee_user_id' => 'nullable|exists:users,id',
             'table_id' => 'nullable|exists:tables,id',
+            'home_captain_id' => 'nullable|exists:players,id',
+            'away_captain_id' => 'nullable|exists:players,id',
+            'referee_name' => 'nullable|string|max:255',
             'sets' => 'nullable|array',
             'sets.*.home_score' => 'nullable|integer|min:0',
             'sets.*.away_score' => 'nullable|integer|min:0',
@@ -679,7 +712,7 @@ class RefereeController extends Controller
             }
         }
 
-        $updateData = $request->only(['home_score', 'away_score', 'status', 'forfeited_by', 'referee_user_id', 'table_id', 'sets']);
+        $updateData = $request->only(['home_score', 'away_score', 'status', 'forfeited_by', 'referee_user_id', 'table_id', 'sets', 'home_captain_id', 'away_captain_id', 'referee_name']);
 
         // Referees cannot change referee assignment - only organization owners can
         if ($isReferee && !$isOwner) {

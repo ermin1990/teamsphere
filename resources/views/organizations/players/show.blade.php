@@ -93,15 +93,21 @@
                             </div>
                         @endif
 
-                        @if($player->position)
+                        @if($player->teams->count() > 0 || $player->position)
                             <div class="bg-white/5 rounded-lg p-4 border border-white/10">
                                 <div class="flex items-center text-white/70 text-sm mb-1">
                                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
                                     </svg>
-                                    Klub
+                                    Klub / Tim
                                 </div>
-                                <p class="text-white font-medium">{{ $player->position }}</p>
+                                <p class="text-white font-medium">
+                                    @if($player->teams->count() > 0)
+                                        {{ $player->teams->pluck('name')->implode(', ') }}
+                                    @else
+                                        {{ $player->position }}
+                                    @endif
+                                </p>
                             </div>
                         @endif
 

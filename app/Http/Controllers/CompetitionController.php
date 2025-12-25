@@ -312,12 +312,19 @@ class CompetitionController extends Controller
         }
 
         // For other updates, ensure competition is in draft status
-        if ($competition->status !== 'draft') {
-            return back()->withErrors(['general' => __('Cannot modify settings for a competition that has already started.')]);
-        }
+        // if ($competition->status !== 'draft') {
+        //     return back()->withErrors(['general' => __('Cannot modify settings for a competition that has already started.')]);
+        // }
 
-        // Handle other competition updates here if needed in the future
-        return back()->withErrors(['general' => __('No valid updates provided.')]);
+        // Allow updating basic settings even if started
+        $competition->update($request->only([
+            'name', 'description', 'start_date', 'end_date', 
+            'max_teams', 'max_participants', 'sets_to_win', 
+            'points_per_set', 'deuce_at', 'must_win_by_two',
+            'points_for_win', 'points_for_draw', 'points_for_loss'
+        ]));
+
+        return back()->with('success', 'Postavke takmičenja uspješno ažurirane!');
     }
 
     /**
@@ -334,12 +341,12 @@ class CompetitionController extends Controller
             abort(404);
         }
 
-        // Ensure competition is in draft status
-        if ($competition->status !== 'draft') {
-            return redirect()
-                ->route('organizations.competitions.show', [$organization, $competition])
-                ->with('error', __('Can only manage players for draft competitions.'));
-        }
+        // Allow managing players even if started
+        // if ($competition->status !== 'draft') {
+        //     return redirect()
+        //         ->route('organizations.competitions.show', [$organization, $competition])
+        //         ->with('error', __('Can only manage players for draft competitions.'));
+        // }
 
         $competition->load(['sport', 'players']);
         $organization->load('players');
@@ -439,9 +446,9 @@ class CompetitionController extends Controller
             return back()->with('error', 'This is not a tournament.');
         }
 
-        if ($competition->status !== 'draft') {
-            return back()->with('error', 'Competition has already started.');
-        }
+        // if ($competition->status !== 'draft') {
+        //     return back()->with('error', 'Competition has already started.');
+        // }
 
         if ($competition->players->count() < 4) {
             return back()->with('error', 'You need at least 4 players to setup groups.');
@@ -658,9 +665,10 @@ class CompetitionController extends Controller
 
         $this->authorize('update', $organization);
 
-        if ($competition->status !== 'draft') {
-            return back()->with('error', 'Cannot change settings after competition has started.');
-        }
+        // Allow changing settings anytime
+        // if ($competition->status !== 'draft') {
+        //     return back()->with('error', 'Cannot change settings after competition has started.');
+        // }
 
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -747,14 +755,37 @@ class CompetitionController extends Controller
             $competition->generateGroupMatches();
         } elseif ($competition->isLeague()) {
             if ($competition->is_team_based) {
-                $competition->generateTeamMatches();
+                // Only generate if not requested to be manual
+                if (!$request->has('manual_matches')) {
+                    $competition->generateTeamMatches();
+                } else {
+                    // Still initialize standings
+                    foreach ($competition->teams as $team) {
+                        Standing::firstOrCreate([
+                            'competition_id' => $competition->id,
+                            'team_id' => $team->id,
+                        ], [
+                            'played' => 0,
+                            'won' => 0,
+                            'drawn' => 0,
+                            'lost' => 0,
+                            'points' => 0,
+                        ]);
+                    }
+                }
             } else {
-                $competition->generateLeagueMatches();
-                $competition->generateLeagueStandings();
+                if (!$request->has('manual_matches')) {
+                    $competition->generateLeagueMatches();
+                    $competition->generateLeagueStandings();
+                }
             }
         }
 
-        return back()->with('success', 'Competition started successfully! Matches have been generated.');
+        $message = $request->has('manual_matches') 
+            ? 'Takmičenje uspješno aktivirano! Sada možete ručno dodavati mečeve.'
+            : 'Takmičenje uspješno aktivirano! Mečevi su automatski generisani.';
+
+        return back()->with('success', $message);
     }
 
     /**
@@ -1047,7 +1078,32 @@ class CompetitionController extends Controller
 
         $isOwner = $organization->user_id === auth()->id();
 
-        return view('organizations.competitions.matches.edit', compact('organization', 'competition', 'match', 'isOwner'));
+        $homePlayers = collect();
+        $awayPlayers = collect();
+
+        if ($competition->is_team_based) {
+            if ($match->home_team_id) {
+                $homePlayers = Team::find($match->home_team_id)->players;
+            }
+            if ($match->away_team_id) {
+                $awayPlayers = Team::find($match->away_team_id)->players;
+            }
+        }
+
+        // Get unique referee names for autocomplete
+        $referees = CompetitionMatch::whereNotNull('referee_name')
+            ->distinct()
+            ->pluck('referee_name');
+
+        return view('organizations.competitions.matches.edit', compact(
+            'organization', 
+            'competition', 
+            'match', 
+            'isOwner', 
+            'homePlayers', 
+            'awayPlayers',
+            'referees'
+        ));
     }
 
     /**
@@ -1072,10 +1128,18 @@ class CompetitionController extends Controller
             'sets.*.home_score' => 'required_with:sets|integer|min:0',
             'sets.*.away_score' => 'required_with:sets|integer|min:0',
             'forfeited_by' => 'nullable|in:home,away',
+            'home_captain_id' => 'nullable|exists:players,id',
+            'away_captain_id' => 'nullable|exists:players,id',
+            'referee_name' => 'nullable|string|max:255',
         ]);
 
         // Prepare update data
-        $updateData = ['status' => $validated['status']];
+        $updateData = [
+            'status' => $validated['status'],
+            'home_captain_id' => $validated['home_captain_id'] ?? null,
+            'away_captain_id' => $validated['away_captain_id'] ?? null,
+            'referee_name' => $validated['referee_name'] ?? null,
+        ];
 
         if ($validated['status'] === 'scheduled') {
             // Reset everything
@@ -1152,6 +1216,22 @@ class CompetitionController extends Controller
     }
 
     /**
+     * Delete a match.
+     */
+    public function destroyMatch(Organization $organization, Competition $competition, CompetitionMatch $match)
+    {
+        $this->authorize('update', $organization);
+
+        if ($match->competition_id !== $competition->id) {
+            abort(403);
+        }
+
+        $match->delete();
+
+        return back()->with('success', 'Meč je uspješno obrisan.');
+    }
+
+    /**
      * Delete the competition.
      */
     public function destroy(Request $request, Organization $organization, Competition $competition)
@@ -1222,12 +1302,12 @@ class CompetitionController extends Controller
             abort(404);
         }
 
-        // Ensure competition is in draft status
-        if ($competition->status !== 'draft') {
-            return redirect()
-                ->route('organizations.competitions.show', [$organization, $competition])
-                ->with('error', __('Can only manage players for draft competitions.'));
-        }
+        // Allow bulk import anytime
+        // if ($competition->status !== 'draft') {
+        //     return redirect()
+        //         ->route('organizations.competitions.show', [$organization, $competition])
+        //         ->with('error', __('Can only manage players for draft competitions.'));
+        // }
 
         return view('organizations.competitions.bulk-import', compact('organization', 'competition'));
     }
@@ -1246,10 +1326,10 @@ class CompetitionController extends Controller
             abort(404);
         }
 
-        // Ensure competition is in draft status
-        if ($competition->status !== 'draft') {
-            return back()->with('error', 'Can only manage players for draft competitions.');
-        }
+        // Allow bulk import anytime
+        // if ($competition->status !== 'draft') {
+        //     return back()->with('error', 'Can only manage players for draft competitions.');
+        // }
 
         $request->validate([
             'players_text' => ['required', 'string'],

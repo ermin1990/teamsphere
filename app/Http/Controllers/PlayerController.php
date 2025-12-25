@@ -13,14 +13,93 @@ class PlayerController extends Controller
     /**
      * Display a listing of players for the organization.
      */
-    public function index(Organization $organization)
+    public function index(Request $request, Organization $organization)
     {
         // Use policy for authorization
         $this->authorize('update', $organization);
 
-        $players = $organization->players()->active()->get();
+        $query = $organization->players()->active();
 
-        return view('organizations.players.index', compact('organization', 'players'));
+        // Search filter
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%")
+                  ->orWhere('position', 'like', "%{$search}%");
+            });
+        }
+
+        // Team filter
+        if ($request->filled('team_id')) {
+            $query->whereHas('teams', function($q) use ($request) {
+                $q->where('teams.id', $request->team_id);
+            });
+        }
+
+        // Type filter (Registered vs Named)
+        if ($request->filled('type')) {
+            if ($request->type === 'registered') {
+                $query->whereNotNull('user_id');
+            } elseif ($request->type === 'named') {
+                $query->whereNull('user_id');
+            }
+        }
+
+        $players = $query->with('teams')->orderBy('name')->paginate(20)->withQueryString();
+        $teams = $organization->teams()->orderBy('name')->get();
+
+        return view('organizations.players.index', compact('organization', 'players', 'teams'));
+    }
+
+    /**
+     * Bulk delete players.
+     */
+    public function bulkDelete(Request $request, Organization $organization)
+    {
+        $this->authorize('update', $organization);
+
+        $request->validate([
+            'player_ids' => ['required', 'array'],
+            'player_ids.*' => ['exists:players,id'],
+        ]);
+
+        // Ensure all players belong to this organization
+        $count = Player::whereIn('id', $request->player_ids)
+            ->where('organization_id', $organization->id)
+            ->delete();
+
+        return redirect()->route('organizations.players.index', $organization)
+            ->with('success', __(':count players deleted successfully!', ['count' => $count]));
+    }
+
+    /**
+     * Bulk store players from a list of names.
+     */
+    public function bulkStore(Request $request, Organization $organization)
+    {
+        $this->authorize('update', $organization);
+
+        $request->validate([
+            'names_list' => ['required', 'string'],
+        ]);
+
+        $names = preg_split('/[\n,]+/', $request->names_list);
+        $addedCount = 0;
+
+        foreach ($names as $name) {
+            $name = trim($name);
+            if (empty($name)) continue;
+
+            $organization->players()->create([
+                'name' => $name,
+                'type' => 'single',
+            ]);
+            $addedCount++;
+        }
+
+        return redirect()->route('organizations.players.index', $organization)
+            ->with('success', $addedCount . ' igrača uspješno dodano.');
     }
 
     /**

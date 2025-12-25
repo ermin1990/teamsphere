@@ -83,15 +83,24 @@
     @if($competition->type === 'league')
         <!-- League Tabs -->
         <div class="mb-6 md:mb-8">
-            <div class="border-b" style="border-color: var(--border-primary);">
-                <nav class="-mb-px flex space-x-6 md:space-x-8">
+            <div class="flex items-center justify-center md:justify-start border-b border-white/5">
+                <nav class="-mb-px flex space-x-4 md:space-x-8">
                     <button onclick="showLeagueTab('standings')" id="standings-tab"
-                            class="tab-button border-b-2 py-2 px-1 text-sm md:text-base font-medium transition-colors" style="border-color: var(--accent-blue); color: var(--accent-blue);">
-                        🏆 Tabela
+                            class="tab-button relative py-4 px-2 text-sm md:text-base font-bold transition-all duration-200 group" 
+                            style="color: var(--accent-blue);">
+                        <span class="flex items-center gap-2">
+                            <span class="text-lg">🏆</span>
+                            Tabela
+                        </span>
+                        <div class="absolute bottom-0 left-0 w-full h-0.5 bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]"></div>
                     </button>
                     <button onclick="showLeagueTab('matches')" id="matches-tab"
-                            class="tab-button border-b-2 py-2 px-1 text-sm md:text-base font-medium transition-colors border-transparent hover:text-blue-400" style="color: var(--text-tertiary);">
-                        🎯 Mečevi
+                            class="tab-button relative py-4 px-2 text-sm md:text-base font-bold transition-all duration-200 group text-gray-500 hover:text-gray-300">
+                        <span class="flex items-center gap-2">
+                            <span class="text-lg">🎯</span>
+                            Mečevi
+                        </span>
+                        <div class="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-500 transition-all duration-200 group-hover:w-full opacity-0 group-hover:opacity-50"></div>
                     </button>
                 </nav>
             </div>
@@ -100,17 +109,16 @@
             <div id="standings-content" class="tab-content mt-4 md:mt-6">
                 @if($competition->standings && $competition->standings->count() > 0)
                 <div class="backdrop-blur-xl rounded-xl p-3 md:p-5 shadow-xl border" style="background: var(--bg-card); border-color: var(--border-primary); box-shadow: 0 10px 25px var(--shadow-primary);">
-                    <div class="px-4 py-3 bg-gray-700/20">
-                        <table class="w-full text-xs">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-xs md:text-sm">
                             <thead>
                                 <tr class="text-gray-400 border-b border-gray-700/50">
-                                    <th class="text-left py-1 pr-2 font-medium">#</th>
-                                    <th class="text-left py-1 font-medium">Igrač</th>
-                                    <th class="text-center py-1 px-1 font-medium">M</th>
-                                    <th class="text-center py-1 px-1 font-medium">P</th>
-                                    <th class="text-center py-1 px-1 font-medium">I</th>
-                                    <th class="text-center py-1 px-1 font-medium">S</th>
-                                    <th class="text-center py-1 px-1 font-medium text-green-400">Bod</th>
+                                    <th class="text-left py-2 pr-2 font-medium">#</th>
+                                    <th class="text-left py-2 font-medium">{{ $competition->is_team_based ? 'Ekipa' : 'Igrač' }}</th>
+                                    <th class="text-center py-2 px-1 font-medium" title="Odigrano mečeva">OM</th>
+                                    <th class="text-center py-2 px-1 font-medium" title="{{ $competition->is_team_based ? 'Meč razlika' : 'Pobjede/Porazi' }}">{{ $competition->is_team_based ? 'MR' : 'P/I' }}</th>
+                                    <th class="text-center py-2 px-1 font-medium" title="{{ $competition->is_team_based ? 'Partije' : 'Setovi' }}">{{ $competition->is_team_based ? 'PR' : 'SET' }}</th>
+                                    <th class="text-center py-2 px-1 font-medium text-green-400">BOD</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -118,19 +126,21 @@
                                     $advancingPlayers = $competition->players_advancing_per_group ?? 2;
                                 @endphp
                                 @foreach($competition->standings as $index => $standing)
-                                <tr class="border-b border-gray-700/30 hover:bg-gray-700/30 transition-colors {{ $index < $advancingPlayers ? 'bg-green-900/30' : '' }}">
-                                    <td class="py-2 pr-2 text-gray-400 font-mono">{{ $standing->position }}</td>
-                                    <td class="py-2 text-white font-medium">
-                                        {{ $standing->participant->name }}
-                                        @if($standing->participant->position)
-                                        <span class="text-gray-400 text-xs">({{ $standing->participant->position }})</span>
+                                <tr class="border-b border-gray-700/30 hover:bg-gray-700/30 transition-colors {{ $index < $advancingPlayers ? 'bg-green-900/10' : '' }}">
+                                    <td class="py-3 pr-2 text-gray-400 font-mono">{{ $standing->position }}</td>
+                                    <td class="py-3 text-white font-medium">
+                                        @if($competition->is_team_based && $standing->team_id)
+                                            <a href="{{ route('public.teams.show', $standing->team_id) }}" class="hover:text-blue-400 transition-colors">
+                                                {{ $standing->participant->name ?? 'Nepoznato' }}
+                                            </a>
+                                        @else
+                                            {{ $standing->participant->name ?? 'Nepoznato' }}
                                         @endif
                                     </td>
-                                    <td class="py-2 px-1 text-center text-gray-300">{{ ($standing->won ?? 0) + ($standing->drawn ?? 0) + ($standing->lost ?? 0) }}</td>
-                                    <td class="py-2 px-1 text-center text-green-400">{{ $standing->won ?? 0 }}</td>
-                                    <td class="py-2 px-1 text-center text-red-400">{{ $standing->lost ?? 0 }}</td>
-                                    <td class="py-2 px-1 text-center text-gray-300">{{ ($standing->sets_won ?? 0) }}-{{ ($standing->sets_lost ?? 0) }}</td>
-                                    <td class="py-2 px-1 text-center text-green-400 font-bold">{{ $standing->points ?? 0 }}</td>
+                                    <td class="py-3 px-1 text-center text-gray-300">{{ ($standing->won ?? 0) + ($standing->drawn ?? 0) + ($standing->lost ?? 0) }}</td>
+                                    <td class="py-3 px-1 text-center text-gray-300 font-medium">{{ $standing->won ?? 0 }}:{{ $standing->lost ?? 0 }}</td>
+                                    <td class="py-3 px-1 text-center text-gray-300">{{ ($standing->sets_won ?? 0) }}:{{ ($standing->sets_lost ?? 0) }}</td>
+                                    <td class="py-3 px-1 text-center text-green-400 font-bold text-base">{{ $standing->points ?? 0 }}</td>
                                 </tr>
                                 @endforeach
                             </tbody>
@@ -149,170 +159,89 @@
             <!-- Matches Tab Content -->
             <div id="matches-content" class="tab-content mt-4 md:mt-6 hidden">
                 @php
-                    $matches = $competition->type === 'league' ? $competition->leagueMatches : $competition->matches;
+                    if ($competition->type === 'league') {
+                        $matches = $competition->is_team_based ? $competition->teamMatches : $competition->leagueMatches;
+                    } else {
+                        $matches = $competition->matches;
+                    }
                     $matchesByRound = $matches->sortBy('round')->groupBy('round');
                 @endphp
                 @if($matchesByRound->count() > 0)
-                <div class="space-y-3 md:space-y-5">
+                <div class="space-y-6 md:space-y-10">
                     @foreach($matchesByRound as $round => $roundMatches)
-                    <div>
-                        <h4 class="text-xs md:text-base font-semibold text-center mb-3 md:mb-4 uppercase tracking-wider" style="color: var(--text-tertiary);">
-                            Kolo {{ $round }}
-                        </h4>
-                        <div class="space-y-1 md:space-y-3">
-                            @foreach($roundMatches->sortByDesc('scheduled_at') as $match)
-                            <div class="block hover:scale-[1.01] rounded-md p-3 transition-all duration-200" style="background: var(--bg-tertiary);">
-                                <div class="grid grid-cols-[3fr_120px] gap-0 items-center p-3">
-                                    <!-- Players Column -->
-                                    <div class="space-y-4">
-                                                <!-- Home Player -->
-                                                <div class="flex items-center justify-between">
-                                                    <div class="flex items-center gap-3 flex-1 min-w-0">
-                                                        <!-- Sets won indicator -->
-                                                        <div class="w-8 h-8 rounded flex items-center justify-center text-xs font-bold flex-shrink-0" style="background: var(--bg-secondary); color: var(--text-primary);">
-                                                            @php
-                                                                $homeSetsWon = 0;
-                                                                if(isset($match->sets) && is_array($match->sets)) {
-                                                                    foreach($match->sets as $set) {
-                                                                        if(($set['home_score'] ?? 0) > ($set['away_score'] ?? 0)) {
-                                                                            $homeSetsWon++;
-                                                                        }
-                                                                    }
-                                                                } elseif ($match->status === 'completed') {
-                                                                    $homeSetsWon = $match->home_score;
-                                                                }
-                                                            @endphp
-                                                            @if($match->status === 'completed')
-                                                                {{ $homeSetsWon }}
-                                                            @elseif($match->status === 'in_progress')
-                                                                <span style="color: var(--accent-green-solid);">{{ $homeSetsWon }}</span>
-                                                            @else
-                                                                <span style="color: var(--text-muted);">0</span>
-                                                            @endif
-                                                        </div>
-                                                        <div class="text-xs md:text-sm font-semibold truncate" style="color: var(--text-primary);">
-                                                            @if($competition->is_team_based)
-                                                                {{ $match->homeTeam?->name ?? 'Home Team' }}
-                                                            @else
-                                                                {{ $match->homePlayer?->name ?? 'Home Player' }}
-                                                            @endif
-                                                        </div>
-                                                    </div>
-                                                    <div class="flex gap-1 ml-4">
-                                                        @php
-                                                            $displaySets = isset($match->sets) && is_array($match->sets) && count($match->sets) > 0 ? $match->sets : [];
-                                                        @endphp
-                                                        @for($i = 1; $i <= 5; $i++)
-                                                        <div class="w-6 text-center {{ $i < 5 ? 'border-r' : '' }}" style="border-color: var(--border-secondary);">
-                                                            @if(isset($displaySets[$i-1]))
-                                                                <span class="text-xs px-1 py-0.5 rounded {{ $displaySets[$i-1]['home_score'] > $displaySets[$i-1]['away_score'] ? 'font-bold' : '' }}" style="background: {{ $displaySets[$i-1]['home_score'] > $displaySets[$i-1]['away_score'] ? 'var(--accent-green)' : 'transparent' }}; color: {{ $displaySets[$i-1]['home_score'] > $displaySets[$i-1]['away_score'] ? 'var(--accent-green-solid)' : 'var(--text-tertiary)' }};">
-                                                                    {{ $displaySets[$i-1]['home_score'] ?? 0 }}
-                                                                </span>
-                                                            @else
-                                                                <span class="text-xs px-1 py-0.5 rounded" style="color: var(--text-muted);">-</span>
-                                                            @endif
-                                                        </div>
-                                                        @endfor
-                                                    </div>
-                                                </div>
-
-                                                <!-- Away Player -->
-                                                <div class="flex items-center justify-between">
-                                                    <div class="flex items-center gap-3 flex-1 min-w-0">
-                                                        <!-- Sets won indicator -->
-                                                        <div class="w-8 h-8 rounded flex items-center justify-center text-xs font-bold flex-shrink-0" style="background: var(--bg-secondary); color: var(--text-primary);">
-                                                            @php
-                                                                $awaySetsWon = 0;
-                                                                if(isset($match->sets) && is_array($match->sets)) {
-                                                                    foreach($match->sets as $set) {
-                                                                        if(($set['away_score'] ?? 0) > ($set['home_score'] ?? 0)) {
-                                                                            $awaySetsWon++;
-                                                                        }
-                                                                    }
-                                                                } elseif ($match->status === 'completed') {
-                                                                    $awaySetsWon = $match->away_score;
-                                                                }
-                                                            @endphp
-                                                            @if($match->status === 'completed')
-                                                                {{ $awaySetsWon }}
-                                                            @elseif($match->status === 'in_progress')
-                                                                <span style="color: var(--accent-green-solid);">{{ $awaySetsWon }}</span>
-                                                            @else
-                                                                <span style="color: var(--text-muted);">0</span>
-                                                            @endif
-                                                        </div>
-                                                        <div class="text-xs md:text-sm font-semibold truncate" style="color: var(--text-primary);">
-                                                            @if($competition->is_team_based)
-                                                                {{ $match->awayTeam?->name ?? 'Away Team' }}
-                                                            @else
-                                                                {{ $match->awayPlayer?->name ?? 'Away Player' }}
-                                                            @endif
-                                                        </div>
-                                                    </div>
-                                                    <div class="flex gap-1 ml-4">
-                                                        @for($i = 1; $i <= 5; $i++)
-                                                        <div class="w-6 text-center {{ $i < 5 ? 'border-r' : '' }}" style="border-color: var(--border-secondary);">
-                                                            @if(isset($displaySets[$i-1]))
-                                                                <span class="text-xs px-1 py-0.5 rounded {{ $displaySets[$i-1]['away_score'] > $displaySets[$i-1]['home_score'] ? 'font-bold' : '' }}" style="background: {{ $displaySets[$i-1]['away_score'] > $displaySets[$i-1]['home_score'] ? 'var(--accent-green)' : 'transparent' }}; color: {{ $displaySets[$i-1]['away_score'] > $displaySets[$i-1]['home_score'] ? 'var(--accent-green-solid)' : 'var(--text-tertiary)' }};">
-                                                                    {{ $displaySets[$i-1]['away_score'] ?? 0 }}
-                                                                </span>
-                                                            @else
-                                                                <span class="text-xs px-1 py-0.5 rounded" style="color: var(--text-muted);">-</span>
-                                                            @endif
-                                                        </div>
-                                                        @endfor
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <!-- Current Set Score Column -->
-                                            <div class="flex flex-col items-start justify-center space-y-1 pl-4">
-                                                @if($match->status === 'in_progress')
-                                                    <div class="flex flex-col items-center space-y-1">
-                                                        <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: var(--accent-green);">
-                                                            <div class="text-sm font-bold" style="color: var(--accent-green-solid);">
-                                                                {{ $match->home_score ?? 0 }}
-                                                            </div>
-                                                        </div>
-                                                        <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: var(--accent-green);">
-                                                            <div class="text-sm font-bold" style="color: var(--accent-green-solid);">
-                                                                {{ $match->away_score ?? 0 }}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                @elseif($match->status === 'completed')
-                                                    <div class="flex flex-col items-center space-y-1">
-                                                        <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: var(--accent-green);">
-                                                            <div class="text-sm font-bold" style="color: var(--accent-green-solid);">
-                                                                {{ $homeSetsWon }}
-                                                            </div>
-                                                        </div>
-                                                        <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: var(--accent-green);">
-                                                            <div class="text-sm font-bold" style="color: var(--accent-green-solid);">
-                                                                {{ $awaySetsWon }}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                @else
-                                                    <div class="flex flex-col items-center space-y-1">
-                                                        <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: var(--bg-tertiary);">
-                                                            <div class="text-sm font-bold" style="color: var(--text-muted);">-</div>
-                                                        </div>
-                                                        <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: var(--bg-tertiary);">
-                                                            <div class="text-sm font-bold" style="color: var(--text-muted);">-</div>
-                                                        </div>
-                                                    </div>
-                                                @endif
-                                            </div>
-                                        </div>
-
-                                        @if($match->scheduled_at)
-                                        <div class="text-center text-xs md:text-sm mt-1 md:mt-2" style="color: var(--text-muted);">
-                                            {{ $match->scheduled_at->format('d.m. H:i') }}
-                                        </div>
+                    <div class="relative">
+                        <div class="flex items-center gap-4 mb-4">
+                            <div class="h-px flex-1 bg-gradient-to-r from-transparent to-gray-700/50"></div>
+                            <h4 class="text-[10px] md:text-xs font-black uppercase tracking-[0.2em] text-gray-500 whitespace-nowrap">
+                                Kolo {{ $round }}
+                            </h4>
+                            <div class="h-px flex-1 bg-gradient-to-l from-transparent to-gray-700/50"></div>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-2 md:gap-3">
+                            @foreach($roundMatches->sortBy('scheduled_at') as $match)
+                            @php
+                                $isTeamMatch = $competition->is_team_based && $competition->type === 'league';
+                                $route = $isTeamMatch 
+                                    ? route('public.team-matches.show', [$competition->slug, $match->id])
+                                    : route('public.matches.show', [$competition->slug, $match->id]);
+                            @endphp
+                            <a href="{{ $route }}" 
+                               class="group relative flex items-center justify-between bg-[#1a1a1a] hover:bg-[#222] border border-gray-800/50 hover:border-blue-500/30 rounded-lg p-2 md:p-3 transition-all duration-200">
+                                
+                                <!-- Home Team -->
+                                <div class="flex-1 flex items-center gap-2 min-w-0">
+                                    <div class="w-1 h-6 rounded-full {{ ($match->home_score > $match->away_score) ? 'bg-blue-500' : 'bg-transparent' }}"></div>
+                                    <span class="text-xs md:text-sm font-medium truncate {{ ($match->home_score > $match->away_score) ? 'text-white' : 'text-gray-400' }}">
+                                        @if($isTeamMatch)
+                                            {{ $match->homeTeam?->name ?? 'Home Team' }}
+                                        @elseif($match->position_code === 'Dubl')
+                                            Dubl
+                                        @elseif($match->homePlayer)
+                                            {{ $match->homePlayer->name }}
+                                        @else
+                                            {{ $match->homeTeam?->name ?? 'Home Team' }}
                                         @endif
+                                    </span>
+                                </div>
+
+                                <!-- Score -->
+                                <div class="flex flex-col items-center px-3 shrink-0">
+                                    <div class="flex items-center gap-1.5">
+                                        <span class="text-sm md:text-base font-bold {{ ($match->home_score > $match->away_score) ? 'text-blue-400' : 'text-gray-300' }}">
+                                            {{ $match->home_score ?? 0 }}
+                                        </span>
+                                        <span class="text-[10px] text-gray-600 font-bold">:</span>
+                                        <span class="text-sm md:text-base font-bold {{ ($match->away_score > $match->home_score) ? 'text-blue-400' : 'text-gray-300' }}">
+                                            {{ $match->away_score ?? 0 }}
+                                        </span>
                                     </div>
-                                    @endforeach
+                                </div>
+
+                                <!-- Away Team -->
+                                <div class="flex-1 flex items-center justify-end gap-2 min-w-0 text-right">
+                                    <span class="text-xs md:text-sm font-medium truncate {{ ($match->away_score > $match->home_score) ? 'text-white' : 'text-gray-400' }}">
+                                        @if($isTeamMatch)
+                                            {{ $match->awayTeam?->name ?? 'Away Team' }}
+                                        @elseif($match->position_code === 'Dubl')
+                                            Dubl
+                                        @elseif($match->awayPlayer)
+                                            {{ $match->awayPlayer->name }}
+                                        @else
+                                            {{ $match->awayTeam?->name ?? 'Away Team' }}
+                                        @endif
+                                    </span>
+                                    <div class="w-1 h-6 rounded-full {{ ($match->away_score > $match->home_score) ? 'bg-blue-500' : 'bg-transparent' }}"></div>
+                                </div>
+
+                                <!-- Hover Arrow -->
+                                <div class="absolute -right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity pr-2">
+                                    <svg class="w-3 h-3 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="9 5l7 7-7 7"/>
+                                    </svg>
+                                </div>
+                            </a>
+                                @endforeach
                                 </div>
                             </div>
                             @endforeach
@@ -326,29 +255,6 @@
                         @endif
                     </div>
                 </div>
-
-                <script>
-                    function showLeagueTab(tabName) {
-                        // Hide all tab contents
-                        document.querySelectorAll('.tab-content').forEach(content => {
-                            content.classList.add('hidden');
-                        });
-
-                        // Remove active state from all tabs
-                        document.querySelectorAll('.tab-button').forEach(button => {
-                            button.classList.remove('border-blue-500', 'text-blue-400');
-                            button.classList.add('border-transparent');
-                            button.style.color = 'var(--text-tertiary)';
-                        });
-
-                        // Show selected tab content
-                        document.getElementById(tabName + '-content').classList.remove('hidden');
-
-                        // Set active state for selected tab
-                        document.getElementById(tabName + '-tab').style.borderColor = 'var(--accent-blue)';
-                        document.getElementById(tabName + '-tab').style.color = 'var(--accent-blue)';
-                    }
-                </script>
             @elseif($competition->type === 'tournament')
                 <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
                     @include('public.leagues._tournament')
@@ -549,6 +455,36 @@
 
     function updateRoundsSection(matchesData) {
         // This function is now handled by updateLiveMatchesSection
+    }
+
+    function showLeagueTab(tab) {
+        // Hide all content
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+        // Show selected content
+        document.getElementById(tab + '-content').classList.remove('hidden');
+        
+        // Reset all buttons
+        document.querySelectorAll('.tab-button').forEach(el => {
+            el.classList.remove('text-white');
+            el.classList.add('text-gray-500');
+            el.style.color = 'var(--text-tertiary)';
+            const indicator = el.querySelector('div');
+            if (indicator) {
+                indicator.classList.remove('w-full', 'opacity-100');
+                indicator.classList.add('w-0', 'opacity-0');
+            }
+        });
+        
+        // Highlight active button
+        const activeTab = document.getElementById(tab + '-tab');
+        activeTab.classList.remove('text-gray-500');
+        activeTab.classList.add('text-white');
+        activeTab.style.color = 'var(--accent-blue)';
+        const activeIndicator = activeTab.querySelector('div');
+        if (activeIndicator) {
+            activeIndicator.classList.remove('w-0', 'opacity-0');
+            activeIndicator.classList.add('w-full', 'opacity-100');
+        }
     }
 
     let updateInterval;

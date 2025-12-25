@@ -23,6 +23,9 @@ class TeamMatch extends Model
         'played_at',
         'round',
         'lineup',
+        'home_captain_id',
+        'away_captain_id',
+        'referee_name',
     ];
 
     protected $casts = [
@@ -50,6 +53,16 @@ class TeamMatch extends Model
     public function awayTeam(): BelongsTo
     {
         return $this->belongsTo(Team::class, 'away_team_id');
+    }
+
+    public function homeCaptain(): BelongsTo
+    {
+        return $this->belongsTo(Player::class, 'home_captain_id');
+    }
+
+    public function awayCaptain(): BelongsTo
+    {
+        return $this->belongsTo(Player::class, 'away_captain_id');
     }
 
     public function individualMatches(): HasMany

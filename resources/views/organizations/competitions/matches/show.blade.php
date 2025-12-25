@@ -3,7 +3,7 @@
         <div class="flex items-center justify-between">
             <div>
                 <h2 class="font-bold text-3xl bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                    Match Details
+                    Detalji Meča
                 </h2>
                 <p class="text-gray-400 mt-1">{{ $competition->name }}
                     @if($match->phase === 'group')
@@ -60,9 +60,9 @@
                             @endif
                         </div>
 
-                        <div class="flex items-center justify-center space-x-8">
+                        <div class="flex flex-col md:flex-row items-center justify-center space-y-8 md:space-y-0 md:space-x-12 lg:space-x-20">
                             <!-- Home Player -->
-                            <div class="text-center">
+                            <div class="text-center w-full md:w-auto">
                                 @if($match->position_code === 'Dubl')
                                     <div class="flex -space-x-4 justify-center mb-3">
                                         <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center border-4 border-gray-800 z-10">
@@ -76,9 +76,14 @@
                                             </span>
                                         </div>
                                     </div>
-                                    <h3 class="text-xl font-bold text-white">
-                                        {{ $doublesPlayers['home_1']->name ?? '?' }} / {{ $doublesPlayers['home_2']->name ?? '?' }}
-                                    </h3>
+                                    <div class="flex flex-col items-center">
+                                        <h3 class="text-xl font-bold text-white">
+                                            {{ $doublesPlayers['home_1']->name ?? '?' }}
+                                        </h3>
+                                        <h3 class="text-xl font-bold text-white">
+                                            {{ $doublesPlayers['home_2']->name ?? '?' }}
+                                        </h3>
+                                    </div>
                                 @else
                                     <div class="w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-3">
                                         <span class="text-2xl font-bold text-white">
@@ -106,7 +111,7 @@
                                     @endif
                                 @elseif($match->status === 'cancelled')
                                 @if($match->home_score || $match->away_score)
-                                <div class="text-4xl font-bold text-blue-400 mt-2">{{ $match->home_score }}</div>
+                                <div class="text-5xl font-black text-blue-400 mt-2">{{ $match->home_score }}</div>
                                 @else
                                 <div class="text-orange-400 mt-2 text-center">
                                     <div class="text-sm">Match</div>
@@ -114,28 +119,28 @@
                                 </div>
                                 @endif
                                 @elseif(in_array($match->status, ['in_progress', 'completed']))
-                                <div class="text-4xl font-bold text-blue-400 mt-2">{{ $match->home_score }}</div>
+                                <div class="text-5xl font-black text-blue-400 mt-2">{{ $match->home_score }}</div>
                                 @endif
                             </div>
 
                             <!-- VS -->
-                            <div class="text-center">
-                                <div class="text-gray-400 text-lg font-medium mb-2">VS</div>
+                            <div class="text-center px-4">
+                                <div class="text-gray-500 text-sm font-bold uppercase tracking-widest mb-2">VS</div>
                                 @if($match->status === 'completed')
-                                <div class="text-green-400 text-sm">Completed</div>
+                                <div class="bg-green-500/20 text-green-400 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">Završeno</div>
                                 @elseif($match->status === 'in_progress')
-                                <div class="text-yellow-400 text-sm">In Progress</div>
+                                <div class="bg-yellow-500/20 text-yellow-400 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider animate-pulse">U toku</div>
                                 @elseif($match->status === 'forfeited')
-                                <div class="text-red-400 text-sm">Forfeited</div>
+                                <div class="bg-red-500/20 text-red-400 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">Predaja</div>
                                 @elseif($match->status === 'cancelled')
-                                <div class="text-orange-400 text-sm">Cancelled</div>
+                                <div class="bg-orange-500/20 text-orange-400 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">Otkazano</div>
                                 @else
-                                <div class="text-gray-400 text-sm">Scheduled</div>
+                                <div class="bg-gray-700 text-gray-400 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">Zakazano</div>
                                 @endif
                             </div>
 
                             <!-- Away Player -->
-                            <div class="text-center">
+                            <div class="text-center w-full md:w-auto">
                                 @if($match->position_code === 'Dubl')
                                     <div class="flex -space-x-4 justify-center mb-3">
                                         <div class="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center border-4 border-gray-800 z-10">
@@ -149,9 +154,14 @@
                                             </span>
                                         </div>
                                     </div>
-                                    <h3 class="text-xl font-bold text-white">
-                                        {{ $doublesPlayers['away_1']->name ?? '?' }} / {{ $doublesPlayers['away_2']->name ?? '?' }}
-                                    </h3>
+                                    <div class="flex flex-col items-center">
+                                        <h3 class="text-xl font-bold text-white">
+                                            {{ $doublesPlayers['away_1']->name ?? '?' }}
+                                        </h3>
+                                        <h3 class="text-xl font-bold text-white">
+                                            {{ $doublesPlayers['away_2']->name ?? '?' }}
+                                        </h3>
+                                    </div>
                                 @else
                                     <div class="w-20 h-20 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-3">
                                         <span class="text-2xl font-bold text-white">
@@ -179,7 +189,7 @@
                                     @endif
                                 @elseif($match->status === 'cancelled')
                                 @if($match->home_score || $match->away_score)
-                                <div class="text-4xl font-bold text-red-400 mt-2">{{ $match->away_score }}</div>
+                                <div class="text-5xl font-black text-red-400 mt-2">{{ $match->away_score }}</div>
                                 @else
                                 <div class="text-orange-400 mt-2 text-center">
                                     <div class="text-sm">Match</div>
@@ -187,43 +197,83 @@
                                 </div>
                                 @endif
                                 @elseif(in_array($match->status, ['in_progress', 'completed']))
-                                <div class="text-4xl font-bold text-red-400 mt-2">{{ $match->away_score }}</div>
+                                <div class="text-5xl font-black text-red-400 mt-2">{{ $match->away_score }}</div>
                                 @endif
                             </div>
                         </div>
 
                         @if($match->scheduled_at)
                         <div class="mt-6 text-center">
-                            <div class="text-gray-400 text-sm">Scheduled for</div>
-                            <div class="text-white font-medium">{{ $match->scheduled_at->format('M d, Y \a\t H:i') }}</div>
+                            <div class="text-gray-400 text-sm">Zakazano za</div>
+                            <div class="text-white font-medium">{{ $match->scheduled_at->format('d.m.Y \u H:i') }}</div>
                         </div>
                         @endif
 
                         @if($match->played_at)
                         <div class="mt-4 text-center">
-                            <div class="text-gray-400 text-sm">Played on</div>
-                            <div class="text-white font-medium">{{ $match->played_at->format('M d, Y \a\t H:i') }}</div>
+                            <div class="text-gray-400 text-sm">Odigrano</div>
+                            <div class="text-white font-medium">{{ $match->played_at->format('d.m.Y \u H:i') }}</div>
                         </div>
                         @endif
                     </div>
                 </div>
 
+                <!-- Match Officials & Captains -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    @if($competition->is_team_based && ($match->home_captain_id || $match->away_captain_id))
+                    <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl">
+                        <h3 class="text-sm font-black text-gray-400 uppercase tracking-widest mb-4">Kapiteni</h3>
+                        <div class="space-y-4">
+                            @if($match->home_captain_id)
+                            <div class="flex items-center justify-between">
+                                <span class="text-gray-400 text-sm">{{ $match->homeTeam->name ?? 'Domaći' }}</span>
+                                <span class="text-white font-bold">{{ $match->homeCaptain->name }}</span>
+                            </div>
+                            @endif
+                            @if($match->away_captain_id)
+                            <div class="flex items-center justify-between">
+                                <span class="text-gray-400 text-sm">{{ $match->awayTeam->name ?? 'Gosti' }}</span>
+                                <span class="text-white font-bold">{{ $match->awayCaptain->name }}</span>
+                            </div>
+                            @endif
+                        </div>
+                    </div>
+                    @endif
+
+                    @if($match->referee_name || $match->referee_user_id)
+                    <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl">
+                        <h3 class="text-sm font-black text-gray-400 uppercase tracking-widest mb-4">Službena lica</h3>
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-lg bg-purple-500/20 flex items-center justify-center text-xl">
+                                ⚖️
+                            </div>
+                            <div>
+                                <div class="text-[10px] font-black text-purple-400 uppercase tracking-widest">Sudija</div>
+                                <div class="font-bold text-white">
+                                    {{ $match->referee_name ?: ($match->referee ? $match->referee->name : 'Nije dodijeljen') }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    @endif
+                </div>
+
                 <!-- Match Sets (if applicable) -->
                 @if($competition->sport->slug === 'stoni-tenis' && $match->sets)
                 <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl">
-                    <h3 class="text-xl font-semibold text-white mb-4">Set Scores</h3>
+                    <h3 class="text-xl font-semibold text-white mb-4">Rezultati po setovima</h3>
                     <div class="overflow-x-auto">
                         <table class="w-full text-sm">
                             <thead>
                                 <tr class="border-b border-gray-700">
                                     <th class="text-left py-3 px-2 text-gray-400 font-medium">Set</th>
                                     <th class="text-center py-3 px-2 text-gray-400 font-medium">
-                                        {{ $match->homePlayer->name ?? 'Home' }}
+                                        {{ $match->homePlayer->name ?? 'Domaćin' }}
                                     </th>
                                     <th class="text-center py-3 px-2 text-gray-400 font-medium">
-                                        {{ $match->awayPlayer->name ?? 'Away' }}
+                                        {{ $match->awayPlayer->name ?? 'Gost' }}
                                     </th>
-                                    <th class="text-center py-3 px-2 text-gray-400 font-medium">Duration</th>
+                                    <th class="text-center py-3 px-2 text-gray-400 font-medium">Trajanje</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -277,10 +327,10 @@
 
                     <!-- Match Info -->
                     <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl">
-                        <h3 class="text-xl font-semibold text-white mb-4">Match Information</h3>
+                        <h3 class="text-xl font-semibold text-white mb-4">Informacije o meču</h3>
                         <div class="space-y-4">
                             <div class="flex justify-between">
-                                <span class="text-gray-400">Konkurencija</span>
+                                <span class="text-gray-400">Takmičenje</span>
                                 <span class="text-white">{{ $competition->name }}</span>
                             </div>
                             <div class="flex justify-between">
@@ -292,28 +342,34 @@
                                 <span class="text-white">{{ $competition->sport->name }}</span>
                             </div>
                             <div class="flex justify-between">
-                                <span class="text-gray-400">Tip konkurencije</span>
-                                <span class="text-white">{{ $competition->is_team_based ? 'Timski' : 'Individualni' }}</span>
+                                <span class="text-gray-400">Tip takmičenja</span>
+                                <span class="text-white">{{ $competition->is_team_based ? 'Ekipno' : 'Individualno' }}</span>
                             </div>
                             <div class="flex justify-between">
                                 <span class="text-gray-400">Status</span>
-                                <span class="text-white">{{ ucfirst(str_replace('_', ' ', $match->status)) }}</span>
+                                <span class="text-white">
+                                    @if($match->status === 'completed') Završeno
+                                    @elseif($match->status === 'in_progress') U toku
+                                    @elseif($match->status === 'forfeited') Predaja
+                                    @elseif($match->status === 'cancelled') Otkazano
+                                    @else Zakazano @endif
+                                </span>
                             </div>
                             @if($match->scheduled_at)
                             <div class="flex justify-between">
-                                <span class="text-gray-400">Scheduled</span>
-                                <span class="text-white">{{ $match->scheduled_at->format('M d, Y H:i') }}</span>
+                                <span class="text-gray-400">Zakazano</span>
+                                <span class="text-white">{{ $match->scheduled_at->format('d.m.Y H:i') }}</span>
                             </div>
                             @endif
                             @if($match->played_at)
                             <div class="flex justify-between">
-                                <span class="text-gray-400">Played</span>
-                                <span class="text-white">{{ $match->played_at->format('M d, Y H:i') }}</span>
+                                <span class="text-gray-400">Odigrano</span>
+                                <span class="text-white">{{ $match->played_at->format('d.m.Y H:i') }}</span>
                             </div>
                             @endif
                             @if($match->set_durations && count($match->set_durations) > 0)
                             <div class="flex justify-between">
-                                <span class="text-gray-400">Total Match Time</span>
+                                <span class="text-gray-400">Ukupno trajanje</span>
                                 <span class="text-white font-medium">
                                     @php
                                         $totalSeconds = 0;
@@ -336,40 +392,92 @@
 
                     <!-- Participants Info -->
                     <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl">
-                        <h3 class="text-xl font-semibold text-white mb-4">Participants</h3>
+                        <h3 class="text-xl font-semibold text-white mb-4">Učesnici</h3>
                         <div class="space-y-4">
 
                             <!-- Home Participant -->
-                            <div class="p-4 bg-gray-700/30 rounded-lg">
-                                <div class="flex items-center space-x-3">
-                                    <div class="w-10 h-10 bg-blue-500/20 rounded-full flex items-center justify-center">
-                                        <span class="text-blue-400 font-bold">
-                                            {{ substr($match->homePlayer->name ?? 'TBD', 0, 1) }}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <h4 class="text-white font-medium">
-                                            {{ $match->homePlayer->name ?? 'TBD' }}
-                                        </h4>
-                                        <p class="text-gray-400 text-sm">Home</p>
-                                    </div>
+                            <div class="p-4 bg-gray-700/30 rounded-xl border border-gray-600/30">
+                                <div class="flex items-center space-x-4">
+                                    @if($match->position_code === 'Dubl')
+                                        <div class="flex -space-x-3">
+                                            <div class="w-10 h-10 bg-blue-500/20 rounded-full flex items-center justify-center border-2 border-gray-800">
+                                                <span class="text-blue-400 font-bold text-xs">
+                                                    {{ substr($doublesPlayers['home_1']->name ?? '?', 0, 1) }}
+                                                </span>
+                                            </div>
+                                            <div class="w-10 h-10 bg-blue-400/20 rounded-full flex items-center justify-center border-2 border-gray-800">
+                                                <span class="text-blue-300 font-bold text-xs">
+                                                    {{ substr($doublesPlayers['home_2']->name ?? '?', 0, 1) }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div class="flex flex-col">
+                                                <h4 class="text-white font-bold">
+                                                    {{ $doublesPlayers['home_1']->name ?? '?' }}
+                                                </h4>
+                                                <h4 class="text-white font-bold">
+                                                    {{ $doublesPlayers['home_2']->name ?? '?' }}
+                                                </h4>
+                                            </div>
+                                            <p class="text-blue-400 text-xs font-bold uppercase tracking-wider">Domaćin (Dubl)</p>
+                                        </div>
+                                    @else
+                                        <div class="w-12 h-12 bg-blue-500/20 rounded-full flex items-center justify-center">
+                                            <span class="text-blue-400 font-bold">
+                                                {{ substr($match->homePlayer->name ?? 'TBD', 0, 1) }}
+                                            </span>
+                                        </div>
+                                        <div>
+                                            <h4 class="text-white font-bold">
+                                                {{ $match->homePlayer->name ?? 'TBD' }}
+                                            </h4>
+                                            <p class="text-blue-400 text-xs font-bold uppercase tracking-wider">Domaćin</p>
+                                        </div>
+                                    @endif
                                 </div>
                             </div>
 
                             <!-- Away Participant -->
-                            <div class="p-4 bg-gray-700/30 rounded-lg">
-                                <div class="flex items-center space-x-3">
-                                    <div class="w-10 h-10 bg-red-500/20 rounded-full flex items-center justify-center">
-                                        <span class="text-red-400 font-bold">
-                                            {{ substr($match->awayPlayer->name ?? 'TBD', 0, 1) }}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <h4 class="text-white font-medium">
-                                            {{ $match->awayPlayer->name ?? 'TBD' }}
-                                        </h4>
-                                        <p class="text-gray-400 text-sm">Away</p>
-                                    </div>
+                            <div class="p-4 bg-gray-700/30 rounded-xl border border-gray-600/30">
+                                <div class="flex items-center space-x-4">
+                                    @if($match->position_code === 'Dubl')
+                                        <div class="flex -space-x-3">
+                                            <div class="w-10 h-10 bg-purple-500/20 rounded-full flex items-center justify-center border-2 border-gray-800">
+                                                <span class="text-purple-400 font-bold text-xs">
+                                                    {{ substr($doublesPlayers['away_1']->name ?? '?', 0, 1) }}
+                                                </span>
+                                            </div>
+                                            <div class="w-10 h-10 bg-purple-400/20 rounded-full flex items-center justify-center border-2 border-gray-800">
+                                                <span class="text-purple-300 font-bold text-xs">
+                                                    {{ substr($doublesPlayers['away_2']->name ?? '?', 0, 1) }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div class="flex flex-col">
+                                                <h4 class="text-white font-bold">
+                                                    {{ $doublesPlayers['away_1']->name ?? '?' }}
+                                                </h4>
+                                                <h4 class="text-white font-bold">
+                                                    {{ $doublesPlayers['away_2']->name ?? '?' }}
+                                                </h4>
+                                            </div>
+                                            <p class="text-purple-400 text-xs font-bold uppercase tracking-wider">Gost (Dubl)</p>
+                                        </div>
+                                    @else
+                                        <div class="w-12 h-12 bg-purple-500/20 rounded-full flex items-center justify-center">
+                                            <span class="text-purple-400 font-bold">
+                                                {{ substr($match->awayPlayer->name ?? 'TBD', 0, 1) }}
+                                            </span>
+                                        </div>
+                                        <div>
+                                            <h4 class="text-white font-bold">
+                                                {{ $match->awayPlayer->name ?? 'TBD' }}
+                                            </h4>
+                                            <p class="text-purple-400 text-xs font-bold uppercase tracking-wider">Gost</p>
+                                        </div>
+                                    @endif
                                 </div>
                             </div>
 

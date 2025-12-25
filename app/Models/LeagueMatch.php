@@ -37,6 +37,9 @@ class LeagueMatch extends Model
         'completed_by',
         'edited_at',
         'completed_at',
+        'home_captain_id',
+        'away_captain_id',
+        'referee_name',
     ];
 
     protected $casts = [
@@ -128,7 +131,15 @@ class LeagueMatch extends Model
     {
         return $this->belongsTo(Team::class, 'away_team_id');
     }
+    public function homeCaptain(): BelongsTo
+    {
+        return $this->belongsTo(Player::class, 'home_captain_id');
+    }
 
+    public function awayCaptain(): BelongsTo
+    {
+        return $this->belongsTo(Player::class, 'away_captain_id');
+    }
     /**
      * Get the home player for this match.
      */

@@ -105,6 +105,6 @@ class Standing extends Model
      */
     public function getParticipantNameAttribute()
     {
-        return $this->participant->name;
+        return $this->participant->name ?? 'Nepoznato';
     }
 }
