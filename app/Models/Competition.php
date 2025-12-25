@@ -269,7 +269,7 @@ class Competition extends Model
      */
     public function standings(): HasMany
     {
-        return $this->hasMany(Standing::class, 'competition_id')->orderBy('position');
+        return $this->hasMany(Standing::class, 'competition_id');
     }
 
     /**
