@@ -123,7 +123,7 @@
                                     <div class="space-y-2">
                                         <div class="flex justify-between text-sm">
                                             <span class="text-gray-400">Timovi:</span>
-                                            <span class="text-white">{{ $competition->teams->count() }}/{{ $competition->max_teams }}</span>
+                                            <span class="text-white">{{ $competition->teams->count() }}</span>
                                         </div>
                                         <div class="flex justify-between text-sm">
                                             <span class="text-gray-400">Status:</span>
@@ -229,9 +229,9 @@
                                         <span class="text-gray-400">Učesnici:</span>
                                         <span class="text-white">
                                             @if($competition->is_team_based)
-                                                {{ $competition->teams->count() }}/{{ $competition->max_teams }}
+                                                {{ $competition->teams->count() }}
                                             @else
-                                                {{ $competition->players->count() }}/{{ $competition->max_participants }}
+                                                {{ $competition->players->count() }}
                                             @endif
                                         </span>
                                     </div>
