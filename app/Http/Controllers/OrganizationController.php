@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Organization;
 use App\Models\FriendlyMatch;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
@@ -15,7 +16,7 @@ class OrganizationController extends Controller
     public function showFriendlyMatch(Organization $organization, FriendlyMatch $match)
     {
         // Use the policy instead of manual authorization
-        $this->authorize('view', $organization);
+        Gate::authorize('view', $organization);
 
         // For doubles, split names if needed
         if (str_contains($match->home_player_name, ' / ')) {
@@ -41,7 +42,7 @@ class OrganizationController extends Controller
     public function show(Organization $organization)
     {
         // Use the policy instead of manual authorization
-        $this->authorize('view', $organization);
+        Gate::authorize('view', $organization);
 
         $organization->load(['leagues', 'competitions.sport', 'players', 'user']);
 
@@ -63,7 +64,7 @@ class OrganizationController extends Controller
     {
         // Use policy for authorization
 
-        $this->authorize('update', $organization);
+        Gate::authorize('update', $organization);
 
         return view('organizations.edit', compact('organization'));
     }
@@ -75,7 +76,7 @@ class OrganizationController extends Controller
     {
         // Use policy for authorization
 
-        $this->authorize('update', $organization);
+        Gate::authorize('update', $organization);
 
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -99,7 +100,7 @@ class OrganizationController extends Controller
     {
         // Use policy for authorization
 
-        $this->authorize('update', $organization);
+        Gate::authorize('update', $organization);
 
         // Check if organization has leagues
         if ($organization->leagues()->count() > 0) {
@@ -134,7 +135,7 @@ class OrganizationController extends Controller
     {
         // Use policy for authorization
 
-        $this->authorize('update', $organization);
+        Gate::authorize('update', $organization);
 
         return view('organizations.friendly-matches.table-tennis', compact('organization'));
     }

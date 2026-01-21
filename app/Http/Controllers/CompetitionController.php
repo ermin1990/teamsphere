@@ -14,6 +14,7 @@ use App\Models\TournamentGroup;
 use App\Http\Controllers\TeamMatchController;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -27,7 +28,7 @@ class CompetitionController extends Controller
     {
         // Use policy for authorization
 
-        $this->authorize('update', $organization);
+        Gate::authorize('update', $organization);
 
         $sports = Sport::active()->get();
         $categories = $organization->categories()->active()->get();
@@ -42,7 +43,7 @@ class CompetitionController extends Controller
     {
         // Use policy for authorization
 
-        $this->authorize('update', $organization);
+        Gate::authorize('update', $organization);
 
         // Check if user can create more competitions
         if (!auth()->user()->canCreateMoreCompetitions($organization->id)) {
@@ -129,7 +130,7 @@ class CompetitionController extends Controller
         try {
             // Use the policy for authorization
             file_put_contents($logFile, "Before authorize...\n", FILE_APPEND);
-            $this->authorize('view', $organization);
+            Gate::authorize('view', $organization);
             file_put_contents($logFile, "After authorize - PASSED\n", FILE_APPEND);
 
             // Set variables for the view
@@ -294,7 +295,7 @@ class CompetitionController extends Controller
     {
         // Use policy for authorization
 
-        $this->authorize('update', $organization);
+        Gate::authorize('update', $organization);
 
         // Ensure competition belongs to organization
         if ($competition->organization_id !== $organization->id) {
@@ -334,7 +335,7 @@ class CompetitionController extends Controller
     {
         // Use policy for authorization
 
-        $this->authorize('update', $organization);
+        Gate::authorize('update', $organization);
 
         // Ensure competition belongs to organization
         if ($competition->organization_id !== $organization->id) {
@@ -361,7 +362,7 @@ class CompetitionController extends Controller
     {
         // Use policy for authorization
 
-        $this->authorize('update', $organization);
+        Gate::authorize('update', $organization);
 
         // Ensure competition belongs to organization
         if ($competition->organization_id !== $organization->id) {
@@ -405,7 +406,7 @@ class CompetitionController extends Controller
     {
         // Use policy for authorization
 
-        $this->authorize('update', $organization);
+        Gate::authorize('update', $organization);
 
         // Ensure competition belongs to organization
         if ($competition->organization_id !== $organization->id) {
@@ -435,7 +436,7 @@ class CompetitionController extends Controller
     {
         // Use policy for authorization
 
-        $this->authorize('update', $organization);
+        Gate::authorize('update', $organization);
 
         // Ensure competition belongs to organization
         if ($competition->organization_id !== $organization->id) {
@@ -502,7 +503,7 @@ class CompetitionController extends Controller
         
         // Use policy for authorization
 
-        $this->authorize('update', $organization);
+        Gate::authorize('update', $organization);
 
         if (!$competition->isTournament()) {
             return back()->with('error', 'This is not a tournament.');
@@ -644,7 +645,7 @@ class CompetitionController extends Controller
     {
         // Use policy for authorization
 
-        $this->authorize('update', $organization);
+        Gate::authorize('update', $organization);
 
         // Ensure competition belongs to organization
         if ($competition->organization_id !== $organization->id) {
@@ -663,7 +664,7 @@ class CompetitionController extends Controller
     {
         // Use policy for authorization
 
-        $this->authorize('update', $organization);
+        Gate::authorize('update', $organization);
 
         // Allow changing settings anytime
         // if ($competition->status !== 'draft') {
@@ -727,7 +728,7 @@ class CompetitionController extends Controller
     {
         // Use policy for authorization
 
-        $this->authorize('update', $organization);
+        Gate::authorize('update', $organization);
 
         if ($competition->status !== 'draft') {
             return back()->with('error', 'Competition has already started.');
@@ -795,7 +796,7 @@ class CompetitionController extends Controller
     {
         // Use policy for authorization
 
-        $this->authorize('update', $organization);
+        Gate::authorize('update', $organization);
 
         if (!$competition->isTournament()) {
             return back()->with('error', 'This is not a tournament.');
@@ -819,7 +820,7 @@ class CompetitionController extends Controller
     {
         // Use policy for authorization
 
-        $this->authorize('update', $organization);
+        Gate::authorize('update', $organization);
 
         if (!$competition->isTournament()) {
             return back()->with('error', 'This is not a tournament.');
@@ -843,7 +844,7 @@ class CompetitionController extends Controller
     {
         // Use policy for authorization
 
-        $this->authorize('update', $organization);
+        Gate::authorize('update', $organization);
 
         if (!$competition->isTournament()) {
             return back()->with('error', 'This is not a tournament.');
@@ -899,7 +900,7 @@ class CompetitionController extends Controller
     {
         // Use policy for authorization
 
-        $this->authorize('update', $organization);
+        Gate::authorize('update', $organization);
 
         if (!$competition->isTournament()) {
             return back()->with('error', 'This is not a tournament.');
@@ -917,7 +918,7 @@ class CompetitionController extends Controller
     {
         // Use policy for authorization
 
-        $this->authorize('update', $organization);
+        Gate::authorize('update', $organization);
 
         // Ensure competition belongs to organization
         if ($competition->organization_id !== $organization->id) {
@@ -954,7 +955,7 @@ class CompetitionController extends Controller
         $organization = $competition->organization;
 
         // Use policy for authorization
-        $this->authorize('view', $organization);
+        Gate::authorize('view', $organization);
 
         $request->validate([
             'home_score' => 'required|integer|min:0|max:10',
@@ -1023,7 +1024,7 @@ class CompetitionController extends Controller
     public function showMatch(Organization $organization, Competition $competition, CompetitionMatch $match)
     {
         // Use policy for authorization
-        $this->authorize('view', $organization);
+        Gate::authorize('view', $organization);
 
         // Ensure match belongs to competition
         if ($match->competition_id !== $competition->id) {
@@ -1069,7 +1070,7 @@ class CompetitionController extends Controller
     public function editMatch(Organization $organization, Competition $competition, CompetitionMatch $match)
     {
         // Use policy for authorization
-        $this->authorize('view', $organization);
+        Gate::authorize('view', $organization);
 
         // Ensure match belongs to competition
         if ($match->competition_id !== $competition->id) {
@@ -1112,7 +1113,7 @@ class CompetitionController extends Controller
     public function updateMatch(Request $request, Organization $organization, Competition $competition, CompetitionMatch $match)
     {
         // Use policy for authorization
-        $this->authorize('view', $organization);
+        Gate::authorize('view', $organization);
 
         // Ensure match belongs to competition
         if ($match->competition_id !== $competition->id) {
@@ -1220,7 +1221,7 @@ class CompetitionController extends Controller
      */
     public function destroyMatch(Organization $organization, Competition $competition, CompetitionMatch $match)
     {
-        $this->authorize('update', $organization);
+        Gate::authorize('update', $organization);
 
         if ($match->competition_id !== $competition->id) {
             abort(403);
@@ -1238,7 +1239,7 @@ class CompetitionController extends Controller
     {
         // Use policy for authorization
 
-        $this->authorize('update', $organization);
+        Gate::authorize('update', $organization);
 
         // Ensure competition belongs to organization
         if ($competition->organization_id !== $organization->id) {
@@ -1295,7 +1296,7 @@ class CompetitionController extends Controller
     {
         // Use policy for authorization
 
-        $this->authorize('update', $organization);
+        Gate::authorize('update', $organization);
 
         // Ensure competition belongs to organization
         if ($competition->organization_id !== $organization->id) {
@@ -1319,7 +1320,7 @@ class CompetitionController extends Controller
     {
         // Use policy for authorization
 
-        $this->authorize('update', $organization);
+        Gate::authorize('update', $organization);
 
         // Ensure competition belongs to organization
         if ($competition->organization_id !== $organization->id) {
@@ -1458,7 +1459,7 @@ class CompetitionController extends Controller
     {
         // Use policy for authorization
 
-        $this->authorize('update', $organization);
+        Gate::authorize('update', $organization);
 
         if ($competition->organization_id !== $organization->id) {
             abort(404);
@@ -1480,7 +1481,7 @@ class CompetitionController extends Controller
     {
         // Use policy for authorization
 
-        $this->authorize('update', $organization);
+        Gate::authorize('update', $organization);
 
         if ($competition->organization_id !== $organization->id) {
             abort(404);
@@ -1527,7 +1528,7 @@ class CompetitionController extends Controller
     {
         // Use policy for authorization
 
-        $this->authorize('update', $organization);
+        Gate::authorize('update', $organization);
 
         if ($competition->organization_id !== $organization->id) {
             abort(404);
@@ -1620,7 +1621,7 @@ class CompetitionController extends Controller
     {
         // Use policy for authorization
 
-        $this->authorize('update', $organization);
+        Gate::authorize('update', $organization);
 
         if ($competition->organization_id !== $organization->id) {
             abort(404);
@@ -1643,7 +1644,7 @@ class CompetitionController extends Controller
     {
         // Use policy for authorization
 
-        $this->authorize('update', $organization);
+        Gate::authorize('update', $organization);
 
         if ($competition->organization_id !== $organization->id) {
             abort(404);
@@ -1669,7 +1670,7 @@ class CompetitionController extends Controller
     {
         // Use policy for authorization
 
-        $this->authorize('update', $organization);
+        Gate::authorize('update', $organization);
 
         if ($competition->organization_id !== $organization->id) {
             abort(404);
@@ -1720,7 +1721,7 @@ class CompetitionController extends Controller
     {
         // Use policy for authorization
 
-        $this->authorize('update', $organization);
+        Gate::authorize('update', $organization);
 
         if ($competition->organization_id !== $organization->id) {
             abort(404);

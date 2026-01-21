@@ -6,6 +6,7 @@ use App\Models\Organization;
 use App\Models\Player;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 
 class PlayerController extends Controller
@@ -16,7 +17,7 @@ class PlayerController extends Controller
     public function index(Request $request, Organization $organization)
     {
         // Use policy for authorization
-        $this->authorize('update', $organization);
+        Gate::authorize('update', $organization);
 
         $query = $organization->players()->active();
 
@@ -57,7 +58,7 @@ class PlayerController extends Controller
      */
     public function bulkDelete(Request $request, Organization $organization)
     {
-        $this->authorize('update', $organization);
+        Gate::authorize('update', $organization);
 
         $request->validate([
             'player_ids' => ['required', 'array'],
@@ -78,7 +79,7 @@ class PlayerController extends Controller
      */
     public function bulkStore(Request $request, Organization $organization)
     {
-        $this->authorize('update', $organization);
+        Gate::authorize('update', $organization);
 
         $request->validate([
             'names_list' => ['required', 'string'],
@@ -108,7 +109,7 @@ class PlayerController extends Controller
     public function create(Organization $organization)
     {
         // Use policy for authorization
-        $this->authorize('update', $organization);
+        Gate::authorize('update', $organization);
 
         return view('organizations.players.create', compact('organization'));
     }
@@ -119,7 +120,7 @@ class PlayerController extends Controller
     public function store(Request $request, Organization $organization)
     {
         // Use policy for authorization
-        $this->authorize('update', $organization);
+        Gate::authorize('update', $organization);
 
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -170,7 +171,7 @@ class PlayerController extends Controller
     public function show(Organization $organization, Player $player)
     {
         // Use policy for authorization
-        $this->authorize('update', $organization);
+        Gate::authorize('update', $organization);
         
         // Ensure player belongs to organization
         if ($player->organization_id !== $organization->id) {
@@ -192,7 +193,7 @@ class PlayerController extends Controller
         $organization = $player->organization;
         
         // Use policy for authorization
-        $this->authorize('update', $organization);
+        Gate::authorize('update', $organization);
 
         return view('organizations.players.edit', compact('organization', 'player'));
     }
@@ -206,7 +207,7 @@ class PlayerController extends Controller
         $organization = $player->organization;
         
         // Use policy for authorization
-        $this->authorize('update', $organization);
+        Gate::authorize('update', $organization);
 
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -261,7 +262,7 @@ class PlayerController extends Controller
         $organization = $player->organization;
         
         // Use policy for authorization
-        $this->authorize('update', $organization);
+        Gate::authorize('update', $organization);
 
         $player->delete();
 

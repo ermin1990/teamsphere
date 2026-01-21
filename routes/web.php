@@ -8,6 +8,7 @@ use App\Http\Controllers\PlayerController;
 use App\Http\Controllers\CompetitionController;
 use App\Http\Controllers\LeagueController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ProjectorController;
 use App\Http\Controllers\SemaforController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\TeamController;
@@ -279,6 +280,13 @@ Route::middleware(['auth'])->prefix('referee')->name('referee.')->group(function
 
 // Referee routes
 Route::middleware(['auth'])->prefix('referee')->name('referee.')->group(function () {
+});
+
+// Projector routes (no authentication required)
+Route::prefix('projector')->name('projector.')->group(function () {
+    Route::get('/builder', [App\Http\Controllers\ProjectorController::class, 'builder'])->name('builder');
+    Route::get('/display', [App\Http\Controllers\ProjectorController::class, 'display'])->name('display');
+    Route::get('/competition/{competition}', [App\Http\Controllers\ProjectorController::class, 'getCompetitionView'])->name('competition.view');
 });
 
 // Public routes (no authentication required)

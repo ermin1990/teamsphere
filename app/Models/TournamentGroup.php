@@ -16,7 +16,7 @@ class TournamentGroup extends Model
         'name',
         'group_number',
         'player_ids',
-        'standings',
+        'standings_json',
         'is_completed',
         'completed_at',
     ];
@@ -25,7 +25,7 @@ class TournamentGroup extends Model
         'competition_id' => 'integer',
         'group_number' => 'integer',
         'player_ids' => 'array',
-        'standings' => 'array',
+        'standings_json' => 'array',
         'is_completed' => 'boolean',
         'completed_at' => 'datetime',
     ];

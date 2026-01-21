@@ -162,6 +162,9 @@
                         <a href="{{ route('public.leagues.index') }}" class="transition-colors text-sm md:text-base font-medium hover:text-blue-400 {{ request()->routeIs('public.leagues*') ? 'font-semibold' : '' }}" style="color: {{ request()->routeIs('public.leagues*') ? 'var(--accent-blue)' : 'var(--text-secondary)' }};">
                             🏆 Takmičenja
                         </a>
+                        <a href="{{ route('projector.builder') }}" class="transition-colors text-sm md:text-base font-medium hover:text-blue-400 {{ request()->routeIs('projector*') ? 'font-semibold' : '' }}" style="color: {{ request()->routeIs('projector*') ? 'var(--accent-blue)' : 'var(--text-secondary)' }};">
+                            🎬 Projektor
+                        </a>
                     </div>
 
                     <!-- Theme Toggle -->
@@ -191,6 +194,10 @@
             <a href="{{ route('public.leagues.index') }}" class="flex flex-col items-center transition-colors text-xs flex-1 hover:text-blue-400 {{ request()->routeIs('public.leagues*') ? 'text-blue-400' : '' }}" style="color: {{ request()->routeIs('public.leagues*') ? 'var(--accent-blue)' : 'var(--text-secondary)' }};">
                 <span class="text-lg">🏆</span>
                 <span class="mt-1">Takmičenja</span>
+            </a>
+            <a href="{{ route('projector.builder') }}" class="flex flex-col items-center transition-colors text-xs flex-1 hover:text-blue-400 {{ request()->routeIs('projector*') ? 'text-blue-400' : '' }}" style="color: {{ request()->routeIs('projector*') ? 'var(--accent-blue)' : 'var(--text-secondary)' }};">
+                <span class="text-lg">🎬</span>
+                <span class="mt-1">Projektor</span>
             </a>
         </div>
     </nav>
