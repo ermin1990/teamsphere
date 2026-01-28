@@ -14,19 +14,41 @@ use Illuminate\Http\Request;
 class PublicMatchController extends Controller
 {
     /**
-     * Display all public competitions (leagues and tournaments) with standings, results and upcoming matches.
+     * Display all organizations that have public competitions (leagues and tournaments).
      */
     public function indexLeagues()
     {
-        // Get all public competitions with basic info
-        $competitions = Competition::where('is_public', true)
+        // Get all organizations that have at least one public competition
+        $organizations = Organization::where('is_active', true)
+            ->whereHas('competitions', function ($query) {
+                $query->where('is_public', true);
+            })
+            ->withCount(['competitions' => function ($query) {
+                $query->where('is_public', true);
+            }])
+            ->get();
+
+        return view('public.leagues.organizations', compact('organizations'));
+    }
+
+    /**
+     * Display all public competitions for a specific organization.
+     */
+    public function indexLeaguesByOrganization(Organization $organization)
+    {
+        // Load organization links/banners
+        $organization->load('links');
+
+        // Get all public competitions for this organization
+        $competitions = Competition::where('organization_id', $organization->id)
+            ->where('is_public', true)
             ->with(['organization', 'sport'])
             ->get();
 
-        return view('public.leagues.index', compact('competitions'));
+        return view('public.leagues.index', compact('competitions', 'organization'));
     }
 
-        /**
+    /**
      * Display a specific public competition (league or tournament).
      */
     public function showLeague(Competition $competition)

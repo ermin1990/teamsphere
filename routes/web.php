@@ -90,6 +90,9 @@ Route::middleware('auth')->group(function () {
 
     // Organization routes
     Route::resource('organizations', OrganizationController::class);
+    Route::get('organizations/{organization}/links', [App\Http\Controllers\OrganizationLinkController::class, 'index'])->name('organizations.links.index');
+    Route::post('organizations/{organization}/links', [App\Http\Controllers\OrganizationLinkController::class, 'store'])->name('organizations.links.store');
+    Route::delete('organizations/{organization}/links/{link}', [App\Http\Controllers\OrganizationLinkController::class, 'destroy'])->name('organizations.links.destroy');
 
     // Team routes
     Route::get('organizations/{organization}/teams', [TeamController::class, 'index'])->name('organizations.teams.index');
@@ -293,6 +296,7 @@ Route::prefix('projector')->name('projector.')->group(function () {
 Route::prefix('public')->name('public.')->group(function () {
     // Public league routes
     Route::get('/leagues', [App\Http\Controllers\PublicMatchController::class, 'indexLeagues'])->name('leagues.index');
+    Route::get('/leagues/organization/{organization}', [App\Http\Controllers\PublicMatchController::class, 'indexLeaguesByOrganization'])->name('leagues.organization');
     Route::get('/leagues/{competition}', [App\Http\Controllers\PublicMatchController::class, 'showLeague'])->name('leagues.show');
     Route::get('/leagues/{competition}/semafor', [App\Http\Controllers\PublicMatchController::class, 'competitionSemafor'])->name('leagues.semafor');
     Route::get('/leagues/{competition}/pdf', [App\Http\Controllers\PublicMatchController::class, 'tournamentPdf'])->name('leagues.tournament.pdf');

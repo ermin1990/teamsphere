@@ -18,6 +18,7 @@ class Organization extends Model
         'slug',
         'description',
         'logo',
+        'logo_url',
         'user_id',
         'is_active',
     ];
@@ -106,6 +107,14 @@ class Organization extends Model
     public function organizationUsers(): HasMany
     {
         return $this->hasMany(OrganizationUser::class);
+    }
+
+    /**
+     * Get the links for this organization.
+     */
+    public function links(): HasMany
+    {
+        return $this->hasMany(OrganizationLink::class)->orderBy('sort_order');
     }
 
     /**

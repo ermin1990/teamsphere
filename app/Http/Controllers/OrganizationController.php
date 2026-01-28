@@ -82,12 +82,14 @@ class OrganizationController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:1000'],
             'slug' => ['required', 'string', 'max:255', Rule::unique('organizations')->ignore($organization->id)],
+            'logo_url' => ['nullable', 'url', 'max:500'],
         ]);
 
         $organization->update([
             'name' => $request->name,
             'slug' => $request->slug,
             'description' => $request->description,
+            'logo_url' => $request->logo_url,
         ]);
 
         return redirect()->route('organizations.show', $organization)->with('success', __('Organization updated successfully!'));

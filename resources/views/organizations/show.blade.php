@@ -1,35 +1,63 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex flex-col space-y-4">
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+            <!-- Organization Info Section -->
+            <div class="flex items-center space-x-5">
                 <div>
-                    <h2 class="font-bold text-2xl sm:text-3xl bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                    <h2 class="font-bold text-2xl md:text-4xl bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
                         {{ $organization->name }}
                     </h2>
-                    <p class="text-gray-400 text-sm mt-1">{{ $organization->description ?: '' }}</p>
+                    @if($organization->description)
+                        <p class="text-gray-400 text-sm md:text-base mt-1 line-clamp-1 max-w-xl">{{ $organization->description }}</p>
+                    @endif
+                    <div class="flex items-center mt-2 space-x-3 text-xs">
+                        <span class="px-2 py-1 bg-blue-500/10 text-blue-400 rounded-md border border-blue-500/20">Vlasnik</span>
+                        @if($organization->is_active)
+                            <span class="px-2 py-1 bg-green-500/10 text-green-400 rounded-md border border-green-500/20">Aktivno</span>
+                        @endif
+                    </div>
                 </div>
-                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
-                    @if(isset($isOwner) && $isOwner)
-                    <a href="{{ route('organizations.edit', $organization) }}" class="bg-gray-700 hover:bg-gray-600 text-white px-3 py-2 sm:px-4 sm:py-2 rounded-xl transition-all duration-200 inline-flex items-center justify-center space-x-2">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                        </svg>
-                        <span class="text-sm sm:text-base">Uredi organizaciju</span>
-                    </a>
-                    <a href="{{ route('organizations.users.index', $organization) }}" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 sm:px-4 sm:py-2 rounded-xl transition-all duration-200 inline-flex items-center justify-center space-x-2">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            </div>
+
+            <!-- Action Buttons Group -->
+            <div class="flex flex-wrap items-center gap-3">
+                @if(isset($isOwner) && $isOwner)
+                    <div class="flex bg-gray-800/50 backdrop-blur-md p-1.5 rounded-2xl border border-gray-700/50 shadow-lg">
+                        <a href="{{ route('organizations.edit', $organization) }}" 
+                           class="flex items-center space-x-2 px-4 py-2 text-gray-300 hover:text-white hover:bg-gray-700/50 rounded-xl transition-all duration-200"
+                           title="Postavke">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                            <span class="hidden lg:inline text-sm font-semibold">Uredi</span>
+                        </a>
+                        <a href="{{ route('organizations.links.index', $organization) }}" 
+                           class="flex items-center space-x-2 px-4 py-2 text-gray-300 hover:text-white hover:bg-gray-700/50 rounded-xl transition-all duration-200"
+                           title="Banneri i Logo">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
+                            </svg>
+                            <span class="hidden lg:inline text-sm font-semibold">Banneri i Logo</span>
+                        </a>
+                    </div>
+                    
+                    <a href="{{ route('organizations.users.index', $organization) }}" 
+                       class="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-2xl shadow-lg shadow-blue-500/25 transition-all duration-200 transform hover:scale-[1.03]">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
                         </svg>
-                        <span class="text-sm sm:text-base">Dodijeli sudije</span>
+                        <span class="font-bold text-sm">Sudije</span>
                     </a>
-                    @endif
-                    <a href="{{ route('dashboard') }}" class="bg-gray-700 hover:bg-gray-600 text-white px-3 py-2 sm:px-4 sm:py-2 rounded-xl transition-all duration-200 inline-flex items-center justify-center space-x-2">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-                        </svg>
-                        <span class="text-sm sm:text-base">Nazad na Kontrolnu Tablu</span>
-                    </a>
-                </div>
+                @endif
+
+                <a href="{{ route('dashboard') }}" 
+                   class="flex items-center justify-center p-3 text-gray-400 hover:text-white bg-gray-800/50 hover:bg-gray-700/50 rounded-2xl border border-gray-700/50 transition-all duration-200"
+                   title="Nazad na Dashboard">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                    </svg>
+                </a>
             </div>
         </div>
     </x-slot>    <div class="py-12">

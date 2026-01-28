@@ -11,7 +11,12 @@
                 <h1 class="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent mb-2">
                     {{ $competition->name }}
                 </h1>
-                <p class="text-sm mb-4" style="color: var(--text-tertiary);">{{ $organization->name }} • {{ $competition->sport->name }}</p>
+                <p class="text-sm mb-4" style="color: var(--text-tertiary);">
+                    <a href="{{ route('public.leagues.organization', $organization) }}" class="hover:text-blue-400 transition-colors">
+                        {{ $organization->name }}
+                    </a>
+                    • {{ $competition->sport->name }}
+                </p>
                 <div class="flex items-center justify-center gap-2">
                     <span class="px-3 py-1 text-xs rounded-full font-medium"
                          style="background: var(--accent-blue); color: var(--accent-blue-solid);">
@@ -41,7 +46,12 @@
                 <h1 class="text-3xl lg:text-4xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent mb-2">
                     {{ $competition->name }}
                 </h1>
-                <p class="text-base" style="color: var(--text-tertiary);">{{ $organization->name }} • {{ $competition->sport->name }}</p>
+                <p class="text-base" style="color: var(--text-tertiary);">
+                    <a href="{{ route('public.leagues.organization', $organization) }}" class="hover:text-blue-400 transition-colors">
+                        {{ $organization->name }}
+                    </a>
+                    • {{ $competition->sport->name }}
+                </p>
             </div>
             <div class="flex items-center gap-4">
                 @if($competition->type === 'tournament')
