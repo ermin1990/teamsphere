@@ -232,9 +232,6 @@
             layout: '{{ $layout }}'
         };
 
-        console.log('🔄 Rotation Data:', rotationData);
-        console.log('📊 Total items:', rotationData.length);
-
         let currentIndex = 0;
         let timeRemaining = 0;
         let interval = null;
@@ -365,17 +362,10 @@
         }
 
         function showCompetition(index) {
-            console.log('🎬 Showing competition:', index, 'of', rotationData.length);
-            console.log('📝 Competition data:', rotationData[index]);
-            
             const views = document.querySelectorAll('.competition-view');
-            console.log('👁️ Total views found:', views.length);
-            
             const currentView = document.querySelector('.competition-view.active');
             const nextView = views[index];
             const compId = nextView.dataset.competitionId;
-            
-            console.log('⏭️ Next competition ID:', compId);
             
             // Load settings for this specific competition
             loadSettings(compId);
@@ -408,17 +398,13 @@
             // Start timer
             const duration = rotationData[index].duration;
             timeRemaining = duration;
-            
-            console.log('⏱️ Starting timer with duration:', duration, 'seconds');
 
             // Update timer every second
             if (interval) clearInterval(interval);
             interval = setInterval(() => {
                 timeRemaining--;
-                console.log('⏳ Time remaining:', timeRemaining);
 
                 if (timeRemaining <= 0) {
-                    console.log('✅ Timer finished, moving to next...');
                     clearInterval(interval);
                     nextCompetition();
                 }
@@ -426,9 +412,7 @@
         }
 
         function nextCompetition() {
-            console.log('➡️ Next competition called. Current:', currentIndex);
             currentIndex = (currentIndex + 1) % rotationData.length;
-            console.log('➡️ Moving to index:', currentIndex);
             showCompetition(currentIndex);
         }
 
@@ -464,10 +448,7 @@
 
         // Initialize first competition
         if (rotationData.length > 0) {
-            console.log('🚀 Initializing projector with', rotationData.length, 'items');
             showCompetition(0);
-        } else {
-            console.error('❌ No rotation data found!');
         }
 
         // Auto-refresh every 30 seconds to get latest match data
