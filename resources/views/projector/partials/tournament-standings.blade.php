@@ -7,7 +7,7 @@
 @endphp
 
 @if($groupsToDisplay->isNotEmpty())
-<div class="space-y-8">
+<div class="tournament-standings-container space-y-8">
     @foreach($groupsToDisplay as $group)
         @php
             // Load standings from database via relationship - matching public view logic
@@ -18,60 +18,71 @@
         @endphp
         @if($groupStandings->count() > 0)
         <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-2xl">
-            <!-- Group Header -->
-            <div class="mb-6">
-                <h2 class="text-3xl font-bold text-white flex items-center gap-3">
-                    <span class="text-4xl">🏆</span>
-                    Grupa {{ $group->name }} - {{ $competition->name }}
+    <!-- Zoom Controls -->
+    <div class="flex justify-center mb-2 opacity-20 hover:opacity-100 transition-opacity duration-300">
+        <div class="flex items-center gap-1 scale-75 transform origin-center">
+            <button type="button" onclick="window.changeZoom(-0.05)" class="px-2 py-1 rounded bg-gray-800/60 hover:bg-gray-700/60 text-white text-base font-bold backdrop-blur-sm border border-gray-600/50" title="Smanji Prikaz">−</button>
+            <button type="button" onclick="window.resetZoom()" class="px-2 py-1 rounded bg-gray-800/60 hover:bg-gray-700/60 text-white text-xs font-bold backdrop-blur-sm border border-gray-600/50" title="Resetuj Prikaz">🔄</button>
+            <button type="button" onclick="window.changeZoom(0.05)" class="px-2 py-1 rounded bg-gray-800/60 hover:bg-gray-700/60 text-white text-base font-bold backdrop-blur-sm border border-gray-600/50" title="Povećaj Prikaz">+</button>
+            
+            <div class="w-px h-6 bg-gray-600/50 mx-1"></div>
+
+            <button type="button" onclick="window.changePlayerFont(-1)" class="px-2 py-1 rounded bg-gray-800/60 hover:bg-gray-700/60 text-white text-xs font-bold backdrop-blur-sm border border-gray-600/50" title="Manji Font Igrača">A-</button>
+            <button type="button" onclick="window.resetPlayerFont()" class="px-2 py-1 rounded bg-gray-800/60 hover:bg-gray-700/60 text-white text-xs font-bold backdrop-blur-sm border border-gray-600/50" title="Resetuj Font">A</button>
+            <button type="button" onclick="window.changePlayerFont(1)" class="px-2 py-1 rounded bg-gray-800/60 hover:bg-gray-700/60 text-white text-xs font-bold backdrop-blur-sm border border-gray-600/50" title="Veći Font Igrača">A+</button>
+        </div>
+    </div>            <!-- Group Header -->
+            <div class="mb-6 overflow-hidden">
+                <h2 class="group-title text-3xl font-bold text-white flex items-center gap-3" style="flex-wrap: nowrap;">
+                    <span class="text-4xl flex-shrink-0">🏆</span>
+                    <span class="truncate">Grupa {{ $group->name }} - {{ $competition->name }}</span>
                 </h2>
             </div>
             
-            <!-- Two Column Layout: Table Left, Matches Right -->
-            <div class="grid grid-cols-2 gap-8">
-                <!-- Left Column: Standings Table -->
-                <div class="overflow-x-auto">
+            <!-- Group Layout: Table Top, Matches Bottom (for better space on projector) -->
+            <div class="flex flex-col {{ ($resolution ?? 'full') === '1024x768' ? 'gap-6' : 'gap-10' }}">
+                <!-- Top Section: Standings Table -->
+                <div class="overflow-x-auto w-full">
                     <table class="w-full">
                         <thead>
                             <tr class="border-b-2 border-purple-500/50">
-                                <th class="text-left py-3 px-3 text-gray-400 font-bold text-base">#</th>
-                                <th class="text-left py-3 px-3 text-gray-400 font-bold text-base">Igrač</th>
-                                <th class="text-center py-3 px-2 text-gray-400 font-bold text-sm">O</th>
-                                <th class="text-center py-3 px-2 text-gray-400 font-bold text-sm">P</th>
-                                <th class="text-center py-3 px-2 text-gray-400 font-bold text-sm">N</th>
-                                <th class="text-center py-3 px-2 text-gray-400 font-bold text-sm">I</th>
-                                <th class="text-center py-3 px-2 text-gray-400 font-bold text-sm">S+</th>
-                                <th class="text-center py-3 px-2 text-gray-400 font-bold text-sm">S-</th>
-                                <th class="text-center py-3 px-2 text-gray-400 font-bold text-base">Bod</th>
+                                <th class="text-left py-2 px-3 text-gray-400 font-bold text-sm">#</th>
+                                <th class="text-left py-2 px-3 text-gray-400 font-bold text-sm">Igrač</th>
+                                <th class="text-center py-2 px-2 text-gray-400 font-bold text-xs">O</th>
+                                <th class="text-center py-2 px-2 text-gray-400 font-bold text-xs">P</th>
+                                <th class="text-center py-2 px-2 text-gray-400 font-bold text-xs">I</th>
+                                <th class="text-center py-2 px-2 text-gray-400 font-bold text-xs">S+</th>
+                                <th class="text-center py-2 px-2 text-gray-400 font-bold text-xs">S-</th>
+                                <th class="text-center py-2 px-2 text-gray-400 font-bold text-sm">Bod</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach($groupStandings as $standing)
                             <tr class="border-b border-gray-700/30 hover:bg-gray-700/20 transition-colors">
-                                <td class="py-3 px-3">
+                                <td class="py-2 px-3">
                                     <div class="flex items-center gap-1">
                                         @if($standing->position <= 2)
-                                            <span class="text-2xl">
+                                            <span class="text-xl">
                                                 @if($standing->position == 1) 🥇
                                                 @else 🥈
                                                 @endif
                                             </span>
                                         @endif
-                                        <span class="text-white font-bold text-lg">{{ $standing->position }}</span>
+                                        <span class="text-white font-bold text-base">{{ $standing->position }}</span>
                                     </div>
                                 </td>
-                                <td class="py-3 px-3">
-                                    <span class="text-white font-semibold text-base">
+                                <td class="py-2 px-3">
+                                    <span class="player-name text-white font-semibold">
                                         {{ $standing->player->name ?? ($standing->team->name ?? 'TBD') }}
                                     </span>
                                 </td>
-                                <td class="py-3 px-2 text-center text-gray-300 text-base">{{ $standing->played ?? 0 }}</td>
-                                <td class="py-3 px-2 text-center text-green-400 font-bold text-base">{{ $standing->won ?? 0 }}</td>
-                                <td class="py-3 px-2 text-center text-yellow-400 font-bold text-base">{{ $standing->drawn ?? 0 }}</td>
-                                <td class="py-3 px-2 text-center text-red-400 font-bold text-base">{{ $standing->lost ?? 0 }}</td>
-                                <td class="py-3 px-2 text-center text-blue-300 text-base">{{ $standing->sets_won ?? 0 }}</td>
-                                <td class="py-3 px-2 text-center text-orange-300 text-base">{{ $standing->sets_lost ?? 0 }}</td>
-                                <td class="py-3 px-2 text-center">
-                                    <span class="text-purple-400 font-black text-xl">{{ $standing->points ?? 0 }}</span>
+                                <td class="py-2 px-2 text-center text-gray-300 text-sm">{{ $standing->played ?? 0 }}</td>
+                                <td class="py-2 px-2 text-center text-green-400 font-bold text-sm">{{ $standing->won ?? 0 }}</td>
+                                <td class="py-2 px-2 text-center text-red-400 font-bold text-sm">{{ $standing->lost ?? 0 }}</td>
+                                <td class="py-2 px-2 text-center text-blue-300 text-sm">{{ $standing->sets_won ?? 0 }}</td>
+                                <td class="py-2 px-2 text-center text-orange-300 text-sm">{{ $standing->sets_lost ?? 0 }}</td>
+                                <td class="py-2 px-2 text-center">
+                                    <span class="text-purple-400 font-black text-lg">{{ $standing->points ?? 0 }}</span>
                                 </td>
                             </tr>
                             @endforeach
@@ -79,20 +90,25 @@
                     </table>
                 </div>
 
-                <!-- Right Column: Matches -->
+                <!-- Bottom Section: Matches -->
                 @if($group->matches && count($group->matches) > 0)
-                <div class="overflow-y-auto max-h-[calc(100vh-20rem)]">
-                    <h4 class="text-xl font-bold text-purple-400 mb-4 flex items-center gap-2 sticky top-0 bg-gray-800/90 backdrop-blur-xl py-2 z-10">
+                <div class="w-full">
+                    <h4 class="text-lg font-bold text-purple-400 mb-3 flex items-center gap-2">
                         <span>🏓</span>
-                        <span>Mečevi</span>
+                        <span>Rezultati mečeva u grupi</span>
                     </h4>
-                    <div class="space-y-3 pr-2">
+                    
+                    <div class="grid grid-cols-2 gap-3 pr-2">
                         @foreach($group->matches as $match)
-                        <div class="bg-gray-800/50 backdrop-blur-xl rounded-lg p-3 border border-gray-700/50 hover:border-purple-500/50 transition-all">
-                            <div class="flex items-center gap-3">
+                        <div class="bg-gray-800/50 backdrop-blur-xl rounded-lg p-3 border border-gray-700/50 hover:border-purple-500/50 transition-all relative">
+                            @if($match->status === 'live')
+                                <div class="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full animate-ping"></div>
+                            @endif
+                            
+                            <div class="flex items-center gap-2">
                                 <!-- Home Player/Team -->
-                                <div class="flex-1 text-right">
-                                    <span class="text-white font-semibold text-sm">
+                                <div class="flex-1 text-right overflow-hidden">
+                                    <span class="player-name truncate block font-semibold {{ ($match->home_score ?? 0) > ($match->away_score ?? 0) ? 'text-green-500 font-bold' : 'text-white' }}">
                                         @if($competition->is_team_based)
                                             {{ $match->homeTeam ? $match->homeTeam->name : 'TBD' }}
                                         @else
@@ -102,29 +118,29 @@
                                 </div>
                                 
                                 <!-- Score -->
-                                <div class="flex-shrink-0 w-20 text-center">
+                                <div class="flex-shrink-0 w-16 text-center">
                                     @if($match->status === 'completed')
-                                        <div class="flex items-center justify-center gap-2">
-                                            <span class="text-xl font-black {{ ($match->home_score ?? 0) > ($match->away_score ?? 0) ? 'text-green-400' : 'text-gray-400' }}">
+                                        <div class="flex items-center justify-center gap-1">
+                                            <span class="text-base font-black {{ ($match->home_score ?? 0) > ($match->away_score ?? 0) ? 'text-green-500' : 'text-gray-400' }}">
                                                 {{ $match->home_score ?? 0 }}
                                             </span>
                                             <span class="text-gray-500">:</span>
-                                            <span class="text-xl font-black {{ ($match->away_score ?? 0) > ($match->home_score ?? 0) ? 'text-green-400' : 'text-gray-400' }}">
+                                            <span class="text-base font-black {{ ($match->away_score ?? 0) > ($match->home_score ?? 0) ? 'text-green-500' : 'text-gray-400' }}">
                                                 {{ $match->away_score ?? 0 }}
                                             </span>
                                         </div>
                                     @elseif($match->status === 'live')
-                                        <span class="text-red-500 font-bold text-xs animate-pulse">⚡ LIVE</span>
+                                        <span class="text-red-500 font-bold text-[10px] animate-pulse">⚡ LIVE</span>
                                     @elseif($match->scheduled_at)
-                                        <span class="text-gray-500 text-xs">{{ $match->scheduled_at->format('H:i') }}</span>
+                                        <span class="text-gray-500 text-[10px]">{{ $match->scheduled_at->format('H:i') }}</span>
                                     @else
-                                        <span class="text-gray-600 text-xs">-</span>
+                                        <span class="text-gray-600 text-[10px]">-</span>
                                     @endif
                                 </div>
                                 
                                 <!-- Away Player/Team -->
-                                <div class="flex-1 text-left">
-                                    <span class="text-white font-semibold text-sm">
+                                <div class="flex-1 text-left overflow-hidden">
+                                    <span class="player-name truncate block font-semibold {{ ($match->away_score ?? 0) > ($match->home_score ?? 0) ? 'text-green-500 font-bold' : 'text-white' }}">
                                         @if($competition->is_team_based)
                                             {{ $match->awayTeam ? $match->awayTeam->name : 'TBD' }}
                                         @else
@@ -157,10 +173,6 @@
             <div class="flex items-center gap-2">
                 <span class="text-green-400">P:</span>
                 <span class="text-gray-300">Pobjeda</span>
-            </div>
-            <div class="flex items-center gap-2">
-                <span class="text-yellow-400">N:</span>
-                <span class="text-gray-300">Neriješeno</span>
             </div>
             <div class="flex items-center gap-2">
                 <span class="text-red-400">I:</span>

@@ -135,12 +135,18 @@
         $allMatches = $competition->matches ?? collect();
 
         // Group matches by phase more intelligently
+        // Knockout: Ascending rounds (1, 2, 3...) to display left-to-right
         $knockoutMatches = $allMatches->where('phase', 'knockout')
-            ->sortBy(['round_number', 'match_order'])
-            ->groupBy('round_number');
+            ->sortBy('match_order')
+            ->groupBy(function($match) {
+                return (int)$match->round_number;
+            })
+            ->sortKeys(); // Sort round keys in ascending order (1, 2, 3...)
+
+        $maxKnockoutRound = $knockoutMatches->keys()->last();
 
         $groupMatches = $allMatches->whereNotNull('tournament_group_id')
-            ->sortBy(['round_number', 'match_order'])
+            ->sortBy('match_order')
             ->groupBy('tournament_group_id');
 
         // Determine active phase - show both phases if they exist
@@ -576,35 +582,33 @@
                     <div class="min-w-max">
                         <!-- Bracket Container -->
                         <div id="knockout-bracket-scale" class="flex justify-center transition-transform duration-200" style="transform: scale(1); transform-origin: top left; gap: 3px;">
-                            @for($round = 1; $round <= $totalRounds; $round++)
+                            @foreach($knockoutMatches as $round => $roundMatches)
                             @php
-                                $roundMatches = $knockoutMatches->get($round) ?? collect();
                                 // Calculate spacing for bracket alignment
                                 $matchesInRound = $roundMatches->count();
-                                $spacingMultiplier = pow(2, $round - 1);
                                 
-                                // Calculate round name based on number of matches in this round
-                                if ($matchesInRound == 1 && $round === $totalRounds) {
-                                    // Last round with 1 match = Finale
-                                    $roundName = 'Finale';
-                                } elseif ($matchesInRound == 1) {
-                                    // 1 match but not last round = Polufinale
-                                    $roundName = 'Polufinale';
-                                } else {
-                                    // Multiple matches = 1/N Finala where N is half the number of players in this round
-                                    // Number of players = matchesInRound * 2
-                                    // So 1/(matchesInRound * 2 / 2) = 1/matchesInRound
-                                    $roundName = '1/' . $matchesInRound . ' Finala';
-                                }
+                                // Calculate round name based on distance to max round
+                                $distanceToFinal = $maxKnockoutRound - (int)$round;
+
+                                $roundName = match($distanceToFinal) {
+                                    0 => 'Finale',
+                                    1 => 'Polufinale',
+                                    2 => 'Četvrtfinale',
+                                    3 => 'Osmina finala',
+                                    4 => 'Šesnaestina finala',
+                                    default => 'Runda ' . $round
+                                };
                             @endphp
-                            @if($matchesInRound > 0 || ($round === $totalRounds && $totalRounds > 1))
+                            @if($matchesInRound > 0)
                             <div class="flex flex-col justify-center gap-2" style="gap: 3px;">
-                                {{-- Round Header --}}
+                                {{-- Round Header (only if roundName exists) --}}
+                                @if($roundName)
                                 <div class="text-center" style="margin-bottom: 3px;">
                                     <h4 class="text-sm md:text-base font-bold text-[var(--text-primary)] uppercase tracking-wider">
                                         {{ $roundName }}
                                     </h4>
                                 </div>
+                                @endif
 
                                 @if($matchesInRound > 0)
                                 {{-- Round Matches Container --}}
@@ -770,7 +774,7 @@
                             </div>
 
                             @endif
-                            @endfor
+                            @endforeach
                         </div>
                     </div>
                 </div>

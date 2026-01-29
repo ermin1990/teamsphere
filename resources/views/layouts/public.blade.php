@@ -88,6 +88,13 @@
             transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
         }
 
+        /* Ensure clickable elements are not blocked */
+        select, input, button, a {
+            position: relative;
+            z-index: 10;
+            pointer-events: auto !important;
+        }
+
         /* Theme toggle button */
         .theme-toggle {
             position: relative;

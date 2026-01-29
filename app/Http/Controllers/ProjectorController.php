@@ -13,19 +13,19 @@ class ProjectorController extends Controller
      */
     public function builder()
     {
-        // Get all public competitions grouped by sport
+        // Get all public competitions grouped by organization
         $competitions = Competition::where('is_public', true)
             ->with(['organization', 'sport'])
             ->orderBy('name')
             ->get()
-            ->groupBy('sport.name');
+            ->groupBy('organization.name');
 
         return view('projector.builder', compact('competitions'));
     }
 
     /**
      * Display the projector view with rotating competitions
-     * URL format: /projector/display?ids=1,5,12&durations=20,30,15&mode=standings&layout=grid
+     * URL format: /projector/display?ids=1,5,12&durations=20,30,15&mode=standings&layout=grid&resolution=1024x768
      */
     public function display(Request $request)
     {
@@ -36,6 +36,7 @@ class ProjectorController extends Controller
         $defaultDuration = $request->input('default_duration', 20); // Default 20 seconds
         $mode = $request->input('mode', 'both'); // standings, matches, both
         $layout = $request->input('layout', 'single'); // single, grid, split
+        $resolution = $request->input('resolution', 'full'); // full, 1024x768
         $livePriority = $request->input('live_priority', false); // Auto-extend time for live matches
         $transitionSpeed = $request->input('transition', 500); // Animation speed in ms
 
@@ -133,7 +134,7 @@ class ProjectorController extends Controller
 
                 // For tournaments with groups:
                 // - If phase is 'knockout', show knockout bracket as single item
-                // - If phase is 'groups' or 'auto', create separate rotation item for each group
+                // - If phase is 'groups' or 'auto', create separate rotation item for each group, or single knockout if groups completed
                 if ($competition->type === 'tournament' && $competition->tournamentGroups->isNotEmpty()) {
                     // Strict check for 'knockout'
                     if ($phaseSelection === 'knockout') {
@@ -147,19 +148,36 @@ class ProjectorController extends Controller
                             'phase' => $phaseSelection,
                         ];
                     } else {
-                        // Auto mode or Groups mode: rotate through each group separately
-                        foreach ($competition->tournamentGroups as $group) {
-                            // Check if this specific group has live matches
-                            $groupHasLiveMatches = $group->matches->where('status', 'in_progress')->isNotEmpty();
-                            $groupDuration = ($livePriority && $groupHasLiveMatches) ? max($duration, 60) : $duration;
-                            
+                        // Check if groups are mostly completed and knockout exists
+                        $completedGroupMatches = $competition->matches->whereNotNull('tournament_group_id')->where('status', 'completed')->count();
+                        $totalGroupMatches = $competition->matches->whereNotNull('tournament_group_id')->count();
+                        $groupsMostlyCompleted = $totalGroupMatches > 0 && ($completedGroupMatches / $totalGroupMatches) > 0.8; // 80% completed
+                        
+                        if ($phaseSelection === 'groups' || ($phaseSelection === 'auto' && !$groupsMostlyCompleted)) {
+                            // Show individual groups
+                            foreach ($competition->tournamentGroups as $group) {
+                                // Check if this specific group has live matches
+                                $groupHasLiveMatches = $group->matches->where('status', 'in_progress')->isNotEmpty();
+                                $groupDuration = ($livePriority && $groupHasLiveMatches) ? max($duration, 60) : $duration;
+                                
+                                $rotationConfig[] = [
+                                    'id' => $id . '_group_' . $group->id,
+                                    'competition' => $competition,
+                                    'group' => $group,
+                                    'duration' => $groupDuration,
+                                    'has_live' => $groupHasLiveMatches,
+                                    'phase' => $phaseSelection,
+                                ];
+                            }
+                        } else {
+                            // Groups completed, show knockout phase
                             $rotationConfig[] = [
-                                'id' => $id . '_group_' . $group->id,
+                                'id' => $id,
                                 'competition' => $competition,
-                                'group' => $group,
-                                'duration' => $groupDuration,
-                                'has_live' => $groupHasLiveMatches,
-                                'phase' => $phaseSelection,
+                                'group' => null,
+                                'duration' => $duration,
+                                'has_live' => $hasLiveMatches,
+                                'phase' => 'knockout',
                             ];
                         }
                     }
@@ -205,6 +223,7 @@ class ProjectorController extends Controller
             'rotationDataForJs' => $rotationDataForJs,
             'mode' => $mode,
             'layout' => $layout,
+            'resolution' => $resolution,
             'transitionSpeed' => $transitionSpeed,
             'livePriority' => $livePriority,
             'totalCompetitions' => count($rotationConfig),
@@ -220,6 +239,7 @@ class ProjectorController extends Controller
         $mode = $request->input('mode', 'both');
         $layout = $request->input('layout', 'modern');
         $phase = $request->input('phase', 'auto');
+        $resolution = $request->input('resolution', 'full');
         
         // Parse ID to check for specific group (format: "{$compId}_group_{$groupId}")
         $competitionId = $id;
@@ -285,6 +305,10 @@ class ProjectorController extends Controller
                     $query->orderBy('round_number')
                           ->orderBy('match_order')
                           ->with(['homePlayer', 'awayPlayer', 'tournamentGroup']);
+                },
+                'tournamentGroups.matches' => function ($query) {
+                    $query->orderBy('match_order', 'asc')
+                          ->with(['homePlayer', 'awayPlayer', 'homeTeam', 'awayTeam']);
                 }
             ]);
         }
@@ -294,6 +318,7 @@ class ProjectorController extends Controller
             'mode' => $mode,
             'layout' => $layout,
             'phase' => $phase,
+            'resolution' => $resolution,
             'selectedGroup' => $selectedGroup,
         ]);
     }

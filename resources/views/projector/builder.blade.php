@@ -3,32 +3,38 @@
 @section('title', 'Projektor Builder - TeamSphere')
 
 @section('content')
-<div class="min-h-screen py-8 px-4 sm:px-6 lg:px-8" style="background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);">
-    <div class="max-w-7xl mx-auto">
-        <!-- Header -->
-        <div class="text-center mb-8">
-            <h1 class="text-4xl font-bold mb-2" style="color: var(--text-primary);">
-                🎬 Projektor Builder
-            </h1>
-            <p class="text-lg" style="color: var(--text-secondary);">
-                Kreirajte personalizovani projektor za prikaz liga i turnira
+<div class="max-w-4xl mx-auto">
+    <!-- Header -->
+    <div class="text-center mb-8">
+        <h1 class="text-3xl md:text-5xl font-extrabold mb-3 tracking-tight" style="color: var(--text-primary); text-shadow: 0 0 20px rgba(96, 165, 250, 0.3);">
+            🎬 Projektor Builder
+        </h1>
+        <p class="text-lg md:text-xl font-medium" style="color: var(--text-secondary);">
+            Kreirajte profesionalni prenos ili prikaz za velike ekrane
+        </p>
+    </div>
+
+    @if(session('error'))
+        <div class="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/50 backdrop-blur-md">
+            <p class="text-red-400 font-medium flex items-center gap-2">
+                <span>⚠️</span> {{ session('error') }}
             </p>
         </div>
+    @endif
 
-        @if(session('error'))
-            <div class="mb-6 p-4 rounded-lg bg-red-500/20 border border-red-500/50">
-                <p class="text-red-400">{{ session('error') }}</p>
-            </div>
-        @endif
-
-        <!-- Builder Form -->
-        <div class="rounded-2xl p-6 shadow-2xl mb-8" style="background: var(--bg-card); backdrop-filter: var(--backdrop-blur); border: 1px solid var(--border-primary);">
-            <form id="projectorForm">
-                <!-- Competition Selection -->
-                <div class="mb-8">
-                    <h2 class="text-2xl font-bold mb-4" style="color: var(--text-primary);">
-                        1. Odaberite lige/turnire
+    <!-- Builder Form -->
+    <div class="rounded-3xl p-6 md:p-10 shadow-2xl mb-12 relative z-10" style="background: var(--bg-card-solid); border: 1px solid var(--border-primary); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);">
+        <form id="projectorForm" class="space-y-12">
+            <!-- Competition Selection -->
+            <div>
+                <div class="flex items-center gap-4 mb-6">
+                    <div class="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center border border-blue-500/50">
+                        <span class="text-blue-400 font-bold">1</span>
+                    </div>
+                    <h2 class="text-2xl font-bold" style="color: var(--text-primary);">
+                        Odaberite lige ili turnire
                     </h2>
+                </div>
                     
                     @if($competitions->isEmpty())
                         <div class="text-center py-8">
@@ -36,13 +42,13 @@
                         </div>
                     @else
                         <div class="space-y-6">
-                            @foreach($competitions as $sportName => $sportCompetitions)
+                            @foreach($competitions as $organizationName => $orgCompetitions)
                                 <div class="rounded-lg p-4" style="background: var(--bg-secondary); border: 1px solid var(--border-secondary);">
                                     <h3 class="text-xl font-semibold mb-3 flex items-center" style="color: var(--text-primary);">
-                                        <span class="mr-2">🏆</span> {{ $sportName }}
+                                        <span class="mr-2">�</span> {{ $organizationName }}
                                     </h3>
                                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                                        @foreach($sportCompetitions as $competition)
+                                        @foreach($orgCompetitions as $competition)
                                             <label class="flex items-center p-3 rounded-lg cursor-pointer transition-all hover:bg-white/5" style="border: 1px solid var(--border-primary);">
                                                 <input 
                                                     type="checkbox" 
@@ -55,7 +61,7 @@
                                                 >
                                                 <div class="ml-3 flex-1">
                                                     <p class="font-medium" style="color: var(--text-primary);">{{ $competition->name }}</p>
-                                                    <p class="text-sm" style="color: var(--text-tertiary);">{{ $competition->organization->name }}</p>
+                                                    <p class="text-sm" style="color: var(--text-tertiary);">{{ $competition->sport->name }}</p>
                                                 </div>
                                             </label>
                                         @endforeach
@@ -79,73 +85,135 @@
                 </div>
 
                 <!-- Display Options -->
-                <div class="mb-8">
-                    <h2 class="text-2xl font-bold mb-4" style="color: var(--text-primary);">
-                        3. Opcije prikaza
-                    </h2>
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div>
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center border border-blue-500/50">
+                            <span class="text-blue-400 font-bold">3</span>
+                        </div>
+                        <h2 class="text-2xl font-bold" style="color: var(--text-primary);">
+                            Podesite opcije prikaza
+                        </h2>
+                    </div>
+                    
+                    <div class="space-y-6">
                         <!-- Layout -->
-                        <div class="rounded-lg p-4" style="background: var(--bg-secondary); border: 1px solid var(--border-secondary);">
-                            <label class="block text-sm font-medium mb-2" style="color: var(--text-secondary);">
-                                Layout
+                        <div class="rounded-2xl p-6" style="background: var(--bg-secondary); border: 1px solid var(--border-secondary);">
+                            <label class="block text-sm font-bold mb-4 uppercase tracking-wider" style="color: var(--text-tertiary);">
+                                📺 Layout prikaza
                             </label>
-                            <select name="layout" id="layout" class="w-full px-3 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500" style="background: var(--bg-primary); color: var(--text-primary); border-color: var(--border-primary);">
-                                <option value="single">Jedna liga (puno)</option>
-                                <option value="split">Split (tabela + mečevi)</option>
-                            </select>
+                            <div class="flex gap-4">
+                                <label class="flex-1 cursor-pointer">
+                                    <input type="radio" name="layout" value="single" class="peer sr-only" checked>
+                                    <div class="p-4 rounded-xl border-2 transition-all peer-checked:border-blue-500 peer-checked:bg-blue-500/10" style="border-color: var(--border-primary);">
+                                        <div class="text-center">
+                                            <div class="text-3xl mb-2">📺</div>
+                                            <div class="font-bold" style="color: var(--text-primary);">Jedna kolona</div>
+                                            <div class="text-xs mt-1" style="color: var(--text-tertiary);">Puni prikaz</div>
+                                        </div>
+                                    </div>
+                                </label>
+                                <label class="flex-1 cursor-pointer">
+                                    <input type="radio" name="layout" value="split" class="peer sr-only">
+                                    <div class="p-4 rounded-xl border-2 transition-all peer-checked:border-blue-500 peer-checked:bg-blue-500/10" style="border-color: var(--border-primary);">
+                                        <div class="text-center">
+                                            <div class="text-3xl mb-2">🌓</div>
+                                            <div class="font-bold" style="color: var(--text-primary);">Split Layout</div>
+                                            <div class="text-xs mt-1" style="color: var(--text-tertiary);">Tabela + Mečevi</div>
+                                        </div>
+                                    </div>
+                                </label>
+                            </div>
                         </div>
 
-                        <!-- Default Duration -->
-                        <div class="rounded-lg p-4" style="background: var(--bg-secondary); border: 1px solid var(--border-secondary);">
-                            <label class="block text-sm font-medium mb-2" style="color: var(--text-secondary);">
-                                Podrazumijevano trajanje (s)
+                        <!-- Resolution -->
+                        <div class="rounded-2xl p-6" style="background: var(--bg-secondary); border: 1px solid var(--border-secondary);">
+                            <label class="block text-sm font-bold mb-4 uppercase tracking-wider" style="color: var(--text-tertiary);">
+                                📱 Rezolucija ekrana
                             </label>
-                            <input 
-                                type="number" 
-                                name="default_duration" 
-                                id="default_duration" 
-                                value="20" 
-                                min="5" 
-                                max="300"
-                                class="w-full px-3 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500" 
-                                style="background: var(--bg-primary); color: var(--text-primary); border-color: var(--border-primary);"
-                            >
+                            <div class="flex gap-4">
+                                <label class="flex-1 cursor-pointer">
+                                    <input type="radio" name="resolution" value="full" class="peer sr-only" checked>
+                                    <div class="p-4 rounded-xl border-2 transition-all peer-checked:border-blue-500 peer-checked:bg-blue-500/10" style="border-color: var(--border-primary);">
+                                        <div class="text-center">
+                                            <div class="text-3xl mb-2">📱</div>
+                                            <div class="font-bold" style="color: var(--text-primary);">Responzivno</div>
+                                            <div class="text-xs mt-1" style="color: var(--text-tertiary);">Full Screen</div>
+                                        </div>
+                                    </div>
+                                </label>
+                                <label class="flex-1 cursor-pointer">
+                                    <input type="radio" name="resolution" value="1024x768" class="peer sr-only">
+                                    <div class="p-4 rounded-xl border-2 transition-all peer-checked:border-blue-500 peer-checked:bg-blue-500/10" style="border-color: var(--border-primary);">
+                                        <div class="text-center">
+                                            <div class="text-3xl mb-2">📽️</div>
+                                            <div class="font-bold" style="color: var(--text-primary);">Projektor</div>
+                                            <div class="text-xs mt-1" style="color: var(--text-tertiary);">1024x768</div>
+                                        </div>
+                                    </div>
+                                </label>
+                            </div>
                         </div>
 
-                        <!-- Transition Speed -->
-                        <div class="rounded-lg p-4" style="background: var(--bg-secondary); border: 1px solid var(--border-secondary);">
-                            <label class="block text-sm font-medium mb-2" style="color: var(--text-secondary);">
-                                Brzina tranzicije (ms)
-                            </label>
-                            <input 
-                                type="number" 
-                                name="transition" 
-                                id="transition" 
-                                value="500" 
-                                min="100" 
-                                max="2000"
-                                step="100"
-                                class="w-full px-3 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500" 
-                                style="background: var(--bg-primary); color: var(--text-primary); border-color: var(--border-primary);"
-                            >
-                        </div>
-
-                        <!-- Live Priority -->
-                        <div class="rounded-lg p-4 flex items-center" style="background: var(--bg-secondary); border: 1px solid var(--border-secondary);">
-                            <label class="flex items-center cursor-pointer">
+                        <!-- Settings Row -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <!-- Default Duration -->
+                            <div class="rounded-2xl p-5 group transition-all hover:bg-white/5" style="background: var(--bg-secondary); border: 1px solid var(--border-secondary);">
+                                <label for="default_duration" class="block text-sm font-bold mb-3 uppercase tracking-wider" style="color: var(--text-tertiary);">
+                                    ⏱️ Rotacija (sec)
+                                </label>
                                 <input 
-                                    type="checkbox" 
-                                    name="live_priority" 
-                                    id="live_priority" 
-                                    value="1"
-                                    class="w-5 h-5 rounded border-gray-600 text-blue-500 focus:ring-blue-500 focus:ring-offset-gray-800"
+                                    type="number" 
+                                    name="default_duration" 
+                                    id="default_duration" 
+                                    value="20" 
+                                    min="5" 
+                                    max="300"
+                                    class="w-full px-4 py-3 rounded-xl border-2 transition-all focus:ring-4 focus:ring-blue-500/20 outline-none" 
+                                    style="background: var(--bg-primary); color: var(--text-primary); border-color: var(--border-primary);"
                                 >
-                                <div class="ml-3">
-                                    <span class="font-medium" style="color: var(--text-primary);">Live prioritet</span>
-                                    <p class="text-xs" style="color: var(--text-tertiary);">Produži vrijeme za uživo mečeve</p>
-                                </div>
-                            </label>
+                            </div>
+
+                            <!-- Transition Speed -->
+                            <div class="rounded-2xl p-5 group transition-all hover:bg-white/5" style="background: var(--bg-secondary); border: 1px solid var(--border-secondary);">
+                                <label for="transition" class="block text-sm font-bold mb-3 uppercase tracking-wider" style="color: var(--text-tertiary);">
+                                    ⚡ Tranzicija (ms)
+                                </label>
+                                <input 
+                                    type="number" 
+                                    name="transition" 
+                                    id="transition" 
+                                    value="500" 
+                                    min="100" 
+                                    max="2000"
+                                    step="100"
+                                    class="w-full px-4 py-3 rounded-xl border-2 transition-all focus:ring-4 focus:ring-blue-500/20 outline-none" 
+                                    style="background: var(--bg-primary); color: var(--text-primary); border-color: var(--border-primary);"
+                                >
+                            </div>
+
+                            <!-- Live Priority -->
+                            <div class="rounded-2xl p-5 flex items-center transition-all hover:bg-white/5" style="background: var(--bg-secondary); border: 1px solid var(--border-secondary);">
+                                <label class="flex items-center cursor-pointer group w-full">
+                                    <div class="relative">
+                                        <input 
+                                            type="checkbox" 
+                                            name="live_priority" 
+                                            id="live_priority" 
+                                            value="1"
+                                            class="peer sr-only"
+                                        >
+                                        <div class="w-12 h-6 bg-gray-700 rounded-full border border-gray-600 peer-checked:bg-blue-600 transition-all"></div>
+                                        <div class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-all peer-checked:left-7"></div>
+                                    </div>
+                                    <div class="ml-4">
+                                        <span class="font-bold block text-sm" style="color: var(--text-primary);">🔴 Live prioritet</span>
+                                        <p class="text-xs" style="color: var(--text-tertiary);">Prioritet uživo</p>
+                                    </div>
+                                </label>
+                            </div>
                         </div>
+                    </div>
+                </div>
                     </div>
                 </div>
 
@@ -199,16 +267,27 @@
         </div>
 
         <!-- Instructions -->
-        <div class="rounded-2xl p-6 shadow-xl" style="background: var(--bg-card); backdrop-filter: var(--backdrop-blur); border: 1px solid var(--border-primary);">
-            <h3 class="text-xl font-bold mb-4" style="color: var(--text-primary);">📖 Uputstvo</h3>
-            <ul class="space-y-2" style="color: var(--text-secondary);">
-                <li>✅ Odaberite jednu ili više liga/turnira koje želite prikazati</li>
-                <li>⏱️ Podesite trajanje prikaza za svaku ligu (u sekundama)</li>
-                <li>🎨 Izaberite opcije prikaza (samo tabele, samo mečevi, ili oboje)</li>
-                <li>🔗 Kliknite "Generiši projektor URL" za kreiranje linka</li>
-                <li>📺 Kopirajte URL i otvorite ga na TV-u ili projektoru</li>
-                <li>🔄 Projektor će automatski rotirati kroz odabrane lige</li>
-                <li>⚡ Live prioritet automatski produžava vrijeme za lige sa uživo mečevima</li>
+        <div class="rounded-3xl p-8 shadow-xl border border-white/5" style="background: rgba(255, 255, 255, 0.02); backdrop-filter: var(--backdrop-blur);">
+            <h3 class="text-xl font-bold mb-6 flex items-center gap-2" style="color: var(--text-primary);">
+                <span>📖</span> Kako koristiti Builder?
+            </h3>
+            <ul class="grid grid-cols-1 md:grid-cols-2 gap-4" style="color: var(--text-secondary);">
+                <li class="flex items-start gap-3">
+                    <span class="text-blue-400 font-bold">1.</span>
+                    <span>Odaberite jednu ili više liga/turnira koje želite rotirati na ekranu.</span>
+                </li>
+                <li class="flex items-start gap-3">
+                    <span class="text-blue-400 font-bold">2.</span>
+                    <span>Postavite trajanje (u sekundama) koliko će se svaka liga zadržati prije promjene.</span>
+                </li>
+                <li class="flex items-start gap-3">
+                    <span class="text-blue-400 font-bold">3.</span>
+                    <span>Izaberite Split layout ako želite tabele i mečeve istovremeno.</span>
+                </li>
+                <li class="flex items-start gap-3">
+                    <span class="text-blue-400 font-bold">4.</span>
+                    <span>Kliknite "Generiši" i otvorite link na projektoru ili TV-u.</span>
+                </li>
             </ul>
         </div>
     </div>
@@ -238,16 +317,28 @@
                         <p class="font-medium" style="color: var(--text-primary);">${comp.name}</p>
                     </div>
                     ${comp.type === 'tournament' ? `
-                    <div class="flex items-center gap-2">
-                        <select 
-                            id="phase_${comp.id}" 
-                            class="px-3 py-2 rounded-lg border text-sm" 
-                            style="background: var(--bg-secondary); color: var(--text-primary); border-color: var(--border-primary);"
-                        >
-                            <option value="auto">Auto</option>
-                            <option value="groups">Grupna faza</option>
-                            <option value="knockout">Knockout faza</option>
-                        </select>
+                    <div class="flex items-center gap-3">
+                        <label class="text-xs font-bold uppercase" style="color: var(--text-tertiary);">Faza:</label>
+                        <div class="flex gap-2">
+                            <label class="cursor-pointer">
+                                <input type="radio" name="phase_${comp.id}" value="auto" class="peer sr-only" checked>
+                                <div class="px-3 py-1 rounded-lg border-2 text-xs font-bold transition-all peer-checked:border-blue-500 peer-checked:bg-blue-500/20" style="border-color: var(--border-primary); color: var(--text-primary);">
+                                    🤖 Auto
+                                </div>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="phase_${comp.id}" value="groups" class="peer sr-only">
+                                <div class="px-3 py-1 rounded-lg border-2 text-xs font-bold transition-all peer-checked:border-blue-500 peer-checked:bg-blue-500/20" style="border-color: var(--border-primary); color: var(--text-primary);">
+                                    📊 Grupe
+                                </div>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="phase_${comp.id}" value="knockout" class="peer sr-only">
+                                <div class="px-3 py-1 rounded-lg border-2 text-xs font-bold transition-all peer-checked:border-blue-500 peer-checked:bg-blue-500/20" style="border-color: var(--border-primary); color: var(--text-primary);">
+                                    🏆 Knockout
+                                </div>
+                            </label>
+                        </div>
                     </div>
                     ` : ''}
                     <div class="flex items-center gap-2">
@@ -258,10 +349,10 @@
                             min="5" 
                             max="300"
                             placeholder="20"
-                            class="w-20 px-3 py-2 rounded-lg border text-center" 
+                            class="w-20 px-3 py-2 rounded-xl border-2 text-center font-bold" 
                             style="background: var(--bg-secondary); color: var(--text-primary); border-color: var(--border-primary);"
                         >
-                        <span style="color: var(--text-tertiary);">sekundi</span>
+                        <span class="text-sm font-medium uppercase tracking-tighter" style="color: var(--text-tertiary);">sec</span>
                     </div>
                     <div class="flex gap-2">
                         <button type="button" onclick="moveUp(${index})" class="p-2 rounded hover:bg-white/10" ${index === 0 ? 'disabled style="opacity: 0.5;"' : ''}>
@@ -314,18 +405,23 @@
         }).join(',');
         
         const phases = selectedCompetitions.map(c => {
-            const phaseSelect = document.getElementById(`phase_${c.id}`);
-            return phaseSelect ? phaseSelect.value : 'auto';
+            const phaseRadio = document.querySelector(`input[name="phase_${c.id}"]:checked`);
+            return phaseRadio ? phaseRadio.value : 'auto';
         }).join(',');
 
         const mode = 'both';
-        const layout = document.getElementById('layout').value;
+        const layoutRadio = document.querySelector('input[name="layout"]:checked');
+        const layout = layoutRadio ? layoutRadio.value : 'single';
+        
+        const resolutionRadio = document.querySelector('input[name="resolution"]:checked');
+        const resolution = resolutionRadio ? resolutionRadio.value : 'full';
+        
         const defaultDuration = document.getElementById('default_duration').value;
         const transition = document.getElementById('transition').value;
         const livePriority = document.getElementById('live_priority').checked ? '1' : '0';
 
         const baseUrl = window.location.origin;
-        const url = `${baseUrl}/projector/display?ids=${ids}&durations=${durations}&phases=${phases}&mode=${mode}&layout=${layout}&default_duration=${defaultDuration}&transition=${transition}&live_priority=${livePriority}`;
+        const url = `${baseUrl}/projector/display?ids=${ids}&durations=${durations}&phases=${phases}&mode=${mode}&layout=${layout}&resolution=${resolution}&default_duration=${defaultDuration}&transition=${transition}&live_priority=${livePriority}`;
 
         document.getElementById('generatedUrl').value = url;
         document.getElementById('urlSection').classList.remove('hidden');

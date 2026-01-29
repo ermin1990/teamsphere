@@ -1,31 +1,59 @@
 <!-- Knockout Bracket for Projector -->
 @php
     // Group knockout matches by round
+    // 1 = Final, 2 = Semifinal, 4 = Quarterfinal, 8 = Round of 16
+    // Display order: Round of 16 (8) LEFT → Quarterfinal (4) → Semifinal (2) → Final (1) RIGHT
     $knockoutMatches = $competition->matches
         ->where('phase', 'knockout')
-        ->sortBy(['round_number', 'match_order'])
-        ->groupBy('round_number');
+        ->sortBy('match_order')
+        ->groupBy(function($match) {
+            return (int)$match->round_number;
+        })
+        ->sortKeys(); // Sort in ascending order: 1, 2, 3... (Start to Final)
     
     // Determine max round specific to this competition to label correctly
-    $maxRound = $knockoutMatches->keys()->max();
+    $maxRound = $knockoutMatches->keys()->last();
 @endphp
 
 @if($knockoutMatches->isNotEmpty())
-<div class="h-full flex flex-col p-2">
-    <!-- Header -->
+<div class="h-full flex flex-col p-6 max-w-full overflow-hidden">
+    <!-- Zoom Controls -->
+    <div class="flex justify-center mb-2 opacity-20 hover:opacity-100 transition-opacity duration-300">
+        <div class="flex items-center gap-1 scale-75 transform origin-center">
+            <button type="button" onclick="window.changeZoom(-0.05)" class="px-2 py-1 rounded bg-gray-800/60 hover:bg-gray-700/60 text-white text-base font-bold backdrop-blur-sm border border-gray-600/50" title="Smanji Prikaz">−</button>
+            <button type="button" onclick="window.resetZoom()" class="px-2 py-1 rounded bg-gray-800/60 hover:bg-gray-700/60 text-white text-xs font-bold backdrop-blur-sm border border-gray-600/50" title="Resetuj Prikaz">🔄</button>
+            <button type="button" onclick="window.changeZoom(0.05)" class="px-2 py-1 rounded bg-gray-800/60 hover:bg-gray-700/60 text-white text-base font-bold backdrop-blur-sm border border-gray-600/50" title="Povećaj Prikaz">+</button>
+            
+            <div class="w-px h-6 bg-gray-600/50 mx-1"></div>
+
+            <button type="button" onclick="window.changeWidth(-20)" class="px-2 py-1 rounded bg-gray-800/60 hover:bg-gray-700/60 text-white text-xs font-bold backdrop-blur-sm border border-gray-600/50" title="Uže Kolone">⬅️</button>
+            <button type="button" onclick="window.resetWidth()" class="px-2 py-1 rounded bg-gray-800/60 hover:bg-gray-700/60 text-white text-xs font-bold backdrop-blur-sm border border-gray-600/50" title="Resetuj Širinu">↔️</button>
+            <button type="button" onclick="window.changeWidth(20)" class="px-2 py-1 rounded bg-gray-800/60 hover:bg-gray-700/60 text-white text-xs font-bold backdrop-blur-sm border border-gray-600/50" title="Šire Kolone">➡️</button>
+
+            <div class="w-px h-6 bg-gray-600/50 mx-1"></div>
+
+            <button type="button" onclick="window.changePlayerFont(-1)" class="px-2 py-1 rounded bg-gray-800/60 hover:bg-gray-700/60 text-white text-xs font-bold backdrop-blur-sm border border-gray-600/50" title="Manji Font Igrača">A-</button>
+            <button type="button" onclick="window.resetPlayerFont()" class="px-2 py-1 rounded bg-gray-800/60 hover:bg-gray-700/60 text-white text-xs font-bold backdrop-blur-sm border border-gray-600/50" title="Resetuj Font">A</button>
+            <button type="button" onclick="window.changePlayerFont(1)" class="px-2 py-1 rounded bg-gray-800/60 hover:bg-gray-700/60 text-white text-xs font-bold backdrop-blur-sm border border-gray-600/50" title="Veći Font Igrača">A+</button>
+        </div>
+    </div>
+    
+    <!-- Tournament Header -->
     <div class="mb-4 text-center">
-        <h2 class="text-3xl font-bold text-white flex items-center justify-center gap-3">
-            <span class="text-4xl">🏆</span>
-            Knockout Faza - {{ $competition->name }}
+        <h2 class="text-2xl md:text-3xl font-bold text-white flex items-center justify-center gap-3">
+            <span class="text-3xl md:text-4xl">🏆</span>
+            Eliminaciona faza - {{ $competition->name }}
         </h2>
     </div>
-
+    
     <!-- Bracket Columns -->
-    <div class="flex-1 flex flex-row gap-4 h-full overflow-x-auto min-h-0">
+    <div class="flex-1 flex flex-row h-full overflow-x-auto custom-scrollbar knockout-bracket-container" style="gap: 15px; justify-content: start;">
         @foreach($knockoutMatches as $roundNumber => $matches)
         @php
-             $roundsFromFinal = $maxRound - $roundNumber;
-             $roundName = match($roundsFromFinal) {
+             // Logic: Max round is always the final
+             $distanceToFinal = $maxRound - (int)$roundNumber;
+             
+             $roundName = match($distanceToFinal) {
                  0 => 'Finale',
                  1 => 'Polufinale',
                  2 => 'Četvrtfinale',
@@ -35,17 +63,22 @@
              };
         @endphp
         
-        <div class="flex-1 flex flex-col min-w-[300px] h-full">
-            <!-- Round Header -->
-            <div class="bg-gray-800/90 rounded-t-xl p-3 text-center border-b border-gray-700">
-                <h3 class="text-xl font-bold text-purple-400">{{ $roundName }}</h3>
-                <span class="text-xs text-gray-400">{{ $matches->count() }} mečeva</span>
+        <div class="flex-1 flex flex-col knockout-column h-full transition-all duration-300" style="gap: 5px; min-width: 250px;">
+            <div class="text-center mb-4">
+                <h3 class="text-lg font-bold text-amber-400 uppercase tracking-widest border-b border-amber-400/30 pb-2">
+                    {{ $roundName }}
+                </h3>
             </div>
-            
+
             <!-- Matches Container -->
-            <div class="flex-1 bg-gray-900/30 rounded-b-xl border border-gray-700 p-2 overflow-y-auto custom-scrollbar flex flex-col justify-around">
+            <div class="flex-1 flex flex-col justify-center gap-2" style="gap: 5px;">
                 @foreach($matches as $match)
-                <div class="bg-gray-800 rounded-lg p-2 border border-gray-700/50 shadow-lg mb-2 last:mb-0 relative {{ $match->status === 'live' ? 'ring-2 ring-red-500/50' : '' }}">
+                <div class="block bg-gray-800/40 backdrop-blur-md rounded-lg border border-gray-700/50 shadow-xl transition-all duration-200 hover:scale-[1.02] knockout-match relative {{ $match->status === 'live' ? 'bg-red-900/20 border-red-500/50' : '' }}" 
+                     data-match-id="{{ $match->id }}"
+                     data-home-player="{{ $match->home_player_id }}"
+                     data-away-player="{{ $match->away_player_id }}"
+                     style="padding-top: 3px; margin-top: 3px; margin-bottom: 3px;">
+                    
                     <!-- Live Indicator Overlay -->
                     @if($match->status === 'live')
                     <div class="absolute -top-2 -right-2 bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full animate-pulse shadow-lg z-10">
@@ -53,39 +86,58 @@
                     </div>
                     @endif
 
-                    <!-- Home Player -->
-                    <div class="flex justify-between items-center mb-1 pb-1 border-b border-gray-700/50 {{ ($match->home_score ?? 0) > ($match->away_score ?? 0) ? 'bg-green-500/10' : '' }} rounded px-1">
-                        <span class="text-white font-medium truncate text-sm flex-1 mr-2 {{ ($match->home_score ?? 0) > ($match->away_score ?? 0) ? 'text-green-400 font-bold' : '' }}">
-                            @if($competition->is_team_based)
-                                {{ $match->homeTeam ? $match->homeTeam->name : 'TBD' }}
-                            @else
-                                {{ $match->homePlayer ? $match->homePlayer->name : 'TBD' }}
-                            @endif
-                        </span>
-                        <span class="text-lg font-bold {{ ($match->home_score ?? 0) > ($match->away_score ?? 0) ? 'text-green-400' : 'text-gray-400' }}">
-                            {{ $match->home_score ?? 0 }}
-                        </span>
+                    <!-- Match Players container -->
+                    <div class="px-3 md:px-4" style="padding-bottom: 3px;">
+                        @php
+                            $homeWinner = $match->status === 'completed' && ($match->home_score ?? 0) > ($match->away_score ?? 0);
+                            $awayWinner = $match->status === 'completed' && ($match->away_score ?? 0) > ($match->home_score ?? 0);
+                            
+                            $homeName = $competition->is_team_based 
+                                ? ($match->homeTeam ? $match->homeTeam->name : 'TBD') 
+                                : ($match->homePlayer ? $match->homePlayer->name : 'TBD');
+                            $awayName = $competition->is_team_based 
+                                ? ($match->awayTeam ? $match->awayTeam->name : 'TBD') 
+                                : ($match->awayPlayer ? $match->awayPlayer->name : 'TBD');
+                        @endphp
+
+                        <!-- Home Player Row -->
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="flex items-center gap-2 flex-1 min-w-0 player-container" data-player-id="{{ $match->home_player_id }}">
+                                <div class="player-name font-semibold truncate {{ $homeWinner ? 'text-green-500 font-bold' : 'text-gray-300' }}">
+                                    {{ $homeName }}
+                                </div>
+                            </div>
+                            <div class="flex-shrink-0 ml-2">
+                                <div class="w-6 h-6 {{ $homeWinner ? 'bg-green-900/80' : 'bg-gray-800' }} rounded flex items-center justify-center border border-white/5">
+                                    <div class="text-xs font-bold text-white">
+                                        {{ $match->home_score ?? 0 }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Away Player Row -->
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2 flex-1 min-w-0 player-container" data-player-id="{{ $match->away_player_id }}">
+                                <div class="player-name font-semibold truncate {{ $awayWinner ? 'text-green-500 font-bold' : 'text-gray-300' }}">
+                                    {{ $awayName }}
+                                </div>
+                            </div>
+                            <div class="flex-shrink-0 ml-2">
+                                <div class="w-6 h-6 {{ $awayWinner ? 'bg-green-900/80' : 'bg-gray-800' }} rounded flex items-center justify-center border border-white/5">
+                                    <div class="text-xs font-bold text-white">
+                                        {{ $match->away_score ?? 0 }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
-                    <!-- Away Player -->
-                    <div class="flex justify-between items-center {{ ($match->away_score ?? 0) > ($match->home_score ?? 0) ? 'bg-green-500/10' : '' }} rounded px-1">
-                        <span class="text-white font-medium truncate text-sm flex-1 mr-2 {{ ($match->away_score ?? 0) > ($match->home_score ?? 0) ? 'text-green-400 font-bold' : '' }}">
-                            @if($competition->is_team_based)
-                                {{ $match->awayTeam ? $match->awayTeam->name : 'TBD' }}
-                            @else
-                                {{ $match->awayPlayer ? $match->awayPlayer->name : 'TBD' }}
-                            @endif
-                        </span>
-                        <span class="text-lg font-bold {{ ($match->away_score ?? 0) > ($match->home_score ?? 0) ? 'text-green-400' : 'text-gray-400' }}">
-                            {{ $match->away_score ?? 0 }}
-                        </span>
-                    </div>
-
-                    <!-- Groups Reference -->
-                    @if($roundsFromFinal > 1 && ($match->home_player_group || $match->away_player_group))
-                    <div class="mt-1 flex justify-between text-[10px] text-gray-500">
-                        <span>{{ $match->home_player_group ? $match->home_player_group : '' }}</span>
-                        <span>{{ $match->away_player_group ? $match->away_player_group : '' }}</span>
+                    <!-- Groups Reference (Subtle) -->
+                    @if((int)$roundNumber > 2 && ($match->home_player_group || $match->away_player_group))
+                    <div class="mt-1 flex justify-between text-[8px] text-gray-500/50 px-4 pb-1 uppercase tracking-tighter">
+                        <span>{{ $match->home_player_group ?: '' }}</span>
+                        <span>{{ $match->away_player_group ?: '' }}</span>
                     </div>
                     @endif
                 </div>
