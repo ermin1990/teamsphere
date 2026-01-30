@@ -346,6 +346,8 @@
         function showCompetition(index) {
             const views = document.querySelectorAll('.competition-view');
             const nextView = views[index];
+            if (!nextView) return;
+
             const compId = nextView.dataset.competitionId;
             
             // Load settings for this specific competition
@@ -362,14 +364,20 @@
                 applyColumnWidth();
             }, 50);
 
-            // Update header
-            updateHeader(rotationData[index]);
+            // Update live indicator
+            const liveIndicator = document.getElementById('liveIndicator');
+            if (liveIndicator) {
+                if (rotationData[index] && rotationData[index].has_live) {
+                    liveIndicator.classList.remove('hidden');
+                } else {
+                    liveIndicator.classList.add('hidden');
+                }
+            }
 
-            // Start timer
-            const duration = Math.max(1, parseInt(rotationData[index].duration) || 20);
+            // Start timer for next transition
+            const duration = rotationData[index] ? Math.max(1, parseInt(rotationData[index].duration) || 20) : 20;
             timeRemaining = duration;
 
-            // Update timer every second
             if (interval) clearInterval(interval);
             interval = setInterval(() => {
                 timeRemaining--;
