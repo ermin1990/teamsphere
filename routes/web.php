@@ -92,7 +92,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('organizations', OrganizationController::class);
     Route::get('organizations/{organization}/links', [App\Http\Controllers\OrganizationLinkController::class, 'index'])->name('organizations.links.index');
     Route::post('organizations/{organization}/links', [App\Http\Controllers\OrganizationLinkController::class, 'store'])->name('organizations.links.store');
-    Route::delete('organizations/{organization}/links/{link}', [App\Http\Controllers\OrganizationLinkController::class, 'destroy'])->name('organizations.links.destroy');
+    Route::get('organizations/{organization}/links/{link}/delete', [App\Http\Controllers\OrganizationLinkController::class, 'destroy'])->name('organizations.links.destroy');
 
     // Team routes
     Route::get('organizations/{organization}/teams', [TeamController::class, 'index'])->name('organizations.teams.index');
