@@ -425,6 +425,24 @@
                 } else {
                     document.exitFullscreen();
                 }
+            } else if (e.key === '+' || e.key === '=') {
+                window.changeZoom(0.05);
+            } else if (e.key === '-') {
+                window.changeZoom(-0.05);
+            } else if (e.key === '0') {
+                window.resetZoom();
+            } else if (e.key === 'a' && e.shiftKey) {
+                window.changePlayerFont(-1);
+            } else if (e.key === 'A' && !e.shiftKey) {
+                window.changePlayerFont(-1);
+            } else if (e.key === 's' && e.shiftKey) {
+                window.changePlayerFont(1);
+            } else if (e.key === 'S' && !e.shiftKey) {
+                window.changePlayerFont(1);
+            } else if (e.key === 'd' && e.shiftKey) {
+                window.resetPlayerFont();
+            } else if (e.key === 'D' && !e.shiftKey) {
+                window.resetPlayerFont();
             }
         });
 
