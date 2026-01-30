@@ -21,26 +21,130 @@
             --accent-blue: #60a5fa;
             --accent-green: #10b981;
             --accent-red: #ef4444;
+            --player-font-size: 14px;
+            --title-font-size: 24px;
+            --zoom-scale: 1;
         }
 
         body {
             background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
             overflow: hidden;
+            @if($resolution === '1024x768')
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            @endif
+        }
+
+        .player-name {
+            font-size: var(--player-font-size) !important;
+        }
+
+        .group-title,
+        .competition-header h2 {
+            font-size: var(--title-font-size) !important;
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+        }
+
+        .projector-content {
+            transform: scale(var(--zoom-scale));
+            transform-origin: top center;
+            transition: transform 300ms ease;
+        }
+
+        .projector-wrapper {
+            @if($resolution === '1024x768')
+            width: 1024px;
+            height: 768px;
+            position: relative;
+            background: var(--bg-primary);
+            box-shadow: 0 0 100px rgba(0,0,0,0.8);
+            overflow: hidden;
+            border: 1px solid var(--border-primary);
+            @else
+            width: 100%;
+            height: 100vh;
+            @endif
+        }
+
+        .projector-wrapper.res-1024 {
+            font-size: 0.875rem;
+        }
+
+        .res-1024 h1 { font-size: 1.5rem !important; }
+        .res-1024 h2 { font-size: 1.25rem !important; }
+        .res-1024 h3 { font-size: 1.125rem !important; }
+        .res-1024 h4 { font-size: 1rem !important; }
+        .res-1024 .p-6 { padding: 1rem !important; }
+        .res-1024 .p-8 { padding: 1.5rem !important; }
+        .res-1024 .gap-8 { gap: 1rem !important; }
+        .res-1024 .gap-6 { gap: 0.75rem !important; }
+        .res-1024 .gap-4 { gap: 0.5rem !important; }
+        .res-1024 .mt-8 { margin-top: 1rem !important; }
+        .res-1024 .mb-8 { margin-bottom: 1rem !important; }
+        .res-1024 .mb-6 { margin-bottom: 0.75rem !important; }
+        .res-1024 .mb-3 { margin-bottom: 0.5rem !important; }
+        .res-1024 .text-3xl { font-size: 1.25rem !important; }
+        .res-1024 .text-4xl { font-size: 1.5rem !important; }
+        .res-1024 .text-5xl { font-size: 1.75rem !important; }
+        .res-1024 .text-base { font-size: 0.875rem !important; }
+        .res-1024 .text-lg { font-size: 1rem !important; }
+        .res-1024 .text-xl { font-size: 1.125rem !important; }
+        .res-1024 .text-2xl { font-size: 1.25rem !important; }
+        
+        /* Responsive group title for 1024x768 */
+        .res-1024 .group-title {
+            font-size: calc(var(--title-font-size) * 0.75) !important;
+            max-width: 100%;
+        }
+        
+        .res-1024 .group-title span {
+            font-size: 1.5rem !important;
+        }
+
+        /* Responsive table spacing for 1024x768 */
+        .res-1024 table th,
+        .res-1024 table td {
+            padding-top: 0.375rem !important;
+            padding-bottom: 0.375rem !important;
+        }
+
+        .res-1024 .space-y-8 > * + * {
+            margin-top: 1rem !important;
+        }
+
+        /* Ensure content fits within viewport */
+        .tournament-standings-container {
+            width: 100%;
+            max-width: 100%;
+            overflow: hidden;
         }
 
         .competition-view {
             opacity: 0;
+            pointer-events: none;
             transition: opacity {{ $transitionSpeed }}ms ease-in-out;
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
-            height: 100vh;
+            height: 100%;
+            visibility: hidden;
         }
 
         .competition-view.active {
             opacity: 1;
+            pointer-events: auto;
             position: relative;
+            visibility: visible;
+        }
+
+        .competition-view.fading-out {
+            opacity: 0;
+            visibility: visible;
         }
 
         .progress-bar {
@@ -79,10 +183,10 @@
     </style>
 </head>
 <body>
-    <!-- Competition Info Header -->
-    <div class="fixed bottom-4 left-0 right-0 z-40 flex justify-between items-center px-8">
-        <div><!-- Spacer to keep layout if needed, or just empty --></div>
+    <div class="projector-wrapper {{ $resolution === '1024x768' ? 'res-1024' : '' }}" id="zoomWrapper">
 
+    <!-- Competition Info Header (Live Indicator) -->
+    <div class="fixed top-4 left-4 z-40">
         <div class="flex items-center gap-4">
             <!-- Live Indicator -->
             <div id="liveIndicator" class="hidden bg-red-500/20 backdrop-blur-lg rounded-full px-4 py-2 border border-red-500/50">
@@ -91,25 +195,17 @@
                     <span class="text-red-400 font-semibold text-sm">UŽIVO</span>
                 </div>
             </div>
-
-            <!-- Competition Counter -->
-            <div class="bg-gray-900/80 backdrop-blur-lg rounded-full px-6 py-3 shadow-2xl border border-gray-700/50">
-                <p class="text-white font-bold">
-                    <span id="currentIndex">1</span> / <span id="totalCount">{{ $totalCompetitions }}</span>
-                </p>
-            </div>
-
-            <!-- Time Remaining -->
-            <div class="bg-gray-900/80 backdrop-blur-lg rounded-full px-6 py-3 shadow-2xl border border-gray-700/50">
-                <p class="text-white font-bold">
-                    ⏱️ <span id="timeRemaining">--</span>s
-                </p>
+            <!-- Timer Display -->
+            <div id="timerDisplay" class="bg-gray-800/80 backdrop-blur-lg rounded-lg px-4 py-2 border border-gray-600/50">
+                <div class="text-white font-mono text-sm">
+                    <span id="currentTime">00:00</span> / <span id="totalTime">00:00</span>
+                </div>
             </div>
         </div>
     </div>
 
     <!-- Main Content Container -->
-    <div id="projectorContainer" class="pt-8 pb-8 px-8 h-screen overflow-y-auto">
+    <div id="projectorContainer" class="pt-6 pb-32 px-4 h-full overflow-y-auto custom-scrollbar">
         @foreach($rotationConfig as $index => $config)
             <div 
                 class="competition-view {{ $index === 0 ? 'active' : '' }}" 
@@ -124,6 +220,7 @@
                     'selectedGroup' => $config['group'] ?? null,
                     'mode' => $mode,
                     'layout' => $layout,
+                    'resolution' => $resolution,
                     'phase' => $config['phase'] ?? 'auto'
                 ])
             </div>
@@ -145,44 +242,188 @@
         let timeRemaining = 0;
         let interval = null;
         let progressInterval = null;
+        let zoomLevel = 1.0;
+        let columnWidth = 0; // Offset from default
+        let playerFontSize = 14; // Base font size in px
+        let titleFontSize = 24; // Base title font size in px
 
-        function updateHeader(competitionData) {
-            document.getElementById('currentIndex').textContent = currentIndex + 1;
-            
-            const liveIndicator = document.getElementById('liveIndicator');
-            if (competitionData.has_live) {
-                liveIndicator.classList.remove('hidden');
-            } else {
-                liveIndicator.classList.add('hidden');
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function updateTimerDisplay() {
+            const currentTimeEl = document.getElementById('currentTime');
+            const totalTimeEl = document.getElementById('totalTime');
+            if (currentTimeEl && totalTimeEl) {
+                const total = rotationData[currentIndex]?.duration || 0;
+                currentTimeEl.textContent = formatTime(timeRemaining);
+                totalTimeEl.textContent = formatTime(total);
             }
+        }
+
+        window.changeZoom = function(delta) {
+            zoomLevel = Math.max(0.2, Math.min(2.0, zoomLevel + delta));
+            applyZoom();
+            saveSettings();
+        }
+
+        window.resetZoom = function() {
+            zoomLevel = 1.0;
+            applyZoom();
+            saveSettings();
+        }
+
+        window.changeWidth = function(delta) {
+            columnWidth += delta;
+            applyColumnWidth();
+            saveSettings();
+        }
+
+        window.resetWidth = function() {
+            columnWidth = 0;
+            applyColumnWidth();
+            saveSettings();
+        }
+
+        window.changePlayerFont = function(delta) {
+            playerFontSize = Math.max(6, Math.min(32, playerFontSize + delta));
+            // Proporcionalno promijeni i title font (title je ~1.7x veći)
+            titleFontSize = Math.round(playerFontSize * 1.71);
+            applyPlayerFont();
+            saveSettings();
+        }
+
+        window.resetPlayerFont = function() {
+            playerFontSize = 14;
+            titleFontSize = 24;
+            applyPlayerFont();
+            saveSettings();
+        }
+
+        function applyZoom() {
+            document.documentElement.style.fontSize = (zoomLevel * 16) + 'px';
+        }
+
+        function applyPlayerFont() {
+            document.documentElement.style.setProperty('--player-font-size', playerFontSize + 'px');
+            document.documentElement.style.setProperty('--title-font-size', titleFontSize + 'px');
+        }
+
+        function applyColumnWidth() {
+            const columns = document.querySelectorAll('.knockout-column');
+            const containers = document.querySelectorAll('.knockout-bracket-container');
+            const isSmallRes = {{ ($resolution ?? 'full') === '1024x768' ? 'true' : 'false' }};
+
+            columns.forEach(col => {
+                if (columnWidth === 0) {
+                    // Fit to screen mode
+                    col.style.minWidth = isSmallRes ? "140px" : "200px";
+                    col.style.flex = "1 1 0%";
+                } else {
+                    // Manual expansion mode
+                    const baseWidth = isSmallRes ? 200 : 280;
+                    col.style.minWidth = (baseWidth + columnWidth) + 'px';
+                    col.style.flex = "0 0 auto";
+                }
+            });
+
+            containers.forEach(container => {
+                if (columnWidth === 0) {
+                    container.style.justifyContent = "center";
+                    container.classList.remove('overflow-x-auto');
+                    container.style.overflowX = 'hidden';
+                } else {
+                    container.style.justifyContent = "start";
+                    container.classList.add('overflow-x-auto');
+                    container.style.overflowX = 'auto';
+                }
+                
+                const baseGap = 16;
+                const newGap = Math.max(2, baseGap + (columnWidth / 10)); 
+                container.style.gap = newGap + 'px';
+            });
+        }
+
+        function saveSettings() {
+            const id = getCurrentCompetitionId();
+            if (id) {
+                const settings = { 
+                    zoom: zoomLevel, 
+                    width: columnWidth, 
+                    playerFont: playerFontSize,
+                    titleFont: titleFontSize 
+                };
+                localStorage.setItem(`projector_settings_${id}`, JSON.stringify(settings));
+            }
+        }
+
+        function loadSettings(id) {
+            const saved = localStorage.getItem(`projector_settings_${id}`);
+            if (saved) {
+                const settings = JSON.parse(saved);
+                zoomLevel = settings.zoom || 1.0;
+                columnWidth = settings.width || 0;
+                playerFontSize = settings.playerFont || 14;
+                titleFontSize = settings.titleFont || 24;
+            } else {
+                zoomLevel = 1.0;
+                columnWidth = 0;
+                playerFontSize = 14;
+                titleFontSize = 24;
+            }
+            applyZoom();
+            applyColumnWidth();
+            applyPlayerFont();
         }
 
         function showCompetition(index) {
             const views = document.querySelectorAll('.competition-view');
+            const currentView = document.querySelector('.competition-view.active');
+            const nextView = views[index];
+            const compId = nextView.dataset.competitionId;
             
-            // Hide all views
-            views.forEach(view => {
-                view.classList.remove('active');
-            });
-            
-            // Show current view after transition
-            setTimeout(() => {
-                views[index].classList.add('active');
-            }, config.transitionSpeed / 2);
+            // Load settings for this specific competition
+            loadSettings(compId);
+
+            // Fade out current view
+            if (currentView) {
+                currentView.classList.add('fading-out');
+                
+                // Wait for fade out to complete before switching
+                setTimeout(() => {
+                    currentView.classList.remove('active', 'fading-out');
+                    
+                    // Fade in next view
+                    nextView.classList.add('active');
+                    
+                    // Re-apply width after content might have loaded
+                    setTimeout(() => {
+                        applyColumnWidth();
+                    }, 50);
+                }, config.transitionSpeed);
+            } else {
+                // First load, no fade out needed
+                nextView.classList.add('active');
+                applyColumnWidth();
+            }
 
             // Update header
             updateHeader(rotationData[index]);
 
+            // Update timer display
+            updateTimerDisplay();
+
             // Start timer
-            const duration = rotationData[index].duration;
+            const duration = Math.max(1, parseInt(rotationData[index].duration) || 20);
             timeRemaining = duration;
-            document.getElementById('timeRemaining').textContent = duration;
 
             // Update timer every second
             if (interval) clearInterval(interval);
             interval = setInterval(() => {
                 timeRemaining--;
-                document.getElementById('timeRemaining').textContent = timeRemaining;
+                updateTimerDisplay();
 
                 if (timeRemaining <= 0) {
                     clearInterval(interval);
@@ -238,34 +479,25 @@
             if (currentView) {
                 const competitionId = currentView.dataset.competitionId;
                 const phase = currentView.dataset.phase || 'auto';
-                fetch(`/projector/competition/${competitionId}?mode=${config.mode}&layout=${config.layout}&phase=${phase}`)
+                const resolution = '{{ $resolution }}';
+                fetch(`/projector/competition/${competitionId}?mode=${config.mode}&layout=${config.layout}&phase=${phase}&resolution=${resolution}`)
                     .then(response => response.text())
                     .then(html => {
                         const parser = new DOMParser();
                         const doc = parser.parseFromString(html, 'text/html');
                         const newContent = doc.querySelector('body').innerHTML;
                         currentView.innerHTML = newContent;
+                        
+                        // Re-apply settings after refresh
+                        applyZoom();
+                        applyColumnWidth();
+                        applyPlayerFont();
                     })
                     .catch(err => console.error('Failed to refresh:', err));
             }
         }, 30000); // 30 seconds
     </script>
-
-    <!-- Footer Controls (Hidden, shown on hover) -->
-    <div class="fixed bottom-4 left-1/2 transform -translate-x-1/2 opacity-0 hover:opacity-100 transition-opacity duration-300 z-50">
-        <div class="bg-gray-900/90 backdrop-blur-lg rounded-full px-6 py-3 shadow-2xl border border-gray-700/50 flex items-center gap-4">
-            <button onclick="previousCompetition()" class="text-white hover:text-blue-400 transition-colors">
-                ⬅️ Prethodno
-            </button>
-            <div class="w-px h-6 bg-gray-700"></div>
-            <button onclick="nextCompetition()" class="text-white hover:text-blue-400 transition-colors">
-                Sljedeće ➡️
-            </button>
-            <div class="w-px h-6 bg-gray-700"></div>
-            <button onclick="document.documentElement.requestFullscreen()" class="text-white hover:text-blue-400 transition-colors">
-                🖥️ Full Screen (F)
-            </button>
-        </div>
     </div>
+
 </body>
 </html>
