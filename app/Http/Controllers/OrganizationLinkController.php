@@ -48,9 +48,21 @@ class OrganizationLinkController extends Controller
 
     public function destroy(Organization $organization, OrganizationLink $link)
     {
+        \Log::info('OrganizationLinkController::destroy called', [
+            'user_id' => auth()->id(),
+            'organization_id' => $organization->id,
+            'link_id' => $link->id,
+            'link_organization_id' => $link->organization_id,
+        ]);
+
         Gate::authorize('update', $organization);
         
         if ($link->organization_id !== $organization->id) {
+            \Log::warning('Link does not belong to organization', [
+                'link_id' => $link->id,
+                'link_org' => $link->organization_id,
+                'org_id' => $organization->id,
+            ]);
             abort(403);
         }
 
