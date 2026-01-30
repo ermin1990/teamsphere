@@ -268,7 +268,11 @@
         }
 
         function applyZoom() {
-            document.documentElement.style.fontSize = (zoomLevel * 16) + 'px';
+            const wrapper = document.querySelector('.projector-wrapper');
+            if (wrapper) {
+                wrapper.style.transform = `scale(${zoomLevel})`;
+                wrapper.style.transformOrigin = 'top center';
+            }
         }
 
         function applyPlayerFont() {
