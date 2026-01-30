@@ -102,68 +102,7 @@
     </div>
     @endif
 
-    <!-- Upcoming Matches -->
-    @if(count($upcomingMatches) > 0)
-    <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-2xl">
-        <div class="flex items-center justify-between mb-6">
-            <h2 class="text-3xl font-bold text-white flex items-center gap-3">
-                <span class="text-4xl">📅</span>
-                Naredni mečevi
-            </h2>
-            <div class="text-right">
-                <p class="text-gray-400 text-sm">{{ $competition->name }}</p>
-                <p class="text-gray-500 text-xs">{{ $competition->organization->name }}</p>
-            </div>
-        </div>
+    {{-- Upcoming Matches section removed as requested --}}
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            @foreach($upcomingMatches as $match)
-            <div class="bg-gray-700/30 rounded-xl p-4 border border-gray-600/50 hover:border-blue-500/50 transition-all">
-                <!-- Match Header -->
-                <div class="flex items-center justify-between mb-3">
-                    @if($competition->type === 'tournament' && $match->tournamentGroup)
-                        <span class="px-2 py-1 bg-purple-500/20 text-purple-400 rounded text-xs font-semibold">
-                            Grupa {{ $match->tournamentGroup->name }}
-                        </span>
-                    @else
-                        <span class="px-2 py-1 bg-blue-500/20 text-blue-400 rounded text-xs font-semibold">
-                            Kolo {{ $match->round ?? $match->round_number }}
-                        </span>
-                    @endif
-                    @if($match->scheduled_at)
-                        <span class="text-gray-400 text-xs">
-                            {{ $match->scheduled_at->format('d.m. H:i') }}
-                        </span>
-                    @endif
-                </div>
-
-                <!-- Players/Teams -->
-                <div class="space-y-2">
-                    <div class="flex items-center justify-between">
-                        <p class="text-white font-semibold text-lg truncate flex-1">
-                            @if($competition->is_team_based)
-                                {{ $match->homeTeam->name ?? 'TBD' }}
-                            @else
-                                {{ $match->homePlayer->name ?? 'TBD' }}
-                            @endif
-                        </p>
-                        <span class="text-gray-500 ml-2">-</span>
-                    </div>
-                    <div class="flex items-center justify-between">
-                        <p class="text-white font-semibold text-lg truncate flex-1">
-                            @if($competition->is_team_based)
-                                {{ $match->awayTeam->name ?? 'TBD' }}
-                            @else
-                                {{ $match->awayPlayer->name ?? 'TBD' }}
-                            @endif
-                        </p>
-                        <span class="text-gray-500 ml-2">-</span>
-                    </div>
-                </div>
-            </div>
-            @endforeach
-        </div>
-    </div>
-    @endif
 </div>
 @endif
