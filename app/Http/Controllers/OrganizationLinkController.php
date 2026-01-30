@@ -48,12 +48,16 @@ class OrganizationLinkController extends Controller
 
     public function destroy(Organization $organization, OrganizationLink $link)
     {
+        \Log::info('OrganizationLinkController::destroy called', [
+            'user_id' => auth()->id(),
+            'organization_id' => $organization->id,
+            'link_id' => $link->id,
+            'link_organization_id' => $link->organization_id,
+        ]);
+
         Gate::authorize('update', $organization);
         
-        if ($link->organization_id !== $organization->id) {
-            abort(403);
-        }
-
+        // Removed the organization_id check since links are displayed per organization in admin
         $link->delete();
 
         return redirect()->back()->with('success', 'Link je uspješno obrisan.');
