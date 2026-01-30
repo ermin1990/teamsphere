@@ -124,27 +124,14 @@
         }
 
         .competition-view {
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity {{ $transitionSpeed }}ms ease-in-out;
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            visibility: hidden;
+            display: none;
+            opacity: 1;
+            pointer-events: auto;
+            transition: none;
         }
 
         .competition-view.active {
-            opacity: 1;
-            pointer-events: auto;
-            position: relative;
-            visibility: visible;
-        }
-
-        .competition-view.fading-out {
-            opacity: 0;
-            visibility: visible;
+            display: block;
         }
 
         .progress-bar {
@@ -195,12 +182,6 @@
                     <span class="text-red-400 font-semibold text-sm">UŽIVO</span>
                 </div>
             </div>
-            <!-- Timer Display -->
-            <div id="timerDisplay" class="bg-gray-800/80 backdrop-blur-lg rounded-lg px-4 py-2 border border-gray-600/50">
-                <div class="text-white font-mono text-sm">
-                    <span id="currentTime">00:00</span> / <span id="totalTime">00:00</span>
-                </div>
-            </div>
         </div>
     </div>
 
@@ -246,22 +227,6 @@
         let columnWidth = 0; // Offset from default
         let playerFontSize = 14; // Base font size in px
         let titleFontSize = 24; // Base title font size in px
-
-        function formatTime(seconds) {
-            const mins = Math.floor(seconds / 60);
-            const secs = seconds % 60;
-            return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-        }
-
-        function updateTimerDisplay() {
-            const currentTimeEl = document.getElementById('currentTime');
-            const totalTimeEl = document.getElementById('totalTime');
-            if (currentTimeEl && totalTimeEl) {
-                const total = rotationData[currentIndex]?.duration || 0;
-                currentTimeEl.textContent = formatTime(timeRemaining);
-                totalTimeEl.textContent = formatTime(total);
-            }
-        }
 
         window.changeZoom = function(delta) {
             zoomLevel = Math.max(0.2, Math.min(2.0, zoomLevel + delta));
@@ -380,40 +345,25 @@
 
         function showCompetition(index) {
             const views = document.querySelectorAll('.competition-view');
-            const currentView = document.querySelector('.competition-view.active');
             const nextView = views[index];
             const compId = nextView.dataset.competitionId;
             
             // Load settings for this specific competition
             loadSettings(compId);
 
-            // Fade out current view
-            if (currentView) {
-                currentView.classList.add('fading-out');
-                
-                // Wait for fade out to complete before switching
-                setTimeout(() => {
-                    currentView.classList.remove('active', 'fading-out');
-                    
-                    // Fade in next view
-                    nextView.classList.add('active');
-                    
-                    // Re-apply width after content might have loaded
-                    setTimeout(() => {
-                        applyColumnWidth();
-                    }, 50);
-                }, config.transitionSpeed);
-            } else {
-                // First load, no fade out needed
-                nextView.classList.add('active');
+            // Remove active from all views
+            views.forEach(view => view.classList.remove('active'));
+            
+            // Add active to next view
+            nextView.classList.add('active');
+            
+            // Re-apply width after content might have loaded
+            setTimeout(() => {
                 applyColumnWidth();
-            }
+            }, 50);
 
             // Update header
             updateHeader(rotationData[index]);
-
-            // Update timer display
-            updateTimerDisplay();
 
             // Start timer
             const duration = Math.max(1, parseInt(rotationData[index].duration) || 20);
@@ -423,7 +373,6 @@
             if (interval) clearInterval(interval);
             interval = setInterval(() => {
                 timeRemaining--;
-                updateTimerDisplay();
 
                 if (timeRemaining <= 0) {
                     clearInterval(interval);
