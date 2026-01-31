@@ -16,16 +16,16 @@
                     
                     // Determine which phase to show
                     if ($phaseSelection === 'knockout') {
-                        // Manual selection: always show knockout view
-                        $showKnockout = true;
+                        // Manual selection: always show knockout view (only if not showing specific group)
+                        $showKnockout = !isset($selectedGroup);
                         $showAllGroups = false;
                     } elseif ($phaseSelection === 'groups') {
                         // Manual selection: show single group (rotated)
                         $showKnockout = false;
                         $showAllGroups = false;
                     } else {
-                        // Auto detection: Show knockout if exists and groups are mostly completed
-                        $showKnockout = $hasKnockoutMatches && (!$hasGroupMatches || $competition->matches->whereNotNull('tournament_group_id')->where('status', 'completed')->count() > 0);
+                        // Auto detection: Show knockout if exists and groups are mostly completed (only if not showing specific group)
+                        $showKnockout = !isset($selectedGroup) && $hasKnockoutMatches && (!$hasGroupMatches || $competition->matches->whereNotNull('tournament_group_id')->where('status', 'completed')->count() > 0);
                         // Auto mode shows single group when rotating through groups
                         $showAllGroups = false;
                     }

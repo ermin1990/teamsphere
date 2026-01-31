@@ -64,6 +64,15 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
                     </svg>
                 </a>
+                <a href="{{ route('projector.display', ['ids' => $competition->id, 'resolution' => '1024x768', 'layout' => 'single']) }}"
+                   target="_blank"
+                   class="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-lg transition-colors hover:opacity-80"
+                   style="color: white; background: linear-gradient(135deg, #9333ea 0%, #7c3aed 100%); border: 1px solid rgba(147, 51, 234, 0.3);">
+                    📽️ Projektor (1024x768)
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                    </svg>
+                </a>
                 @endif
                 <div class="flex items-center gap-2">
                     <span class="px-3 py-1 text-sm rounded-full font-medium"

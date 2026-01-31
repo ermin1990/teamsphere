@@ -174,10 +174,16 @@
                             
                             <!-- Stats -->
                             <div class="flex items-center justify-between mt-3 pt-3 border-t border-gray-700/50">
-                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-bold bg-red-500 text-white animate-pulse">
-                                    <span class="w-1 h-1 bg-white rounded-full mr-1 animate-ping"></span>
-                                    LIVE
-                                </span>
+                                @if($competition->live_matches_count > 0)
+                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-bold bg-red-500 text-white animate-pulse">
+                                        <span class="w-1 h-1 bg-white rounded-full mr-1 animate-ping"></span>
+                                        LIVE
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-bold bg-gray-600 text-white">
+                                        ČEKA SE
+                                    </span>
+                                @endif
                                 <div class="text-right">
                                     <p class="text-xl font-bold text-blue-400">{{ $competition->live_matches_count }}</p>
                                     <p class="text-[10px] text-gray-500">{{ $competition->live_matches_count == 1 ? 'meč' : 'meča' }}</p>
