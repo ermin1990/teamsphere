@@ -1,0 +1,65 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Provjera da li je korisnik Super Admin
+    function isSuperAdmin() {
+      return request.auth != null && (
+        request.auth.token.email == 'selimovicermin90@gmail.com' || 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'super_admin'
+      );
+    }
+
+    // Korisnici
+    match /users/{userId} {
+      allow read: if request.auth != null && (request.auth.uid == userId || isSuperAdmin());
+      allow write: if request.auth != null && (request.auth.uid == userId || isSuperAdmin());
+    }
+
+    // Organizacije
+    match /organizations/{orgId} {
+      allow read: if request.auth != null && (
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.organizationId == orgId || 
+        isSuperAdmin()
+      );
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth != null && (
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.organizationId == orgId || 
+        isSuperAdmin()
+      );
+    }
+
+    // Igrači
+    match /players/{playerId} {
+      allow read, write: if request.auth != null && (
+        request.resource.data.organizationId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.organizationId ||
+        resource.data.organizationId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.organizationId ||
+        isSuperAdmin()
+      );
+    }
+
+    // Takmičenja
+    match /competitions/{compId} {
+      allow read, write: if request.auth != null && (
+        request.resource.data.organizationId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.organizationId ||
+        resource.data.organizationId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.organizationId ||
+        isSuperAdmin()
+      );
+    }
+
+    // Mečevi (Matches)
+    match /matches/{matchId} {
+      allow read, write: if request.auth != null && (
+        request.resource.data.organizationId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.organizationId ||
+        resource.data.organizationId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.organizationId ||
+        isSuperAdmin()
+      );
+    }
+
+    // Whitelist za nove korisnike
+    match /whitelisted_emails/{id} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && isSuperAdmin();
+    }
+  }
+}
