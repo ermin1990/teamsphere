@@ -81,6 +81,7 @@ const CompetitionDetails = () => {
   const [showCompSettings, setShowCompSettings] = useState(false);
   const [compName, setCompName] = useState('');
   const [compSlug, setCompSlug] = useState('');
+  const [collaborators, setCollaborators] = useState([]);
   const [savingComp, setSavingComp] = useState(false);
   
   // Grouping state
@@ -102,16 +103,26 @@ const CompetitionDetails = () => {
           setCompetition(compData);
           setCompName(compData.name || '');
           setCompSlug(compData.slug || '');
+          setCollaborators(compData.collaborators || []);
           
           // 2. Dohvati igrače
           let playersQ;
-          if (userData.role === 'super_admin') {
+          const isCollaborator = compData.collaborators?.includes(userData.email);
+          const isOwner = compData.organizationId === userData.organizationId;
+          const isSuperAdmin = userData.role === 'super_admin';
+
+          if (isSuperAdmin) {
             playersQ = query(collection(db, "players"));
-          } else {
+          } else if (isOwner || isCollaborator) {
             playersQ = query(
               collection(db, "players"), 
-              where("organizationId", "==", userData.organizationId)
+              where("organizationId", "==", compData.organizationId)
             );
+          } else {
+            // Korisnik nema pristup ovom takmičenju
+            setLoading(false);
+            setCompetition(null);
+            return;
           }
 
           const playersSnap = await getDocs(playersQ);
@@ -317,6 +328,38 @@ const CompetitionDetails = () => {
     }
   };
 
+  const handleReturnToDraft = async () => {
+    if (!selectedCategoryId) return;
+    if (!window.confirm("PAŽNJA: Povratak u Draft će OBRISATI SVE MEČEVE i rezultate u ovoj kategoriji! Da li ste sigurni?")) return;
+    
+    setGenerating(true);
+    try {
+      const batch = writeBatch(db);
+      
+      // Obriši sve mečeve ove kategorije
+      matches.forEach(m => {
+        batch.delete(doc(db, "matches", m.id));
+      });
+
+      // Vrati status na draft
+      const catRef = doc(db, "competitions", id, "categories", selectedCategoryId);
+      batch.update(catRef, {
+        status: 'draft',
+        [`stages.groups.completed`]: false,
+        [`stages.knockout.completed`]: false,
+        updatedAt: serverTimestamp()
+      });
+
+      await batch.commit();
+      alert("Kategorija vraćena u Draft. Svi mečevi su obrisani.");
+    } catch (err) {
+      console.error(err);
+      alert("Greška pri resetovanju kategorije.");
+    } finally {
+      setGenerating(false);
+    }
+  };
+
   const handleResetKnockout = async () => {
     if (!selectedCategoryId) return;
     if (!window.confirm("Da li ste sigurni da želite obrisati sve mečeve u knockout fazi?")) return;
@@ -362,7 +405,7 @@ const CompetitionDetails = () => {
       const playerRef = await addDoc(collection(db, "players"), {
         name: newPlayerName.trim(),
         club: newPlayerClub.trim(),
-        organizationId: userData.organizationId || "SUPER_ADMIN",
+        organizationId: competition.organizationId,
         createdAt: new Date(),
         matchesPlayed: 0,
         wins: 0
@@ -398,7 +441,7 @@ const CompetitionDetails = () => {
           const pData = {
             name: pName,
             club: pClub || '',
-            organizationId: userData.organizationId || "SUPER_ADMIN",
+            organizationId: competition.organizationId,
             createdAt: new Date(),
             matchesPlayed: 0,
             wins: 0
@@ -576,6 +619,8 @@ const CompetitionDetails = () => {
       
       for (let r = 1; r <= roundsCount; r++) {
         let name = `Runda ${r}`;
+        if (currentMatchCount === 32) name = '1/32 Finale';
+        if (currentMatchCount === 16) name = '1/16 Finale';
         if (currentMatchCount === 8) name = '1/8 Finale';
         if (currentMatchCount === 4) name = '1/4 Finale';
         if (currentMatchCount === 2) name = 'Polufinale';
@@ -856,6 +901,30 @@ const CompetitionDetails = () => {
     setGroups(prev => prev.map(g => g.filter(p => p.id !== playerId)));
   };
 
+  const handleAutoAssignGroups = () => {
+    if (!activeCategory || groups.length === 0) return;
+    
+    // Uzmi sve selektovane igrače za ovu kategoriju
+    const playersToAssign = allPlayers.filter(p => selectedPlayers.includes(p.id));
+    
+    if (playersToAssign.length === 0) {
+      alert("Prvo izaberite igrače u tabu 'Igrači'.");
+      return;
+    }
+
+    // Shuffle players
+    const shuffled = [...playersToAssign].sort(() => Math.random() - 0.5);
+    
+    // Rasporedi u grupe
+    const newGroups = groups.map(() => []);
+    shuffled.forEach((player, index) => {
+      const groupIndex = index % groups.length;
+      newGroups[groupIndex].push(player);
+    });
+    
+    setGroups(newGroups);
+  };
+
   const calculateStandings = (groupIdx) => {
     const groupMatches = matches.filter(m => m.groupId === groupIdx && m.status === 'completed');
     const groupPlayers = groups[groupIdx] || [];
@@ -876,7 +945,7 @@ const CompetitionDetails = () => {
       const p2 = stats.find(p => p.id === m.player2.id);
 
       const winPts = activeCategory?.winPoints ?? 2;
-      const lossPts = activeCategory?.lossPoints ?? 1;
+      const lossPts = activeCategory?.lossPoints ?? 0;
 
       if (p1 && p2) {
         p1.played++;
@@ -956,9 +1025,15 @@ const CompetitionDetails = () => {
       await updateDoc(doc(db, "competitions", id), {
         name: compName.trim(),
         slug: slugVal,
+        collaborators: collaborators,
         updatedAt: serverTimestamp()
       });
-      setCompetition(prev => ({ ...prev, name: compName.trim(), slug: slugVal }));
+      setCompetition(prev => ({ 
+        ...prev, 
+        name: compName.trim(), 
+        slug: slugVal,
+        collaborators: collaborators 
+      }));
       setShowCompSettings(false);
       alert("Takmičenje ažurirano!");
     } catch (err) {
@@ -1051,6 +1126,8 @@ const CompetitionDetails = () => {
             handleScoreChange={handleScoreChange}
             handleSaveManualOrder={handleSaveManualOrder}
             handleToggleStage={handleToggleStage}
+            handleReturnToDraft={handleReturnToDraft}
+            handleAutoAssignGroups={handleAutoAssignGroups}
           />
         )}
 
@@ -1114,6 +1191,8 @@ const CompetitionDetails = () => {
         setCompName={setCompName}
         compSlug={compSlug}
         setCompSlug={setCompSlug}
+        collaborators={collaborators}
+        setCollaborators={setCollaborators}
         competition={competition}
         handleUpdateCompetition={handleUpdateCompetition}
         savingComp={savingComp}

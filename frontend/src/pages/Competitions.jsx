@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { db } from '../firebase/config';
-import { collection, query, where, onSnapshot, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, addDoc, serverTimestamp, or } from 'firebase/firestore';
 import { Trophy, Plus, Calendar, Target, ChevronRight, ExternalLink } from 'lucide-react';
 import DashboardLayout from '../layouts/DashboardLayout';
 
@@ -19,15 +19,28 @@ const Competitions = () => {
   const [type, setType] = useState('League');
 
   useEffect(() => {
-    if (!userData || (!userData.organizationId && userData.role !== 'super_admin')) return;
+    if (!userData) return;
 
     let q;
     if (userData.role === 'super_admin') {
       q = query(collection(db, "competitions"));
     } else {
+      const filters = [];
+      if (userData.organizationId) {
+        filters.push(where("organizationId", "==", userData.organizationId));
+      }
+      if (userData.email) {
+        filters.push(where("collaborators", "array-contains", userData.email));
+      }
+
+      if (filters.length === 0) {
+        setLoading(false);
+        return;
+      }
+
       q = query(
         collection(db, "competitions"),
-        where("organizationId", "==", userData.organizationId)
+        or(...filters)
       );
     }
 

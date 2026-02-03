@@ -88,6 +88,42 @@ const KnockoutTab = ({
 
   const knockoutMatchesCount = knockoutMatches.length;
 
+  const suggestedMatches = React.useMemo(() => {
+    if (!groups || groups.length < 2) return [];
+    const suggestions = [];
+    const advancing = [];
+    groups.forEach((g, i) => {
+        const s = calculateStandings(i);
+        const count = activeCategory.advancingPlayers || 2;
+        advancing.push(s.slice(0, count));
+    });
+
+    // Pairing: Group i Rank 1 vs Group i+1 Rank 2, and Group i+1 Rank 1 vs Group i Rank 2
+    // For odd number of groups, last group remains unselected in this simple logic
+    for(let i = 0; i < advancing.length - 1; i += 2) {
+        const groupA = advancing[i];
+        const groupB = advancing[i+1];
+        const charA = String.fromCharCode(65 + i);
+        const charB = String.fromCharCode(65 + i + 1);
+
+        if (groupA[0] && groupB[1]) {
+            suggestions.push({
+                p1: groupA[0], p2: groupB[1],
+                label: `${charA}1 - ${charB}2`,
+                desc: `${groupA[0].name} vs ${groupB[1].name}`
+            });
+        }
+        if (groupB[0] && groupA[1]) {
+            suggestions.push({
+                p1: groupB[0], p2: groupA[1],
+                label: `${charB}1 - ${charA}2`,
+                desc: `${groupB[0].name} vs ${groupA[1].name}`
+            });
+        }
+    }
+    return suggestions;
+  }, [groups, calculateStandings, activeCategory.advancingPlayers]);
+
   const handleZoomIn = () => setScale(prev => Math.min(prev + 0.1, 2));
   const handleZoomOut = () => setScale(prev => Math.max(prev - 0.1, 0.5));
 
@@ -507,8 +543,39 @@ const KnockoutTab = ({
               <button onClick={() => setShowManualModal(false)} className="text-slate-500 hover:text-white"><X size={20} /></button>
             </div>
             
-            <div className="p-8 space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="p-8 space-y-6 max-h-[80vh] overflow-y-auto custom-scrollbar">
+              {suggestedMatches.length > 0 && (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Zap size={14} className="text-blue-500" />
+                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Prijedlozi na osnovu grupa</span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {suggestedMatches.map((s, idx) => {
+                      const isUsed = placedPlayerIds.has(s.p1.id) || placedPlayerIds.has(s.p2.id);
+                      return (
+                        <button 
+                          key={idx}
+                          disabled={isUsed}
+                          onClick={() => {
+                            setManualMatch({
+                              ...manualMatch,
+                              player1Id: s.p1.id,
+                              player2Id: s.p2.id
+                            });
+                          }}
+                          className={`flex flex-col p-3 rounded-xl border text-left transition-all ${isUsed ? 'bg-slate-900/40 border-slate-800 opacity-20' : 'bg-blue-500/5 border-blue-500/20 hover:bg-blue-500/10'}`}
+                        >
+                          <span className="text-[10px] font-black text-blue-400 uppercase">{s.label}</span>
+                          <span className="text-[9px] text-slate-400 font-bold uppercase truncate">{s.desc}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-800">
                 {/* Player 1 Selection */}
                 <div className="space-y-2">
                   <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Igrač 1</label>
@@ -717,38 +784,31 @@ const KnockoutTab = ({
               <button onClick={() => setShowSetupModal(false)} className="text-slate-500 hover:text-white"><X size={20} /></button>
             </div>
             
-            <div className="p-6 space-y-4">
-              <button 
-                onClick={() => {
-                  handleGenerateTemplate(4);
-                  setShowSetupModal(false);
-                }}
-                className="w-full bg-slate-950 hover:bg-slate-800 p-6 rounded-2xl border border-slate-800 transition-all text-left flex items-center justify-between group"
-              >
-                <div>
-                  <p className="text-sm font-black text-white uppercase tracking-tight">Polufinale (4 igrača)</p>
-                  <p className="text-[10px] text-slate-500 font-bold uppercase">Kreira 2 polufinalna meča i finale</p>
-                </div>
-                <div className="w-10 h-10 bg-blue-500/10 rounded-xl flex items-center justify-center text-blue-500 group_hover:bg-blue-600 group-hover:text-white transition-all">
-                  <span className="font-black text-sm">4</span>
-                </div>
-              </button>
-
-              <button 
-                onClick={() => {
-                  handleGenerateTemplate(8);
-                  setShowSetupModal(false);
-                }}
-                className="w-full bg-slate-950 hover:bg-slate-800 p-6 rounded-2xl border border-slate-800 transition-all text-left flex items-center justify-between group"
-              >
-                <div>
-                  <p className="text-sm font-black text-white uppercase tracking-tight">1/4 Finale (8 igrača)</p>
-                  <p className="text-[10px] text-slate-500 font-bold uppercase">Kreira 4 četvrtfinalna meča, polufinale i finale</p>
-                </div>
-                <div className="w-10 h-10 bg-blue-500/10 rounded-xl flex items-center justify-center text-blue-500 group_hover:bg-blue-600 group-hover:text-white transition-all">
-                  <span className="font-black text-sm">8</span>
-                </div>
-              </button>
+            <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto custom-scrollbar">
+              {[
+                { count: 4, name: 'Polufinale (4 igrača)', desc: 'Kreira 2 polufinalna meča i finale' },
+                { count: 8, name: '1/4 Finale (8 igrača)', desc: 'Kreira 4 četvrtfinalna meča, polufinale i finale' },
+                { count: 16, name: '1/8 Finale (16 igrača)', desc: 'Kreira 8 mečeva osmine finala i cijeli žrijeb do kraja' },
+                { count: 32, name: '1/16 Finale (32 igrača)', desc: 'Kreira 16 mečeva šesnaestine finala i cijeli žrijeb do kraja' },
+                { count: 64, name: '1/32 Finale (64 igrača)', desc: 'Kreira 32 meča i cijeli žrijeb do kraja' }
+              ].map((template) => (
+                <button 
+                  key={template.count}
+                  onClick={() => {
+                    handleGenerateTemplate(template.count);
+                    setShowSetupModal(false);
+                  }}
+                  className="w-full bg-slate-950 hover:bg-slate-800 p-6 rounded-2xl border border-slate-800 transition-all text-left flex items-center justify-between group"
+                >
+                  <div>
+                    <p className="text-sm font-black text-white uppercase tracking-tight">{template.name}</p>
+                    <p className="text-[10px] text-slate-500 font-bold uppercase">{template.desc}</p>
+                  </div>
+                  <div className="w-10 h-10 bg-blue-500/10 rounded-xl flex items-center justify-center text-blue-500 group-hover:bg-blue-600 group-hover:text-white transition-all">
+                    <span className="font-black text-xs">{template.count}</span>
+                  </div>
+                </button>
+              ))}
 
               <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-2xl">
                 <p className="text-[9px] text-amber-500/80 font-bold uppercase tracking-widest leading-relaxed">

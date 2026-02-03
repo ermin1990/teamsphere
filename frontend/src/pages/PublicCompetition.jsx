@@ -4,9 +4,7 @@ import { db } from '../firebase/config';
 import { collection, query, where, getDocs, onSnapshot, doc, getDoc } from 'firebase/firestore';
 import PublicGroupStandings from '../components/public/PublicGroupStandings';
 import PublicGroupMatches from '../components/public/PublicGroupMatches';
-import { Trophy, Clock, Zap, Users, LayoutGrid, AlertTriangle, ChevronRight, CheckCircle, ArrowUp, ArrowDown, Share2, Code } from 'lucide-react';
-
-import { Search } from 'lucide-react';
+import { Trophy, Clock, Zap, Users, LayoutGrid, AlertTriangle, ChevronRight, CheckCircle, ArrowUp, ArrowDown, Share2, Code, Search } from 'lucide-react';
 
 const KnockoutMatchCard = ({ match, isFinal = false }) => {
   const p1Win = match.status === 'completed' && match.player1Score > match.player2Score;
@@ -82,6 +80,7 @@ const PublicCompetition = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [manualOrders, setManualOrders] = useState({});
   const [playerNames, setPlayerNames] = useState({});
+  const [allPlayers, setAllPlayers] = useState([]);
   const [knockoutZoom, setKnockoutZoom] = useState(1);
 
   useEffect(() => {
@@ -97,13 +96,16 @@ const PublicCompetition = () => {
           const compData = { id: compDoc.id, ...compDoc.data() };
           setCompetition(compData);
 
-          // Fetch player names for this organization
+          // Fetch full player data for this organization
           if (compData.organizationId) {
             const pQ = query(collection(db, "players"), where("organizationId", "==", compData.organizationId));
             getDocs(pQ).then(pSnap => {
+              const playersList = pSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+              setAllPlayers(playersList);
+              
               const names = {};
-              pSnap.docs.forEach(d => {
-                names[d.id] = d.data().name;
+              playersList.forEach(p => {
+                names[p.id] = p.name;
               });
               setPlayerNames(names);
             });
@@ -219,7 +221,7 @@ const PublicCompetition = () => {
       const p2 = stats.find(p => p.id === m.player2.id);
 
       const winPts = activeCategory?.winPoints ?? 2;
-      const lossPts = activeCategory?.lossPoints ?? 1;
+      const lossPts = activeCategory?.lossPoints ?? 0;
 
       if (p1 && p2) {
         p1.played++;
@@ -612,16 +614,22 @@ const PublicCompetition = () => {
         ) : (
           <div className="space-y-12">
             {/* Phase Selector TABS */}
-            <div className="flex justify-center gap-4 p-2 bg-slate-950/50 border border-slate-900 rounded-[2rem] max-w-md mx-auto">
+            <div className="flex justify-center flex-wrap gap-3 md:gap-4 p-2 bg-slate-950/50 border border-slate-900 rounded-[2rem] max-w-lg mx-auto">
+               <button 
+                 onClick={() => setActiveTab('players')}
+                 className={`flex-1 min-w-[100px] py-4 rounded-[1.5rem] text-[11px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-3 ${activeTab === 'players' ? 'bg-blue-600 text-white shadow-2xl shadow-blue-600/30' : 'text-slate-500 hover:text-white'}`}
+               >
+                 <Users size={16} /> Igrači
+               </button>
                <button 
                  onClick={() => setActiveTab('groups')}
-                 className={`flex-1 py-4 rounded-[1.5rem] text-[11px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-3 ${activeTab === 'groups' ? 'bg-blue-600 text-white shadow-2xl shadow-blue-600/30' : 'text-slate-500 hover:text-white'}`}
+                 className={`flex-1 min-w-[100px] py-4 rounded-[1.5rem] text-[11px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-3 ${activeTab === 'groups' ? 'bg-blue-600 text-white shadow-2xl shadow-blue-600/30' : 'text-slate-500 hover:text-white'}`}
                >
-                 <LayoutGrid size={16} /> Grupna Faza
+                 <LayoutGrid size={16} /> Grupe
                </button>
                <button 
                  onClick={() => setActiveTab('knockout')}
-                 className={`flex-1 py-4 rounded-[1.5rem] text-[11px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-3 ${activeTab === 'knockout' ? 'bg-blue-600 text-white shadow-2xl shadow-blue-600/30' : 'text-slate-500 hover:text-white'}`}
+                 className={`flex-1 min-w-[100px] py-4 rounded-[1.5rem] text-[11px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-3 ${activeTab === 'knockout' ? 'bg-blue-600 text-white shadow-2xl shadow-blue-600/30' : 'text-slate-500 hover:text-white'}`}
                >
                  <Zap size={16} /> Eliminacije
                </button>
@@ -629,6 +637,48 @@ const PublicCompetition = () => {
 
             {/* Category Content */}
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+               {activeTab === 'players' && (
+                  <div className="bg-slate-900/40 backdrop-blur-xl rounded-xl p-8 border border-slate-800 shadow-xl max-w-4xl mx-auto">
+                    <div className="flex items-center gap-4 mb-8">
+                       <div className="h-8 w-1.5 bg-blue-500 rounded-full"></div>
+                       <h3 className="text-2xl font-black text-white uppercase italic tracking-tighter">Spisak Učesnika</h3>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                       {(() => {
+                           // Prefer playerIds if saved, fallback to groupConfig
+                           let categoryPlayerIds = activeCategory.playerIds || [];
+                           
+                           if (categoryPlayerIds.length === 0 && activeCategory.groupConfig) {
+                             categoryPlayerIds = Array.isArray(activeCategory.groupConfig) 
+                               ? activeCategory.groupConfig.flat() 
+                               : Object.values(activeCategory.groupConfig).flat();
+                           }
+                           
+                           const participatingPlayers = allPlayers
+                             .filter(p => categoryPlayerIds.includes(p.id))
+                             .sort((a,b) => a.name.localeCompare(b.name));
+
+                           if (participatingPlayers.length === 0) {
+                             return <div className="col-span-full py-12 text-center text-slate-500 font-bold uppercase text-[10px] tracking-widest">Nema registrovanih igrača za ovu kategoriju</div>;
+                           }
+
+                           return participatingPlayers.map((player, idx) => (
+                             <div key={player.id} className="bg-slate-950/50 border border-slate-800 p-4 rounded-2xl flex items-center gap-4 group hover:border-blue-500/50 transition-all">
+                               <div className="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center text-xs font-black text-slate-500 group-hover:text-blue-500 transition-colors">
+                                 {idx + 1}
+                               </div>
+                               <div className="min-w-0">
+                                 <p className="text-sm font-black text-white uppercase truncate">{player.name}</p>
+                                 <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest truncate">{player.club || 'Individual'}</p>
+                               </div>
+                             </div>
+                           ));
+                       })()}
+                    </div>
+                  </div>
+               )}
+
                {activeTab === 'groups' && (
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
                      {groups.map((group, gIdx) => {

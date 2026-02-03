@@ -66,7 +66,7 @@ const SettingsTab = ({
               <input 
                 type="number"
                 className="w-full bg-slate-950 border border-slate-800 rounded-2xl py-4 pl-12 pr-4 text-white font-black text-lg focus:border-blue-500 outline-none transition-all"
-                defaultValue={activeCategory?.lossPoints ?? 1}
+                defaultValue={activeCategory?.lossPoints ?? 0}
                 id="lossPointsInput"
               />
             </div>

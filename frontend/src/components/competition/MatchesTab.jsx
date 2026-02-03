@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { 
   Users, Search, CheckCircle, PlayCircle, X, LayoutGrid, Edit2, 
-  ChevronDown, ArrowUp, ArrowDown, ListOrdered, Zap 
+  ChevronDown, ArrowUp, ArrowDown, ListOrdered, Zap, RotateCcw 
 } from 'lucide-react';
 
 const MatchesTab = ({ 
@@ -26,7 +26,9 @@ const MatchesTab = ({
   savingMatchId,
   handleScoreChange,
   handleSaveManualOrder,
-  handleToggleStage
+  handleToggleStage,
+  handleReturnToDraft,
+  handleAutoAssignGroups
 }) => {
   const [manualEditingGroups, setManualEditingGroups] = useState({});
   const isGroupsCompleted = activeCategory?.stages?.groups?.completed || false;
@@ -128,16 +130,24 @@ const MatchesTab = ({
                   </p>
                 </div>
               </div>
-              <button 
-                onClick={() => handleToggleStage('groups', !isGroupsCompleted)}
-                className={`w-full md:w-auto px-10 py-4 rounded-2xl text-xs font-black uppercase tracking-[0.2em] transition-all active:scale-95 shadow-xl ${
-                  isGroupsCompleted 
-                  ? 'bg-slate-800 text-slate-400 hover:bg-slate-700 border border-slate-700' 
-                  : 'bg-white text-indigo-600 hover:bg-indigo-50 shadow-white/10'
-                }`}
-              >
-                {isGroupsCompleted ? 'Ponovo otvori grupe' : 'Završi grupnu fazu'}
-              </button>
+              <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
+                <button 
+                  onClick={handleReturnToDraft}
+                  className="px-6 py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500 hover:text-white transition-all active:scale-95 flex items-center justify-center gap-2"
+                >
+                  <RotateCcw size={14} /> Resetuj u Draft
+                </button>
+                <button 
+                  onClick={() => handleToggleStage('groups', !isGroupsCompleted)}
+                  className={`px-10 py-4 rounded-2xl text-xs font-black uppercase tracking-[0.2em] transition-all active:scale-95 shadow-xl ${
+                    isGroupsCompleted 
+                    ? 'bg-slate-800 text-slate-400 hover:bg-slate-700 border border-slate-700' 
+                    : 'bg-white text-indigo-600 hover:bg-indigo-50 shadow-white/10'
+                  }`}
+                >
+                  {isGroupsCompleted ? 'Ponovo otvori grupe' : 'Završi grupnu fazu'}
+                </button>
+              </div>
             </div>
           )}
 
@@ -161,6 +171,15 @@ const MatchesTab = ({
                           <button onClick={() => setGroups(prev => [...prev, []])} className="w-6 h-6 rounded flex items-center justify-center bg-slate-800 hover:bg-green-500/20 text-white font-bold transition-all">+</button>
                         </div>
                       </div>
+
+                      <button 
+                        onClick={handleAutoAssignGroups}
+                        className="bg-slate-800 text-slate-300 px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all hover:bg-slate-700 active:scale-95"
+                        title="Automatski rasporedi sve izabrane igrače u grupe"
+                      >
+                        <Zap size={14} className="text-yellow-500" /> Auto-raspored
+                      </button>
+
                       <button 
                         onClick={handleGenerateMatches}
                         disabled={generating || selectedPlayers.length < 2}
