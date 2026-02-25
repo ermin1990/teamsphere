@@ -16,10 +16,10 @@ return new class extends Migration
         if (DB::getDriverName() === 'sqlite') {
             // First backup existing data
             DB::statement('CREATE TEMPORARY TABLE matches_backup AS SELECT * FROM matches');
-            
+
             // Drop and recreate table
             Schema::drop('matches');
-            
+
             Schema::create('matches', function (Blueprint $table) {
                 $table->id();
                 $table->timestamps();
@@ -37,14 +37,16 @@ return new class extends Migration
                 $table->integer('round')->default(1);
                 $table->json('sets')->nullable(); // For detailed set scores
             });
-            
+
             // Restore data
             DB::statement('INSERT INTO matches (id, created_at, updated_at, league_id, home_team_id, away_team_id, home_player_id, away_player_id, home_score, away_score, scheduled_at, played_at, status, round, sets) SELECT id, created_at, updated_at, league_id, home_team_id, away_team_id, home_player_id, away_player_id, home_score, away_score, scheduled_at, played_at, status, round, sets FROM matches_backup');
             DB::statement('DROP TABLE matches_backup');
         } else {
             // For other databases, use ALTER TABLE
             Schema::table('matches', function (Blueprint $table) {
-                $table->enum('forfeited_by', ['home', 'away'])->nullable()->after('status');
+                if (!Schema::hasColumn('matches', 'forfeited_by')) {
+                    $table->enum('forfeited_by', ['home', 'away'])->nullable()->after('status');
+                }
             });
             DB::statement("ALTER TABLE matches MODIFY COLUMN status ENUM('scheduled', 'in_progress', 'completed', 'forfeited', 'cancelled') DEFAULT 'scheduled'");
         }
@@ -59,9 +61,9 @@ return new class extends Migration
         if (DB::getDriverName() === 'sqlite') {
             // For SQLite, need to recreate table again
             DB::statement('CREATE TEMPORARY TABLE matches_backup AS SELECT id, created_at, updated_at, league_id, home_team_id, away_team_id, home_player_id, away_player_id, home_score, away_score, scheduled_at, played_at, CASE WHEN status = "forfeited" THEN "cancelled" ELSE status END as status, round, sets FROM matches');
-            
+
             Schema::drop('matches');
-            
+
             Schema::create('matches', function (Blueprint $table) {
                 $table->id();
                 $table->timestamps();
@@ -78,7 +80,7 @@ return new class extends Migration
                 $table->integer('round')->default(1);
                 $table->json('sets')->nullable();
             });
-            
+
             DB::statement('INSERT INTO matches SELECT * FROM matches_backup');
             DB::statement('DROP TABLE matches_backup');
         } else {

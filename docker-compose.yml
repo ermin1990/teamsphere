@@ -1,0 +1,60 @@
+services:
+  # PHP Service
+  app:
+    build:
+      args:
+        user: sammy
+        uid: 1000
+      context: ./
+      dockerfile: Dockerfile
+    image: teamsphere-app
+    container_name: teamsphere-app
+    restart: unless-stopped
+    working_dir: /var/www/
+    volumes:
+      - ./:/var/www
+    networks:
+      - teamsphere-network
+
+  # Nginx Service
+  db:
+    image: mysql:8.0
+    container_name: teamsphere-db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_USER: ${DB_USERNAME}
+      SERVICE_TAGS: dev
+      SERVICE_NAME: mysql
+    volumes:
+      - ./docker-compose/mysql:/var/lib/mysql
+    networks:
+      - teamsphere-network
+
+  # Redis Service
+  redis:
+    image: redis:alpine
+    container_name: teamsphere-redis
+    restart: unless-stopped
+    networks:
+      - teamsphere-network
+
+  # Nginx Service
+  nginx:
+    image: nginx:alpine
+    container_name: teamsphere-nginx
+    restart: unless-stopped
+    ports:
+      - "8000:80"
+    volumes:
+      - ./:/var/www
+      - ./docker-compose/nginx:/etc/nginx/conf.d/
+    networks:
+      - teamsphere-network
+
+networks:
+  teamsphere-network:
+    driver: bridge
+

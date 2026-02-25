@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         // Add only missing indexes that will improve performance
-        
+
         // COMPETITIONS - filtering by status and type
         Schema::table('competitions', function (Blueprint $table) {
             $table->index('status', 'idx_competitions_status');
@@ -33,7 +33,11 @@ return new class extends Migration
 
         // TOURNAMENT_GROUPS
         Schema::table('tournament_groups', function (Blueprint $table) {
-            $table->index(['competition_id', 'round'], 'idx_tournament_groups_comp_round');
+            if (Schema::hasColumn('tournament_groups', 'round')) {
+                $table->index(['competition_id', 'round'], 'idx_tournament_groups_comp_round');
+            } else {
+                $table->index('competition_id', 'idx_tournament_groups_comp_id');
+            }
         });
 
         // TABLES

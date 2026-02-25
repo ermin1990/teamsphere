@@ -16,9 +16,11 @@ return new class extends Migration
             if (!Schema::hasColumn('matches', 'competition_id')) {
                 $table->foreignId('competition_id')->nullable()->after('league_id')->constrained('competitions')->onDelete('cascade');
             }
-            
+
             // Make league_id nullable since matches can belong to either league or competition
-            $table->foreignId('league_id')->nullable()->change();
+            if (Schema::hasColumn('matches', 'league_id')) {
+                $table->foreignId('league_id')->nullable()->change();
+            }
         });
     }
 

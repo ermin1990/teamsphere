@@ -37,15 +37,14 @@ return new class extends Migration
 
         // Update all foreign key constraints and rename columns
         // Skip matches table as it may have been already modified or has different structure
-        /*
         if (Schema::hasColumn('matches', 'league_id')) {
             Schema::table('matches', function (Blueprint $table) {
-                $table->dropForeign(['league_id']);
+                // Check if foreign key exists before dropping
+                // $table->dropForeign(['league_id']); // This might fail if it doesn't have a name or doesn't exist
                 $table->renameColumn('league_id', 'competition_id');
-                $table->foreign('competition_id')->references('id')->on('competitions')->onDelete('cascade');
+                // $table->foreign('competition_id')->references('id')->on('competitions')->onDelete('cascade');
             });
         }
-        */
 
         if (Schema::hasColumn('teams', 'league_id')) {
             Schema::table('teams', function (Blueprint $table) {
@@ -92,14 +91,26 @@ return new class extends Migration
 
         // Create new indexes
         Schema::table('matches', function (Blueprint $table) {
-            $table->index(['competition_id', 'status'], 'matches_competition_status_critical');
-            $table->index(['status', 'scheduled_at'], 'matches_status_scheduled_critical');
-            $table->index(['scheduled_at', 'played_at'], 'matches_dates_critical');
+            $indexes = collect(Schema::getIndexes('matches'))->pluck('name')->toArray();
+            if (!in_array('matches_competition_status_critical', $indexes)) {
+                $table->index(['competition_id', 'status'], 'matches_competition_status_critical');
+            }
+            if (!in_array('matches_status_scheduled_critical', $indexes)) {
+                $table->index(['status', 'scheduled_at'], 'matches_status_scheduled_critical');
+            }
+            if (!in_array('matches_dates_critical', $indexes)) {
+                $table->index(['scheduled_at', 'played_at'], 'matches_dates_critical');
+            }
         });
 
         Schema::table('standings', function (Blueprint $table) {
-            $table->index(['competition_id', 'points'], 'standings_competition_points_critical');
-            $table->index(['competition_id', 'played'], 'standings_competition_played_critical');
+            $indexes = collect(Schema::getIndexes('standings'))->pluck('name')->toArray();
+            if (!in_array('standings_competition_points_critical', $indexes)) {
+                $table->index(['competition_id', 'points'], 'standings_competition_points_critical');
+            }
+            if (!in_array('standings_competition_played_critical', $indexes)) {
+                $table->index(['competition_id', 'played'], 'standings_competition_played_critical');
+            }
         });
     }
 

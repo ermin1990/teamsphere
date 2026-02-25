@@ -12,6 +12,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        Schema::disableForeignKeyConstraints();
         // For SQLite, we need to recreate the table to change enum values
         // First, backup existing data
         $competitions = DB::table('competitions')->get();
@@ -64,6 +65,7 @@ return new class extends Migration
         foreach ($competitions as $competition) {
             DB::table('competitions')->insert((array) $competition);
         }
+        Schema::enableForeignKeyConstraints();
     }
 
     /**

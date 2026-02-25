@@ -11,9 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        Schema::dropIfExists('display_leagues');
         Schema::create('display_leagues', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('league_id')->constrained()->onDelete('cascade');
+            $table->foreignId('competition_id')->constrained('competitions')->onDelete('cascade');
             $table->integer('display_order')->default(0);
             $table->timestamps();
         });
