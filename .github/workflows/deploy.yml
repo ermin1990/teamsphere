@@ -28,26 +28,24 @@ jobs:
           protocol: ftp
           local-dir: ./
           server-dir: ${{ secrets.FTP_REMOTE_DIR }}
-          # Don't remove remote files that are not present locally unless you really want this
-          # (SamKirkland/FTP-Deploy-Action doesn't accept a top-level `delete` input in some versions,
-          #  so we omit it here. The action will not delete remote files by default.)
-          # Exclude files and folders that should never be deployed
+          state-name: .ftp-deploy-sync-state.json
           exclude: |
-            .git*
-            .github
-            node_modules
-            vendor
-            storage
-            database
+            **/.git*
+            **/.git*/**
+            .github/**
+            node_modules/**
+            vendor/**
+            storage/**
+            database/**
             .env
             .env.*
             resources/views.zip
-            tests
-            .vscode
-            .idea
-            laravel-backend
-            frontend
-            .DS_Store
+            tests/**
+            .vscode/**
+            .idea/**
+            laravel-backend/**
+            frontend/**
+            **/.DS_Store
 
       - name: Post-deploy notice
         run: |
