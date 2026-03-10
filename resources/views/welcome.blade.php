@@ -287,10 +287,10 @@
         <footer class="border-t border-gray-800 py-8">
             <div class="max-w-7xl mx-auto px-6 text-center">
                 <p class="text-gray-400 text-sm mb-2">
-                    © 2025 Team Sphere. Sva prava zadržana.
+                    © 2026 Team Sphere. Sva prava zadržana.
                 </p>
                 <p class="text-gray-500 text-xs">
-                    Verzija aplikacije: <span class="text-blue-400 font-semibold">v1.0.0 Beta</span>
+                    Verzija aplikacije: <span class="text-blue-400 font-semibold">v2</span>
                 </p>
             </div>
         </footer>

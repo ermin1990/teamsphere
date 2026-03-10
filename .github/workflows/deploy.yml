@@ -1,0 +1,54 @@
+name: FTP Deploy
+
+on:
+  push:
+    branches:
+      - 'version/2.0.0'
+  workflow_dispatch: {}
+
+jobs:
+  ftp-deploy:
+    name: Deploy via FTP
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install lftp (used by the action)
+        run: sudo apt-get update && sudo apt-get install -y lftp
+
+      - name: FTP Deploy (only changed files)
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.0
+        with:
+          server: ${{ secrets.FTP_HOST }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          port: ${{ secrets.FTP_PORT }}
+          protocol: ftp
+          local-dir: ./
+          server-dir: ${{ secrets.FTP_REMOTE_DIR }}
+          # Don't remove remote files that are not present locally unless you really want this
+          # (SamKirkland/FTP-Deploy-Action doesn't accept a top-level `delete` input in some versions,
+          #  so we omit it here. The action will not delete remote files by default.)
+          # Exclude files and folders that should never be deployed
+          exclude: |
+            .git*
+            .github
+            node_modules
+            vendor
+            storage
+            database
+            .env
+            .env.*
+            resources/views.zip
+            tests
+            .vscode
+            .idea
+            laravel-backend
+            frontend
+            .DS_Store
+
+      - name: Post-deploy notice
+        run: |
+          echo "Deployment finished. If you need to run migrations/other tasks, run them manually or configure secure runner steps."
