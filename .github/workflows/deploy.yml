@@ -87,10 +87,7 @@ jobs:
             mkdir -p "$APP_DIR"
             tar -xzf "$BUNDLE" -C "$APP_DIR"
 
-            if [ ! -f "$APP_DIR/.env" ]; then
-              echo "INFO: .env not found. Creating from .env.vps.example..."
-              cp "$APP_DIR/.env.vps.example" "$APP_DIR/.env"
-            fi
+            
 
             cd "$APP_DIR"
             chmod +x scripts/vps-deploy.sh || true
