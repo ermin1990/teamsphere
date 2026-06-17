@@ -31,10 +31,13 @@ return new class extends Migration
             $table->index(['organization_id', 'role'], 'idx_organization_user_org_role');
         });
 
-        // TOURNAMENT_GROUPS
-        Schema::table('tournament_groups', function (Blueprint $table) {
-            $table->index(['competition_id', 'round'], 'idx_tournament_groups_comp_round');
-        });
+        // TOURNAMENT_GROUPS (guarded)
+        if (Schema::hasTable('tournament_groups')) {
+            $tgCols = Schema::getColumnListing('tournament_groups');
+            if (in_array('competition_id', $tgCols) && in_array('round', $tgCols)) {
+                DB::statement('CREATE INDEX IF NOT EXISTS idx_tournament_groups_comp_round ON tournament_groups (competition_id, round)');
+            }
+        }
 
         // TABLES
         Schema::table('tables', function (Blueprint $table) {
@@ -71,9 +74,12 @@ return new class extends Migration
             $table->dropIndex('idx_tables_organization_id');
         });
 
-        Schema::table('tournament_groups', function (Blueprint $table) {
-            $table->dropIndex('idx_tournament_groups_comp_round');
-        });
+        if (Schema::hasTable('tournament_groups')) {
+            $tgCols = Schema::getColumnListing('tournament_groups');
+            if (in_array('competition_id', $tgCols) && in_array('round', $tgCols)) {
+                try { DB::statement('DROP INDEX IF EXISTS idx_tournament_groups_comp_round'); } catch (\Exception $e) {}
+            }
+        }
 
         Schema::table('organization_user', function (Blueprint $table) {
             $table->dropIndex('idx_organization_user_role');
