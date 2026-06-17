@@ -90,17 +90,29 @@ return new class extends Migration
             Schema::rename('league_player', 'competition_player');
         }
 
-        // Create new indexes
-        Schema::table('matches', function (Blueprint $table) {
-            $table->index(['competition_id', 'status'], 'matches_competition_status_critical');
-            $table->index(['status', 'scheduled_at'], 'matches_status_scheduled_critical');
-            $table->index(['scheduled_at', 'played_at'], 'matches_dates_critical');
-        });
+        // Create new indexes (guarded)
+        if (Schema::hasTable('matches')) {
+            $cols = Schema::getColumnListing('matches');
+            if (in_array('competition_id', $cols) && in_array('status', $cols)) {
+                DB::statement('CREATE INDEX IF NOT EXISTS matches_competition_status_critical ON matches (competition_id, status)');
+            }
+            if (in_array('status', $cols) && in_array('scheduled_at', $cols)) {
+                DB::statement('CREATE INDEX IF NOT EXISTS matches_status_scheduled_critical ON matches (status, scheduled_at)');
+            }
+            if (in_array('scheduled_at', $cols) && in_array('played_at', $cols)) {
+                DB::statement('CREATE INDEX IF NOT EXISTS matches_dates_critical ON matches (scheduled_at, played_at)');
+            }
+        }
 
-        Schema::table('standings', function (Blueprint $table) {
-            $table->index(['competition_id', 'points'], 'standings_competition_points_critical');
-            $table->index(['competition_id', 'played'], 'standings_competition_played_critical');
-        });
+        if (Schema::hasTable('standings')) {
+            $scols = Schema::getColumnListing('standings');
+            if (in_array('competition_id', $scols) && in_array('points', $scols)) {
+                DB::statement('CREATE INDEX IF NOT EXISTS standings_competition_points_critical ON standings (competition_id, points)');
+            }
+            if (in_array('competition_id', $scols) && in_array('played', $scols)) {
+                DB::statement('CREATE INDEX IF NOT EXISTS standings_competition_played_critical ON standings (competition_id, played)');
+            }
+        }
     }
 
     /**
@@ -108,69 +120,111 @@ return new class extends Migration
      */
     public function down(): void
     {
-        // Drop new indexes
-        Schema::table('matches', function (Blueprint $table) {
-            try { $table->dropIndex('matches_competition_status_critical'); } catch (\Exception $e) {}
-            try { $table->dropIndex('matches_status_scheduled_critical'); } catch (\Exception $e) {}
-            try { $table->dropIndex('matches_dates_critical'); } catch (\Exception $e) {}
-        });
+        // Drop new indexes (guarded)
+        if (Schema::hasTable('matches')) {
+            $mcols = Schema::getColumnListing('matches');
+            if (in_array('competition_id', $mcols) && in_array('status', $mcols)) {
+                try { DB::statement('DROP INDEX IF EXISTS matches_competition_status_critical'); } catch (\Exception $e) {}
+            }
+            if (in_array('status', $mcols) && in_array('scheduled_at', $mcols)) {
+                try { DB::statement('DROP INDEX IF EXISTS matches_status_scheduled_critical'); } catch (\Exception $e) {}
+            }
+            if (in_array('scheduled_at', $mcols) && in_array('played_at', $mcols)) {
+                try { DB::statement('DROP INDEX IF EXISTS matches_dates_critical'); } catch (\Exception $e) {}
+            }
+        }
 
-        Schema::table('standings', function (Blueprint $table) {
-            try { $table->dropIndex('standings_competition_points_critical'); } catch (\Exception $e) {}
-            try { $table->dropIndex('standings_competition_played_critical'); } catch (\Exception $e) {}
-        });
+        if (Schema::hasTable('standings')) {
+            $scols = Schema::getColumnListing('standings');
+            if (in_array('competition_id', $scols) && in_array('points', $scols)) {
+                try { DB::statement('DROP INDEX IF EXISTS standings_competition_points_critical'); } catch (\Exception $e) {}
+            }
+            if (in_array('competition_id', $scols) && in_array('played', $scols)) {
+                try { DB::statement('DROP INDEX IF EXISTS standings_competition_played_critical'); } catch (\Exception $e) {}
+            }
+        }
 
-        // Rename tables back
-        Schema::rename('competitions', 'leagues');
-        Schema::rename('competition_user', 'league_user');
-        Schema::rename('competition_player', 'league_player');
+        // Rename tables back (guarded)
+        if (Schema::hasTable('competitions')) {
+            Schema::rename('competitions', 'leagues');
+        }
+        if (Schema::hasTable('competition_user')) {
+            Schema::rename('competition_user', 'league_user');
+        }
+        if (Schema::hasTable('competition_player')) {
+            Schema::rename('competition_player', 'league_player');
+        }
 
-        // Reverse column renames and foreign keys
-        Schema::table('matches', function (Blueprint $table) {
-            $table->dropForeign(['competition_id']);
-            $table->renameColumn('competition_id', 'league_id');
-            $table->foreign('league_id')->references('id')->on('leagues')->onDelete('cascade');
-        });
+        // Reverse column renames and foreign keys (guarded)
+        if (Schema::hasTable('matches') && Schema::hasColumn('matches', 'competition_id')) {
+            Schema::table('matches', function (Blueprint $table) {
+                try { $table->dropForeign(['competition_id']); } catch (\Exception $e) {}
+                $table->renameColumn('competition_id', 'league_id');
+                try { $table->foreign('league_id')->references('id')->on('leagues')->onDelete('cascade'); } catch (\Exception $e) {}
+            });
+        }
 
-        Schema::table('teams', function (Blueprint $table) {
-            $table->dropForeign(['competition_id']);
-            $table->renameColumn('competition_id', 'league_id');
-            $table->foreign('league_id')->references('id')->on('leagues')->onDelete('cascade');
-        });
+        if (Schema::hasTable('teams') && Schema::hasColumn('teams', 'competition_id')) {
+            Schema::table('teams', function (Blueprint $table) {
+                try { $table->dropForeign(['competition_id']); } catch (\Exception $e) {}
+                $table->renameColumn('competition_id', 'league_id');
+                try { $table->foreign('league_id')->references('id')->on('leagues')->onDelete('cascade'); } catch (\Exception $e) {}
+            });
+        }
 
-        Schema::table('standings', function (Blueprint $table) {
-            $table->dropForeign(['competition_id']);
-            $table->renameColumn('competition_id', 'league_id');
-            $table->foreign('league_id')->references('id')->on('leagues')->onDelete('cascade');
-        });
+        if (Schema::hasTable('standings') && Schema::hasColumn('standings', 'competition_id')) {
+            Schema::table('standings', function (Blueprint $table) {
+                try { $table->dropForeign(['competition_id']); } catch (\Exception $e) {}
+                $table->renameColumn('competition_id', 'league_id');
+                try { $table->foreign('league_id')->references('id')->on('leagues')->onDelete('cascade'); } catch (\Exception $e) {}
+            });
+        }
 
-        Schema::table('league_user', function (Blueprint $table) {
-            $table->dropForeign(['competition_id']);
-            $table->renameColumn('competition_id', 'league_id');
-            $table->foreign('league_id')->references('id')->on('leagues')->onDelete('cascade');
-        });
+        if (Schema::hasTable('league_user') && Schema::hasColumn('league_user', 'competition_id')) {
+            Schema::table('league_user', function (Blueprint $table) {
+                try { $table->dropForeign(['competition_id']); } catch (\Exception $e) {}
+                $table->renameColumn('competition_id', 'league_id');
+                try { $table->foreign('league_id')->references('id')->on('leagues')->onDelete('cascade'); } catch (\Exception $e) {}
+            });
+        }
 
-        Schema::table('league_player', function (Blueprint $table) {
-            $table->dropForeign(['competition_id']);
-            $table->renameColumn('competition_id', 'league_id');
-            $table->foreign('league_id')->references('id')->on('leagues')->onDelete('cascade');
-        });
+        if (Schema::hasTable('league_player') && Schema::hasColumn('league_player', 'competition_id')) {
+            Schema::table('league_player', function (Blueprint $table) {
+                try { $table->dropForeign(['competition_id']); } catch (\Exception $e) {}
+                $table->renameColumn('competition_id', 'league_id');
+                try { $table->foreign('league_id')->references('id')->on('leagues')->onDelete('cascade'); } catch (\Exception $e) {}
+            });
+        }
 
-        // Remove type field
-        Schema::table('leagues', function (Blueprint $table) {
-            $table->dropColumn('type');
-        });
+        // Remove type field if exists
+        if (Schema::hasTable('leagues') && Schema::hasColumn('leagues', 'type')) {
+            Schema::table('leagues', function (Blueprint $table) {
+                $table->dropColumn('type');
+            });
+        }
 
-        // Recreate old indexes
-        Schema::table('matches', function (Blueprint $table) {
-            $table->index(['league_id', 'status'], 'matches_league_status_critical');
-            $table->index(['status', 'scheduled_at'], 'matches_status_scheduled_critical');
-            $table->index(['scheduled_at', 'played_at'], 'matches_dates_critical');
-        });
+        // Recreate old indexes (guarded)
+        if (Schema::hasTable('matches')) {
+            $mcols = Schema::getColumnListing('matches');
+            if (in_array('league_id', $mcols) && in_array('status', $mcols)) {
+                DB::statement('CREATE INDEX IF NOT EXISTS matches_league_status_critical ON matches (league_id, status)');
+            }
+            if (in_array('status', $mcols) && in_array('scheduled_at', $mcols)) {
+                DB::statement('CREATE INDEX IF NOT EXISTS matches_status_scheduled_critical ON matches (status, scheduled_at)');
+            }
+            if (in_array('scheduled_at', $mcols) && in_array('played_at', $mcols)) {
+                DB::statement('CREATE INDEX IF NOT EXISTS matches_dates_critical ON matches (scheduled_at, played_at)');
+            }
+        }
 
-        Schema::table('standings', function (Blueprint $table) {
-            $table->index(['league_id', 'points'], 'standings_league_points_critical');
-            $table->index(['league_id', 'played'], 'standings_league_played_critical');
-        });
+        if (Schema::hasTable('standings')) {
+            $scols = Schema::getColumnListing('standings');
+            if (in_array('league_id', $scols) && in_array('points', $scols)) {
+                DB::statement('CREATE INDEX IF NOT EXISTS standings_league_points_critical ON standings (league_id, points)');
+            }
+            if (in_array('league_id', $scols) && in_array('played', $scols)) {
+                DB::statement('CREATE INDEX IF NOT EXISTS standings_league_played_critical ON standings (league_id, played)');
+            }
+        }
     }
 };
