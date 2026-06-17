@@ -27,9 +27,15 @@ return new class extends Migration
 
         // 3. Bezbjedno dodavanje indeksa za 'friendly_matches' tabelu
         if (Schema::hasTable('friendly_matches')) {
-            DB::statement('CREATE INDEX IF NOT EXISTS friendly_home_player_status ON friendly_matches (home_player_id, status)');
-            DB::statement('CREATE INDEX IF NOT EXISTS friendly_away_player_status ON friendly_matches (away_player_id, status)');
-            DB::statement('CREATE INDEX IF NOT EXISTS friendly_scheduled_at ON friendly_matches (scheduled_at)');
+            if (Schema::hasColumn('friendly_matches', 'home_player_id') && Schema::hasColumn('friendly_matches', 'status')) {
+                DB::statement('CREATE INDEX IF NOT EXISTS friendly_home_player_status ON friendly_matches (home_player_id, status)');
+            }
+            if (Schema::hasColumn('friendly_matches', 'away_player_id') && Schema::hasColumn('friendly_matches', 'status')) {
+                DB::statement('CREATE INDEX IF NOT EXISTS friendly_away_player_status ON friendly_matches (away_player_id, status)');
+            }
+            if (Schema::hasColumn('friendly_matches', 'scheduled_at')) {
+                DB::statement('CREATE INDEX IF NOT EXISTS friendly_scheduled_at ON friendly_matches (scheduled_at)');
+            }
         }
     }
 
