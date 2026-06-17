@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: final
+    image: teamsphere_app:latest
+    env_file: .env.production
+    ports:
+      - "3000:80"
+    depends_on:
+      - db
+      - redis
+    restart: unless-stopped
+    volumes:
+      - storage:/var/www/html/storage
+      - vendor:/var/www/html/vendor
+
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-secret}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-teamsphere}
+      MYSQL_USER: ${MYSQL_USER:-teamsphere}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-secret}
+    volumes:
+      - db_data:/var/lib/mysql
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: final
+    image: teamsphere_worker:latest
+    env_file: .env.production
+    command: php artisan queue:work --sleep=3 --tries=3 --timeout=90
+    depends_on:
+      - db
+      - redis
+    restart: unless-stopped
+
+  scheduler:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: final
+    image: teamsphere_scheduler:latest
+    env_file: .env.production
+    command: sh -c "while true; do php artisan schedule:run --verbose --no-interaction; sleep 60; done"
+    depends_on:
+      - db
+    restart: unless-stopped
+
+volumes:
+  db_data:
+  storage:
+  vendor:

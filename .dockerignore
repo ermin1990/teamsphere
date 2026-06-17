@@ -1,0 +1,9 @@
+vendor
+node_modules
+.git
+.env
+storage/*.key
+storage/debugbar
+resources/js/node_modules
+npm-debug.log
+yarn-error.log

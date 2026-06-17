@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  app:
+    volumes:
+      - ./:/var/www/html:cached
+      - ./.env:/var/www/html/.env:cached
+      - ./storage:/var/www/html/storage:cached
+      - ./bootstrap/cache:/var/www/html/bootstrap/cache:cached
+    environment:
+      - APP_ENV=local
+      - APP_DEBUG=1
+    command: sh -c "chown -R www:www storage bootstrap/cache || true; php-fpm -F & nginx -g 'daemon off;'"

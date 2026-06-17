@@ -1,14 +1,173 @@
-name: FTP Deploy
+name: 🚀 Global Deployment Workflow
 
 on:
   push:
     branches:
+      - main
       - 'version/2.0.0'
-  workflow_dispatch: {}
+  workflow_dispatch:
 
 jobs:
-  ftp-deploy:
-    name: Deploy via FTP
+  # POSAO 1: POKREĆE SE SAMO NA MAIN GRANI (VPS)
+  deploy-vps:
+    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Build frontend assets
+        run: |
+          npm ci
+          npm run build
+
+      - name: Create deploy bundle
+        run: |
+          rm -rf /tmp/teamsphere_bundle
+          mkdir -p /tmp/teamsphere_bundle
+
+          rsync -a --delete \
+            --exclude=.git \
+            --exclude=.env \
+            --exclude=node_modules \
+            --exclude=vendor \
+            --exclude=.github \
+            --exclude=deploy.tar.gz \
+            --exclude='storage/logs/*' \
+            --exclude='storage/framework/cache/data/*' \
+            --exclude='database/*.sqlite' \
+            ./ /tmp/teamsphere_bundle/
+
+          tar -C /tmp/teamsphere_bundle -czf deploy.tar.gz .
+
+      - name: Copy bundle to VPS
+        uses: appleboy/scp-action@v1.0.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT || 22 }}
+          source: "deploy.tar.gz"
+          target: "/tmp/teamsphere_deploy"
+          rm: true
+
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT || 22 }}
+          script_stop: true
+          script: |
+            set -e
+
+            APP_DIR="${{ secrets.VPS_APP_DIR }}"
+            TMP_DIR="/tmp/teamsphere_deploy"
+            BUNDLE="$TMP_DIR/deploy.tar.gz"
+
+            if [ -z "$APP_DIR" ]; then
+              echo "ERROR: VPS_APP_DIR secret is empty."
+              exit 1
+            fi
+
+            if [ ! -f "$BUNDLE" ]; then
+              echo "ERROR: Bundle not found on VPS: $BUNDLE"
+              exit 1
+            fi
+
+            mkdir -p "$APP_DIR"
+            tar -xzf "$BUNDLE" -C "$APP_DIR"
+
+            if [ ! -f "$APP_DIR/.env" ]; then
+              echo "INFO: .env not found. Creating from .env.vps.example..."
+              cp "$APP_DIR/.env.vps.example" "$APP_DIR/.env"
+            fi
+
+            cd "$APP_DIR"
+            chmod +x scripts/vps-deploy.sh || true
+            if [ -x scripts/vps-deploy.sh ]; then
+              APP_RUNTIME_TARGET=host RUN_DB_SEED=0 ./scripts/vps-deploy.sh
+            else
+              echo "WARNING: scripts/vps-deploy.sh not found or not executable. Skipping script run."
+            fi
+
+            # --- Ensure PostgreSQL is installed, configured and DB exists ---
+            DB_NAME="${{ secrets.VPS_DB_NAME }}"
+            DB_USER="${{ secrets.VPS_DB_USERNAME }}"
+            DB_PASS="${{ secrets.VPS_DB_PASSWORD }}"
+            DB_PORT="${{ secrets.VPS_DB_PORT }}"
+            DB_HOST="${{ secrets.VPS_DB_HOST }}"
+
+            DB_NAME="${DB_NAME:-teamsphere}"
+            DB_USER="${DB_USER:-teamsphere}"
+            DB_PASS="${DB_PASS:-secret}"
+            DB_PORT="${DB_PORT:-5432}"
+            DB_HOST="${DB_HOST:-127.0.0.1}"
+
+            if ! command -v psql >/dev/null 2>&1; then
+              echo "INFO: psql not found, attempting to install PostgreSQL (apt/yum)..."
+              if command -v apt-get >/dev/null 2>&1; then
+                sudo apt-get update -y || true
+                sudo DEBIAN_FRONTEND=noninteractive apt-get install -y postgresql postgresql-contrib || true
+                sudo systemctl enable --now postgresql || true
+              elif command -v yum >/dev/null 2>&1; then
+                sudo yum install -y postgresql-server postgresql-contrib || true
+                sudo systemctl enable --now postgresql || true
+              else
+                echo "WARNING: Could not install PostgreSQL automatically on this host. Please ensure PostgreSQL is available."
+              fi
+            fi
+
+            if command -v psql >/dev/null 2>&1; then
+              echo "INFO: Creating PostgreSQL role/database if missing..."
+              sudo -u postgres psql -tc "SELECT 1 FROM pg_database WHERE datname = '$DB_NAME'" | grep -q 1 || sudo -u postgres psql -c "CREATE DATABASE \"$DB_NAME\";"
+              sudo -u postgres psql -tc "SELECT 1 FROM pg_roles WHERE rolname = '$DB_USER'" | grep -q 1 || sudo -u postgres psql -c "CREATE ROLE \"$DB_USER\" WITH LOGIN PASSWORD '$DB_PASS';"
+              sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE \"$DB_NAME\" TO \"$DB_USER\";" || true
+
+              # Update .env database settings
+              if [ -f .env ]; then
+                sed -i "s/^DB_CONNECTION=.*/DB_CONNECTION=pgsql/" .env || echo "DB_CONNECTION=pgsql" >> .env
+                sed -i "s/^DB_HOST=.*/DB_HOST=$DB_HOST/" .env || echo "DB_HOST=$DB_HOST" >> .env
+                sed -i "s/^DB_PORT=.*/DB_PORT=$DB_PORT/" .env || echo "DB_PORT=$DB_PORT" >> .env
+                sed -i "s/^DB_DATABASE=.*/DB_DATABASE=$DB_NAME/" .env || echo "DB_DATABASE=$DB_NAME" >> .env
+                sed -i "s/^DB_USERNAME=.*/DB_USERNAME=$DB_USER/" .env || echo "DB_USERNAME=$DB_USER" >> .env
+                sed -i "s/^DB_PASSWORD=.*/DB_PASSWORD=$DB_PASS/" .env || echo "DB_PASSWORD=$DB_PASS" >> .env
+              fi
+
+              echo "INFO: Running Laravel migrations..."
+              php artisan config:clear || true
+              php artisan migrate --force || true
+            else
+              echo "WARNING: psql not available; skipping DB creation and migrations."
+            fi
+
+            echo "INFO: Clearing and optimization of Laravel cache..."
+            php artisan config:clear || true
+            php artisan cache:clear || true
+            php artisan route:clear || true
+            php artisan view:clear || true
+
+            mkdir -p "$APP_DIR/storage/framework/views" "$APP_DIR/storage/framework/sessions" "$APP_DIR/storage/framework/cache/data" "$APP_DIR/bootstrap/cache"
+            if command -v sudo >/dev/null 2>&1; then
+              sudo chown -R www-data:www-data "$APP_DIR/storage" "$APP_DIR/bootstrap/cache" || true
+              sudo chmod -R ug+rwX "$APP_DIR/storage" "$APP_DIR/bootstrap/cache" || true
+              if command -v getenforce >/dev/null 2>&1 && [ "$(getenforce 2>/dev/null)" = "Enforcing" ] && command -v chcon >/dev/null 2>&1; then
+                sudo chcon -R -t httpd_sys_rw_content_t "$APP_DIR/storage" "$APP_DIR/bootstrap/cache" || true
+              fi
+            fi
+
+  # POSAO 2: POKREĆE SE SAMO NA VERSION/2.0.0 GRANI (FTP)
+  deploy-ftp:
+    if: github.ref == 'refs/heads/version/2.0.0'
     runs-on: ubuntu-latest
 
     steps:
@@ -49,4 +208,4 @@ jobs:
 
       - name: Post-deploy notice
         run: |
-          echo "Deployment finished. If you need to run migrations/other tasks, run them manually or configure secure runner steps."
+          echo "Deployment finished. If you need to run migrations/other tasks, run them manually."
