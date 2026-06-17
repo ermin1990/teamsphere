@@ -31,8 +31,17 @@ return new class extends Migration
         // Add type field to competitions table if it doesn't exist
         if (!Schema::hasColumn('competitions', 'type')) {
             Schema::table('competitions', function (Blueprint $table) {
-                $table->enum('type', ['league', 'tournament'])->default('league')->after('sport_id');
+                if (DB::getDriverName() === 'pgsql') {
+                    $table->string('type')->default('league')->after('sport_id');
+                } else {
+                    $table->enum('type', ['league', 'tournament'])->default('league')->after('sport_id');
+                }
             });
+
+            if (DB::getDriverName() === 'pgsql') {
+                DB::statement('ALTER TABLE competitions DROP CONSTRAINT IF EXISTS competitions_type_check');
+                DB::statement("ALTER TABLE competitions ADD CONSTRAINT competitions_type_check CHECK (type IN ('league','tournament'))");
+            }
         }
 
         // Update all foreign key constraints and rename columns

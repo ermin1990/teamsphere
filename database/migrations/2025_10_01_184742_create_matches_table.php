@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -23,7 +24,11 @@ return new class extends Migration
             $table->integer('away_score')->nullable();
             $table->timestamp('scheduled_at')->nullable();
             $table->timestamp('played_at')->nullable();
-            $table->enum('status', ['scheduled', 'in_progress', 'completed', 'cancelled'])->default('scheduled');
+            if (DB::getDriverName() === 'pgsql') {
+                $table->string('status')->default('scheduled');
+            } else {
+                $table->enum('status', ['scheduled', 'in_progress', 'completed', 'cancelled'])->default('scheduled');
+            }
             $table->integer('round')->default(1);
             $table->json('sets')->nullable(); // For detailed set scores
         });
@@ -37,6 +42,12 @@ return new class extends Migration
             Schema::table('matches', function (Blueprint $table) {
                 $table->foreign('league_id')->references('id')->on('competitions')->onDelete('cascade');
             });
+        }
+
+        // For PostgreSQL add a CHECK constraint to emulate ENUM behaviour
+        if (DB::getDriverName() === 'pgsql') {
+            DB::statement('ALTER TABLE matches DROP CONSTRAINT IF EXISTS matches_status_check');
+            DB::statement("ALTER TABLE matches ADD CONSTRAINT matches_status_check CHECK (status IN ('scheduled','in_progress','completed','cancelled'))");
         }
     }
 

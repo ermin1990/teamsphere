@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -26,10 +27,18 @@ return new class extends Migration
                 $table->integer('players_advancing_per_group')->nullable()->after('players_per_group');
             }
             if (!Schema::hasColumn('competitions', 'advancement_method')) {
-                $table->enum('advancement_method', ['automatic', 'manual'])->nullable()->after('players_advancing_per_group');
+                if (DB::getDriverName() === 'pgsql') {
+                    $table->string('advancement_method')->nullable()->after('players_advancing_per_group');
+                } else {
+                    $table->enum('advancement_method', ['automatic', 'manual'])->nullable()->after('players_advancing_per_group');
+                }
             }
             if (!Schema::hasColumn('competitions', 'current_phase')) {
-                $table->enum('current_phase', ['groups', 'knockout', 'completed'])->nullable()->after('advancement_method');
+                if (DB::getDriverName() === 'pgsql') {
+                    $table->string('current_phase')->nullable()->after('advancement_method');
+                } else {
+                    $table->enum('current_phase', ['groups', 'knockout', 'completed'])->nullable()->after('advancement_method');
+                }
             }
             if (!Schema::hasColumn('competitions', 'knockout_bracket')) {
                 $table->json('knockout_bracket')->nullable()->after('current_phase');
@@ -41,6 +50,14 @@ return new class extends Migration
                 $table->timestamp('knockout_completed_at')->nullable()->after('groups_completed_at');
             }
         });
+
+        // Add CHECK constraints for Postgres where appropriate
+        if (DB::getDriverName() === 'pgsql') {
+            DB::statement('ALTER TABLE competitions DROP CONSTRAINT IF EXISTS competitions_advancement_method_check');
+            DB::statement("ALTER TABLE competitions ADD CONSTRAINT competitions_advancement_method_check CHECK (advancement_method IN ('automatic','manual'))");
+            DB::statement('ALTER TABLE competitions DROP CONSTRAINT IF EXISTS competitions_current_phase_check');
+            DB::statement("ALTER TABLE competitions ADD CONSTRAINT competitions_current_phase_check CHECK (current_phase IN ('groups','knockout','completed'))");
+        }
     }
 
     /**

@@ -34,8 +34,8 @@ return new class extends Migration
                 $table->integer('away_score')->nullable();
                 $table->timestamp('scheduled_at')->nullable();
                 $table->timestamp('played_at')->nullable();
-                $table->enum('status', ['scheduled', 'in_progress', 'completed', 'forfeited', 'cancelled'])->default('scheduled');
-                $table->enum('forfeited_by', ['home', 'away'])->nullable();
+                $table->string('status')->default('scheduled');
+                $table->string('forfeited_by')->nullable();
                 $table->integer('round')->default(1);
                 $table->json('sets')->nullable(); // For detailed set scores
             });
@@ -99,7 +99,7 @@ return new class extends Migration
                 $table->integer('away_score')->nullable();
                 $table->timestamp('scheduled_at')->nullable();
                 $table->timestamp('played_at')->nullable();
-                $table->enum('status', ['scheduled', 'in_progress', 'completed', 'cancelled'])->default('scheduled');
+                $table->string('status')->default('scheduled');
                 $table->integer('round')->default(1);
                 $table->json('sets')->nullable();
             });
