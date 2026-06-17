@@ -236,23 +236,43 @@ return new class extends Migration
         if (Schema::hasTable('matches')) {
             $mcols = Schema::getColumnListing('matches');
             if (in_array('league_id', $mcols) && in_array('status', $mcols)) {
-                DB::statement('CREATE INDEX IF NOT EXISTS matches_league_status_critical ON matches (league_id, status)');
+                if (DB::getDriverName() === 'pgsql') {
+                    DB::statement('CREATE INDEX IF NOT EXISTS matches_league_status_critical ON matches (league_id, status)');
+                } else {
+                    try { Schema::table('matches', function (Blueprint $table) { $table->index(['league_id', 'status'], 'matches_league_status_critical'); }); } catch (\Exception $e) {}
+                }
             }
             if (in_array('status', $mcols) && in_array('scheduled_at', $mcols)) {
-                DB::statement('CREATE INDEX IF NOT EXISTS matches_status_scheduled_critical ON matches (status, scheduled_at)');
+                if (DB::getDriverName() === 'pgsql') {
+                    DB::statement('CREATE INDEX IF NOT EXISTS matches_status_scheduled_critical ON matches (status, scheduled_at)');
+                } else {
+                    try { Schema::table('matches', function (Blueprint $table) { $table->index(['status', 'scheduled_at'], 'matches_status_scheduled_critical'); }); } catch (\Exception $e) {}
+                }
             }
             if (in_array('scheduled_at', $mcols) && in_array('played_at', $mcols)) {
-                DB::statement('CREATE INDEX IF NOT EXISTS matches_dates_critical ON matches (scheduled_at, played_at)');
+                if (DB::getDriverName() === 'pgsql') {
+                    DB::statement('CREATE INDEX IF NOT EXISTS matches_dates_critical ON matches (scheduled_at, played_at)');
+                } else {
+                    try { Schema::table('matches', function (Blueprint $table) { $table->index(['scheduled_at', 'played_at'], 'matches_dates_critical'); }); } catch (\Exception $e) {}
+                }
             }
         }
 
         if (Schema::hasTable('standings')) {
             $scols = Schema::getColumnListing('standings');
             if (in_array('league_id', $scols) && in_array('points', $scols)) {
-                DB::statement('CREATE INDEX IF NOT EXISTS standings_league_points_critical ON standings (league_id, points)');
+                if (DB::getDriverName() === 'pgsql') {
+                    DB::statement('CREATE INDEX IF NOT EXISTS standings_league_points_critical ON standings (league_id, points)');
+                } else {
+                    try { Schema::table('standings', function (Blueprint $table) { $table->index(['league_id', 'points'], 'standings_league_points_critical'); }); } catch (\Exception $e) {}
+                }
             }
             if (in_array('league_id', $scols) && in_array('played', $scols)) {
-                DB::statement('CREATE INDEX IF NOT EXISTS standings_league_played_critical ON standings (league_id, played)');
+                if (DB::getDriverName() === 'pgsql') {
+                    DB::statement('CREATE INDEX IF NOT EXISTS standings_league_played_critical ON standings (league_id, played)');
+                } else {
+                    try { Schema::table('standings', function (Blueprint $table) { $table->index(['league_id', 'played'], 'standings_league_played_critical'); }); } catch (\Exception $e) {}
+                }
             }
         }
     }
