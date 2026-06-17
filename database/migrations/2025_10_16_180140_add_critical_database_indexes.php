@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -11,25 +12,25 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Critical composite indexes for matches table
-        Schema::table('matches', function (Blueprint $table) {
-            $table->index(['league_id', 'status'], 'matches_league_status_critical');
-            $table->index(['status', 'scheduled_at'], 'matches_status_scheduled_critical');
-            $table->index(['scheduled_at', 'played_at'], 'matches_dates_critical');
-        });
+        // 1. Bezbjedno dodavanje indeksa za 'matches' tabelu
+        if (Schema::hasTable('matches')) {
+            DB::statement('CREATE INDEX IF NOT EXISTS matches_league_status_critical ON matches (league_id, status)');
+            DB::statement('CREATE INDEX IF NOT EXISTS matches_status_scheduled_critical ON matches (status, scheduled_at)');
+            DB::statement('CREATE INDEX IF NOT EXISTS matches_dates_critical ON matches (scheduled_at, played_at)');
+        }
 
-        // Critical indexes for standings table
-        Schema::table('standings', function (Blueprint $table) {
-            $table->index(['league_id', 'points'], 'standings_league_points_critical');
-            $table->index(['league_id', 'played'], 'standings_league_played_critical');
-        });
+        // 2. Bezbjedno dodavanje indeksa za 'standings' tabelu
+        if (Schema::hasTable('standings')) {
+            DB::statement('CREATE INDEX IF NOT EXISTS standings_league_points_critical ON standings (league_id, points)');
+            DB::statement('CREATE INDEX IF NOT EXISTS standings_league_played_critical ON standings (league_id, played)');
+        }
 
-        // Critical indexes for friendly matches
-        Schema::table('friendly_matches', function (Blueprint $table) {
-            $table->index(['home_player_id', 'status'], 'friendly_home_player_status');
-            $table->index(['away_player_id', 'status'], 'friendly_away_player_status');
-            $table->index('scheduled_at', 'friendly_scheduled_at');
-        });
+        // 3. Bezbjedno dodavanje indeksa za 'friendly_matches' tabelu
+        if (Schema::hasTable('friendly_matches')) {
+            DB::statement('CREATE INDEX IF NOT EXISTS friendly_home_player_status ON friendly_matches (home_player_id, status)');
+            DB::statement('CREATE INDEX IF NOT EXISTS friendly_away_player_status ON friendly_matches (away_player_id, status)');
+            DB::statement('CREATE INDEX IF NOT EXISTS friendly_scheduled_at ON friendly_matches (scheduled_at)');
+        }
     }
 
     /**
@@ -37,21 +38,16 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('matches', function (Blueprint $table) {
-            $table->dropIndex('matches_league_status_critical');
-            $table->dropIndex('matches_status_scheduled_critical');
-            $table->dropIndex('matches_dates_critical');
-        });
+        // Bezbjedno brisanje indeksa ako postoje (podržano i u Postgresu i u SQLite-u)
+        DB::statement('DROP INDEX IF EXISTS matches_league_status_critical');
+        DB::statement('DROP INDEX IF EXISTS matches_status_scheduled_critical');
+        DB::statement('DROP INDEX IF EXISTS matches_dates_critical');
 
-        Schema::table('standings', function (Blueprint $table) {
-            $table->dropIndex('standings_league_points_critical');
-            $table->dropIndex('standings_league_played_critical');
-        });
+        DB::statement('DROP INDEX IF EXISTS standings_league_points_critical');
+        DB::statement('DROP INDEX IF EXISTS standings_league_played_critical');
 
-        Schema::table('friendly_matches', function (Blueprint $table) {
-            $table->dropIndex('friendly_home_player_status');
-            $table->dropIndex('friendly_away_player_status');
-            $table->dropIndex('friendly_scheduled_at');
-        });
+        DB::statement('DROP INDEX IF EXISTS friendly_home_player_status');
+        DB::statement('DROP INDEX IF EXISTS friendly_away_player_status');
+        DB::statement('DROP INDEX IF EXISTS friendly_scheduled_at');
     }
 };
