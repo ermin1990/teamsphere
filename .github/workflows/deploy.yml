@@ -109,9 +109,65 @@ jobs:
             echo "📦 Instaliram Composer pakete..."
             composer install --no-dev --optimize-autoloader --no-interaction
 
-            # 3. Pokretanje migracija za PostgreSQL bazu
-            echo "🗄️ Pokrećem PostgreSQL migracije..."
-            php artisan migrate --force
+            # 3. Ensure MySQL is available, create DB/user and run migrations
+            echo "🗄️ Provjeravam MySQL i kreiram bazu/korisnika ako treba..."
+
+            DB_NAME="${{ secrets.VPS_DB_NAME }}"
+            DB_USER="${{ secrets.VPS_DB_USERNAME }}"
+            DB_PASS="${{ secrets.VPS_DB_PASSWORD }}"
+            DB_HOST="${{ secrets.VPS_DB_HOST }}"
+            DB_PORT="${{ secrets.VPS_DB_PORT }}"
+
+            DB_NAME="${DB_NAME:-teamsphere}"
+            DB_USER="${DB_USER:-teamsphere}"
+            DB_PASS="${DB_PASS:-secret}"
+            DB_HOST="${DB_HOST:-127.0.0.1}"
+            DB_PORT="${DB_PORT:-3306}"
+
+            if ! command -v mysql >/dev/null 2>&1; then
+              echo "INFO: mysql client not found, attempting to install MySQL server/client..."
+              if command -v apt-get >/dev/null 2>&1; then
+                sudo apt-get update -y || true
+                sudo DEBIAN_FRONTEND=noninteractive apt-get install -y default-mysql-server || sudo apt-get install -y mysql-server || true
+                sudo systemctl enable --now mysql || sudo systemctl enable --now mariadb || true
+              elif command -v yum >/dev/null 2>&1; then
+                sudo yum install -y mariadb-server || true
+                sudo systemctl enable --now mariadb || true
+              else
+                echo "WARNING: Could not install MySQL automatically on this host. Ensure MySQL is available."
+              fi
+            fi
+
+            if command -v mysql >/dev/null 2>&1; then
+              echo "INFO: Creating MySQL database and user if missing..."
+              if command -v sudo >/dev/null 2>&1; then
+                sudo mysql -e "CREATE DATABASE IF NOT EXISTS \\`$DB_NAME\\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+                sudo mysql -e "CREATE USER IF NOT EXISTS '$DB_USER'@'%' IDENTIFIED BY '$DB_PASS';"
+                sudo mysql -e "GRANT ALL PRIVILEGES ON \\`$DB_NAME\\`.* TO '$DB_USER'@'%';"
+                sudo mysql -e "FLUSH PRIVILEGES;"
+              else
+                mysql -e "CREATE DATABASE IF NOT EXISTS \\`$DB_NAME\\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+                mysql -e "CREATE USER IF NOT EXISTS '$DB_USER'@'%' IDENTIFIED BY '$DB_PASS';"
+                mysql -e "GRANT ALL PRIVILEGES ON \\`$DB_NAME\\`.* TO '$DB_USER'@'%';"
+                mysql -e "FLUSH PRIVILEGES;"
+              fi
+
+              # Update .env database settings
+              if [ -f .env ]; then
+                sed -i "s/^DB_CONNECTION=.*/DB_CONNECTION=mysql/" .env || echo "DB_CONNECTION=mysql" >> .env
+                sed -i "s/^DB_HOST=.*/DB_HOST=$DB_HOST/" .env || echo "DB_HOST=$DB_HOST" >> .env
+                sed -i "s/^DB_PORT=.*/DB_PORT=$DB_PORT/" .env || echo "DB_PORT=$DB_PORT" >> .env
+                sed -i "s/^DB_DATABASE=.*/DB_DATABASE=$DB_NAME/" .env || echo "DB_DATABASE=$DB_NAME" >> .env
+                sed -i "s/^DB_USERNAME=.*/DB_USERNAME=$DB_USER/" .env || echo "DB_USERNAME=$DB_USER" >> .env
+                sed -i "s/^DB_PASSWORD=.*/DB_PASSWORD=$DB_PASS/" .env || echo "DB_PASSWORD=$DB_PASS" >> .env
+              fi
+
+              echo "INFO: Running Laravel migrations..."
+              php artisan config:clear || true
+              php artisan migrate --force || true
+            else
+              echo "WARNING: mysql client not available; skipping DB creation and migrations."
+            fi
 
             # 4. Čišćenje i optimizacija Laravel keša
             echo "⚡ Čišćenje i optimizacija Laravel keša..."
