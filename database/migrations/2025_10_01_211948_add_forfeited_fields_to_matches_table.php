@@ -25,11 +25,11 @@ return new class extends Migration
             Schema::create('matches', function (Blueprint $table) {
                 $table->id();
                 $table->timestamps();
-                $table->foreignId('league_id')->constrained()->onDelete('cascade');
-                $table->foreignId('home_team_id')->nullable()->constrained('teams')->onDelete('cascade');
-                $table->foreignId('away_team_id')->nullable()->constrained('teams')->onDelete('cascade');
-                $table->foreignId('home_player_id')->nullable()->constrained('players')->onDelete('cascade');
-                $table->foreignId('away_player_id')->nullable()->constrained('players')->onDelete('cascade');
+                $table->unsignedBigInteger('league_id');
+                $table->unsignedBigInteger('home_team_id')->nullable();
+                $table->unsignedBigInteger('away_team_id')->nullable();
+                $table->unsignedBigInteger('home_player_id')->nullable();
+                $table->unsignedBigInteger('away_player_id')->nullable();
                 $table->integer('home_score')->nullable();
                 $table->integer('away_score')->nullable();
                 $table->timestamp('scheduled_at')->nullable();
@@ -39,6 +39,20 @@ return new class extends Migration
                 $table->integer('round')->default(1);
                 $table->json('sets')->nullable(); // For detailed set scores
             });
+            // Add FK if the referenced table exists
+            if (Schema::hasTable('leagues')) {
+                Schema::table('matches', function (Blueprint $table) {
+                    $table->foreign('league_id')->references('id')->on('leagues')->onDelete('cascade');
+                    $table->foreign('home_team_id')->references('id')->on('teams')->onDelete('cascade');
+                    $table->foreign('away_team_id')->references('id')->on('teams')->onDelete('cascade');
+                    $table->foreign('home_player_id')->references('id')->on('players')->onDelete('cascade');
+                    $table->foreign('away_player_id')->references('id')->on('players')->onDelete('cascade');
+                });
+            } elseif (Schema::hasTable('competitions')) {
+                Schema::table('matches', function (Blueprint $table) {
+                    $table->foreign('league_id')->references('id')->on('competitions')->onDelete('cascade');
+                });
+            }
             
             // Restore data
             DB::statement('INSERT INTO matches (id, created_at, updated_at, league_id, home_team_id, away_team_id, home_player_id, away_player_id, home_score, away_score, scheduled_at, played_at, status, round, sets) SELECT id, created_at, updated_at, league_id, home_team_id, away_team_id, home_player_id, away_player_id, home_score, away_score, scheduled_at, played_at, status, round, sets FROM matches_backup');
@@ -76,11 +90,11 @@ return new class extends Migration
             Schema::create('matches', function (Blueprint $table) {
                 $table->id();
                 $table->timestamps();
-                $table->foreignId('league_id')->constrained()->onDelete('cascade');
-                $table->foreignId('home_team_id')->nullable()->constrained('teams')->onDelete('cascade');
-                $table->foreignId('away_team_id')->nullable()->constrained('teams')->onDelete('cascade');
-                $table->foreignId('home_player_id')->nullable()->constrained('players')->onDelete('cascade');
-                $table->foreignId('away_player_id')->nullable()->constrained('players')->onDelete('cascade');
+                $table->unsignedBigInteger('league_id');
+                $table->unsignedBigInteger('home_team_id')->nullable();
+                $table->unsignedBigInteger('away_team_id')->nullable();
+                $table->unsignedBigInteger('home_player_id')->nullable();
+                $table->unsignedBigInteger('away_player_id')->nullable();
                 $table->integer('home_score')->nullable();
                 $table->integer('away_score')->nullable();
                 $table->timestamp('scheduled_at')->nullable();
@@ -89,6 +103,20 @@ return new class extends Migration
                 $table->integer('round')->default(1);
                 $table->json('sets')->nullable();
             });
+            // Restore foreign keys where possible
+            if (Schema::hasTable('leagues')) {
+                Schema::table('matches', function (Blueprint $table) {
+                    $table->foreign('league_id')->references('id')->on('leagues')->onDelete('cascade');
+                    $table->foreign('home_team_id')->references('id')->on('teams')->onDelete('cascade');
+                    $table->foreign('away_team_id')->references('id')->on('teams')->onDelete('cascade');
+                    $table->foreign('home_player_id')->references('id')->on('players')->onDelete('cascade');
+                    $table->foreign('away_player_id')->references('id')->on('players')->onDelete('cascade');
+                });
+            } elseif (Schema::hasTable('competitions')) {
+                Schema::table('matches', function (Blueprint $table) {
+                    $table->foreign('league_id')->references('id')->on('competitions')->onDelete('cascade');
+                });
+            }
             
             DB::statement('INSERT INTO matches SELECT * FROM matches_backup');
             DB::statement('DROP TABLE matches_backup');

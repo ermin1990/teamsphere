@@ -12,9 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('standings', function (Blueprint $table) {
-            $table->foreignId('league_id')->constrained()->onDelete('cascade');
-            $table->foreignId('team_id')->nullable()->constrained('teams')->onDelete('cascade');
-            $table->foreignId('player_id')->nullable()->constrained('players')->onDelete('cascade');
+            $table->unsignedBigInteger('league_id');
+            $table->unsignedBigInteger('team_id')->nullable();
+            $table->unsignedBigInteger('player_id')->nullable();
             $table->integer('position')->default(1);
             $table->integer('played')->default(0);
             $table->integer('won')->default(0);
@@ -25,6 +25,29 @@ return new class extends Migration
             $table->integer('goal_difference')->default(0);
             $table->integer('points')->default(0);
         });
+
+        // Add foreign keys only when referenced tables exist
+        if (Schema::hasTable('leagues')) {
+            Schema::table('standings', function (Blueprint $table) {
+                $table->foreign('league_id')->references('id')->on('leagues')->onDelete('cascade');
+            });
+        } elseif (Schema::hasTable('competitions')) {
+            Schema::table('standings', function (Blueprint $table) {
+                $table->foreign('league_id')->references('id')->on('competitions')->onDelete('cascade');
+            });
+        }
+
+        if (Schema::hasTable('teams')) {
+            Schema::table('standings', function (Blueprint $table) {
+                $table->foreign('team_id')->references('id')->on('teams')->onDelete('cascade');
+            });
+        }
+
+        if (Schema::hasTable('players')) {
+            Schema::table('standings', function (Blueprint $table) {
+                $table->foreign('player_id')->references('id')->on('players')->onDelete('cascade');
+            });
+        }
     }
 
     /**

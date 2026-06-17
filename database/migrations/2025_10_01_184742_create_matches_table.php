@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('matches', function (Blueprint $table) {
             $table->id();
             $table->timestamps();
-            $table->foreignId('league_id')->constrained()->onDelete('cascade');
+            $table->unsignedBigInteger('league_id');
             $table->foreignId('home_team_id')->nullable()->constrained('teams')->onDelete('cascade');
             $table->foreignId('away_team_id')->nullable()->constrained('teams')->onDelete('cascade');
             $table->foreignId('home_player_id')->nullable()->constrained('players')->onDelete('cascade');
@@ -27,6 +27,17 @@ return new class extends Migration
             $table->integer('round')->default(1);
             $table->json('sets')->nullable(); // For detailed set scores
         });
+
+        // Add foreign key only if referenced table exists to support multiple schemas
+        if (Schema::hasTable('leagues')) {
+            Schema::table('matches', function (Blueprint $table) {
+                $table->foreign('league_id')->references('id')->on('leagues')->onDelete('cascade');
+            });
+        } elseif (Schema::hasTable('competitions')) {
+            Schema::table('matches', function (Blueprint $table) {
+                $table->foreign('league_id')->references('id')->on('competitions')->onDelete('cascade');
+            });
+        }
     }
 
     /**

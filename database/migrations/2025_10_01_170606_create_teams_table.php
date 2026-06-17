@@ -15,11 +15,21 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->text('description')->nullable();
-            $table->foreignId('league_id')->constrained()->onDelete('cascade');
+            $table->unsignedBigInteger('league_id');
             $table->foreignId('captain_id')->nullable()->constrained('users')->onDelete('set null');
             $table->enum('status', ['active', 'inactive', 'disqualified'])->default('active');
             $table->timestamps();
         });
+
+        if (Schema::hasTable('leagues')) {
+            Schema::table('teams', function (Blueprint $table) {
+                $table->foreign('league_id')->references('id')->on('leagues')->onDelete('cascade');
+            });
+        } elseif (Schema::hasTable('competitions')) {
+            Schema::table('teams', function (Blueprint $table) {
+                $table->foreign('league_id')->references('id')->on('competitions')->onDelete('cascade');
+            });
+        }
     }
 
     /**

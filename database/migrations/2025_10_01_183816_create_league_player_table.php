@@ -13,13 +13,25 @@ return new class extends Migration
     {
         Schema::create('league_player', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('league_id')->constrained()->onDelete('cascade');
-            $table->foreignId('player_id')->constrained()->onDelete('cascade');
+            $table->unsignedBigInteger('league_id');
+            $table->unsignedBigInteger('player_id');
             $table->timestamp('joined_at')->useCurrent();
             $table->timestamps();
 
             $table->unique(['league_id', 'player_id']); // Prevent duplicate entries
         });
+
+        if (Schema::hasTable('leagues')) {
+            Schema::table('league_player', function (Blueprint $table) {
+                $table->foreign('league_id')->references('id')->on('leagues')->onDelete('cascade');
+                $table->foreign('player_id')->references('id')->on('players')->onDelete('cascade');
+            });
+        } elseif (Schema::hasTable('competitions')) {
+            Schema::table('league_player', function (Blueprint $table) {
+                $table->foreign('league_id')->references('id')->on('competitions')->onDelete('cascade');
+                $table->foreign('player_id')->references('id')->on('players')->onDelete('cascade');
+            });
+        }
     }
 
     /**
