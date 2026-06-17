@@ -65,8 +65,8 @@ return new class extends Migration
             DB::statement('ALTER TABLE matches DROP CONSTRAINT IF EXISTS matches_status_check');
             DB::statement("ALTER TABLE matches ADD CONSTRAINT matches_status_check CHECK (status IN ('scheduled', 'in_progress', 'completed', 'forfeited', 'cancelled'))");
 
-        // 3. Uslov za MySQL i ostale baze
-        } else {
+        // 3. Uslov za MySQL
+        } elseif ($driver === 'mysql') {
             Schema::table('matches', function (Blueprint $table) {
                 $table->enum('forfeited_by', ['home', 'away'])->nullable()->after('status');
             });
@@ -126,7 +126,7 @@ return new class extends Migration
             DB::statement('ALTER TABLE matches DROP CONSTRAINT IF EXISTS matches_status_check');
             DB::statement("ALTER TABLE matches ADD CONSTRAINT matches_status_check CHECK (status IN ('scheduled', 'in_progress', 'completed', 'cancelled'))");
 
-        } else {
+        } elseif ($driver === 'mysql') {
             Schema::table('matches', function (Blueprint $table) {
                 $table->dropColumn('forfeited_by');
             });

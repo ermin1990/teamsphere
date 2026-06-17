@@ -30,8 +30,8 @@ return new class extends Migration
             // Na primjer: 'league', 'tournament', 'knockout', 'cup' itd. Šta god da tvoja aplikacija koristi.
             DB::statement("ALTER TABLE competitions ADD CONSTRAINT competitions_type_check CHECK (type IN ('league', 'tournament', 'cup', 'knockout'))");
 
-        // 3. Za MySQL i ostale baze
-        } else {
+        // 3. Za MySQL
+        } elseif ($driver === 'mysql') {
             // Zamijeni vrijednosti enuma i ovdje ako koristiš MySQL negdje
             DB::statement("ALTER TABLE competitions MODIFY COLUMN type ENUM('league', 'tournament', 'cup', 'knockout')");
         }
@@ -50,7 +50,7 @@ return new class extends Migration
             DB::statement('ALTER TABLE competitions DROP CONSTRAINT IF EXISTS competitions_type_check');
             // Ovdje vrati samo STARE vrijednosti enuma (prije nego što si ih proširio ovom migracijom)
             DB::statement("ALTER TABLE competitions ADD CONSTRAINT competitions_type_check CHECK (type IN ('league', 'tournament'))");
-        } else {
+        } elseif ($driver === 'mysql') {
             DB::statement("ALTER TABLE competitions MODIFY COLUMN type ENUM('league', 'tournament')");
         }
     }
