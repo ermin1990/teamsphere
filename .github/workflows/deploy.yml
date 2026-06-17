@@ -93,6 +93,27 @@ jobs:
               cp .env.example .env
             fi
 
+              # Inject DB secrets from GitHub Secrets into .env if provided
+              set_env() {
+                VAR="$1"
+                VAL="$2"
+                if [ -z "$VAL" ]; then
+                  return
+                fi
+                if grep -q "^$VAR=" .env; then
+                  sed -i "s|^$VAR=.*|$VAR=$VAL|" .env
+                else
+                  echo "$VAR=$VAL" >> .env
+                fi
+              }
+
+              set_env DB_CONNECTION "${{ secrets.VPS_DB_CONNECTION }}"
+              set_env DB_HOST "${{ secrets.VPS_DB_HOST }}"
+              set_env DB_PORT "${{ secrets.VPS_DB_PORT }}"
+              set_env DB_DATABASE "${{ secrets.VPS_DB_NAME }}"
+              set_env DB_USERNAME "${{ secrets.VPS_DB_USERNAME }}"
+              set_env DB_PASSWORD "${{ secrets.VPS_DB_PASSWORD }}"
+
             # 1. Automatsko upisivanje PostgreSQL kredencijala iz GitHub Secrets u .env
             echo "🔧 Konfigurišem PostgreSQL konekciju iz GitHub Secrets..."
             sed -i "s/^DB_CONNECTION=.*/DB_CONNECTION=pgsql/" .env || echo "DB_CONNECTION=pgsql" >> .env
