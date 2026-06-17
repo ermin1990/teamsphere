@@ -1,16 +1,13 @@
-name: 🚀 Global Deployment Workflow
+name: 🚀 Deploy to VPS
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
-      - 'version/2.0.0'
-  workflow_dispatch:
 
 jobs:
-  # POSAO 1: POKREĆE SE SAMO NA MAIN GRANI (VPS)
-  deploy-vps:
-    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+  deploy:
     runs-on: ubuntu-latest
     timeout-minutes: 45
 
@@ -21,7 +18,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
           cache: npm
 
       - name: Build frontend assets
@@ -87,72 +84,30 @@ jobs:
             mkdir -p "$APP_DIR"
             tar -xzf "$BUNDLE" -C "$APP_DIR"
 
-            
+            if [ ! -f "$APP_DIR/.env" ]; then
+              echo "INFO: .env not found. Creating from .env.example..."
+              cp "$APP_DIR/.env.example" "$APP_DIR/.env"
+            fi
 
             cd "$APP_DIR"
-            chmod +x scripts/vps-deploy.sh || true
-            if [ -x scripts/vps-deploy.sh ]; then
-              APP_RUNTIME_TARGET=host RUN_DB_SEED=0 ./scripts/vps-deploy.sh
-            else
-              echo "WARNING: scripts/vps-deploy.sh not found or not executable. Skipping script run."
-            fi
 
-            # --- Ensure PostgreSQL is installed, configured and DB exists ---
-            DB_NAME="${{ secrets.VPS_DB_NAME }}"
-            DB_USER="${{ secrets.VPS_DB_USERNAME }}"
-            DB_PASS="${{ secrets.VPS_DB_PASSWORD }}"
-            DB_PORT="${{ secrets.VPS_DB_PORT }}"
-            DB_HOST="${{ secrets.VPS_DB_HOST }}"
+            # 1. Instalacija PHP paketa direktno na serveru (kreira vendor folder)
+            echo "📦 Instaliram Composer pakete..."
+            composer install --no-dev --optimize-autoloader --no-interaction
 
-            DB_NAME="${DB_NAME:-teamsphere}"
-            DB_USER="${DB_USER:-teamsphere}"
-            DB_PASS="${DB_PASS:-secret}"
-            DB_PORT="${DB_PORT:-5432}"
-            DB_HOST="${DB_HOST:-127.0.0.1}"
+            # 2. Pokretanje migracija za PostgreSQL bazu
+            echo "🗄️ Pokrećem PostgreSQL migracije..."
+            php artisan migrate --force
 
-            if ! command -v psql >/dev/null 2>&1; then
-              echo "INFO: psql not found, attempting to install PostgreSQL (apt/yum)..."
-              if command -v apt-get >/dev/null 2>&1; then
-                sudo apt-get update -y || true
-                sudo DEBIAN_FRONTEND=noninteractive apt-get install -y postgresql postgresql-contrib || true
-                sudo systemctl enable --now postgresql || true
-              elif command -v yum >/dev/null 2>&1; then
-                sudo yum install -y postgresql-server postgresql-contrib || true
-                sudo systemctl enable --now postgresql || true
-              else
-                echo "WARNING: Could not install PostgreSQL automatically on this host. Please ensure PostgreSQL is available."
-              fi
-            fi
-
-            if command -v psql >/dev/null 2>&1; then
-              echo "INFO: Creating PostgreSQL role/database if missing..."
-              sudo -u postgres psql -tc "SELECT 1 FROM pg_database WHERE datname = '$DB_NAME'" | grep -q 1 || sudo -u postgres psql -c "CREATE DATABASE \"$DB_NAME\";"
-              sudo -u postgres psql -tc "SELECT 1 FROM pg_roles WHERE rolname = '$DB_USER'" | grep -q 1 || sudo -u postgres psql -c "CREATE ROLE \"$DB_USER\" WITH LOGIN PASSWORD '$DB_PASS';"
-              sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE \"$DB_NAME\" TO \"$DB_USER\";" || true
-
-              # Update .env database settings
-              if [ -f .env ]; then
-                sed -i "s/^DB_CONNECTION=.*/DB_CONNECTION=pgsql/" .env || echo "DB_CONNECTION=pgsql" >> .env
-                sed -i "s/^DB_HOST=.*/DB_HOST=$DB_HOST/" .env || echo "DB_HOST=$DB_HOST" >> .env
-                sed -i "s/^DB_PORT=.*/DB_PORT=$DB_PORT/" .env || echo "DB_PORT=$DB_PORT" >> .env
-                sed -i "s/^DB_DATABASE=.*/DB_DATABASE=$DB_NAME/" .env || echo "DB_DATABASE=$DB_NAME" >> .env
-                sed -i "s/^DB_USERNAME=.*/DB_USERNAME=$DB_USER/" .env || echo "DB_USERNAME=$DB_USER" >> .env
-                sed -i "s/^DB_PASSWORD=.*/DB_PASSWORD=$DB_PASS/" .env || echo "DB_PASSWORD=$DB_PASS" >> .env
-              fi
-
-              echo "INFO: Running Laravel migrations..."
-              php artisan config:clear || true
-              php artisan migrate --force || true
-            else
-              echo "WARNING: psql not available; skipping DB creation and migrations."
-            fi
-
-            echo "INFO: Clearing and optimization of Laravel cache..."
+            # 3. Čišćenje i optimizacija Laravel keša
+            echo "⚡ Čišćenje i optimizacija Laravel keša..."
             php artisan config:clear || true
             php artisan cache:clear || true
             php artisan route:clear || true
             php artisan view:clear || true
 
+            # 4. Sređivanje permisija za storage i bootstrap
+            echo "🔒 Sređujem permisije foldera..."
             mkdir -p "$APP_DIR/storage/framework/views" "$APP_DIR/storage/framework/sessions" "$APP_DIR/storage/framework/cache/data" "$APP_DIR/bootstrap/cache"
             if command -v sudo >/dev/null 2>&1; then
               sudo chown -R www-data:www-data "$APP_DIR/storage" "$APP_DIR/bootstrap/cache" || true
@@ -161,3 +116,11 @@ jobs:
                 sudo chcon -R -t httpd_sys_rw_content_t "$APP_DIR/storage" "$APP_DIR/bootstrap/cache" || true
               fi
             fi
+
+            if command -v sudo >/dev/null 2>&1; then
+              sudo -u www-data test -w "$APP_DIR/storage/framework/views" || true
+            else
+              test -w "$APP_DIR/storage/framework/views" || true
+            fi
+
+            echo "✅ Sve je uspješno podignuto i keširano!"
