@@ -91,24 +91,37 @@ jobs:
 
             cd "$APP_DIR"
 
-            # 1. Instalacija PHP paketa direktno na serveru (kreira vendor folder)
+            # 1. POPRAVKA: Kreiramo storage strukturu ODMAH, prije Composera
+            echo "📁 Pripremam storage i cache foldere..."
+            mkdir -p storage/app/public
+            mkdir -p storage/framework/cache/data
+            mkdir -p storage/framework/sessions
+            mkdir -p storage/framework/views
+            mkdir -p bootstrap/cache
+
+            # Privremeno dajemo dozvole da Composer ne pukne
+            if command -v sudo >/dev/null 2>&1; then
+              sudo chown -R www-data:www-data storage bootstrap/cache || true
+              sudo chmod -R ug+rwX storage bootstrap/cache || true
+            fi
+
+            # 2. Instalacija PHP paketa direktno na serveru
             echo "📦 Instaliram Composer pakete..."
             composer install --no-dev --optimize-autoloader --no-interaction
 
-            # 2. Pokretanje migracija za PostgreSQL bazu
+            # 3. Pokretanje migracija za PostgreSQL bazu
             echo "🗄️ Pokrećem PostgreSQL migracije..."
             php artisan migrate --force
 
-            # 3. Čišćenje i optimizacija Laravel keša
+            # 4. Čišćenje i optimizacija Laravel keša
             echo "⚡ Čišćenje i optimizacija Laravel keša..."
             php artisan config:clear || true
             php artisan cache:clear || true
             php artisan route:clear || true
             php artisan view:clear || true
 
-            # 4. Sređivanje permisija za storage i bootstrap
-            echo "🔒 Sređujem permisije foldera..."
-            mkdir -p "$APP_DIR/storage/framework/views" "$APP_DIR/storage/framework/sessions" "$APP_DIR/storage/framework/cache/data" "$APP_DIR/bootstrap/cache"
+            # 5. Finalno osiguravanje permisija za web server
+            echo "🔒 Finalno zaključavanje permisija..."
             if command -v sudo >/dev/null 2>&1; then
               sudo chown -R www-data:www-data "$APP_DIR/storage" "$APP_DIR/bootstrap/cache" || true
               sudo chmod -R ug+rwX "$APP_DIR/storage" "$APP_DIR/bootstrap/cache" || true
@@ -123,4 +136,4 @@ jobs:
               test -w "$APP_DIR/storage/framework/views" || true
             fi
 
-            echo "✅ Sve je uspješno podignuto i keširano!"
+            echo "✅ Sve je uspješno podignuto!"
