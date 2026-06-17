@@ -52,9 +52,15 @@ return new class extends Migration
         if (Schema::hasTable('tournament_groups')) {
             $tgCols = Schema::getColumnListing('tournament_groups');
             if (in_array('competition_id', $tgCols) && in_array('round', $tgCols)) {
-                try { 
-                    DB::statement('CREATE INDEX IF NOT EXISTS idx_tournament_groups_comp_round ON tournament_groups (competition_id, round)'); 
-                } catch (\Exception $e) {}
+                if (DB::getDriverName() === 'pgsql') {
+                    DB::statement('CREATE INDEX IF NOT EXISTS idx_tournament_groups_comp_round ON tournament_groups (competition_id, round)');
+                } else {
+                    try {
+                        Schema::table('tournament_groups', function (Blueprint $table) {
+                            $table->index(['competition_id', 'round'], 'idx_tournament_groups_comp_round');
+                        });
+                    } catch (\Exception $e) {}
+                }
             }
         }
 
@@ -121,7 +127,11 @@ return new class extends Migration
         }
 
         if (Schema::hasTable('tournament_groups')) {
-            try { DB::statement('DROP INDEX IF EXISTS idx_tournament_groups_comp_round'); } catch (\Exception $e) {}
+            if (DB::getDriverName() === 'pgsql') {
+                try { DB::statement('DROP INDEX IF EXISTS idx_tournament_groups_comp_round'); } catch (\Exception $e) {}
+            } else {
+                try { Schema::table('tournament_groups', function (Blueprint $table) { $table->dropIndex('idx_tournament_groups_comp_round'); }); } catch (\Exception $e) {}
+            }
         }
 
         if (Schema::hasTable('organization_user')) {
