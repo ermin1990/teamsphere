@@ -12,8 +12,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // For SQLite, we need to recreate the table to change enum and add new column
-        if (DB::getDriverName() === 'sqlite') {
+        $driver = DB::getDriverName();
+
+        // 1. Specijalni uslov za SQLite (Lokalni razvoj)
+        if ($driver === 'sqlite') {
             // First backup existing data
             DB::statement('CREATE TEMPORARY TABLE matches_backup AS SELECT * FROM matches');
             
@@ -41,8 +43,16 @@ return new class extends Migration
             // Restore data
             DB::statement('INSERT INTO matches (id, created_at, updated_at, league_id, home_team_id, away_team_id, home_player_id, away_player_id, home_score, away_score, scheduled_at, played_at, status, round, sets) SELECT id, created_at, updated_at, league_id, home_team_id, away_team_id, home_player_id, away_player_id, home_score, away_score, scheduled_at, played_at, status, round, sets FROM matches_backup');
             DB::statement('DROP TABLE matches_backup');
+
+        // 2. Specijalni uslov za PostgreSQL (Tvoj VPS server)
+        } elseif ($driver === 'pgsql') {
+            // Kolona 'forfeited_by' je već kreirana u prošloj migraciji, pa je ovdje preskačemo.
+            // Bezbjedno ažuriramo Postgres check constraint za status kolonu da podržava 'forfeited'
+            DB::statement('ALTER TABLE matches DROP CONSTRAINT IF EXISTS matches_status_check');
+            DB::statement("ALTER TABLE matches ADD CONSTRAINT matches_status_check CHECK (status IN ('scheduled', 'in_progress', 'completed', 'forfeited', 'cancelled'))");
+
+        // 3. Uslov za MySQL i ostale baze
         } else {
-            // For other databases, use ALTER TABLE
             Schema::table('matches', function (Blueprint $table) {
                 $table->enum('forfeited_by', ['home', 'away'])->nullable()->after('status');
             });
@@ -55,8 +65,9 @@ return new class extends Migration
      */
     public function down(): void
     {
-        // Revert status enum (remove 'forfeited') and drop forfeited_by column
-        if (DB::getDriverName() === 'sqlite') {
+        $driver = DB::getDriverName();
+
+        if ($driver === 'sqlite') {
             // For SQLite, need to recreate table again
             DB::statement('CREATE TEMPORARY TABLE matches_backup AS SELECT id, created_at, updated_at, league_id, home_team_id, away_team_id, home_player_id, away_player_id, home_score, away_score, scheduled_at, played_at, CASE WHEN status = "forfeited" THEN "cancelled" ELSE status END as status, round, sets FROM matches');
             
@@ -81,6 +92,12 @@ return new class extends Migration
             
             DB::statement('INSERT INTO matches SELECT * FROM matches_backup');
             DB::statement('DROP TABLE matches_backup');
+
+        } elseif ($driver === 'pgsql') {
+            // Vraćamo stari check constraint na Postgresu bez diranja 'forfeited_by' kolone (nju briše prošla migracija)
+            DB::statement('ALTER TABLE matches DROP CONSTRAINT IF EXISTS matches_status_check');
+            DB::statement("ALTER TABLE matches ADD CONSTRAINT matches_status_check CHECK (status IN ('scheduled', 'in_progress', 'completed', 'cancelled'))");
+
         } else {
             Schema::table('matches', function (Blueprint $table) {
                 $table->dropColumn('forfeited_by');
