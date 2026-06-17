@@ -97,13 +97,19 @@ return new class extends Migration
                             
                             // Kreiramo sekvencu ako već ne postoji pod tim imenom
                             DB::statement("CREATE SEQUENCE IF NOT EXISTS \"{$seqName}\"");
-                            
+
                             // Postavljamo sekvencu kao podrazumijevanu vrijednost za ID kolonu
-                            DB::statement("ALTER TABLE \"{$table}\" ALTER COLUMN \"id\" SET DEFAULT nextval('\"{$seqName}\"')");
+                            DB::statement("ALTER TABLE \"{$table}\" ALTER COLUMN \"id\" SET DEFAULT nextval('{$seqName}')");
                             DB::statement("ALTER SEQUENCE \"{$seqName}\" OWNED BY \"{$table}\".\"id\"");
-                            
+
                             // Sinhronizujemo brojač sekvence sa trenutno najvećim ID-jem u tabeli da ne bude dupliranja
-                            DB::statement("SELECT setval('\"{$seqName}\"', COALESCE(MAX(\"id\"), 1)) FROM \"{$table}\"");
+                            // Prvo provjerimo tip kolone 'id' i koristimo setval samo ako je numeričkog tipa
+                            $colType = DB::selectOne("SELECT data_type FROM information_schema.columns WHERE table_name = ? AND column_name = 'id'", [$table]);
+                            $numericTypes = ['smallint','integer','bigint'];
+                            if ($colType && in_array($colType->data_type, $numericTypes, true)) {
+                                // Cast na bigint za sigurnost
+                                DB::statement("SELECT setval('{$seqName}', COALESCE((SELECT MAX(id)::bigint FROM \"{$table}\"), 1))");
+                            }
                         }
                     }
                 }
