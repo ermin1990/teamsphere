@@ -1,46 +1,86 @@
-# Multi-stage Dockerfile for production Laravel app
+# ==============================================================================
+# Stage 1: Build frontend assets (Vite/npm)
+# ==============================================================================
+FROM node:24-alpine AS frontend-builder
 
-### Stage 1: build frontend assets with Node
-FROM node:18-alpine AS node_builder
 WORKDIR /app
+
 COPY package*.json ./
-RUN npm ci --silent
-COPY resources resources
-COPY vite.config.js postcss.config.js tailwind.config.js ./
+RUN npm ci
+
+COPY . .
 RUN npm run build
 
-### Stage 2: install PHP dependencies with Composer
-FROM composer:2 AS composer_builder
-WORKDIR /app
-COPY composer.json composer.lock ./
-RUN composer install --no-dev --prefer-dist --no-interaction --no-scripts
-COPY . /app
-RUN composer dump-autoload --optimize
+# ==============================================================================
+# Stage 2: Composer dependencies
+# ==============================================================================
+FROM composer:2 AS composer-builder
 
-### Stage 3: final image with PHP-FPM and nginx
-FROM php:8.1-fpm-alpine AS final
-RUN apk add --no-cache nginx bash coreutils libzip-dev zip zlib-dev oniguruma-dev icu-dev libxml2-dev curl ca-certificates \
-    && docker-php-ext-install pdo_mysql mbstring xml tokenizer pcntl bcmath zip
+WORKDIR /app
+
+COPY composer.json composer.lock ./
+RUN composer install \
+    --no-dev \
+    --no-scripts \
+    --no-autoloader \
+    --prefer-dist \
+    --no-interaction
+
+COPY . .
+RUN composer dump-autoload --optimize --no-dev
+
+# ==============================================================================
+# Stage 3: Final PHP-FPM runtime image
+# ==============================================================================
+FROM php:8.3-fpm-alpine AS app
+
+RUN apk add --no-cache \
+    bash \
+    postgresql-dev \
+    libzip-dev \
+    icu-dev \
+    oniguruma-dev \
+    libpng-dev \
+    libjpeg-turbo-dev \
+    freetype-dev \
+    $PHPIZE_DEPS
+
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install \
+        pdo_pgsql \
+        zip \
+        intl \
+        mbstring \
+        gd \
+        bcmath \
+        opcache
+
+# Production php.ini tweaks
+RUN { \
+        echo 'opcache.enable=1'; \
+        echo 'opcache.validate_timestamps=0'; \
+        echo 'opcache.max_accelerated_files=20000'; \
+        echo 'opcache.memory_consumption=256'; \
+        echo 'memory_limit=512M'; \
+        echo 'upload_max_filesize=50M'; \
+        echo 'post_max_size=50M'; \
+    } > /usr/local/etc/php/conf.d/zz-app.ini
 
 WORKDIR /var/www/html
 
-# Copy app source and vendor
-COPY --from=composer_builder /app /var/www/html
+# Kod + composer vendor iz prethodnog stage-a
+COPY --from=composer-builder /app /var/www/html
 
-# Copy built frontend assets
-COPY --from=node_builder /app/public /var/www/html/public
+# Build-ovani frontend assets (public/build)
+COPY --from=frontend-builder /app/public/build /var/www/html/public/build
 
-# nginx config
-COPY docker/nginx/default.conf /etc/nginx/conf.d/default.conf
+# Entrypoint koji pokreće migrate/cache pri startu containera
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
 
-RUN addgroup -g 1000 www && adduser -D -u 1000 -G www www
-RUN chown -R www:www /var/www/html && chmod -R 755 /var/www/html/storage /var/www/html/bootstrap/cache || true
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
-ENV PATH="/root/.composer/vendor/bin:${PATH}"
+USER www-data
 
-RUN chmod +x /usr/local/bin/entrypoint.sh || true
-
-EXPOSE 80
-
-ENTRYPOINT ["sh","/usr/local/bin/entrypoint.sh"]
+ENTRYPOINT ["entrypoint.sh"]
+CMD ["php-fpm"]

@@ -1,4 +1,4 @@
-name: 🚀 Deploy to VPS
+name: 🚀 Deploy to VPS (Docker)
 
 on:
   workflow_dispatch:
@@ -14,17 +14,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: npm
-
-      - name: Build frontend assets
-        run: |
-          npm ci
-          npm run build
 
       - name: Create deploy bundle
         run: |
@@ -62,13 +51,14 @@ jobs:
           DB_DATABASE: ${{ secrets.DB_DATABASE }}
           DB_USERNAME: ${{ secrets.DB_USERNAME }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          APP_KEY: ${{ secrets.APP_KEY }}
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USERNAME }}
           key: ${{ secrets.VPS_SSH_KEY }}
           port: ${{ secrets.VPS_PORT || 22 }}
           script_stop: true
-          envs: DB_DATABASE,DB_USERNAME,DB_PASSWORD
+          envs: DB_DATABASE,DB_USERNAME,DB_PASSWORD,APP_KEY
           script: |
             set -e
 
@@ -91,66 +81,32 @@ jobs:
 
             cd "$APP_DIR"
 
+            # .env se ne šalje u bundle-u (excluded) - generišemo/zadržavamo ga
+            # direktno na VPS-u, van Gita, kako tajne nikad ne prolaze kroz repo.
             if [ ! -f ".env" ]; then
               echo "INFO: .env not found. Creating from .env.example..."
               cp .env.example .env
             fi
 
-            # 1. Automatsko upisivanje PostgreSQL kredencijala iz GitHub Secrets u .env
-            echo "🔧 Konfigurišem PostgreSQL konekciju iz GitHub Secrets..."
+            echo "🔧 Upisujem produkcijske vrijednosti u .env..."
             sed -i "s|^DB_CONNECTION=.*|DB_CONNECTION=pgsql|" .env || echo "DB_CONNECTION=pgsql" >> .env
-            sed -i "s|^DB_HOST=.*|DB_HOST=127.0.0.1|" .env || echo "DB_HOST=127.0.0.1" >> .env
+            sed -i "s|^DB_HOST=.*|DB_HOST=postgres|" .env || echo "DB_HOST=postgres" >> .env
             sed -i "s|^DB_PORT=.*|DB_PORT=5432|" .env || echo "DB_PORT=5432" >> .env
             sed -i "s|^DB_DATABASE=.*|DB_DATABASE=$DB_DATABASE|" .env || echo "DB_DATABASE=$DB_DATABASE" >> .env
             sed -i "s|^DB_USERNAME=.*|DB_USERNAME=$DB_USERNAME|" .env || echo "DB_USERNAME=$DB_USERNAME" >> .env
             sed -i "s|^DB_PASSWORD=.*|DB_PASSWORD=$DB_PASSWORD|" .env || echo "DB_PASSWORD=$DB_PASSWORD" >> .env
 
-            # 2. Priprema storage i cache strukture prije pokretanja Composera
-            echo "📁 Pripremam storage i cache foldere..."
-            mkdir -p storage/app/public
-            mkdir -p storage/framework/cache/data
-            mkdir -p storage/framework/sessions
-            mkdir -p storage/framework/views
-            mkdir -p bootstrap/cache
-
-            if command -v sudo >/dev/null 2>&1; then
-              sudo chown -R www-data:www-data storage bootstrap/cache || true
-              sudo chmod -R ug+rwX storage bootstrap/cache || true
+            if [ -n "$APP_KEY" ]; then
+              sed -i "s|^APP_KEY=.*|APP_KEY=$APP_KEY|" .env || echo "APP_KEY=$APP_KEY" >> .env
             fi
 
-            # 3. Instalacija PHP paketa direktno na serveru
-            echo "📦 Instaliram Composer pakete..."
-            composer install --no-dev --optimize-autoloader --no-interaction
+            echo "🐳 Gradim docker image..."
+            docker compose build
 
-            # 4. Brisanje starog konfiguracijskog keša da Laravel sigurno povuče port 5432 i lozinku
-            echo "🧹 Čistim stari konfiguracijski keš..."
-            rm -f bootstrap/cache/config.php || true
-            php artisan config:clear || true
+            echo "🚀 Podižem stack (app + nginx + postgres + queue)..."
+            docker compose up -d --remove-orphans
 
-            # 5. Pokretanje migracija nad PostgreSQL bazom
-            echo "🗄️ Pokrećem PostgreSQL migracije..."
-            php artisan migrate --force
+            echo "🧹 Čistim nekorišćene image-e (stari build layeri)..."
+            docker image prune -f
 
-            # 6. Optimizacija i keširanje za produkciju
-            echo "⚡ Optimizacija Laravel keša..."
-            php artisan config:cache || true
-            php artisan route:cache || true
-            php artisan view:cache || true
-
-            # 7. Finalno osiguravanje permisija za web server (Nginx)
-            echo "🔒 Finalno zaključavanje permisija..."
-            if command -v sudo >/dev/null 2>&1; then
-              sudo chown -R www-data:www-data "$APP_DIR/storage" "$APP_DIR/bootstrap/cache" || true
-              sudo chmod -R ug+rwX "$APP_DIR/storage" "$APP_DIR/bootstrap/cache" || true
-              if command -v getenforce >/dev/null 2>&1 && [ "$(getenforce 2>/dev/null)" = "Enforcing" ] && command -v chcon >/dev/null 2>&1; then
-                sudo chcon -R -t httpd_sys_rw_content_t "$APP_DIR/storage" "$APP_DIR/bootstrap/cache" || true
-              fi
-            fi
-
-            if command -v sudo >/dev/null 2>&1; then
-              sudo -u www-data test -w "$APP_DIR/storage/framework/views" || true
-            else
-              test -w "$APP_DIR/storage/framework/views" || true
-            fi
-
-            echo "✅ Sve je uspješno podignuto na PostgreSQL bazi!"
+            echo "✅ Deploy završen. Provjeri: docker compose ps"
