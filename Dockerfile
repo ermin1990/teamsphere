@@ -12,9 +12,13 @@ COPY . .
 RUN npm run build
 
 # ==============================================================================
-# Stage 2: Composer dependencies
+# Stage 2: Composer dependencies (koristi istu PHP verziju kao finalni runtime)
 # ==============================================================================
-FROM composer:2 AS composer-builder
+FROM php:8.3-cli-alpine AS composer-builder
+
+RUN apk add --no-cache git curl unzip postgresql-dev libzip-dev icu-dev oniguruma-dev \
+    && docker-php-ext-install pdo_pgsql zip intl mbstring bcmath \
+    && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
 WORKDIR /app
 
