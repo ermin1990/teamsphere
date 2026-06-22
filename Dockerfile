@@ -70,6 +70,13 @@ RUN { \
         echo 'post_max_size=50M'; \
     } > /usr/local/etc/php/conf.d/zz-app.ini
 
+# php-fpm po default-u sluša samo na 127.0.0.1:9000 kad ne radi kao root,
+# a nginx mu pristupa iz DRUGOG containera preko mreže - mora slušati na 0.0.0.0
+RUN { \
+        echo '[www]'; \
+        echo 'listen = 0.0.0.0:9000'; \
+    } > /usr/local/etc/php-fpm.d/zz-listen.conf
+
 WORKDIR /var/www/html
 
 # Kod + composer vendor iz prethodnog stage-a
