@@ -154,6 +154,7 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
     <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
 </head>
 <body class="antialiased min-h-screen pb-16 md:pb-8" style="background-color: var(--bg-primary); color: var(--text-primary);">

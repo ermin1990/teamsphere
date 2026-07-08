@@ -52,6 +52,7 @@ jobs:
           DB_USERNAME: ${{ secrets.DB_USERNAME }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
           APP_KEY: ${{ secrets.APP_KEY }}
+          APP_URL: ${{ secrets.APP_URL }}
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USERNAME }}
@@ -59,7 +60,7 @@ jobs:
           port: ${{ secrets.VPS_PORT || 22 }}
           script_stop: true
           command_timeout: 30m
-          envs: DB_DATABASE,DB_USERNAME,DB_PASSWORD,APP_KEY
+          envs: DB_DATABASE,DB_USERNAME,DB_PASSWORD,APP_KEY,APP_URL
           script: |
             set -e
 
@@ -99,6 +100,19 @@ jobs:
 
             if [ -n "$APP_KEY" ]; then
               sed -i "s|^APP_KEY=.*|APP_KEY=$APP_KEY|" .env || echo "APP_KEY=$APP_KEY" >> .env
+            fi
+
+            sed -i "s|^APP_ENV=.*|APP_ENV=production|" .env
+
+            APP_NAME_VAL="Team Sphere - Organizacija stonoteniskih turnira i liga"
+            if grep -q "^APP_NAME=" .env; then
+              sed -i "s|^APP_NAME=.*|APP_NAME=\"$APP_NAME_VAL\"|" .env
+            else
+              echo "APP_NAME=\"$APP_NAME_VAL\"" >> .env
+            fi
+
+            if [ -n "$APP_URL" ]; then
+              sed -i "s|^APP_URL=.*|APP_URL=$APP_URL|" .env
             fi
 
             echo "🐳 Gradim docker image..."
