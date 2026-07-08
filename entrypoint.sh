@@ -10,6 +10,10 @@ echo "Baza je spremna."
 
 php artisan migrate --force
 
+# Jednokratni uvoz starih (MySQL->PostgreSQL) podataka.
+# Komanda je idempotentna: uveze samo ako je baza prazna (nema korisnika).
+php artisan db:import-legacy || echo "UPOZORENJE: uvoz starih podataka nije uspio (nastavljam)."
+
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache
