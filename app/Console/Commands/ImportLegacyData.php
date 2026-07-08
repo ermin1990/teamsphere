@@ -12,22 +12,19 @@ class ImportLegacyData extends Command
      * @var string
      */
     protected $signature = 'db:import-legacy
-        {file=database/legacy_data.pgsql : Putanja do konvertovanog SQL fajla}
-        {--force : Ponovo uvezi (očisti pa uvezi) čak i ako je uvoz već obavljen}';
+        {file=database/legacy_data.pgsql : Putanja do konvertovanog SQL fajla}';
 
     /**
      * @var string
      */
-    protected $description = 'Jednokratno čisti test podatke i uvozi stare (MySQL->PostgreSQL) podatke';
+    protected $description = 'Čisti sve podatke i uvozi stare (MySQL->PostgreSQL) podatke pri svakom deployu';
 
     /** Laravel/framework tabele koje NIKAD ne diramo. */
     private const FRAMEWORK = [
         'migrations', 'cache', 'cache_locks', 'sessions', 'jobs',
         'job_batches', 'failed_jobs', 'password_reset_tokens',
-        'legacy_data_imports',
     ];
 
-    private const MARKER_TABLE = 'legacy_data_imports';
     private const LOCK_KEY = 918273645;
 
     public function handle(): int
@@ -36,14 +33,6 @@ class ImportLegacyData extends Command
 
         if (!is_file($path)) {
             $this->warn("Legacy fajl ne postoji: {$path} — preskačem uvoz.");
-            return self::SUCCESS; // ne ruši deploy
-        }
-
-        $this->ensureMarkerTable();
-
-        // Idempotentnost: uvoz je već obavljen -> ne diramo bazu.
-        if (!$this->option('force') && $this->alreadyImported()) {
-            $this->info('Stari podaci su već uvezeni ranije — preskačem.');
             return self::SUCCESS;
         }
 
@@ -53,27 +42,17 @@ class ImportLegacyData extends Command
             return self::SUCCESS;
         }
 
-        // Skini vanjski BEGIN/COMMIT i SET session_replication_role iz fajla —
-        // transakciju i gašenje FK-a kontroliše ova komanda (da truncate + uvoz
-        // budu jedna atomska operacija: ili prođe sve, ili se ništa ne mijenja).
         $sql = preg_replace('/^\s*(BEGIN|COMMIT)\s*;\s*$/mi', '', $sql);
         $sql = preg_replace('/^\s*SET\s+session_replication_role.*$/mi', '', $sql);
 
-        // Advisory lock: app i queue container startuju istovremeno — samo jedan smije uvoziti.
         DB::select('SELECT pg_advisory_lock(?)', [self::LOCK_KEY]);
 
         try {
-            if (!$this->option('force') && $this->alreadyImported()) {
-                $this->info('Drugi proces je već uvezao podatke — preskačem.');
-                return self::SUCCESS;
-            }
-
             $domain = $this->domainTables();
 
-            $this->info('Čistim test podatke i uvozim stare podatke...');
+            $this->info('Čistim sve podatke i uvozim iz legacy dump-a...');
 
             DB::transaction(function () use ($sql, $domain) {
-                // FK provjere se gase samo unutar ove transakcije.
                 DB::statement('SET session_replication_role = replica');
 
                 if (!empty($domain)) {
@@ -81,11 +60,9 @@ class ImportLegacyData extends Command
                     DB::statement("TRUNCATE {$list} RESTART IDENTITY CASCADE");
                 }
 
-                DB::unprepared($sql); // INSERT-i + setval sekvenci
+                DB::unprepared($sql);
 
                 DB::statement('SET session_replication_role = DEFAULT');
-
-                DB::table(self::MARKER_TABLE)->insert(['imported_at' => now()]);
             });
         } catch (\Throwable $e) {
             $this->error('Uvoz nije uspio (baza je vraćena u prethodno stanje): ' . $e->getMessage());
@@ -100,21 +77,7 @@ class ImportLegacyData extends Command
         return self::SUCCESS;
     }
 
-    private function ensureMarkerTable(): void
-    {
-        DB::statement(
-            'CREATE TABLE IF NOT EXISTS "' . self::MARKER_TABLE . '" ' .
-            '(id serial PRIMARY KEY, imported_at timestamp NULL)'
-        );
-    }
-
-    private function alreadyImported(): bool
-    {
-        return Schema::hasTable(self::MARKER_TABLE)
-            && DB::table(self::MARKER_TABLE)->exists();
-    }
-
-    /** Sve tabele u 'public' schemi osim framework/marker tabela. */
+    /** Sve tabele u 'public' schemi osim framework tabela. */
     private function domainTables(): array
     {
         $rows = DB::select(
