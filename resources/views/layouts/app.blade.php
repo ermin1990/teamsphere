@@ -9,8 +9,10 @@
         <link rel="manifest" href="/manifest.webmanifest">
         <meta name="theme-color" content="#1e40af">
         <link rel="apple-touch-icon" href="/icons/icon-192.svg">
+        <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
+        <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
 
-        <title>{{ config('app.name', 'Laravel') }}</title>
+        <title>{{ config('app.name', 'Team Sphere') }}</title>
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">

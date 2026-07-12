@@ -1,0 +1,130 @@
+name: 🚀 Deploy to VPS (Docker)
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Create deploy bundle
+        run: |
+          rm -rf /tmp/teamsphere_bundle
+          mkdir -p /tmp/teamsphere_bundle
+
+          rsync -a --delete \
+            --exclude=.git \
+            --exclude=.env \
+            --exclude=node_modules \
+            --exclude=vendor \
+            --exclude=.github \
+            --exclude=deploy.tar.gz \
+            --exclude='storage/logs/*' \
+            --exclude='storage/framework/cache/data/*' \
+            --exclude='database/*.sqlite' \
+            ./ /tmp/teamsphere_bundle/
+
+          tar -C /tmp/teamsphere_bundle -czf deploy.tar.gz .
+
+      - name: Copy bundle to VPS
+        uses: appleboy/scp-action@v1.0.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT || 22 }}
+          source: "deploy.tar.gz"
+          target: "/tmp/teamsphere_deploy"
+          rm: true
+
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1.2.0
+        env:
+          DB_DATABASE: ${{ secrets.DB_DATABASE }}
+          DB_USERNAME: ${{ secrets.DB_USERNAME }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          APP_KEY: ${{ secrets.APP_KEY }}
+          APP_URL: ${{ secrets.APP_URL }}
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT || 22 }}
+          script_stop: true
+          command_timeout: 30m
+          envs: DB_DATABASE,DB_USERNAME,DB_PASSWORD,APP_KEY,APP_URL
+          script: |
+            set -e
+
+            APP_DIR="${{ secrets.VPS_APP_DIR }}"
+            TMP_DIR="/tmp/teamsphere_deploy"
+            BUNDLE="$TMP_DIR/deploy.tar.gz"
+
+            if [ -z "$APP_DIR" ]; then
+              echo "ERROR: VPS_APP_DIR secret is empty."
+              exit 1
+            fi
+
+            if [ ! -f "$BUNDLE" ]; then
+              echo "ERROR: Bundle not found on VPS: $BUNDLE"
+              exit 1
+            fi
+
+            mkdir -p "$APP_DIR"
+            tar -xzf "$BUNDLE" -C "$APP_DIR"
+
+            cd "$APP_DIR"
+
+            # .env se ne šalje u bundle-u (excluded) - generišemo/zadržavamo ga
+            # direktno na VPS-u, van Gita, kako tajne nikad ne prolaze kroz repo.
+            if [ ! -f ".env" ]; then
+              echo "INFO: .env not found. Creating from .env.example..."
+              cp .env.example .env
+            fi
+
+            # MySQL kredencijali iz GitHub Secrets. Ovo se izvršava pri SVAKOM deploy-u i
+            # uvijek povezuje na ISTU, postojeću MySQL bazu (docker-compose named volume
+            # `mysql_data` nije diran ovim - ne kreira novu bazu, ne briše postojeće podatke).
+            echo "🔧 Upisujem produkcijske vrijednosti u .env..."
+            sed -i "s|^DB_CONNECTION=.*|DB_CONNECTION=mysql|" .env || echo "DB_CONNECTION=mysql" >> .env
+            sed -i "s|^DB_HOST=.*|DB_HOST=db|" .env || echo "DB_HOST=db" >> .env
+            sed -i "s|^DB_PORT=.*|DB_PORT=3306|" .env || echo "DB_PORT=3306" >> .env
+            sed -i "s|^DB_DATABASE=.*|DB_DATABASE=$DB_DATABASE|" .env || echo "DB_DATABASE=$DB_DATABASE" >> .env
+            sed -i "s|^DB_USERNAME=.*|DB_USERNAME=$DB_USERNAME|" .env || echo "DB_USERNAME=$DB_USERNAME" >> .env
+            sed -i "s|^DB_PASSWORD=.*|DB_PASSWORD=$DB_PASSWORD|" .env || echo "DB_PASSWORD=$DB_PASSWORD" >> .env
+
+            if [ -n "$APP_KEY" ]; then
+              sed -i "s|^APP_KEY=.*|APP_KEY=$APP_KEY|" .env || echo "APP_KEY=$APP_KEY" >> .env
+            fi
+
+            sed -i "s|^APP_ENV=.*|APP_ENV=production|" .env
+
+            APP_NAME_VAL="Team Sphere - Organizacija stonoteniskih turnira i liga"
+            if grep -q "^APP_NAME=" .env; then
+              sed -i "s|^APP_NAME=.*|APP_NAME=\"$APP_NAME_VAL\"|" .env
+            else
+              echo "APP_NAME=\"$APP_NAME_VAL\"" >> .env
+            fi
+
+            if [ -n "$APP_URL" ]; then
+              sed -i "s|^APP_URL=.*|APP_URL=$APP_URL|" .env
+            fi
+
+            echo "🐳 Gradim docker image..."
+            docker compose build
+
+            echo "🚀 Podižem stack (app + nginx + mysql + queue)..."
+            docker compose up -d --remove-orphans
+
+            echo "🧹 Čistim nekorišćene image-e (stari build layeri)..."
+            docker image prune -f
+
+            echo "✅ Deploy završen na MySQL bazi. Provjeri: docker compose ps"

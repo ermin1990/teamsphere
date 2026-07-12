@@ -1,5 +1,22 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
-  <rect width="512" height="512" fill="#4f46e5" rx="64"/>
-  <path d="M256 100l100 200H156l100-200z" fill="white"/>
-  <text x="256" y="350" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="40" font-weight="bold">TS</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="Team Sphere">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#4f46e5"/>
+      <stop offset="1" stop-color="#7c3aed"/>
+    </linearGradient>
+    <radialGradient id="ball" cx="0.35" cy="0.32" r="0.85">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#e2e8f0"/>
+    </radialGradient>
+  </defs>
+  <rect x="0" y="0" width="512" height="512" rx="112" fill="url(#bg)"/>
+  <g transform="rotate(-32 214 276)">
+    <rect x="184" y="300" width="60" height="150" rx="28" fill="#f2c184"/>
+    <rect x="184" y="300" width="60" height="34" fill="#d9a45f"/>
+    <circle cx="214" cy="232" r="140" fill="#ffffff"/>
+    <circle cx="214" cy="232" r="120" fill="#ef4444"/>
+    <circle cx="214" cy="232" r="120" fill="#000000" opacity="0.06"/>
+  </g>
+  <circle cx="372" cy="150" r="60" fill="url(#ball)"/>
+  <circle cx="352" cy="132" r="18" fill="#ffffff" opacity="0.7"/>
 </svg>
