@@ -10,4 +10,4 @@ services:
     environment:
       - APP_ENV=local
       - APP_DEBUG=1
-    command: sh -c "chown -R www:www storage bootstrap/cache || true; php-fpm -F & nginx -g 'daemon off;'"
+    command: sh -c "chown -R www-data:www-data storage bootstrap/cache || true; php-fpm -F & nginx -g 'daemon off;'"

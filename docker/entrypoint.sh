@@ -28,8 +28,8 @@ php artisan config:cache || true
 php artisan route:cache || true
 php artisan view:cache || true
 
-# ensure permissions
-chown -R www:www storage bootstrap/cache || true
+# ensure permissions (www-data is who php-fpm's pool config actually runs workers as)
+chown -R www-data:www-data storage bootstrap/cache || true
 
 echo "Starting php-fpm and nginx"
 exec sh -c "php-fpm -F & nginx -g 'daemon off;'"

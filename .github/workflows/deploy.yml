@@ -59,6 +59,8 @@ jobs:
       - name: Deploy over SSH
         uses: appleboy/ssh-action@v1.2.0
         env:
+          DB_HOST: ${{ secrets.DB_HOST || '127.0.0.1' }}
+          DB_PORT: ${{ secrets.DB_PORT || '3306' }}
           DB_DATABASE: ${{ secrets.DB_DATABASE }}
           DB_USERNAME: ${{ secrets.DB_USERNAME }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
@@ -68,7 +70,7 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           port: ${{ secrets.VPS_PORT || 22 }}
           script_stop: true
-          envs: DB_DATABASE,DB_USERNAME,DB_PASSWORD
+          envs: DB_HOST,DB_PORT,DB_DATABASE,DB_USERNAME,DB_PASSWORD
           script: |
             set -e
 
@@ -96,11 +98,14 @@ jobs:
               cp .env.example .env
             fi
 
-            # 1. Automatsko upisivanje PostgreSQL kredencijala iz GitHub Secrets u .env
-            echo "🔧 Konfigurišem PostgreSQL konekciju iz GitHub Secrets..."
-            sed -i "s|^DB_CONNECTION=.*|DB_CONNECTION=pgsql|" .env || echo "DB_CONNECTION=pgsql" >> .env
-            sed -i "s|^DB_HOST=.*|DB_HOST=127.0.0.1|" .env || echo "DB_HOST=127.0.0.1" >> .env
-            sed -i "s|^DB_PORT=.*|DB_PORT=5432|" .env || echo "DB_PORT=5432" >> .env
+            # 1. Automatsko upisivanje MySQL kredencijala iz GitHub Secrets u .env
+            # NAPOMENA: ovo se izvršava pri SVAKOM deploy-u i uvijek povezuje na ISTU,
+            # postojeću MySQL bazu (ne kreira novu, ne briše postojeće podatke) - samo
+            # osigurava da .env na VPS-u ostane ispravno podešen za MySQL.
+            echo "🔧 Konfigurišem MySQL konekciju iz GitHub Secrets..."
+            sed -i "s|^DB_CONNECTION=.*|DB_CONNECTION=mysql|" .env || echo "DB_CONNECTION=mysql" >> .env
+            sed -i "s|^DB_HOST=.*|DB_HOST=$DB_HOST|" .env || echo "DB_HOST=$DB_HOST" >> .env
+            sed -i "s|^DB_PORT=.*|DB_PORT=$DB_PORT|" .env || echo "DB_PORT=$DB_PORT" >> .env
             sed -i "s|^DB_DATABASE=.*|DB_DATABASE=$DB_DATABASE|" .env || echo "DB_DATABASE=$DB_DATABASE" >> .env
             sed -i "s|^DB_USERNAME=.*|DB_USERNAME=$DB_USERNAME|" .env || echo "DB_USERNAME=$DB_USERNAME" >> .env
             sed -i "s|^DB_PASSWORD=.*|DB_PASSWORD=$DB_PASSWORD|" .env || echo "DB_PASSWORD=$DB_PASSWORD" >> .env
@@ -122,13 +127,13 @@ jobs:
             echo "📦 Instaliram Composer pakete..."
             composer install --no-dev --optimize-autoloader --no-interaction
 
-            # 4. Brisanje starog konfiguracijskog keša da Laravel sigurno povuče port 5432 i lozinku
+            # 4. Brisanje starog konfiguracijskog keša da Laravel sigurno povuče port 3306 i lozinku
             echo "🧹 Čistim stari konfiguracijski keš..."
             rm -f bootstrap/cache/config.php || true
             php artisan config:clear || true
 
-            # 5. Pokretanje migracija nad PostgreSQL bazom
-            echo "🗄️ Pokrećem PostgreSQL migracije..."
+            # 5. Pokretanje migracija nad MySQL bazom (samo nove/pending migracije - ne dira postojeće podatke)
+            echo "🗄️ Pokrećem MySQL migracije..."
             php artisan migrate --force
 
             # 6. Optimizacija i keširanje za produkciju
@@ -153,4 +158,4 @@ jobs:
               test -w "$APP_DIR/storage/framework/views" || true
             fi
 
-            echo "✅ Sve je uspješno podignuto na PostgreSQL bazi!"
+            echo "✅ Sve je uspješno podignuto na MySQL bazi!"

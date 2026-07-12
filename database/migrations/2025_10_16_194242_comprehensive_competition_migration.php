@@ -45,7 +45,10 @@ return new class extends Migration
         }
 
         // Update all foreign key constraints and rename columns
-        // Skip matches table as it may have been already modified or has different structure
+        // Skip matches table: unlike teams/standings/league_user/league_player below (which are
+        // true renames), `matches` ends up with BOTH `league_id` (kept, nullable, vestigial) AND a
+        // separate new `competition_id` column - that is added later by
+        // 2025_10_16_222823_rename_league_id_to_competition_id_in_matches_table, not here.
         /*
         if (Schema::hasColumn('matches', 'league_id')) {
             Schema::table('matches', function (Blueprint $table) {

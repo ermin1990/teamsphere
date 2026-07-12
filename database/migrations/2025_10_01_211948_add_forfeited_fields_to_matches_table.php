@@ -67,9 +67,13 @@ return new class extends Migration
 
         // 3. Uslov za MySQL
         } elseif ($driver === 'mysql') {
-            Schema::table('matches', function (Blueprint $table) {
-                $table->enum('forfeited_by', ['home', 'away'])->nullable()->after('status');
-            });
+            // Kolona 'forfeited_by' je već kreirana u prošloj migraciji (2025_10_01_201342),
+            // pa je ovdje preskačemo ako već postoji (isto kao pgsql grana iznad).
+            if (! Schema::hasColumn('matches', 'forfeited_by')) {
+                Schema::table('matches', function (Blueprint $table) {
+                    $table->enum('forfeited_by', ['home', 'away'])->nullable()->after('status');
+                });
+            }
             DB::statement("ALTER TABLE matches MODIFY COLUMN status ENUM('scheduled', 'in_progress', 'completed', 'forfeited', 'cancelled') DEFAULT 'scheduled'");
         }
     }

@@ -16,7 +16,9 @@ return new class extends Migration
                 $table->string('phase')->nullable()->after('status')->comment('Tournament phase: groups, knockout');
             }
             if (!Schema::hasColumn('matches', 'tournament_group_id')) {
-                $table->foreignId('tournament_group_id')->nullable()->after('competition_id')->constrained('tournament_groups')->onDelete('cascade');
+                // Positioned after `league_id`, not `competition_id`: on a fresh install this
+                // migration runs before 2025_10_16_222823 adds `competition_id` to `matches`.
+                $table->foreignId('tournament_group_id')->nullable()->after('league_id')->constrained('tournament_groups')->onDelete('cascade');
             }
             if (!Schema::hasColumn('matches', 'round_number')) {
                 $table->integer('round_number')->nullable()->after('phase')->comment('Round number in knockout phase');
