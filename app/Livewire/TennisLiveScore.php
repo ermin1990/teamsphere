@@ -253,14 +253,19 @@ class TennisLiveScore extends Component
         $homeStanding->increment('played');
         $awayStanding->increment('played');
 
+        $pointsForWin = $competition->points_for_win ?? 2;
+        $pointsForLoss = $competition->points_for_loss ?? 0;
+
         if ($this->homeSets > $this->awaySets) {
             $homeStanding->increment('won');
-            $homeStanding->increment('points', 3);
+            $homeStanding->increment('points', $pointsForWin);
             $awayStanding->increment('lost');
+            $awayStanding->increment('points', $pointsForLoss);
         } else {
             $awayStanding->increment('won');
-            $awayStanding->increment('points', 3);
+            $awayStanding->increment('points', $pointsForWin);
             $homeStanding->increment('lost');
+            $homeStanding->increment('points', $pointsForLoss);
         }
     }
 

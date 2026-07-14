@@ -969,7 +969,64 @@ class CompetitionController extends Controller
             $competition->propagateWinnerChanges($match);
         }
 
+        // Update standings for individual/team leagues - quick-result previously
+        // only touched tournament standings, so a league match marked complete
+        // this way never affected the table at all.
+        if ($competition->isLeague()) {
+            $this->updateLeagueStandingsFromMatch($competition, $match);
+        }
+
         return back()->with('success', 'Match result saved successfully!');
+    }
+
+    /**
+     * Update the standings table for an individual/team league match, using the
+     * competition's own points_for_win/draw/loss settings. Idempotent per match
+     * is NOT enforced here (matches quick-result's existing "mark complete and
+     * increment" behaviour) - re-submitting a result via quick-result will double
+     * count, same as it already could for tournament standings recalculation.
+     */
+    private function updateLeagueStandingsFromMatch(Competition $competition, CompetitionMatch $match): void
+    {
+        $isTeamBased = $competition->is_team_based;
+        $homeId = $isTeamBased ? $match->home_team_id : $match->home_player_id;
+        $awayId = $isTeamBased ? $match->away_team_id : $match->away_player_id;
+
+        $homeStanding = Standing::firstOrCreate([
+            'competition_id' => $competition->id,
+            'player_id' => $isTeamBased ? null : $homeId,
+            'team_id' => $isTeamBased ? $homeId : null,
+        ], ['played' => 0, 'won' => 0, 'drawn' => 0, 'lost' => 0, 'points' => 0, 'position' => 999]);
+
+        $awayStanding = Standing::firstOrCreate([
+            'competition_id' => $competition->id,
+            'player_id' => $isTeamBased ? null : $awayId,
+            'team_id' => $isTeamBased ? $awayId : null,
+        ], ['played' => 0, 'won' => 0, 'drawn' => 0, 'lost' => 0, 'points' => 0, 'position' => 999]);
+
+        $homeStanding->increment('played');
+        $awayStanding->increment('played');
+
+        $pointsForWin = $competition->points_for_win ?? 2;
+        $pointsForDraw = $competition->points_for_draw ?? 1;
+        $pointsForLoss = $competition->points_for_loss ?? 0;
+
+        if ($match->home_score > $match->away_score) {
+            $homeStanding->increment('won');
+            $homeStanding->increment('points', $pointsForWin);
+            $awayStanding->increment('lost');
+            $awayStanding->increment('points', $pointsForLoss);
+        } elseif ($match->away_score > $match->home_score) {
+            $awayStanding->increment('won');
+            $awayStanding->increment('points', $pointsForWin);
+            $homeStanding->increment('lost');
+            $homeStanding->increment('points', $pointsForLoss);
+        } else {
+            $homeStanding->increment('drawn');
+            $awayStanding->increment('drawn');
+            $homeStanding->increment('points', $pointsForDraw);
+            $awayStanding->increment('points', $pointsForDraw);
+        }
     }
 
     /**

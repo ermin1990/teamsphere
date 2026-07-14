@@ -58,28 +58,29 @@
                 </form>
             </div>
 
+            @if($competition->sport->isPointsBased())
             <!-- Quick Presets -->
-                        <!-- Quick Presets -->
             <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl mb-6">
                 <h3 class="text-xl font-semibold text-white mb-4">Brzi Predlošci</h3>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <button onclick="applyPreset('standard')" 
+                    <button onclick="applyPreset('standard')"
                             class="bg-blue-600/20 hover:bg-blue-600/30 border-blue-500 border-2 text-white p-4 rounded-lg transition-colors text-left">
                         <h4 class="font-semibold mb-2">🏆 Standard (11 poena)</h4>
                         <p class="text-sm text-gray-300">Najbolji od 3, 11 poena, završetak pri 10</p>
                     </button>
-                    <button onclick="applyPreset('extended')" 
+                    <button onclick="applyPreset('extended')"
                             class="bg-purple-600/20 hover:bg-purple-600/30 border-purple-500 border-2 text-white p-4 rounded-lg transition-colors text-left">
                         <h4 class="font-semibold mb-2">🎯 Produženo (15 poena)</h4>
                         <p class="text-sm text-gray-300">Najbolji od 3, 15 poena, završetak pri 14</p>
                     </button>
-                    <button onclick="applyPreset('classic')" 
+                    <button onclick="applyPreset('classic')"
                             class="bg-green-600/20 hover:bg-green-600/30 border-green-500 border-2 text-white p-4 rounded-lg transition-colors text-left">
                         <h4 class="font-semibold mb-2">⚡ Classic (21 pts)</h4>
                         <p class="text-sm text-gray-300">Best of 3, 21 points, deuce at 20</p>
                     </button>
                 </div>
             </div>
+            @endif
 
             <form action="{{ route('organizations.competitions.update-settings', [$organization, $competition]) }}" method="POST" onsubmit="return validateSettingsForm(event)">
                 @csrf
