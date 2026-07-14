@@ -622,11 +622,14 @@ class CompetitionController extends Controller
         //     return back()->with('error', 'Cannot change settings after competition has started.');
         // }
 
+        // Poena/deuce/tiebreak polja se ne prikazuju u formi za sportove sa
+        // gemovima/setovima (Tenis, Padel) - njihova pravila su fiksna (vidi
+        // TennisLiveScore), pa ne treba da budu obavezna van stonog tenisa.
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'category_id' => ['nullable', 'exists:categories,id'],
             'sets_to_win' => ['required', 'integer', 'min:1', 'max:7'],
-            'points_per_set' => ['required', 'integer', 'min:7', 'max:21'],
+            'points_per_set' => ['nullable', 'integer', 'min:7', 'max:21'],
             'deuce_at' => ['nullable', 'integer', 'min:5'],
             'must_win_by_two' => ['boolean'],
             'points_for_win' => ['required', 'integer', 'min:0', 'max:10'],
@@ -644,14 +647,14 @@ class CompetitionController extends Controller
             'name' => $request->name,
             'category_id' => $request->category_id,
             'sets_to_win' => $request->sets_to_win,
-            'points_per_set' => $request->points_per_set,
-            'deuce_at' => $request->deuce_at,
+            'points_per_set' => $request->points_per_set ?? $competition->points_per_set,
+            'deuce_at' => $request->deuce_at ?? $competition->deuce_at,
             'must_win_by_two' => $request->boolean('must_win_by_two'),
             'points_for_win' => $request->points_for_win,
             'points_for_draw' => $request->points_for_draw,
             'points_for_loss' => $request->points_for_loss,
             'has_tiebreak' => $request->boolean('has_tiebreak'),
-            'tiebreak_points' => $request->tiebreak_points,
+            'tiebreak_points' => $request->tiebreak_points ?? $competition->tiebreak_points,
             'is_double_round' => $request->boolean('is_double_round'),
         ];
 

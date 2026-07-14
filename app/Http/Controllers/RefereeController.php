@@ -664,6 +664,13 @@ class RefereeController extends Controller
             $match->load(['homeTeam.players', 'awayTeam.players']);
         }
 
+        // Sets/games sports (Tenis, Padel) use a dedicated scorer with real game/set/
+        // deuce/tie-break rules - the table-tennis LiveScore component's win-at-11
+        // logic would silently produce wrong results for these.
+        if ($competition->sport->isSetsGamesBased()) {
+            return view('organizations.competitions.matches.tennis-live', compact('organization', 'competition', 'match', 'isOwner', 'isReferee'));
+        }
+
         return view('organizations.competitions.matches.live', compact('organization', 'competition', 'match', 'isOwner', 'isReferee'));
     }
 

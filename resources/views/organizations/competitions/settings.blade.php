@@ -123,10 +123,11 @@
                     </div>
                 </div>
 
-                <!-- Match Format -->
+                @if($competition->sport->isPointsBased())
+                <!-- Match Format (stoni tenis - bodovanje po setovima do X poena) -->
                 <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl mb-6">
                     <h3 class="text-xl font-semibold text-white mb-4">Format Meča</h3>
-                    
+
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <!-- Sets to Win -->
                         <div>
@@ -163,7 +164,7 @@
                             <label for="deuce_at" class="block text-sm font-medium text-white mb-2">
                                 Deuce na
                             </label>
-                            <input type="number" id="deuce_at" name="deuce_at" 
+                            <input type="number" id="deuce_at" name="deuce_at"
                                    value="{{ old('deuce_at', $competition->deuce_at ?? 10) }}"
                                    min="5" max="20"
                                    class="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
@@ -188,7 +189,7 @@
                 <!-- Tiebreak Settings -->
                 <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl mb-6">
                     <h3 class="text-xl font-semibold text-white mb-4">Postavke Tiebreak-a</h3>
-                    
+
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <!-- Has Tiebreak -->
                         <div>
@@ -209,7 +210,7 @@
                             <label for="tiebreak_points" class="block text-sm font-medium text-white mb-2">
                                 Tiebreak Poeni
                             </label>
-                            <input type="number" id="tiebreak_points" name="tiebreak_points" 
+                            <input type="number" id="tiebreak_points" name="tiebreak_points"
                                    value="{{ old('tiebreak_points', $competition->tiebreak_points ?? 7) }}"
                                    min="5" max="15"
                                    class="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
@@ -217,6 +218,30 @@
                         </div>
                     </div>
                 </div>
+                @elseif($competition->sport->isSetsGamesBased())
+                <!-- Match Format (Tenis/Padel - gemovi/setovi, fiksna pravila) -->
+                <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl mb-6">
+                    <h3 class="text-xl font-semibold text-white mb-4">Format Meča</h3>
+
+                    <div>
+                        <label for="sets_to_win" class="block text-sm font-medium text-white mb-2">
+                            Setova za Pobjedu <span class="text-red-400">*</span>
+                        </label>
+                        <select id="sets_to_win" name="sets_to_win" required
+                                class="w-full max-w-xs px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="1" {{ old('sets_to_win', $competition->sets_to_win ?? 2) == 1 ? 'selected' : '' }}>1 (Najbolji od 1)</option>
+                            <option value="2" {{ old('sets_to_win', $competition->sets_to_win ?? 2) == 2 ? 'selected' : '' }}>2 (Najbolji od 3) - Standard</option>
+                            <option value="3" {{ old('sets_to_win', $competition->sets_to_win ?? 2) == 3 ? 'selected' : '' }}>3 (Najbolji od 5)</option>
+                        </select>
+                        <p class="text-gray-400 text-xs mt-1">Broj setova koji igrač/par treba da osvoji za pobjedu u meču</p>
+                    </div>
+
+                    <p class="text-gray-400 text-sm mt-6 bg-gray-900/40 rounded-xl p-4 border border-gray-700/30">
+                        Set se igra do 6 gemova (razlika 2), sa tie-breakom na 6-6 - standardna pravila za {{ $competition->sport->name }}.
+                        Gem se igra po klasičnom sistemu (0, 15, 30, 40, deuce/prednost).
+                    </p>
+                </div>
+                @endif
 
                 <!-- Tournament Settings -->
                 @if($competition->type === 'tournament')

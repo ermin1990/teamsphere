@@ -7,80 +7,87 @@
 
     <!-- PWA Configuration -->
     <link rel="manifest" href="/manifest.webmanifest">
-    <meta name="theme-color" content="#1e40af">
+    <meta name="theme-color" content="#121309">
     <link rel="apple-touch-icon" href="/icons/icon-192.svg">
 
     <title>@yield('title', 'MojTurnir')</title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
+    <link href="https://fonts.bunny.net/css?family=unbounded:600,700|manrope:400,500,600,700&display=swap" rel="stylesheet" />
 
       <!-- Tailwind CSS CDN -->
         <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- Theme Styles -->
+    <!-- Theme Styles - iste boje/fontovi kao MojTurnir landing (welcome.blade.php) -->
     <style>
         :root {
             /* Dark Theme (Default) */
-            --bg-primary: #111827; /* gray-900 */
-            --bg-secondary: #1f2937; /* gray-800 */
-            --bg-tertiary: #374151; /* gray-700 */
-            --bg-card: rgba(31, 41, 55, 0.5); /* gray-800/50 */
-            --bg-card-solid: #1f2937; /* gray-800 */
-            --bg-accent: rgba(31, 41, 55, 0.95); /* gray-800/95 */
-            --bg-hover: rgba(55, 65, 81, 0.4); /* gray-700/40 */
+            --bg-primary: #121309;
+            --bg-secondary: #1A1C10;
+            --bg-tertiary: #262918;
+            --bg-card: rgba(26, 28, 16, 0.55);
+            --bg-card-solid: #1A1C10;
+            --bg-accent: rgba(18, 19, 9, 0.95);
+            --bg-hover: rgba(44, 47, 29, 0.5);
 
-            --text-primary: #ffffff; /* white */
-            --text-secondary: #d1d5db; /* gray-300 */
-            --text-tertiary: #9ca3af; /* gray-400 */
-            --text-muted: #6b7280; /* gray-500 */
+            --text-primary: #F4F2E6;
+            --text-secondary: #C7C9B4;
+            --text-tertiary: #A7AB90;
+            --text-muted: #7C8069;
 
-            --border-primary: rgba(55, 65, 81, 0.5); /* gray-700/50 */
-            --border-secondary: rgba(75, 85, 99, 0.3); /* gray-600/30 */
-            --border-accent: rgba(55, 65, 81, 0.5); /* gray-700/50 */
+            --border-primary: rgba(44, 47, 29, 0.7);
+            --border-secondary: rgba(44, 47, 29, 0.4);
+            --border-accent: rgba(44, 47, 29, 0.6);
 
-            --accent-blue: #60a5fa; /* blue-400 */
-            --accent-green: rgba(34, 197, 94, 0.8); /* green-900/80 */
-            --accent-green-solid: #16a34a; /* green-600 */
-            --accent-red: #ef4444; /* red-400 */
-            --accent-yellow: #eab308; /* yellow-400 */
-            --accent-cyan: #06b6d4; /* cyan-400 */
-            --accent-amber: #f59e0b; /* amber-400 */
+            --accent-blue: #D7FF3F; /* MojTurnir brand accent (chartreuse) - var name kept for compatibility */
+            --accent-green: rgba(34, 197, 94, 0.8);
+            --accent-green-solid: #16a34a;
+            --accent-red: #ef4444;
+            --accent-yellow: #eab308;
+            --accent-cyan: #06b6d4;
+            --accent-amber: #f59e0b;
 
-            --shadow-primary: rgba(0, 0, 0, 0.5);
+            --shadow-primary: rgba(0, 0, 0, 0.6);
             --backdrop-blur: blur(12px);
         }
 
         [data-theme="light"] {
             /* Light Theme */
-            --bg-primary: #ffffff; /* white */
-            --bg-secondary: #f9fafb; /* gray-50 */
-            --bg-tertiary: #e5e7eb; /* gray-200 - increased contrast */
-            --bg-card: rgba(255, 255, 255, 0.9); /* white/90 */
-            --bg-card-solid: #ffffff; /* white */
-            --bg-accent: rgba(249, 250, 251, 0.95); /* gray-50/95 */
-            --bg-hover: rgba(243, 244, 246, 0.6); /* gray-100/60 */
+            --bg-primary: #F6F5EF;
+            --bg-secondary: #EDEBDD;
+            --bg-tertiary: #E2E0CE;
+            --bg-card: rgba(255, 255, 255, 0.85);
+            --bg-card-solid: #ffffff;
+            --bg-accent: rgba(246, 245, 239, 0.95);
+            --bg-hover: rgba(226, 224, 206, 0.5);
 
-            --text-primary: #111827; /* gray-900 */
-            --text-secondary: #374151; /* gray-700 */
-            --text-tertiary: #4b5563; /* gray-600 - increased contrast */
-            --text-muted: #6b7280; /* gray-500 - increased contrast */
+            --text-primary: #16180D;
+            --text-secondary: #3A3D28;
+            --text-tertiary: #5C6047;
+            --text-muted: #7C8069;
 
-            --border-primary: rgba(229, 231, 235, 0.8); /* gray-200/80 */
-            --border-secondary: rgba(156, 163, 175, 0.6); /* gray-400/60 - increased contrast */
-            --border-accent: rgba(156, 163, 175, 0.3); /* gray-400/30 */
+            --border-primary: rgba(92, 96, 71, 0.25);
+            --border-secondary: rgba(92, 96, 71, 0.4);
+            --border-accent: rgba(92, 96, 71, 0.2);
 
-            --accent-blue: #3b82f6; /* blue-500 */
-            --accent-green: rgba(34, 197, 94, 0.9); /* green-500/90 */
-            --accent-green-solid: #16a34a; /* green-600 */
-            --accent-red: #dc2626; /* red-600 */
-            --accent-yellow: #ca8a04; /* yellow-600 */
-            --accent-cyan: #0891b2; /* cyan-600 */
-            --accent-amber: #d97706; /* amber-600 */
+            --accent-blue: #5C8A00; /* darkened chartreuse for legible text/borders on light bg */
+            --accent-green: rgba(34, 197, 94, 0.9);
+            --accent-green-solid: #16a34a;
+            --accent-red: #dc2626;
+            --accent-yellow: #ca8a04;
+            --accent-cyan: #0891b2;
+            --accent-amber: #d97706;
 
             --shadow-primary: rgba(0, 0, 0, 0.1);
             --backdrop-blur: blur(16px);
+        }
+
+        body {
+            font-family: 'Manrope', ui-sans-serif, sans-serif;
+        }
+        h1, h2, h3, h4, .font-display {
+            font-family: 'Unbounded', ui-sans-serif, sans-serif;
         }
 
         /* Smooth transitions for theme changes */

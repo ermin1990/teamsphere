@@ -197,7 +197,16 @@
 
                                         @if($isOwner)
                                             <div class="flex items-center gap-1">
-                                                @if($match->status !== 'completed' && $organization->sport->isPointsBased())
+                                                @if($match->status !== 'completed')
+                                                    <button type="button"
+                                                            onclick="openQuickResultModal({{ $match->id }}, '{{ addslashes($match->homePlayer->name ?? 'TBD') }}', '{{ addslashes($match->awayPlayer->name ?? 'TBD') }}')"
+                                                            class="text-gray-500 hover:text-yellow-400 transition-colors p-1" title="Brzi unos rezultata">
+                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                                                        </svg>
+                                                    </button>
+                                                @endif
+                                                @if($match->status !== 'completed' && ($organization->sport->isPointsBased() || $organization->sport->isSetsGamesBased()))
                                                     <a href="{{ route('referee.competition.match.live', [$competition, $match]) }}" class="text-gray-500 hover:text-green-400 transition-colors p-1" title="Uživo bodovanje">
                                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>

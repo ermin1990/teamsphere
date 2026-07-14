@@ -183,7 +183,11 @@
                     } else {
                         $matches = $competition->matches;
                     }
-                    $matchesByRound = $matches->sortBy('round')->groupBy('round');
+                    // 'round' i 'round_number' su historijski upisivani od strane razlicitih
+                    // generatora - uzmi koje god od ta dva postoji da grupisanje po kolu
+                    // ne bi palo na pogresan default (vidi i league-content.blade.php).
+                    $roundOf = fn($m) => $m->round_number ?? $m->round;
+                    $matchesByRound = $matches->sortBy($roundOf)->groupBy($roundOf);
                 @endphp
                 @if($matchesByRound->count() > 0)
                 <div class="space-y-6 md:space-y-10">
