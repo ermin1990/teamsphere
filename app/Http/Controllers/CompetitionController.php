@@ -120,54 +120,28 @@ class CompetitionController extends Controller
      */
     public function show(Organization $organization, Competition $competition)
     {
-        // EMERGENCY DEBUG
-        $logFile = public_path('debug_competition_show.log');
-        file_put_contents($logFile, "[" . date('Y-m-d H:i:s') . "] === SHOW METHOD CALLED ===\n", FILE_APPEND);
-        file_put_contents($logFile, "Organization: {$organization->id} - {$organization->name}\n", FILE_APPEND);
-        file_put_contents($logFile, "Competition: {$competition->id} - {$competition->name}\n", FILE_APPEND);
-        file_put_contents($logFile, "User: " . auth()->id() . "\n", FILE_APPEND);
-        
-        try {
-            // Use the policy for authorization
-            file_put_contents($logFile, "Before authorize...\n", FILE_APPEND);
-            Gate::authorize('view', $organization);
-            file_put_contents($logFile, "After authorize - PASSED\n", FILE_APPEND);
+        // Use the policy for authorization
+        Gate::authorize('view', $organization);
 
-            // Set variables for the view
-            $isOwner = $organization->user_id === auth()->id();
-            $isPlayer = $organization->players()->where('user_id', auth()->id())->exists();
-            $isReferee = $organization->users()
-                ->where('users.id', auth()->id())
-                ->where('organization_user.role', 'referee')
-                ->exists();
+        // Set variables for the view
+        $isOwner = $organization->user_id === auth()->id();
+        $isPlayer = $organization->players()->where('user_id', auth()->id())->exists();
+        $isReferee = $organization->users()
+            ->where('users.id', auth()->id())
+            ->where('organization_user.role', 'referee')
+            ->exists();
 
-            file_put_contents($logFile, "isOwner: " . ($isOwner ? 'YES' : 'NO') . "\n", FILE_APPEND);
-            file_put_contents($logFile, "isPlayer: " . ($isPlayer ? 'YES' : 'NO') . "\n", FILE_APPEND);
-            file_put_contents($logFile, "isReferee: " . ($isReferee ? 'YES' : 'NO') . "\n", FILE_APPEND);
-
-            // Ensure competition belongs to organization
-            if ($competition->organization_id !== $organization->id) {
-                file_put_contents($logFile, "ERROR: Competition does not belong to organization!\n", FILE_APPEND);
-                abort(404);
-            }
-            
-            file_put_contents($logFile, "Competition belongs to organization - OK\n", FILE_APPEND);
-        } catch (\Exception $e) {
-            file_put_contents($logFile, "EXCEPTION: " . $e->getMessage() . "\n", FILE_APPEND);
-            file_put_contents($logFile, $e->getTraceAsString() . "\n", FILE_APPEND);
-            throw $e;
+        // Ensure competition belongs to organization
+        if ($competition->organization_id !== $organization->id) {
+            abort(404);
         }
-
-        file_put_contents($logFile, "Starting tournament checks...\n", FILE_APPEND);
 
         // Generate group matches if tournament is active but no matches exist
         if ($competition->isTournament() && $competition->status === 'active' && $competition->tournamentGroups()->count() > 0) {
-            file_put_contents($logFile, "Checking group matches...\n", FILE_APPEND);
             $existingMatches = \App\Models\CompetitionMatch::where('competition_id', $competition->id)
                 ->whereNotNull('tournament_group_id')
                 ->count();
             if ($existingMatches === 0) {
-                file_put_contents($logFile, "Generating group matches...\n", FILE_APPEND);
                 $competition->generateGroupMatches();
             }
         }
@@ -179,11 +153,8 @@ class CompetitionController extends Controller
             }
         }
 
-        file_put_contents($logFile, "Checking standings...\n", FILE_APPEND);
-
         // Ensure standings exist for tournament groups (but don't reset existing ones)
         if ($competition->isTournament() && $competition->tournamentGroups()->count() > 0) {
-            file_put_contents($logFile, "Processing tournament groups...\n", FILE_APPEND);
             foreach ($competition->tournamentGroups as $group) {
                 // Skip if player_ids is null or empty
                 if (empty($group->player_ids)) {
@@ -242,8 +213,6 @@ class CompetitionController extends Controller
             }
         }
 
-        file_put_contents($logFile, "Loading relationships...\n", FILE_APPEND);
-
         $competition->load([
             'sport',
             'teams.players',
@@ -259,10 +228,8 @@ class CompetitionController extends Controller
             'tournamentGroups.standings.team'
         ]);
 
-        file_put_contents($logFile, "Loading organization players...\n", FILE_APPEND);
         $organization->load('players');
 
-        file_put_contents($logFile, "Loading knockout matches...\n", FILE_APPEND);
         // Load knockout matches
         $knockoutMatches = \App\Models\CompetitionMatch::where('competition_id', $competition->id)
             ->where('phase', 'knockout')
@@ -270,20 +237,6 @@ class CompetitionController extends Controller
             ->orderBy('round_number')
             ->orderBy('match_order')
             ->get();
-
-        file_put_contents($logFile, "Returning view...\n", FILE_APPEND);
-        file_put_contents($logFile, "=== SUCCESS ===\n\n", FILE_APPEND);
-
-        // Debug
-        \Log::info('Knockout matches loaded', [
-            'competition_id' => $competition->id,
-            'count' => $knockoutMatches->count(),
-            'first_match' => $knockoutMatches->first() ? [
-                'id' => $knockoutMatches->first()->id,
-                'phase' => $knockoutMatches->first()->phase,
-                'status' => $knockoutMatches->first()->status,
-            ] : null
-        ]);
 
         return view('organizations.competitions.show', compact('organization', 'competition', 'isOwner', 'isPlayer', 'isReferee', 'knockoutMatches'));
     }
