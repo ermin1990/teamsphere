@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\BugReport;
+use App\Models\Setting;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 
 class FeedbackController extends Controller
 {
@@ -28,14 +30,25 @@ class FeedbackController extends Controller
             'name' => 'nullable|string|max:255',
         ]);
 
-        BugReport::create([
+        $data = [
             'type' => $request->type,
             'subject' => $request->subject,
             'description' => $request->description,
             'name' => $request->name,
             'email' => $request->email,
             'user_id' => auth()->id(),
-        ]);
+        ];
+
+        BugReport::create($data);
+
+        $recipients = Setting::notificationRecipients();
+        if (!empty($recipients)) {
+            try {
+                Mail::to($recipients)->send(new \App\Mail\BugReport($data));
+            } catch (\Exception $e) {
+                \Log::error('Failed to send bug report notification email', ['error' => $e->getMessage()]);
+            }
+        }
 
         return back()->with('success', __('Thank you for your feedback! We will review it and get back to you if needed.'));
     }

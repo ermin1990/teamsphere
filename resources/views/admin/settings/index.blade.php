@@ -49,34 +49,45 @@
         <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl border border-gray-700/50 shadow-xl">
             <div class="p-6 border-b border-gray-700/50">
                 <h3 class="text-xl font-bold text-white">Email Postavke</h3>
+                <p class="text-gray-400 text-sm mt-1">SMTP server i lozinka se podešavaju direktno na serveru (.env) - ovdje se podešava samo ko šalje i ko prima.</p>
             </div>
-            <div class="p-6 space-y-6">
+            <form method="POST" action="{{ route('admin.settings.update') }}" class="p-6 space-y-6">
+                @csrf
                 <div>
-                    <label class="block text-sm font-medium text-gray-300 mb-2">SMTP Server</label>
-                    <input type="text" value="smtp.gmail.com" class="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <label for="mail_from_name" class="block text-sm font-medium text-gray-300 mb-2">Ime pošiljaoca</label>
+                    <input type="text" name="mail_from_name" id="mail_from_name" value="{{ old('mail_from_name', $settings['mail_from_name']) }}" required
+                           class="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    @error('mail_from_name')<p class="mt-1 text-sm text-red-400">{{ $message }}</p>@enderror
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-300 mb-2">SMTP Port</label>
-                    <input type="number" value="587" class="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <label for="mail_from_address" class="block text-sm font-medium text-gray-300 mb-2">Email adresa sa koje se šalje</label>
+                    <input type="email" name="mail_from_address" id="mail_from_address" value="{{ old('mail_from_address', $settings['mail_from_address']) }}" required
+                           class="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    @error('mail_from_address')<p class="mt-1 text-sm text-red-400">{{ $message }}</p>@enderror
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-300 mb-2">Email adresa</label>
-                    <input type="email" value="noreply@mojturnir.com" class="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <label for="notification_email" class="block text-sm font-medium text-gray-300 mb-2">Email na koji stižu obavještenja</label>
+                    <input type="email" name="notification_email" id="notification_email" value="{{ old('notification_email', $settings['notification_email']) }}"
+                           placeholder="ostavi prazno da idu svim administratorima"
+                           class="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <p class="text-gray-500 text-xs mt-1">Nove registracije, prijave bugova i zahtjevi za veći plan se šalju ovdje.</p>
+                    @error('notification_email')<p class="mt-1 text-sm text-red-400">{{ $message }}</p>@enderror
                 </div>
 
-                <div>
-                    <label class="block text-sm font-medium text-gray-300 mb-2">Lozinka</label>
-                    <input type="password" value="••••••••" class="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                </div>
-
-                <button class="w-full px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-medium rounded-lg transition-all duration-200 transform hover:scale-[1.02]">
-                    Testiraj vezu
+                <button type="submit" class="w-full px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-medium rounded-lg transition-all duration-200 transform hover:scale-[1.02]">
+                    Sačuvaj Email Postavke
                 </button>
-            </div>
+            </form>
         </div>
     </div>
+
+    @if(session('success'))
+        <div class="bg-green-500/10 border border-green-500/30 text-green-400 rounded-xl p-4">
+            {{ session('success') }}
+        </div>
+    @endif
 
     <!-- Maintenance Settings -->
     <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl border border-gray-700/50 shadow-xl">
