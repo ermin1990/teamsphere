@@ -36,30 +36,6 @@ class Organization extends Model
         return 'slug';
     }
 
-    /**
-     * Resolve route binding with debugging.
-     */
-    public function resolveRouteBinding($value, $field = null)
-    {
-        $logFile = public_path('debug_organization.log');
-        $timestamp = date('Y-m-d H:i:s');
-        
-        file_put_contents($logFile, "[$timestamp] Organization::resolveRouteBinding called\n", FILE_APPEND);
-        file_put_contents($logFile, "  Value: $value\n", FILE_APPEND);
-        file_put_contents($logFile, "  Field: " . ($field ?? 'null') . "\n", FILE_APPEND);
-        
-        $organization = $this->where($field ?? $this->getRouteKeyName(), $value)->first();
-        
-        if ($organization) {
-            file_put_contents($logFile, "  Organization FOUND: ID={$organization->id}, Name={$organization->name}\n", FILE_APPEND);
-        } else {
-            file_put_contents($logFile, "  Organization NOT FOUND\n", FILE_APPEND);
-        }
-        
-        file_put_contents($logFile, "\n", FILE_APPEND);
-        
-        return $organization;
-    }
 
     /**
      * Get the user that owns the organization.
