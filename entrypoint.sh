@@ -19,5 +19,15 @@ php artisan view:cache
 
 php artisan storage:link || true
 
+# named volume se popuni iz image-a SAMO pri prvom kreiranju, pa bi direktan mount
+# zamrznuo assets na prvi deploy. Zato ovdje eksplicitno kopiramo svjež sadržaj
+# public/ (uključujući storage symlink iznad) u dijeljeni volumen pri SVAKOM
+# pokretanju, tako da nginx uvijek servira najnoviji build.
+echo "Sinhronizujem javne asset-e (public/) u dijeljeni volumen za nginx..."
+mkdir -p /var/www/html/public_export
+rm -rf /var/www/html/public_export/*
+cp -a /var/www/html/public/. /var/www/html/public_export/
+echo "Asset-i sinhronizovani."
+
 echo "Entrypoint gotov, startujem: $*"
 exec "$@"
