@@ -16,6 +16,9 @@ class PlayerMatchController extends Controller
      */
     private function currentPlayerIn(Competition $competition): Player
     {
+        abort_if($competition->is_team_based, 403, 'Samostalni unos meča je dostupan samo za pojedinačna (ne-ekipna) takmičenja.');
+        abort_unless($competition->status === 'active', 403, 'Ovo takmičenje trenutno ne prima rezultate mečeva.');
+
         $player = $competition->players()->where('players.user_id', auth()->id())->first();
 
         abort_unless($player, 403, 'Nisi prijavljen kao igrač na ovom takmičenju.');
@@ -43,9 +46,14 @@ class PlayerMatchController extends Controller
     {
         $player = $this->currentPlayerIn($competition);
 
+        $playedAtRules = ['nullable', 'date', 'before_or_equal:now'];
+        if ($competition->start_date) {
+            $playedAtRules[] = 'after_or_equal:' . $competition->start_date->toDateString();
+        }
+
         $request->validate([
             'opponent_id' => ['required', 'exists:players,id'],
-            'played_at' => ['nullable', 'date'],
+            'played_at' => $playedAtRules,
             'sets' => ['required', 'array', 'min:1'],
             'sets.*.mine' => ['nullable', 'integer', 'min:0'],
             'sets.*.theirs' => ['nullable', 'integer', 'min:0'],

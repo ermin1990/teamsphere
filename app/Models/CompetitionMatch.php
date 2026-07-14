@@ -96,13 +96,14 @@ class CompetitionMatch extends Model
 
     /**
      * Whether these two players have already been paired (in either
-     * home/away order) in a completed match within this competition -
-     * used to block accidental rematches unless allow_rematches is on.
+     * home/away order) anywhere in this competition - scheduled matches
+     * count too, not just completed ones, so a pending duplicate can't be
+     * added before its predecessor is finished. Used to block accidental
+     * rematches unless allow_rematches is on.
      */
     public static function pairAlreadyPlayed(int $competitionId, int $playerOneId, int $playerTwoId): bool
     {
         return static::where('competition_id', $competitionId)
-            ->where('status', 'completed')
             ->where(function ($query) use ($playerOneId, $playerTwoId) {
                 $query->where(function ($q) use ($playerOneId, $playerTwoId) {
                     $q->where('home_player_id', $playerOneId)->where('away_player_id', $playerTwoId);

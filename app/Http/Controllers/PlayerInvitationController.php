@@ -65,7 +65,7 @@ class PlayerInvitationController extends Controller
      * redirected to login/register first and land back here automatically
      * via Laravel's intended-url mechanism).
      */
-    public function accept(string $token)
+    public function accept(Request $request, string $token)
     {
         $invitation = PlayerInvitation::where('token', $token)->firstOrFail();
 
@@ -78,7 +78,23 @@ class PlayerInvitationController extends Controller
             return redirect()->route('player.dashboard')->with('error', 'Ova pozivnica je istekla. Zatraži novu od organizatora.');
         }
 
-        $userId = auth()->id();
+        $user = auth()->user();
+
+        // Guard against a *different* already-authenticated user claiming
+        // someone else's invitation - only the account whose email matches
+        // the invited email may link the Player record.
+        if (strcasecmp($user->email, $invitation->email) !== 0) {
+            auth()->guard('web')->logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+            $request->session()->put('url.intended', route('player-invitations.accept', $invitation->token));
+
+            return redirect()->route('login')
+                ->with('error', 'Ova pozivnica je poslana na ' . $invitation->email . '. Prijavite se ili registrujte se sa tim emailom da je prihvatite.')
+                ->withInput(['email' => $invitation->email]);
+        }
+
+        $userId = $user->id;
 
         // Link this invitation's player row, and any other unclaimed player
         // rows in the same organization with the same email, to this account.
