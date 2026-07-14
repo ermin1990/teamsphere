@@ -90,6 +90,15 @@ RUN chmod +x /usr/local/bin/entrypoint.sh
 
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
+# Baked kopija public/ vlasnistva www-data - koristi se da inicijalno "posadi" prazan
+# named docker volumen (public_assets) ispravnim vlasnistvom kad se prvi put montira u
+# runtime-u. Bez ovoga volumen bi ostao root-owned (default za prazne volumene), pa
+# www-data (kojim entrypoint.sh radi sync pri svakom restartu) ne bi mogao pisati u njega,
+# sto rezultuje praznim public folderom na nginx-u -> 403 Forbidden.
+RUN mkdir -p /var/www/html/public_export \
+    && cp -a /var/www/html/public/. /var/www/html/public_export/ \
+    && chown -R www-data:www-data /var/www/html/public_export
+
 USER www-data
 
 ENTRYPOINT ["entrypoint.sh"]

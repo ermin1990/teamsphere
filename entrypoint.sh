@@ -27,6 +27,9 @@ echo "Sinhronizujem javne asset-e (public/) u dijeljeni volumen za nginx..."
 mkdir -p /var/www/html/public_export
 rm -rf /var/www/html/public_export/*
 cp -a /var/www/html/public/. /var/www/html/public_export/
+# nginx worker ima drugi uid (npr. "nginx") od www-data, pa vlasnistvo ne pomaze -
+# eksplicitno osiguravamo da su fajlovi citljivi/direktoriji prohodni za bilo koji uid.
+chmod -R a+rX /var/www/html/public_export
 echo "Asset-i sinhronizovani."
 
 echo "Entrypoint gotov, startujem: $*"
