@@ -121,6 +121,40 @@
                                 @endforeach
                             </select>
                         </div>
+
+                        <!-- City -->
+                        <div>
+                            <label for="city_id" class="block text-sm font-medium text-white mb-2">Grad</label>
+                            <select id="city_id" name="city_id"
+                                    class="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+                                <option value="">Bez grada</option>
+                                @foreach($cities as $city)
+                                    <option value="{{ $city->id }}" {{ old('city_id', $competition->city_id) == $city->id ? 'selected' : '' }}>{{ $city->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <!-- Season -->
+                        <div>
+                            <label for="season_id" class="block text-sm font-medium text-white mb-2">Sezona</label>
+                            <select id="season_id" name="season_id"
+                                    class="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+                                <option value="">Bez sezone</option>
+                                @foreach($seasons as $season)
+                                    <option value="{{ $season->id }}" {{ old('season_id', $competition->season_id) == $season->id ? 'selected' : '' }}>
+                                        {{ $season->name }}{{ $season->is_active ? ' (aktivna)' : '' }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <!-- Registration deadline -->
+                        <div>
+                            <label for="registration_deadline" class="block text-sm font-medium text-white mb-2">Prijave otvorene do</label>
+                            <input type="datetime-local" id="registration_deadline" name="registration_deadline"
+                                   value="{{ old('registration_deadline', optional($competition->registration_deadline)->format('Y-m-d\TH:i')) }}"
+                                   class="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+                        </div>
                     </div>
                 </div>
 

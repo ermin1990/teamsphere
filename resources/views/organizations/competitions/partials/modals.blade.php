@@ -41,6 +41,20 @@
                     <p class="text-gray-500 text-xs mt-2">Konačan rezultat (broj osvojenih setova)</p>
                 </div>
 
+                @if($organization->venues->isNotEmpty())
+                <!-- Venue (Optional) -->
+                <div>
+                    <label for="quickVenueId" class="block text-sm font-medium text-gray-300 mb-2">Teren (opcionalno)</label>
+                    <select id="quickVenueId" name="venue_id"
+                            class="w-full px-4 py-2 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">— nije odabran —</option>
+                        @foreach($organization->venues as $venue)
+                            <option value="{{ $venue->id }}">{{ $venue->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                @endif
+
                 <!-- Set Scores (Optional) -->
                 <div class="bg-gray-700/30 rounded-lg p-4">
                     <div class="flex items-center justify-between mb-3">

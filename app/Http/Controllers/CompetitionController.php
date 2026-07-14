@@ -31,8 +31,10 @@ class CompetitionController extends Controller
         Gate::authorize('update', $organization);
 
         $categories = $organization->categories()->active()->get();
+        $cities = \App\Models\City::orderBy('name')->get();
+        $seasons = $organization->seasons()->orderByDesc('starts_at')->get();
 
-        return view('organizations.competitions.create', compact('organization', 'categories'));
+        return view('organizations.competitions.create', compact('organization', 'categories', 'cities', 'seasons'));
     }
 
     /**
@@ -53,6 +55,9 @@ class CompetitionController extends Controller
             $request->validate([
                 'name' => ['required', 'string', 'max:255'],
                 'category_id' => ['nullable', 'exists:categories,id'],
+                'city_id' => ['nullable', 'exists:cities,id'],
+                'season_id' => ['nullable', 'exists:seasons,id'],
+                'registration_deadline' => ['nullable', 'date'],
                 'type' => ['required', 'in:tournament,league'],
                 'is_team_based' => ['required_if:type,league', 'boolean'],
                 'is_double_round' => ['nullable', 'boolean'],
@@ -78,6 +83,9 @@ class CompetitionController extends Controller
             'organization_id' => $organization->id,
             'sport_id' => $organization->sport_id,
             'category_id' => $request->category_id,
+            'city_id' => $request->city_id,
+            'season_id' => $organization->seasons()->where('id', $request->season_id)->exists() ? $request->season_id : null,
+            'registration_deadline' => $request->registration_deadline,
             'type' => $request->type,
             'start_date' => $request->start_date,
             'end_date' => $request->end_date,
@@ -606,8 +614,10 @@ class CompetitionController extends Controller
         }
 
         $categories = $organization->categories()->active()->get();
+        $cities = \App\Models\City::orderBy('name')->get();
+        $seasons = $organization->seasons()->orderByDesc('starts_at')->get();
 
-        return view('organizations.competitions.settings', compact('organization', 'competition', 'categories'));
+        return view('organizations.competitions.settings', compact('organization', 'competition', 'categories', 'cities', 'seasons'));
     }
 
     /**
@@ -630,6 +640,9 @@ class CompetitionController extends Controller
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'category_id' => ['nullable', 'exists:categories,id'],
+            'city_id' => ['nullable', 'exists:cities,id'],
+            'season_id' => ['nullable', 'exists:seasons,id'],
+            'registration_deadline' => ['nullable', 'date'],
             'sets_to_win' => ['required', 'integer', 'min:1', 'max:7'],
             'points_per_set' => ['nullable', 'integer', 'min:7', 'max:21'],
             'deuce_at' => ['nullable', 'integer', 'min:5'],
@@ -649,6 +662,9 @@ class CompetitionController extends Controller
         $updateData = [
             'name' => $request->name,
             'category_id' => $request->category_id,
+            'city_id' => $request->city_id,
+            'season_id' => $organization->seasons()->where('id', $request->season_id)->exists() ? $request->season_id : null,
+            'registration_deadline' => $request->registration_deadline,
             'sets_to_win' => $request->sets_to_win,
             'points_per_set' => $request->points_per_set ?? $competition->points_per_set,
             'deuce_at' => $request->deuce_at ?? $competition->deuce_at,
@@ -922,7 +938,12 @@ class CompetitionController extends Controller
             'sets.*.home' => 'required_with:sets|integer|min:0',
             'sets.*.away' => 'required_with:sets|integer|min:0',
             'scroll_position' => 'nullable|integer|min:0',
+            'venue_id' => 'nullable|exists:venues,id',
         ]);
+
+        if ($request->filled('venue_id') && !$organization->venues()->where('id', $request->venue_id)->exists()) {
+            return back()->withErrors(['venue_id' => 'Teren ne pripada ovoj organizaciji.']);
+        }
 
         // Save scroll position to session
         if ($request->has('scroll_position')) {
@@ -965,6 +986,7 @@ class CompetitionController extends Controller
             'home_score' => $request->home_score,
             'away_score' => $request->away_score,
             'sets' => $normalizedSets,
+            'venue_id' => $request->venue_id ?: $match->venue_id,
             'status' => 'completed',
             'played_at' => now(),
         ]);

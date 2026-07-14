@@ -89,6 +89,22 @@ class Organization extends Model
     }
 
     /**
+     * Get the seasons for this organization.
+     */
+    public function seasons(): HasMany
+    {
+        return $this->hasMany(Season::class);
+    }
+
+    /**
+     * Get the venues (tereni) for this organization.
+     */
+    public function venues(): HasMany
+    {
+        return $this->hasMany(Venue::class);
+    }
+
+    /**
      * Get the organization users for this organization.
      */
     public function organizationUsers(): HasMany

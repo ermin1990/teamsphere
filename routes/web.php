@@ -57,6 +57,12 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/sports', [\App\Http\Controllers\AdminSportController::class, 'index'])->name('sports.index');
     Route::post('/sports/{sport}/toggle', [\App\Http\Controllers\AdminSportController::class, 'toggle'])->name('sports.toggle');
 
+    // Cities admin
+    Route::get('/cities', [\App\Http\Controllers\Admin\CityController::class, 'index'])->name('cities.index');
+    Route::post('/cities', [\App\Http\Controllers\Admin\CityController::class, 'store'])->name('cities.store');
+    Route::put('/cities/{city}', [\App\Http\Controllers\Admin\CityController::class, 'update'])->name('cities.update');
+    Route::delete('/cities/{city}', [\App\Http\Controllers\Admin\CityController::class, 'destroy'])->name('cities.destroy');
+
     // Users admin
     Route::get('/users', [\App\Http\Controllers\AdminUserController::class, 'index'])->name('users.index');
     Route::get('/users/{user}', [\App\Http\Controllers\AdminUserController::class, 'show'])->name('users.show');
@@ -95,6 +101,18 @@ Route::middleware('auth')->group(function () {
     Route::get('organizations/{organization}/links', [App\Http\Controllers\OrganizationLinkController::class, 'index'])->name('organizations.links.index');
     Route::post('organizations/{organization}/links', [App\Http\Controllers\OrganizationLinkController::class, 'store'])->name('organizations.links.store');
     Route::get('organizations/{organization}/links/{link}/delete', [App\Http\Controllers\OrganizationLinkController::class, 'destroy'])->name('organizations.links.destroy');
+
+    // Season routes
+    Route::get('organizations/{organization}/seasons', [App\Http\Controllers\SeasonController::class, 'index'])->name('organizations.seasons.index');
+    Route::post('organizations/{organization}/seasons', [App\Http\Controllers\SeasonController::class, 'store'])->name('organizations.seasons.store');
+    Route::put('organizations/{organization}/seasons/{season}', [App\Http\Controllers\SeasonController::class, 'update'])->name('organizations.seasons.update');
+    Route::delete('organizations/{organization}/seasons/{season}', [App\Http\Controllers\SeasonController::class, 'destroy'])->name('organizations.seasons.destroy');
+
+    // Venue routes
+    Route::get('organizations/{organization}/venues', [App\Http\Controllers\VenueController::class, 'index'])->name('organizations.venues.index');
+    Route::post('organizations/{organization}/venues', [App\Http\Controllers\VenueController::class, 'store'])->name('organizations.venues.store');
+    Route::put('organizations/{organization}/venues/{venue}', [App\Http\Controllers\VenueController::class, 'update'])->name('organizations.venues.update');
+    Route::delete('organizations/{organization}/venues/{venue}', [App\Http\Controllers\VenueController::class, 'destroy'])->name('organizations.venues.destroy');
 
     // Team routes
     Route::get('organizations/{organization}/teams', [TeamController::class, 'index'])->name('organizations.teams.index');

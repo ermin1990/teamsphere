@@ -31,6 +31,7 @@ class CompetitionMatch extends Model
         'sets',
         'forfeited_by',
         'table_id',
+        'venue_id',
         'referee_user_id',
         'first_server',
         'current_server',
@@ -61,6 +62,7 @@ class CompetitionMatch extends Model
         'away_player_id' => 'integer',
         'tournament_group_id' => 'integer',
         'table_id' => 'integer',
+        'venue_id' => 'integer',
         'referee_user_id' => 'integer',
         'scheduled_at' => 'datetime',
         'played_at' => 'datetime',
@@ -277,6 +279,14 @@ class CompetitionMatch extends Model
     public function table(): BelongsTo
     {
         return $this->belongsTo(Table::class, 'table_id');
+    }
+
+    /**
+     * Get the venue (teren) this match was played at.
+     */
+    public function venue(): BelongsTo
+    {
+        return $this->belongsTo(Venue::class);
     }
 
     /**

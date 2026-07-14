@@ -22,6 +22,9 @@ class Competition extends Model
         'organization_id',
         'sport_id',
         'category_id',
+        'season_id',
+        'city_id',
+        'registration_deadline',
         'status',
         'start_date',
         'end_date',
@@ -61,6 +64,9 @@ class Competition extends Model
         'organization_id' => 'integer',
         'sport_id' => 'integer',
         'category_id' => 'integer',
+        'season_id' => 'integer',
+        'city_id' => 'integer',
+        'registration_deadline' => 'datetime',
         'start_date' => 'date',
         'end_date' => 'date',
         'max_teams' => 'integer',
@@ -132,6 +138,16 @@ class Competition extends Model
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
+    }
+
+    public function season(): BelongsTo
+    {
+        return $this->belongsTo(Season::class);
+    }
+
+    public function city(): BelongsTo
+    {
+        return $this->belongsTo(City::class);
     }
 
     /**
