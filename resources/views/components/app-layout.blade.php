@@ -11,7 +11,7 @@
         <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
         <link rel="apple-touch-icon" href="/icons/icon-192.svg">
 
-        <title>{{ config('app.name', 'Team Sphere') }}</title>
+        <title>{{ config('app.name', 'MojTurnir') }}</title>
 
     <!-- PWA manifest -->
     <link rel="manifest" href="{{ asset('manifest.webmanifest') }}">

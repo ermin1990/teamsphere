@@ -10,7 +10,7 @@
     <meta name="theme-color" content="#1e40af">
     <link rel="apple-touch-icon" href="/icons/icon-192.svg">
 
-    <title>@yield('title', 'TeamSphere')</title>
+    <title>@yield('title', 'MojTurnir')</title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">

@@ -97,7 +97,7 @@
         <!-- Footer -->
         <div class="text-center mt-4 pt-4 border-t border-gray-700">
             <div class="text-xs text-gray-500">
-                Powered by TeamSphere
+                Powered by MojTurnir
                 @if($match->moderator)
                 • Referee: {{ $match->moderator->name }}
                 @endif

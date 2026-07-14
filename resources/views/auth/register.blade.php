@@ -3,7 +3,7 @@
         <h2 class="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent mb-2">
             Kreirajte Nalog
         </h2>
-        <p class="text-gray-400">Pridružite se Team Sphere-u i počnite upravljati vašim timovima</p>
+        <p class="text-gray-400">Pridružite se MojTurnir-u i počnite upravljati vašim timovima</p>
     </div>
 
     <form method="POST" action="{{ route('register') }}" class="space-y-6">

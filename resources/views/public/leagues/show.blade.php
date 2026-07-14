@@ -282,7 +282,7 @@
 
             <!-- Footer -->
             <div class="text-center mt-8 text-sm" style="color: var(--text-tertiary);">
-                <p>Powered by TeamSphere • {{ $organization->name }}</p>
+                <p>Powered by MojTurnir • {{ $organization->name }}</p>
             </div>
 @endsection
 

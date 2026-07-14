@@ -1,6 +1,6 @@
 @extends('layouts.public')
 
-@section('title', $competition->name . ' - Semafor - TeamSphere')
+@section('title', $competition->name . ' - Semafor - MojTurnir')
 
 @push('styles')
 <style>

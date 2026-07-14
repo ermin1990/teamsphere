@@ -1,6 +1,6 @@
 @extends('layouts.public')
 
-@section('title', isset($organization) ? $organization->name . ' - TeamSphere' : 'Takmičenja - TeamSphere')
+@section('title', isset($organization) ? $organization->name . ' - MojTurnir' : 'Takmičenja - MojTurnir')
 
 @section('content')
     <!-- Header -->
@@ -194,6 +194,6 @@
 
     <!-- Footer -->
     <div class="text-center mt-8 text-sm" style="color: var(--text-tertiary);">
-        <p>Powered by TeamSphere</p>
+        <p>Powered by MojTurnir</p>
     </div>
 @endsection

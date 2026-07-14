@@ -17,7 +17,7 @@ class PlanSeeder extends Seeder
             [
                 'name' => 'Free',
                 'slug' => 'free',
-                'description' => 'Perfect for getting started with Team Sphere',
+                'description' => 'Perfect for getting started with MojTurnir',
                 'price' => 0.00,
                 'currency' => 'EUR',
                 'max_organizations' => 1,

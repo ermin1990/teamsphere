@@ -30,7 +30,7 @@ class BugReport extends Mailable
     {
         $subject = $this->data['type'] === 'bug' ? 'Bug Report' : 'Feature Suggestion';
         return new Envelope(
-            subject: $subject . ' - TeamSphere',
+            subject: $subject . ' - MojTurnir',
         );
     }
 

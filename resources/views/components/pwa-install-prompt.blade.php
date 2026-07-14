@@ -4,7 +4,7 @@
         <!-- Body -->
         <div class="px-6 py-5">
             <p class="text-sm text-blue-50 mb-4 leading-relaxed">
-                Dodajte TeamSphere na vaš početni ekran za brži pristup i bolje iskustvo korištenja aplikacije.
+                Dodajte MojTurnir na vaš početni ekran za brži pristup i bolje iskustvo korištenja aplikacije.
             </p>
 
             <!-- Features -->

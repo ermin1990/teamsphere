@@ -159,7 +159,7 @@
 
             <!-- Footer -->
             <div class="text-center mt-8 text-[var(--text-secondary)] text-sm">
-                <p>Powered by TeamSphere • {{ $organization->name }}</p>
+                <p>Powered by MojTurnir • {{ $organization->name }}</p>
             </div>
         </div>
     </div>

@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
         <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
-        <title>{{ config('app.name', 'Team Sphere') }}</title>
+        <title>{{ config('app.name', 'MojTurnir') }}</title>
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
         <script src="https://cdn.tailwindcss.com"></script>
@@ -19,7 +19,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
                     </svg>
                 </div>
-                <span class="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">Team Sphere</span>
+                <span class="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">MojTurnir</span>
             </div>
         </header>
 
@@ -33,7 +33,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
                         </svg>
                     </div>
-                    <span class="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">Team Sphere</span>
+                    <span class="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">MojTurnir</span>
                 </div>
 
                 <!-- Headline -->
@@ -43,9 +43,22 @@
                 </h1>
 
                 <!-- Description -->
-                <p class="text-xl text-gray-400 mb-12 max-w-2xl mx-auto">
+                <p class="text-xl text-gray-400 mb-6 max-w-2xl mx-auto">
                     Platforma za organizaciju turnira, praćenje rezultata i upravljanje sportskim organizacijama.
                 </p>
+
+                <!-- Supported Sports -->
+                <div class="flex items-center justify-center flex-wrap gap-3 mb-12">
+                    <span class="inline-flex items-center gap-2 bg-gray-800/60 border border-gray-700/50 rounded-full px-4 py-2 text-sm font-medium text-gray-300">
+                        <span class="text-lg">🏓</span> Stoni Tenis
+                    </span>
+                    <span class="inline-flex items-center gap-2 bg-gray-800/60 border border-gray-700/50 rounded-full px-4 py-2 text-sm font-medium text-gray-300">
+                        <span class="text-lg">🎾</span> Tenis
+                    </span>
+                    <span class="inline-flex items-center gap-2 bg-gray-800/60 border border-gray-700/50 rounded-full px-4 py-2 text-sm font-medium text-gray-300">
+                        <span class="text-lg">🏸</span> Padel
+                    </span>
+                </div>
 
                 <!-- CTA Buttons -->
                 <div class="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-6">
@@ -123,7 +136,7 @@
 
                 <!-- Why Use -->
                 <div>
-                    <h2 class="text-3xl font-bold text-center mb-8 text-white">Zašto Team Sphere?</h2>
+                    <h2 class="text-3xl font-bold text-center mb-8 text-white">Zašto MojTurnir?</h2>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
                         <div class="flex items-start space-x-3">
                             <div class="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
@@ -154,8 +167,8 @@
                                 </svg>
                             </div>
                             <div>
-                                <h3 class="font-semibold text-white mb-1">Stoni Tenis</h3>
-                                <p class="text-gray-400 text-sm">Za sada samo stoni tenis, uskoro i ostali sportovi</p>
+                                <h3 class="font-semibold text-white mb-1">Više Sportova</h3>
+                                <p class="text-gray-400 text-sm">Stoni tenis, tenis i padel — jedan sport po organizaciji, po vašem izboru</p>
                             </div>
                         </div>
                         <div class="flex items-start space-x-3">
@@ -202,8 +215,8 @@
                         <div class="text-center md:text-left">
                             <h3 class="text-xl md:text-2xl font-bold text-white mb-4">Svrha Aplikacije</h3>
                             <p class="text-gray-300 text-base md:text-lg leading-relaxed mb-6">
-                                Team Sphere je moderna, sveobuhvatna platforma za organizaciju i upravljanje sportskim takmičenjima,
-                                posebno dizajnirana za stoni tenis. Naša misija je da omogućimo klubovima, ligama i federacijama
+                                MojTurnir je moderna, sveobuhvatna platforma za organizaciju i upravljanje sportskim takmičenjima —
+                                stoni tenis, tenis i padel. Naša misija je da omogućimo klubovima, ligama i federacijama
                                 jednostavno kreiranje turnira, praćenje rezultata u realnom vremenu i detaljnu analitiku performansi.
                             </p>
                             <div class="bg-gradient-to-r from-green-500/10 to-emerald-500/10 border-l-4 border-green-500 rounded-r-xl p-4 md:p-6">
@@ -289,7 +302,7 @@
         <footer class="border-t border-gray-800 py-8">
             <div class="max-w-7xl mx-auto px-6 text-center">
                 <p class="text-gray-400 text-sm mb-2">
-                    © 2026 Team Sphere. Sva prava zadržana.
+                    © 2026 MojTurnir. Sva prava zadržana.
                 </p>
                 <p class="text-gray-500 text-xs">
                     Verzija aplikacije: <span class="text-blue-400 font-semibold">v2</span>

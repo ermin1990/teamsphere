@@ -1,6 +1,6 @@
 @extends('layouts.public')
 
-@section('title', 'Projektor Builder - TeamSphere')
+@section('title', 'Projektor Builder - MojTurnir')
 
 @section('content')
 <div class="max-w-4xl mx-auto">

@@ -9,7 +9,7 @@
                 <h2 class="text-2xl sm:text-3xl font-black bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
                     Admin Dashboard
                 </h2>
-                <p class="text-gray-400 mt-2">Pregled sistema i upravljanje Team Sphere aplikacijom</p>
+                <p class="text-gray-400 mt-2">Pregled sistema i upravljanje MojTurnir aplikacijom</p>
             </div>
             <div class="text-left sm:text-right">
                 <p class="text-sm text-gray-400">{{ now()->format('l, F j, Y') }}</p>

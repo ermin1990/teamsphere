@@ -373,4 +373,3 @@ document.querySelectorAll('input[name="player_ids[]"]').forEach(checkbox => {
 });
 </script>
 @endsection
-<parameter name="filePath">c:\Users\ermin\Projekti\teamsphere\resources\views\organizations\leagues\team-management.blade.php

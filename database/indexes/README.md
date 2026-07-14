@@ -1,4 +1,4 @@
-# Database Indexes - TeamSphere
+# Database Indexes - MojTurnir
 
 ## 📁 SQL Skripte za indeksiranje baze podataka
 
@@ -196,6 +196,6 @@ Ako imaš problema:
 
 ---
 
-**Kreirao:** TeamSphere Development Team  
+**Kreirao:** MojTurnir Development Team  
 **Verzija:** 1.0  
 **Datum:** 03.11.2025

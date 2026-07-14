@@ -87,7 +87,7 @@ return [
     // Demo Section
     'demo' => [
         'badge' => 'Živi Demo',
-        'title' => 'Pogledajte Team Sphere u :action Akciji',
+        'title' => 'Pogledajte MojTurnir u :action Akciji',
         'title_highlight' => 'Akciji',
         'subtitle' => 'Pogledajte koliko je lako upravljati vašom sportskom organizacijom sa našom moćnom platformom',
         'coming_soon' => 'Interaktivni Demo Dolazi Uskoro',
@@ -97,7 +97,7 @@ return [
     'cta' => [
         'title' => 'Spremni da :revolutionize Revolucionirate Upravljanje Sportom?',
         'title_highlight' => 'Revolucionirate',
-        'subtitle' => 'Pridružite se hiljadama timova koji već koriste Team Sphere za pojednostavljenje upravljanja sportom.',
+        'subtitle' => 'Pridružite se hiljadama timova koji već koriste MojTurnir za pojednostavljenje upravljanja sportom.',
         'start_free' => 'Započni Besplatnu Probnu Verziju',
         'already_have_account' => 'Već imate račun? Prijavi se',
     ],
@@ -106,10 +106,10 @@ return [
     'testimonials' => [
         'badge' => 'Svjedočanstva',
         'title' => 'Pouzdan od strane timova širom svijeta',
-        'subtitle' => 'Pogledajte šta naši korisnici kažu o Team Sphere-u',
+        'subtitle' => 'Pogledajte šta naši korisnici kažu o MojTurniru',
         'items' => [
             [
-                'quote' => 'Team Sphere je revolucionirao način na koji upravljamo našom fudbalskom ligom. Analitičke i funkcije raspoređivanja uštedjele su nam bezbroj sati.',
+                'quote' => 'MojTurnir je revolucionirao način na koji upravljamo našom fudbalskom ligom. Analitičke i funkcije raspoređivanja uštedjele su nam bezbroj sati.',
                 'author' => 'Sarah Johnson',
                 'role' => 'Koordinator lige',
                 'organization' => 'Gradska fudbalska asocijacija'
@@ -148,13 +148,13 @@ return [
             'instagram' => 'Instagram',
             'linkedin' => 'LinkedIn'
         ],
-        'copyright' => '© 2024 Team Sphere. Sva prava zadržana.'
+        'copyright' => '© 2026 MojTurnir. Sva prava zadržana.'
     ],
 
     // Dashboard
     'dashboard' => [
         'welcome_back' => 'Dobrodošli nazad, :name!',
-        'welcome_title' => 'Dobrodošli u Team Sphere',
+        'welcome_title' => 'Dobrodošli u MojTurnir',
         'welcome_subtitle' => 'Pogledajte svoje organizacije i nadolazeće mečeve.',
         'active_teams' => 'Aktivni Timovi',
         'total_players' => 'Ukupno Igrača',
@@ -162,7 +162,7 @@ return [
         'avg_performance' => 'Prosječna Performansa',
         'from_last_month' => 'od prošlog mjeseca',
         'recent_activity' => 'Nedavne Aktivnosti',
-        'welcome_message' => 'Dobrodošli u Team Sphere!',
+        'welcome_message' => 'Dobrodošli u MojTurnir!',
         'account_created' => 'Vaš nalog je uspješno kreiran',
         'just_now' => 'Upravo sada',
         'no_recent_activity' => 'Još nema nedavnih aktivnosti. Započnite kreiranjem vašeg prvog tima!',
@@ -235,7 +235,7 @@ return [
     'auth' => [
         'login' => [
             'title' => 'Dobrodošli Nazad',
-            'subtitle' => 'Prijavite se na vaš Team Sphere nalog',
+            'subtitle' => 'Prijavite se na vaš MojTurnir nalog',
             'email' => 'Email Adresa',
             'email_placeholder' => 'Unesite vaš email',
             'password' => 'Lozinka',
@@ -248,7 +248,7 @@ return [
         ],
         'register' => [
             'title' => 'Kreirajte Nalog',
-            'subtitle' => 'Pridružite se Team Sphere-u i počnite upravljati vašim timovima',
+            'subtitle' => 'Pridružite se MojTurniru i počnite upravljati vašim timovima',
             'name' => 'Puno Ime',
             'name_placeholder' => 'Unesite vaše puno ime',
             'email' => 'Email Adresa',
@@ -403,7 +403,7 @@ return [
 
         // Feedback
         'report_bug_suggest_feature' => 'Prijavi Grešku / Predloži Funkcionalnost',
-        'help_us_improve_teamsphere' => 'Pomozite nam da unaprijedimo TeamSphere',
+        'help_us_improve_teamsphere' => 'Pomozite nam da unaprijedimo MojTurnir',
         'feedback_type' => 'Tip Povratne Informacije',
         'report_a_bug' => 'Prijavi Grešku',
         'suggest_a_feature' => 'Predloži Funkcionalnost',

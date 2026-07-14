@@ -8,7 +8,7 @@
             <h2 class="text-3xl font-black bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
                 Postavke Sistema
             </h2>
-            <p class="text-gray-400 mt-2">Konfiguracija i postavke Team Sphere aplikacije</p>
+            <p class="text-gray-400 mt-2">Konfiguracija i postavke MojTurnir aplikacije</p>
         </div>
     </div>
 
@@ -27,7 +27,7 @@
 
                 <div>
                     <label class="block text-sm font-medium text-gray-300 mb-2">Email za podršku</label>
-                    <input type="email" value="support@teamsphere.com" class="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <input type="email" value="support@mojturnir.com" class="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 </div>
 
                 <div>
@@ -63,7 +63,7 @@
 
                 <div>
                     <label class="block text-sm font-medium text-gray-300 mb-2">Email adresa</label>
-                    <input type="email" value="noreply@teamsphere.com" class="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <input type="email" value="noreply@mojturnir.com" class="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 </div>
 
                 <div>

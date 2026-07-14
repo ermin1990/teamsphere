@@ -1,6 +1,6 @@
 @extends('layouts.public')
 
-@section('title', 'Organizacije - TeamSphere')
+@section('title', 'Organizacije - MojTurnir')
 
 @section('content')
     <!-- Header -->

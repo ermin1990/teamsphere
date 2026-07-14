@@ -90,7 +90,7 @@
     <div class="max-w-3xl mx-auto pt-16 p-2">
         <!-- Tournament Header -->
         <div class="text-center mb-6 tournament-header">
-            <p class="text-lg text-gray-600">{{ $competition->organization->name ?? 'TeamSphere' }} - {{ $competition->name }}</p>
+            <p class="text-lg text-gray-600">{{ $competition->organization->name ?? 'MojTurnir' }} - {{ $competition->name }}</p>
             <p class="text-sm text-gray-500 mt-2">
                 @if($competition->start_date)
                     {{ \Carbon\Carbon::parse($competition->start_date)->format('d.m.Y') }}
@@ -456,7 +456,7 @@
 
     <!-- Footer -->
     <div class="text-center text-sm text-gray-500 mt-2 pt-2 border-t border-gray-300 footer-section">
-        <p>Generisano od strane TeamSphere - {{ now()->format('d.m.Y H:i') }}</p>
+        <p>Generisano od strane MojTurnir - {{ now()->format('d.m.Y H:i') }}</p>
     </div>
 </div>
 </body>

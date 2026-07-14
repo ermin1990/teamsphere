@@ -13,7 +13,7 @@ return [
     |
     */
 
-    'name' => env('APP_NAME', 'Team Sphere - Organizacija stonoteniskih turnira i liga'),
+    'name' => env('APP_NAME', 'MojTurnir - Organizacija sportskih turnira i liga'),
 
     /*
     |--------------------------------------------------------------------------

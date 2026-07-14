@@ -5,7 +5,7 @@
                 <h2 class="font-bold text-3xl bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
                     Prijavi Bag / Predloži Funkciju
                 </h2>
-                <p class="text-gray-400 mt-1">Pomozite nam da poboljšamo TeamSphere</p>
+                <p class="text-gray-400 mt-1">Pomozite nam da poboljšamo MojTurnir</p>
             </div>
         </div>
     </x-slot>

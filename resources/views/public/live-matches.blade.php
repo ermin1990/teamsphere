@@ -1,6 +1,6 @@
 @extends('layouts.public')
 
-@section('title', 'Mečevi Uživo - TeamSphere')
+@section('title', 'Mečevi Uživo - MojTurnir')
 
 @push('scripts')
     <script>
@@ -452,7 +452,7 @@
 
             <!-- Footer -->
             <div class="text-center mt-8 text-[var(--text-secondary)] text-sm">
-                <p>Powered by TeamSphere • Real-time match updates</p>
+                <p>Powered by MojTurnir • Real-time match updates</p>
             </div>
         </div>
     </div>

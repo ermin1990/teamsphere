@@ -24,7 +24,7 @@
                     </div>
                     <div class="hidden sm:block">
                         <h1 class="text-xl font-bold text-white">Admin Panel</h1>
-                        <p class="text-sm text-gray-400">Team Sphere Management</p>
+                        <p class="text-sm text-gray-400">MojTurnir Management</p>
                     </div>
                 </div>
                 <div class="flex items-center space-x-4">
