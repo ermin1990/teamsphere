@@ -2542,7 +2542,22 @@ INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES
 (81, '2025_10_27_103320_make_tournament_fields_nullable_in_competitions_table', 15),
 (82, '2025_10_27_103323_make_tournament_fields_nullable_in_competitions_table', 15),
 (83, '2025_10_29_220258_fix_standings_table_id_field', 16),
-(84, '2025_10_29_220336_fix_all_tables_auto_increment', 16);
+(84, '2025_10_29_220336_fix_all_tables_auto_increment', 16),
+(85, '2025_10_30_194557_add_group_rounds_to_competitions_table', 17),
+(86, '2025_11_29_132758_add_manual_order_to_standings_table', 17),
+(87, '2025_12_23_173936_create_categories_table', 17),
+(88, '2025_12_23_173942_add_category_id_to_competitions_table', 17),
+(89, '2025_12_23_200734_update_teams_table_for_organizations', 17),
+(90, '2025_12_23_200735_create_team_matches_table', 17),
+(91, '2025_12_23_200735_create_team_player_table', 17),
+(92, '2025_12_23_200735_update_matches_table_for_team_matches', 17),
+(93, '2025_12_23_204029_add_is_double_round_to_competitions_table', 17),
+(94, '2025_12_25_112851_add_coach_to_teams_table', 17),
+(95, '2025_12_25_113100_create_team_coaches_table', 17),
+(96, '2025_12_25_120749_add_captains_and_referee_to_matches_table', 17),
+(97, '2025_12_25_121301_add_captains_and_referee_to_team_matches_table', 17),
+(98, '2026_01_28_100000_create_organization_links_table', 17),
+(99, '2026_01_28_110000_add_logo_url_to_organizations_table', 17);
 
 -- --------------------------------------------------------
 
