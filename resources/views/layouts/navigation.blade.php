@@ -27,7 +27,10 @@
                     <x-nav-link :href="route('public.leagues.index')" :active="request()->routeIs('public.leagues.index')" class="text-white hover:text-blue-400 transition-colors">
                         {{ __('Javna takmičenja') }}
                     </x-nav-link>
-                     
+                    <x-nav-link :href="route('player.dashboard')" :active="request()->routeIs('player.dashboard')" class="text-white hover:text-blue-400 transition-colors">
+                        {{ __('Moje lige') }}
+                    </x-nav-link>
+
                 </div>
             </div>
 
@@ -102,9 +105,14 @@
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
         </div>
-        <div class="pt-2 pb-3 space-y-1"> 
+        <div class="pt-2 pb-3 space-y-1">
             <x-responsive-nav-link :href="route('public.leagues.index')" :active="request()->routeIs('public.leagues.index')" class="text-white hover:bg-gray-700/50" @click="open = false">
                 {{ __('Javna takmičenja') }}
+            </x-responsive-nav-link>
+        </div>
+        <div class="pt-2 pb-3 space-y-1">
+            <x-responsive-nav-link :href="route('player.dashboard')" :active="request()->routeIs('player.dashboard')" class="text-white hover:bg-gray-700/50" @click="open = false">
+                {{ __('Moje lige') }}
             </x-responsive-nav-link>
         </div>
 

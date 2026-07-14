@@ -2,133 +2,64 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\League;
-use App\Models\LeagueMatch;
-use App\Models\Organization;
+use App\Models\Competition;
 use App\Models\Player;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use App\Models\Standing;
+use Illuminate\Support\Facades\DB;
 
 class PlayerDashboardController extends Controller
 {
     /**
-     * Display player dashboard.
+     * Player's own history, grouped by season, plus a simple cumulative
+     * ranking within each organization they play in.
      */
     public function dashboard()
     {
-        $user = Auth::user();
+        $userId = auth()->id();
 
-        // Get players where user is registered
-        $players = Player::where('user_id', $user->id)->with('organization')->get();
-
-        // Get organizations from players
-        $organizations = $players->pluck('organization')->unique();
-
-        // Get recent matches for this player
-        $recentMatches = collect();
-        foreach ($players as $player) {
-            // Get matches where player is home or away player
-            $playerMatches = LeagueMatch::where(function($query) use ($player) {
-                $query->where('home_player_id', $player->id)
-                      ->orWhere('away_player_id', $player->id);
+        $competitions = Competition::whereHas('players', function ($query) use ($userId) {
+                $query->where('players.user_id', $userId);
             })
-            ->with(['league', 'homePlayer', 'awayPlayer'])
-            ->where('scheduled_at', '>=', now()->subDays(30))
-            ->orderBy('scheduled_at', 'desc')
-            ->limit(10)
+            ->with(['organization', 'sport', 'season'])
             ->get();
 
-            $recentMatches = $recentMatches->merge($playerMatches);
+        $bySeason = $competitions->groupBy(function ($competition) {
+            return $competition->season->name ?? 'Bez sezone';
+        });
+
+        // Cumulative ranking per organization: sum of standings points across
+        // all of that organization's competitions, position among its players.
+        $organizationIds = $competitions->pluck('organization_id')->unique();
+        $playerIdsByOrg = Player::where('user_id', $userId)
+            ->whereIn('organization_id', $organizationIds)
+            ->pluck('id', 'organization_id');
+
+        $rankings = [];
+        foreach ($organizationIds as $organizationId) {
+            $playerId = $playerIdsByOrg[$organizationId] ?? null;
+            if (!$playerId) {
+                continue;
+            }
+
+            $ranked = Standing::whereHas('competition', function ($query) use ($organizationId) {
+                    $query->where('organization_id', $organizationId);
+                })
+                ->whereNotNull('player_id')
+                ->select('player_id', DB::raw('SUM(points) as total_points'))
+                ->groupBy('player_id')
+                ->orderByDesc('total_points')
+                ->pluck('player_id')
+                ->values();
+
+            $position = $ranked->search($playerId);
+            if ($position !== false) {
+                $rankings[$organizationId] = [
+                    'position' => $position + 1,
+                    'total' => $ranked->count(),
+                ];
+            }
         }
 
-        return view('player.dashboard', compact('organizations', 'players', 'recentMatches'));
-    }
-
-    /**
-     * Display player's organizations.
-     */
-    public function organizations()
-    {
-        $user = Auth::user();
-
-        // Get players where user is registered
-        $players = Player::where('user_id', $user->id)->with('organization')->get();
-
-        // Get organizations from players
-        $organizations = $players->pluck('organization')->unique();
-
-        return view('player.organizations', compact('organizations', 'players'));
-    }
-
-    /**
-     * Display matches for a specific organization.
-     */
-    public function organizationMatches(Player $player)
-    {
-        $user = Auth::user();
-
-        // Ensure the player belongs to the authenticated user
-        if ($player->user_id !== $user->id) {
-            abort(403, 'You are not authorized to view this player profile.');
-        }
-
-        // Get matches for this player in this organization
-        $matches = LeagueMatch::where(function($query) use ($player) {
-            $query->where('home_player_id', $player->id)
-                  ->orWhere('away_player_id', $player->id);
-        })
-        ->whereHas('league', function($query) use ($player) {
-            $query->where('organization_id', $player->organization_id);
-        })
-        ->with(['league', 'homePlayer', 'awayPlayer'])
-        ->orderBy('scheduled_at', 'desc')
-        ->paginate(20);
-
-        $organization = $player->organization;
-
-        return view('player.organization-matches', compact('organization', 'player', 'matches'));
-    }
-
-    /**
-     * Show match details for player.
-     */
-    public function showMatch(Request $request, Organization $organization, $leagueSlug, LeagueMatch $match)
-    {
-        $user = Auth::user();
-
-        // Find player's record in this organization
-        $player = Player::where('user_id', $user->id)
-            ->where('organization_id', $organization->id)
-            ->first();
-
-        if (!$player) {
-            abort(403, 'You are not a player in this organization.');
-        }
-
-        // Ensure match involves this player
-        if ($match->home_player_id !== $player->id && $match->away_player_id !== $player->id) {
-            abort(403, 'You are not authorized to view this match.');
-        }
-
-        // Find the league by slug
-        $league = League::where('slug', $leagueSlug)
-            ->where('organization_id', $organization->id)
-            ->first();
-
-        if (!$league) {
-            abort(404, 'League not found.');
-        }
-
-        // Ensure match belongs to league
-        if ($match->league_id !== $league->id) {
-            abort(404, 'Match not found in this league.');
-        }
-
-        // Load teams with players for team-based leagues
-        if ($league->is_team_based) {
-            $match->load(['homeTeam.players', 'awayTeam.players']);
-        }
-
-        return view('organizations.leagues.matches.show', compact('organization', 'league', 'match'));
+        return view('player.dashboard', compact('bySeason', 'rankings'));
     }
 }

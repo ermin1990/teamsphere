@@ -139,12 +139,20 @@
         <!-- Standings - liga sa jednom tabelom razvucena na cijelu sirinu stranice -->
         <div class="relative left-1/2 -mx-[50vw] w-screen px-4 sm:px-6 lg:px-8">
             <div class="max-w-[1800px] mx-auto bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50">
-                <div class="flex items-center gap-3 mb-4">
-                    <h3 class="text-xl font-bold text-white">Tabela</h3>
-                    @if($competition->is_recreational)
-                        <span class="px-2 py-0.5 text-xs font-medium rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30" title="Ručno dodavanje revanš-mečeva i ranije završavanje meča su dozvoljeni">
-                            Rekreativna liga
-                        </span>
+                <div class="flex items-center justify-between gap-3 mb-4">
+                    <div class="flex items-center gap-3">
+                        <h3 class="text-xl font-bold text-white">Tabela</h3>
+                        @if($competition->is_recreational)
+                            <span class="px-2 py-0.5 text-xs font-medium rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30" title="Ručno dodavanje revanš-mečeva i ranije završavanje meča su dozvoljeni">
+                                Rekreativna liga
+                            </span>
+                        @endif
+                    </div>
+                    @if($isOwner)
+                        <button type="button" onclick="document.getElementById('invitePlayerModal').classList.remove('hidden')"
+                                class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-xl text-sm font-bold transition flex items-center gap-2">
+                            ✉️ Pozovi igrača
+                        </button>
                     @endif
                 </div>
                 <div class="overflow-x-auto">
@@ -294,6 +302,42 @@
                         </button>
                         <button type="submit" class="flex-1 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors">
                             Dodaj meč
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        @endif
+
+        @if($isOwner)
+        <!-- Pozovi igrača Modal -->
+        <div id="invitePlayerModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div class="bg-gray-800 rounded-2xl p-6 max-w-md w-full border border-gray-700 shadow-xl">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-white">✉️ Pozovi igrača</h3>
+                    <button type="button" onclick="document.getElementById('invitePlayerModal').classList.add('hidden')" class="text-gray-400 hover:text-white">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                <p class="text-gray-400 text-xs mb-4">Igrač dobija email sa linkom da se registruje/prijavi i vidi ovo takmičenje u svom "Moje lige" pregledu.</p>
+                <form method="POST" action="{{ route('organizations.competitions.invite-player', [$organization, $competition]) }}">
+                    @csrf
+                    <label for="invite_name" class="block text-sm font-medium text-gray-300 mb-2">Ime i prezime</label>
+                    <input type="text" name="name" id="invite_name" required
+                           class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4">
+
+                    <label for="invite_email" class="block text-sm font-medium text-gray-300 mb-2">Email</label>
+                    <input type="email" name="email" id="invite_email" required
+                           class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4">
+
+                    <div class="flex gap-3">
+                        <button type="button" onclick="document.getElementById('invitePlayerModal').classList.add('hidden')" class="flex-1 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors">
+                            Odustani
+                        </button>
+                        <button type="submit" class="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
+                            Pošalji pozivnicu
                         </button>
                     </div>
                 </form>

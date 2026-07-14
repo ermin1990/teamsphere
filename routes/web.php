@@ -96,6 +96,11 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::post('/plan-upgrade-request', [\App\Http\Controllers\PlanUpgradeController::class, 'store'])->name('plan-upgrade.request');
 
+    // Player dashboard + invitations
+    Route::get('/moje-lige', [\App\Http\Controllers\PlayerDashboardController::class, 'dashboard'])->name('player.dashboard');
+    Route::get('/pozivnica/{token}', [\App\Http\Controllers\PlayerInvitationController::class, 'accept'])->name('player-invitations.accept');
+    Route::post('organizations/{organization}/competitions/{competition}/invite-player', [\App\Http\Controllers\PlayerInvitationController::class, 'store'])->name('organizations.competitions.invite-player');
+
     // Organization routes
     Route::resource('organizations', OrganizationController::class);
     Route::get('organizations/{organization}/links', [App\Http\Controllers\OrganizationLinkController::class, 'index'])->name('organizations.links.index');
