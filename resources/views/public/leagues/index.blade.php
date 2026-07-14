@@ -1,6 +1,6 @@
 @extends('layouts.public')
 
-@section('title', isset($organization) ? $organization->name . ' - MojTurnir' : 'Takmičenja - MojTurnir')
+@section('title', isset($organization) ? $organization->name . ' - MojTurnir' : (isset($city) ? 'Lige u gradu ' . $city->name . ' - MojTurnir' : 'Takmičenja - MojTurnir'))
 
 @section('content')
     <!-- Header -->
@@ -28,6 +28,15 @@
                         </p>
                     @endif
                 </div>
+            </div>
+        @elseif(isset($city))
+            <div>
+                <h1 class="text-3xl md:text-5xl font-bold mb-3" style="color: var(--text-primary);">
+                    📍 Lige u gradu {{ $city->name }}
+                </h1>
+                <p class="text-base md:text-lg font-medium" style="color: var(--text-tertiary);">
+                    Sva javna takmičenja u ovom gradu, iz svih organizacija
+                </p>
             </div>
         @else
             <div>
@@ -165,6 +174,16 @@
                                 </div>
                             </div>
                         </div>
+
+                        @if($competition->registration_deadline)
+                            <p class="text-xs mb-2" style="color: {{ $competition->registration_deadline->isPast() ? 'var(--text-muted)' : '#34d399' }};">
+                                @if($competition->registration_deadline->isPast())
+                                    Prijave zatvorene
+                                @else
+                                    Prijave otvorene do {{ $competition->registration_deadline->format('d.m.Y.') }}
+                                @endif
+                            </p>
+                        @endif
 
                         <div class="flex items-center justify-between text-xs">
                             <span style="color: var(--text-muted);">

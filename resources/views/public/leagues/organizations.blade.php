@@ -11,6 +11,22 @@
         <p class="text-center mt-2 text-sm md:text-base" style="color: var(--text-tertiary);">Izaberite organizaciju za pregled aktivnih liga i turnira</p>
     </div>
 
+    @if($cities->isNotEmpty())
+        <!-- Browse by city -->
+        <div class="backdrop-blur-xl rounded-2xl p-4 md:p-6 shadow-xl mb-6 md:mb-8 border" style="background: var(--bg-card); border-color: var(--border-primary); box-shadow: 0 10px 25px var(--shadow-primary);">
+            <h2 class="text-sm font-semibold mb-3" style="color: var(--text-tertiary);">📍 Pronađi ligu u svom gradu</h2>
+            <div class="flex flex-wrap gap-2">
+                @foreach($cities as $city)
+                    <a href="{{ route('public.leagues.by-city', $city) }}"
+                       class="px-4 py-2 rounded-full border text-sm font-medium transition-all duration-200 hover:scale-[1.03]"
+                       style="background: var(--bg-tertiary); border-color: var(--border-secondary); color: var(--text-primary);">
+                        {{ $city->name }}
+                    </a>
+                @endforeach
+            </div>
+        </div>
+    @endif
+
     @if($organizations->count() > 0)
         <!-- Organizations Grid -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">

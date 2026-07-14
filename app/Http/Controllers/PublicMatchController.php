@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\City;
 use App\Models\Competition;
 use App\Models\League;
 use App\Models\LeagueMatch;
@@ -28,7 +29,27 @@ class PublicMatchController extends Controller
             }])
             ->get();
 
-        return view('public.leagues.organizations', compact('organizations'));
+        // Cities that have at least one public competition, for the browse-by-city filter.
+        $cities = City::whereHas('competitions', function ($query) {
+                $query->where('is_public', true);
+            })
+            ->orderBy('name')
+            ->get();
+
+        return view('public.leagues.organizations', compact('organizations', 'cities'));
+    }
+
+    /**
+     * Display all public competitions in a given city, across all organizations.
+     */
+    public function indexLeaguesByCity(City $city)
+    {
+        $competitions = Competition::where('is_public', true)
+            ->where('city_id', $city->id)
+            ->with(['organization', 'sport'])
+            ->get();
+
+        return view('public.leagues.index', compact('competitions', 'city'));
     }
 
     /**
