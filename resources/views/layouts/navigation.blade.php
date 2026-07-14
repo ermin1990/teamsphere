@@ -51,7 +51,7 @@
                             {{ __('Profile') }}
                         </x-dropdown-link>
 
-                        @if(auth()->user()->email === 'ermin1990@gmail.com')
+                        @if(auth()->user()->isAdmin())
                             <x-dropdown-link :href="route('admin.dashboard')" class="text-white hover:bg-gray-700/50">
                                 {{ __('Admin Panel') }}
                             </x-dropdown-link>
@@ -120,7 +120,7 @@
                     {{ __('Profile') }}
                 </x-responsive-nav-link>
 
-                @if(auth()->user()->email === 'ermin1990@gmail.com')
+                @if(auth()->user()->isAdmin())
                     <x-responsive-nav-link :href="route('admin.bug-reports.index')" class="text-white hover:bg-gray-700/50" @click="open = false">
                         {{ __('Admin Panel') }}
                     </x-responsive-nav-link>

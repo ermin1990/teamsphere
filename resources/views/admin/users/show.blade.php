@@ -30,7 +30,7 @@
     </div>
 
     <!-- User Stats -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-5 gap-6">
         <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl">
             <div class="flex items-center space-x-4">
                 <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
@@ -54,7 +54,7 @@
                 </div>
                 <div>
                     <p class="text-2xl font-bold text-white">{{ $user->organizations->sum(function($org) { return $org->competitions->count(); }) }}</p>
-                    <p class="text-gray-400 text-sm">Liga</p>
+                    <p class="text-gray-400 text-sm">Takmičenja</p>
                 </div>
             </div>
         </div>
@@ -75,6 +75,20 @@
 
         <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl">
             <div class="flex items-center space-x-4">
+                <div class="w-12 h-12 bg-gradient-to-r from-pink-500 to-rose-600 rounded-xl flex items-center justify-center">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-4.13a4 4 0 10-4-4 4 4 0 004 4zm6 4a4 4 0 10-4-4"></path>
+                    </svg>
+                </div>
+                <div>
+                    <p class="text-2xl font-bold text-white">{{ $user->organizations->sum(fn($org) => $org->players->count()) }}</p>
+                    <p class="text-gray-400 text-sm">Igrača</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl">
+            <div class="flex items-center space-x-4">
                 <div class="w-12 h-12 bg-gradient-to-r from-orange-500 to-orange-600 rounded-xl flex items-center justify-center">
                     <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
@@ -86,6 +100,31 @@
                 </div>
             </div>
         </div>
+    </div>
+
+    <!-- Plan Usage -->
+    @php $plan = $user->currentPlan(); @endphp
+    <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl border border-gray-700/50 shadow-xl p-6">
+        <h3 class="text-xl font-bold text-white mb-4">Iskorištenost Plana</h3>
+        @if($plan)
+        @php
+            $orgsUsed = $user->organizations->count();
+            $orgsMax = $plan->max_organizations;
+            $orgsPct = $orgsMax > 0 ? min(100, round($orgsUsed / $orgsMax * 100)) : 0;
+        @endphp
+        <div>
+            <div class="flex justify-between text-sm mb-1">
+                <span class="text-gray-400">Organizacije</span>
+                <span class="text-white font-medium">{{ $orgsUsed }} / {{ $orgsMax }}</span>
+            </div>
+            <div class="w-full bg-gray-700/50 rounded-full h-2">
+                <div class="h-2 rounded-full {{ $orgsPct >= 100 ? 'bg-red-500' : 'bg-blue-500' }}" style="width: {{ $orgsPct }}%"></div>
+            </div>
+        </div>
+        <p class="text-gray-500 text-xs mt-3">Limiti po organizaciji (takmičenja, lige, timovi, igrači) su prikazani na stranici svake organizacije.</p>
+        @else
+        <p class="text-gray-400">Korisnik nema aktivan plan (Free - bez ograničenja).</p>
+        @endif
     </div>
 
     <!-- Organizations -->
@@ -105,7 +144,7 @@
                         </div>
                         <div>
                             <h4 class="text-white font-semibold">{{ $organization->name }}</h4>
-                            <p class="text-gray-400 text-sm">{{ $organization->competitions->count() }} liga • {{ $organization->competitions->sum(function($competition) { return $competition->matches->count(); }) }} utakmica</p>
+                            <p class="text-gray-400 text-sm">{{ $organization->competitions->count() }} takmičenja • {{ $organization->players->count() }} igrača • {{ $organization->competitions->sum(function($competition) { return $competition->matches->count(); }) }} utakmica</p>
                         </div>
                     </div>
 

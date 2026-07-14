@@ -13,7 +13,7 @@ class BugReportPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->email === 'ermin1990@gmail.com';
+        return $user->isAdmin();
     }
 
     /**
@@ -21,7 +21,7 @@ class BugReportPolicy
      */
     public function view(User $user, BugReport $bugReport): bool
     {
-        return $user->email === 'ermin1990@gmail.com';
+        return $user->isAdmin();
     }
 
     /**
@@ -37,7 +37,7 @@ class BugReportPolicy
      */
     public function update(User $user, BugReport $bugReport): bool
     {
-        return $user->email === 'ermin1990@gmail.com';
+        return $user->isAdmin();
     }
 
     /**
@@ -45,7 +45,7 @@ class BugReportPolicy
      */
     public function delete(User $user, BugReport $bugReport): bool
     {
-        return $user->email === 'ermin1990@gmail.com';
+        return $user->isAdmin();
     }
 
     /**

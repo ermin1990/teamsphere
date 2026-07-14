@@ -14,7 +14,7 @@ class AdminUserController extends Controller
 
     public function show(User $user)
     {
-        $user->load(['organizations.competitions', 'userPlans.plan']);
+        $user->load(['organizations.competitions.matches', 'organizations.players', 'userPlans.plan']);
         return view('admin.users.show', compact('user'));
     }
 }

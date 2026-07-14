@@ -43,7 +43,7 @@ Route::get('/feedback', [FeedbackController::class, 'create'])->name('feedback.c
 Route::post('/feedback', [FeedbackController::class, 'store'])->name('feedback.store');
 
 // Admin routes
-Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', function () {
         return redirect()->route('admin.dashboard');
     });

@@ -20,9 +20,9 @@ class AdminMiddleware
             return redirect()->route('login');
         }
 
-        // TODO: Add admin role check here
-        // For now, all authenticated users can access admin panel
-        // Later we can add: if (!auth()->user()->isAdmin()) { ... }
+        if (!auth()->user()->isAdmin()) {
+            abort(403);
+        }
 
         return $next($request);
     }

@@ -19,7 +19,7 @@
     </div>
 
     <!-- Stats Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
         <!-- Total Users -->
         <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02]">
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
@@ -78,6 +78,48 @@
             <div class="mt-4">
                 <div class="flex items-center text-sm">
                     <span class="text-green-400 font-medium">+{{ \App\Models\League::where('created_at', '>=', now()->subDays(30))->count() }}</span>
+                    <span class="text-gray-500 ml-2">u zadnjih 30 dana</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Tournaments -->
+        <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02]">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
+                <div>
+                    <p class="text-gray-400 text-sm font-medium">Ukupno Turnira</p>
+                    <p class="text-3xl font-bold text-white mt-1">{{ \App\Models\Competition::where('type', 'tournament')->count() }}</p>
+                </div>
+                <div class="w-12 h-12 bg-gradient-to-r from-pink-500 to-rose-600 rounded-xl flex items-center justify-center self-start sm:self-center">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 4.5a3 3 0 116 0v1.5h1.5A2.25 2.25 0 0118.75 8v1a3 3 0 01-3 3h-.5a4.5 4.5 0 01-3.5 4.359V18h2a2 2 0 012 2H8.25a2 2 0 012-2h2v-1.641A4.5 4.5 0 018.75 12h-.5a3 3 0 01-3-3V8a2.25 2.25 0 012.25-2.25H9V4.5z"></path>
+                    </svg>
+                </div>
+            </div>
+            <div class="mt-4">
+                <div class="flex items-center text-sm">
+                    <span class="text-green-400 font-medium">+{{ \App\Models\Competition::where('type', 'tournament')->where('created_at', '>=', now()->subDays(30))->count() }}</span>
+                    <span class="text-gray-500 ml-2">u zadnjih 30 dana</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Players -->
+        <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02]">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
+                <div>
+                    <p class="text-gray-400 text-sm font-medium">Ukupno Igrača</p>
+                    <p class="text-3xl font-bold text-white mt-1">{{ \App\Models\Player::count() }}</p>
+                </div>
+                <div class="w-12 h-12 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-xl flex items-center justify-center self-start sm:self-center">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-4.13a4 4 0 10-4-4 4 4 0 004 4zm6 4a4 4 0 10-4-4"></path>
+                    </svg>
+                </div>
+            </div>
+            <div class="mt-4">
+                <div class="flex items-center text-sm">
+                    <span class="text-green-400 font-medium">+{{ \App\Models\Player::where('created_at', '>=', now()->subDays(30))->count() }}</span>
                     <span class="text-gray-500 ml-2">u zadnjih 30 dana</span>
                 </div>
             </div>

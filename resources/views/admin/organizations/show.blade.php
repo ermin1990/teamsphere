@@ -33,8 +33,8 @@
                     </svg>
                 </div>
                 <div>
-                    <p class="text-2xl font-bold text-white">{{ $organization->leagues->count() }}</p>
-                    <p class="text-gray-400 text-sm">Lige</p>
+                    <p class="text-2xl font-bold text-white">{{ $organization->competitions->count() }}</p>
+                    <p class="text-gray-400 text-sm">Takmičenja</p>
                 </div>
             </div>
         </div>
@@ -47,7 +47,7 @@
                     </svg>
                 </div>
                 <div>
-                    <p class="text-2xl font-bold text-white">{{ $organization->leagues->sum(function($league) { return $league->matches->count(); }) }}</p>
+                    <p class="text-2xl font-bold text-white">{{ $organization->competitions->sum(fn($c) => $c->matches->count()) }}</p>
                     <p class="text-gray-400 text-sm">Utakmica</p>
                 </div>
             </div>
@@ -57,12 +57,12 @@
             <div class="flex items-center space-x-4">
                 <div class="w-12 h-12 bg-gradient-to-r from-purple-500 to-purple-600 rounded-xl flex items-center justify-center">
                     <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-4.13a4 4 0 10-4-4 4 4 0 004 4zm6 4a4 4 0 10-4-4"></path>
                     </svg>
                 </div>
                 <div>
-                    <p class="text-2xl font-bold text-white">{{ $organization->leagues->sum(function($league) { return $league->teams->count(); }) }}</p>
-                    <p class="text-gray-400 text-sm">Timova</p>
+                    <p class="text-2xl font-bold text-white">{{ $organization->players->count() }}</p>
+                    <p class="text-gray-400 text-sm">Igrača</p>
                 </div>
             </div>
         </div>
@@ -82,32 +82,100 @@
         </div>
     </div>
 
-    <!-- Leagues -->
+    <!-- Plan Usage -->
+    @php $plan = $organization->user->currentPlan(); @endphp
+    <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl border border-gray-700/50 shadow-xl p-6">
+        <h3 class="text-xl font-bold text-white mb-4">Iskorištenost Plana</h3>
+        @if($plan)
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            @php
+                $competitionsUsed = $organization->competitions->count();
+                $competitionsMax = $plan->max_competitions_per_organization;
+                $competitionsPct = $competitionsMax > 0 ? min(100, round($competitionsUsed / $competitionsMax * 100)) : 0;
+
+                $leaguesUsed = $organization->competitions->where('type', 'league')->count();
+                $leaguesMax = $plan->max_leagues_per_organization;
+                $leaguesPct = $leaguesMax > 0 ? min(100, round($leaguesUsed / $leaguesMax * 100)) : 0;
+
+                $orgsUsed = $organization->user->organizations->count();
+                $orgsMax = $plan->max_organizations;
+                $orgsPct = $orgsMax > 0 ? min(100, round($orgsUsed / $orgsMax * 100)) : 0;
+            @endphp
+
+            <div>
+                <div class="flex justify-between text-sm mb-1">
+                    <span class="text-gray-400">Organizacije (vlasnik)</span>
+                    <span class="text-white font-medium">{{ $orgsUsed }} / {{ $orgsMax }}</span>
+                </div>
+                <div class="w-full bg-gray-700/50 rounded-full h-2">
+                    <div class="h-2 rounded-full {{ $orgsPct >= 100 ? 'bg-red-500' : 'bg-blue-500' }}" style="width: {{ $orgsPct }}%"></div>
+                </div>
+            </div>
+
+            <div>
+                <div class="flex justify-between text-sm mb-1">
+                    <span class="text-gray-400">Takmičenja u organizaciji</span>
+                    <span class="text-white font-medium">{{ $competitionsUsed }} / {{ $competitionsMax }}</span>
+                </div>
+                <div class="w-full bg-gray-700/50 rounded-full h-2">
+                    <div class="h-2 rounded-full {{ $competitionsPct >= 100 ? 'bg-red-500' : 'bg-purple-500' }}" style="width: {{ $competitionsPct }}%"></div>
+                </div>
+            </div>
+
+            <div>
+                <div class="flex justify-between text-sm mb-1">
+                    <span class="text-gray-400">Lige u organizaciji</span>
+                    <span class="text-white font-medium">{{ $leaguesUsed }} / {{ $leaguesMax }}</span>
+                </div>
+                <div class="w-full bg-gray-700/50 rounded-full h-2">
+                    <div class="h-2 rounded-full {{ $leaguesPct >= 100 ? 'bg-red-500' : 'bg-emerald-500' }}" style="width: {{ $leaguesPct }}%"></div>
+                </div>
+            </div>
+        </div>
+        @else
+        <p class="text-gray-400">Korisnik nema aktivan plan (Free - bez ograničenja).</p>
+        @endif
+    </div>
+
+    <!-- Competitions (turniri i lige) -->
     <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl border border-gray-700/50 shadow-xl">
         <div class="p-6 border-b border-gray-700/50">
-            <h3 class="text-xl font-bold text-white">Lige</h3>
+            <h3 class="text-xl font-bold text-white">Takmičenja</h3>
         </div>
 
-        @if($organization->leagues->count() > 0)
+        @if($organization->competitions->count() > 0)
         <div class="divide-y divide-gray-700/50">
-            @foreach($organization->leagues as $league)
+            @foreach($organization->competitions->sortByDesc('created_at') as $competition)
             <div class="p-6 hover:bg-gray-700/20 transition-colors">
-                <div class="flex items-center justify-between">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
                     <div class="flex items-center space-x-4">
                         <div class="w-12 h-12 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center">
-                            <span class="text-2xl">{{ $league->sport->icon }}</span>
+                            <span class="text-2xl">{{ $competition->sport->icon ?? '🏆' }}</span>
                         </div>
                         <div>
-                            <h4 class="text-white font-semibold">{{ $league->name }}</h4>
-                            <p class="text-gray-400 text-sm">{{ $league->sport->name }} • {{ $league->matches->count() }} utakmica</p>
+                            <h4 class="text-white font-semibold">{{ $competition->name }}</h4>
+                            <p class="text-gray-400 text-sm">
+                                {{ $competition->sport->name ?? '' }} • {{ $competition->matches->count() }} utakmica
+                            </p>
                         </div>
                     </div>
 
-                    <div class="flex items-center space-x-4">
-                        <div class="text-center">
-                            <p class="text-sm text-gray-400">{{ $league->created_at->format('d.m.Y') }}</p>
-                        </div>
-                        <a href="{{ route('leagues.show', $league) }}" class="px-4 py-2 bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 rounded-lg transition-colors border border-blue-500/30">
+                    <div class="flex items-center space-x-3">
+                        <span class="px-3 py-1 rounded-full text-xs font-medium {{ $competition->isTournament() ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30' : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' }}">
+                            {{ $competition->isTournament() ? 'Turnir' : 'Liga' }}
+                        </span>
+
+                        @if($competition->isTournament())
+                            <span class="px-3 py-1 rounded-full text-xs font-medium bg-gray-700/50 text-gray-300 border border-gray-600/50">
+                                Faza: {{ $competition->current_phase ?? '—' }}
+                            </span>
+                        @endif
+
+                        <span class="px-3 py-1 rounded-full text-xs font-medium {{ $competition->status === 'completed' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' : 'bg-green-500/20 text-green-400 border border-green-500/30' }}">
+                            {{ $competition->status }}
+                        </span>
+
+                        <a href="{{ route('organizations.competitions.show', [$organization, $competition]) }}" class="px-4 py-2 bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 rounded-lg transition-colors border border-blue-500/30">
                             Pregledaj
                         </a>
                     </div>
@@ -122,8 +190,8 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
                 </svg>
             </div>
-            <h4 class="text-white font-semibold mb-2">Nema liga</h4>
-            <p class="text-gray-400">Ova organizacija još nema kreiranih liga.</p>
+            <h4 class="text-white font-semibold mb-2">Nema takmičenja</h4>
+            <p class="text-gray-400">Ova organizacija još nema kreiranih turnira ili liga.</p>
         </div>
         @endif
     </div>
