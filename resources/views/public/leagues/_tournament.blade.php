@@ -183,14 +183,33 @@
         <!-- Groups Tab Content -->
         <div id="groups-content" class="tab-content mt-4 md:mt-6 {{ !$showGroupsTab ? 'hidden' : '' }}">
             @if($hasGroupMatches)
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+            @php
+                // Jedna grupa zauzima cijelu sirinu umjesto da bude stisnuta u
+                // pola kolone kao da postoji jos jedna pored nje.
+                $groupCount = $competition->tournamentGroups->count();
+            @endphp
+            <div class="grid grid-cols-1 {{ $groupCount > 1 ? 'md:grid-cols-2' : '' }} gap-4 md:gap-6">
                 @foreach($competition->tournamentGroups as $group)
                 @php
                     $currentGroupMatches = $groupMatches->get($group->id) ?? collect();
+                    $groupRoundOf = fn($m) => $m->round_number ?? $m->round;
+                    $groupMatchesByRound = $currentGroupMatches->sortBy($groupRoundOf)->groupBy($groupRoundOf);
                 @endphp
                 @if($currentGroupMatches->count() > 0)
                                             <div class="[var(--bg-card)] backdrop-blur-xl rounded-xl p-4 md:p-6 border border-[var(--border-primary)] shadow-xl">
                     <h4 class="text-base md:text-lg font-bold text-[var(--text-primary)] mb-3 md:mb-4">{{ $group->name }}</h4>
+
+                    <!-- Tabela / Mečevi sub-tabs -->
+                    <div class="flex gap-4 mb-4 border-b" style="border-color: var(--border-primary);">
+                        <button type="button" onclick="showGroupSubTab({{ $group->id }}, 'standings')" id="group-{{ $group->id }}-standings-tab"
+                                class="pb-2 text-sm font-semibold border-b-2 transition-colors" style="color: var(--accent-blue); border-color: var(--accent-blue);">
+                            Tabela
+                        </button>
+                        <button type="button" onclick="showGroupSubTab({{ $group->id }}, 'matches')" id="group-{{ $group->id }}-matches-tab"
+                                class="pb-2 text-sm font-semibold border-b-2 transition-colors" style="color: var(--text-tertiary); border-color: transparent;">
+                            Mečevi
+                        </button>
+                    </div>
 
                     <!-- Group Standings -->
                     @php
@@ -205,10 +224,9 @@
                             ->orderBy('id')
                             ->get();
                     @endphp
+                    <div id="group-{{ $group->id }}-standings-content" class="group-subtab-content">
                     @if($groupStandings->count() > 0)
                     <div class="mb-4">
-                                                <h5 class="text-sm md:text-base font-semibold text-[var(--text-secondary)] mb-2 uppercase tracking-wide">Tabela</h5>
-
                         <!-- Table Header -->
                         <div class="grid grid-cols-12 gap-2 mb-2 text-xs table-header-text font-medium px-2">
                             <div class="col-span-6"></div>
@@ -231,7 +249,7 @@
                                 <div class="col-span-1 text-center">
                                     <span class="table-number-text ">{{ $standing->won ?? 0 }}</span>
                                 </div>
-                               
+
                                 <div class="col-span-1 text-center">
                                     <span class="table-number-text ">{{ $standing->lost ?? 0 }}</span>
                                 </div>
@@ -250,13 +268,19 @@
                         </div>
                     </div>
                     @endif
+                    </div>
 
                     <!-- Group Matches -->
                     @if($currentGroupMatches->count() > 0)
-                    <div>
-                        <h5 class="text-sm md:text-base font-semibold text-[var(--text-secondary)] mb-2 uppercase tracking-wide">Mečevi</h5>
+                    <div id="group-{{ $group->id }}-matches-content" class="group-subtab-content hidden">
+                        @foreach($groupMatchesByRound as $round => $roundMatches)
+                        <div class="flex items-center gap-3 mb-3 mt-4 first:mt-0">
+                            <div class="h-px flex-1" style="background: var(--border-primary);"></div>
+                            <span class="text-xs font-bold uppercase tracking-wider" style="color: var(--text-tertiary);">Kolo {{ $round }}</span>
+                            <div class="h-px flex-1" style="background: var(--border-primary);"></div>
+                        </div>
                         <div class="space-y-1 md:space-y-3">
-                            @foreach($currentGroupMatches as $match)
+                            @foreach($roundMatches as $match)
                             <div class="block bg-[var(--bg-tertiary)] hover:bg-[var(--bg-tertiary)] rounded-md transition-all duration-200 hover:scale-[1.01]">
                                 @if($match->status === 'in_progress')
                                 <div class="text-center mb-2">
@@ -506,6 +530,7 @@
                                 </div>                            </div>
                             @endforeach
                         </div>
+                        @endforeach
                     </div>
                     @endif
                 </div>
@@ -808,6 +833,21 @@
             });
         }
     })();
+        function showGroupSubTab(groupId, tab) {
+            const standingsContent = document.getElementById('group-' + groupId + '-standings-content');
+            const matchesContent = document.getElementById('group-' + groupId + '-matches-content');
+            const standingsTab = document.getElementById('group-' + groupId + '-standings-tab');
+            const matchesTab = document.getElementById('group-' + groupId + '-matches-tab');
+
+            standingsContent.classList.toggle('hidden', tab !== 'standings');
+            matchesContent.classList.toggle('hidden', tab !== 'matches');
+
+            standingsTab.style.color = tab === 'standings' ? 'var(--accent-blue)' : 'var(--text-tertiary)';
+            standingsTab.style.borderColor = tab === 'standings' ? 'var(--accent-blue)' : 'transparent';
+            matchesTab.style.color = tab === 'matches' ? 'var(--accent-blue)' : 'var(--text-tertiary)';
+            matchesTab.style.borderColor = tab === 'matches' ? 'var(--accent-blue)' : 'transparent';
+        }
+
         function showTournamentTab(tabName) {
             // Hide all tab contents
             document.querySelectorAll('.tab-content').forEach(content => {

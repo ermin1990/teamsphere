@@ -19,59 +19,60 @@
       <!-- Tailwind CSS CDN -->
         <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- Theme Styles - iste boje/fontovi kao MojTurnir landing (welcome.blade.php) -->
+    <!-- Theme Styles - kampanja paleta (skoro-crna + ljubicasti sjaj + periwinkle akcent) -->
     <style>
         :root {
             /* Dark Theme (Default) */
-            --bg-primary: #121309;
-            --bg-secondary: #1A1C10;
-            --bg-tertiary: #262918;
-            --bg-card: rgba(26, 28, 16, 0.55);
-            --bg-card-solid: #1A1C10;
-            --bg-accent: rgba(18, 19, 9, 0.95);
-            --bg-hover: rgba(44, 47, 29, 0.5);
+            --bg-primary: #0B0B12;
+            --bg-secondary: #14141F;
+            --bg-tertiary: #1F1F30;
+            --bg-card: rgba(20, 20, 31, 0.7);
+            --bg-card-solid: #14141F;
+            --bg-accent: rgba(11, 11, 18, 0.95);
+            --bg-hover: rgba(31, 31, 48, 0.6);
 
-            --text-primary: #F4F2E6;
-            --text-secondary: #C7C9B4;
-            --text-tertiary: #A7AB90;
-            --text-muted: #7C8069;
+            --text-primary: #F6F6FB;
+            --text-secondary: #CDCEDE;
+            --text-tertiary: #9C9EB5;
+            --text-muted: #6E7086;
 
-            --border-primary: rgba(44, 47, 29, 0.7);
-            --border-secondary: rgba(44, 47, 29, 0.4);
-            --border-accent: rgba(44, 47, 29, 0.6);
+            --border-primary: rgba(148, 130, 255, 0.16);
+            --border-secondary: rgba(255, 255, 255, 0.07);
+            --border-accent: rgba(148, 130, 255, 0.3);
 
-            --accent-blue: #D7FF3F; /* MojTurnir brand accent (chartreuse) - var name kept for compatibility */
-            --accent-green: rgba(34, 197, 94, 0.8);
+            --accent-blue: #B4C0FF; /* periwinkle/lavender - kampanja akcent */
+            --accent-green: rgba(34, 197, 94, 0.85);
             --accent-green-solid: #16a34a;
-            --accent-red: #ef4444;
+            --accent-red: #f87171;
             --accent-yellow: #eab308;
-            --accent-cyan: #06b6d4;
+            --accent-cyan: #22d3ee;
             --accent-amber: #f59e0b;
 
-            --shadow-primary: rgba(0, 0, 0, 0.6);
+            --shadow-primary: rgba(0, 0, 0, 0.65);
             --backdrop-blur: blur(12px);
+            --glow-purple: radial-gradient(ellipse 900px 700px at 88% -5%, rgba(109, 40, 217, 0.35), transparent 60%);
         }
 
         [data-theme="light"] {
             /* Light Theme */
-            --bg-primary: #F6F5EF;
-            --bg-secondary: #EDEBDD;
-            --bg-tertiary: #E2E0CE;
-            --bg-card: rgba(255, 255, 255, 0.85);
+            --bg-primary: #F7F7FB;
+            --bg-secondary: #ECEDF6;
+            --bg-tertiary: #DFE0F0;
+            --bg-card: rgba(255, 255, 255, 0.9);
             --bg-card-solid: #ffffff;
-            --bg-accent: rgba(246, 245, 239, 0.95);
-            --bg-hover: rgba(226, 224, 206, 0.5);
+            --bg-accent: rgba(247, 247, 251, 0.95);
+            --bg-hover: rgba(223, 224, 240, 0.5);
 
-            --text-primary: #16180D;
-            --text-secondary: #3A3D28;
-            --text-tertiary: #5C6047;
-            --text-muted: #7C8069;
+            --text-primary: #10101C;
+            --text-secondary: #34354A;
+            --text-tertiary: #55566E;
+            --text-muted: #74758C;
 
-            --border-primary: rgba(92, 96, 71, 0.25);
-            --border-secondary: rgba(92, 96, 71, 0.4);
-            --border-accent: rgba(92, 96, 71, 0.2);
+            --border-primary: rgba(99, 74, 217, 0.18);
+            --border-secondary: rgba(16, 16, 28, 0.08);
+            --border-accent: rgba(99, 74, 217, 0.28);
 
-            --accent-blue: #5C8A00; /* darkened chartreuse for legible text/borders on light bg */
+            --accent-blue: #4F46E5; /* darkened periwinkle for legible text/borders on light bg */
             --accent-green: rgba(34, 197, 94, 0.9);
             --accent-green-solid: #16a34a;
             --accent-red: #dc2626;
@@ -81,6 +82,7 @@
 
             --shadow-primary: rgba(0, 0, 0, 0.1);
             --backdrop-blur: blur(16px);
+            --glow-purple: none;
         }
 
         body {
@@ -164,7 +166,7 @@
     <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
     <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
 </head>
-<body class="antialiased min-h-screen pb-16 md:pb-8" style="background-color: var(--bg-primary); color: var(--text-primary);">
+<body class="antialiased min-h-screen pb-16 md:pb-8" style="background-color: var(--bg-primary); background-image: var(--glow-purple); background-attachment: fixed; color: var(--text-primary);">
     <div class="py-8 p-2">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <!-- Navigation Menu (Desktop only) -->

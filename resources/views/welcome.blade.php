@@ -14,17 +14,20 @@
 
         <style>
             :root {
-                --bg: #121309;
-                --bg-raised: #1A1C10;
-                --ink: #F4F2E6;
-                --ink-dim: #A7AB90;
-                --accent: #D7FF3F;
-                --accent-ink: #171A05;
-                --line: #2C2F1D;
+                --bg: #0B0B12;
+                --bg-raised: #14141F;
+                --ink: #F6F6FB;
+                --ink-dim: #9C9EB5;
+                --accent: #B4C0FF;
+                --accent-ink: #14141F;
+                --line: rgba(148, 130, 255, 0.18);
+                --glow-purple: radial-gradient(ellipse 900px 700px at 88% -5%, rgba(109, 40, 217, 0.35), transparent 60%);
             }
             html { scroll-behavior: smooth; }
             body {
                 background: var(--bg);
+                background-image: var(--glow-purple);
+                background-attachment: fixed;
                 color: var(--ink);
                 font-family: 'Manrope', ui-sans-serif, sans-serif;
             }
@@ -71,7 +74,7 @@
     <body class="antialiased">
 
         <!-- Nav -->
-        <header class="sticky top-0 z-50 bg-[#121309]/85 backdrop-blur-md border-b border-line">
+        <header class="sticky top-0 z-50 bg-[#0B0B12]/85 backdrop-blur-md border-b border-line">
             <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
                 <a href="/" class="f-display text-lg font-bold tracking-tight">
                     Moj<span class="text-accent">Turnir</span>
@@ -145,17 +148,17 @@
                 <h2 class="f-display text-2xl md:text-3xl font-semibold">Jedan sport po organizaciji.<br class="hidden sm:block"> Biraš pri kreiranju.</h2>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-px bg-line rounded-2xl overflow-hidden border border-line">
-                <div class="bg-[#121309] p-8 hover:bg-raised transition-colors">
+                <div class="bg-[#0B0B12] p-8 hover:bg-raised transition-colors">
                     <div class="text-4xl mb-5">🏓</div>
                     <h3 class="f-display text-lg font-semibold mb-2">Stoni Tenis</h3>
                     <p class="text-ink-dim text-sm leading-relaxed">Pojedinačno i ekipno, grupna faza i knockout, uživo praćenje seta po seta.</p>
                 </div>
-                <div class="bg-[#121309] p-8 hover:bg-raised transition-colors">
+                <div class="bg-[#0B0B12] p-8 hover:bg-raised transition-colors">
                     <div class="text-4xl mb-5">🎾</div>
                     <h3 class="f-display text-lg font-semibold mb-2">Tenis</h3>
                     <p class="text-ink-dim text-sm leading-relaxed">Lige i turniri, pojedinačno ili ekipno, sa punom istorijom mečeva.</p>
                 </div>
-                <div class="bg-[#121309] p-8 hover:bg-raised transition-colors">
+                <div class="bg-[#0B0B12] p-8 hover:bg-raised transition-colors">
                     <div class="text-4xl mb-5">🏸</div>
                     <h3 class="f-display text-lg font-semibold mb-2">Padel</h3>
                     <p class="text-ink-dim text-sm leading-relaxed">Klub protiv kluba ili par protiv para — sastav se bira za svaki meč.</p>
@@ -268,7 +271,7 @@
 
                 <h3 class="f-display text-xl font-semibold mb-8">Tim</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-px bg-line rounded-2xl overflow-hidden border border-line">
-                    <div class="bg-[#121309] p-8">
+                    <div class="bg-[#0B0B12] p-8">
                         <h4 class="f-display font-semibold text-lg mb-1">Ermin Selimović</h4>
                         <p class="text-accent text-sm font-medium mb-4">Dizajn &amp; Razvoj</p>
                         <p class="text-ink-dim text-sm leading-relaxed mb-6">
@@ -286,7 +289,7 @@
                             </a>
                         </div>
                     </div>
-                    <div class="bg-[#121309] p-8">
+                    <div class="bg-[#0B0B12] p-8">
                         <h4 class="f-display font-semibold text-lg mb-1">Sanel Moranjkić</h4>
                         <p class="text-accent text-sm font-medium mb-4">Analiza &amp; Takmičarska Logika</p>
                         <p class="text-ink-dim text-sm leading-relaxed">
@@ -325,7 +328,7 @@
 
                 function drawCourt(t) {
                     ctx.clearRect(0, 0, w, h);
-                    ctx.strokeStyle = 'rgba(215, 255, 63, 0.10)';
+                    ctx.strokeStyle = 'rgba(180, 192, 255, 0.12)';
                     ctx.lineWidth = 1;
                     var spacing = 64;
                     var shift = reduceMotion ? 0 : (t * 0.012) % spacing;
@@ -336,7 +339,7 @@
                         ctx.stroke();
                     }
                     // baseline accents
-                    ctx.strokeStyle = 'rgba(215, 255, 63, 0.16)';
+                    ctx.strokeStyle = 'rgba(180, 192, 255, 0.18)';
                     ctx.beginPath();
                     ctx.moveTo(0, h * 0.82);
                     ctx.lineTo(w, h * 0.82);
