@@ -83,12 +83,16 @@
                     <a href="#o-aplikaciji" class="hover:text-ink transition-colors">O aplikaciji</a>
                 </nav>
                 <div class="flex items-center gap-3">
-                    @if (Route::has('login'))
-                        <a href="{{ route('login') }}" class="hidden sm:inline text-sm text-ink-dim hover:text-ink transition-colors">Prijava</a>
-                    @endif
-                    @if (Route::has('register'))
-                        <a href="{{ route('register') }}" class="btn-solid text-sm font-semibold px-4 py-2 rounded-full transition-all">Počni besplatno</a>
-                    @endif
+                    @auth
+                        <a href="{{ route('dashboard') }}" class="btn-solid text-sm font-semibold px-4 py-2 rounded-full transition-all">Moj Dashboard</a>
+                    @else
+                        @if (Route::has('login'))
+                            <a href="{{ route('login') }}" class="hidden sm:inline text-sm text-ink-dim hover:text-ink transition-colors">Prijava</a>
+                        @endif
+                        @if (Route::has('register'))
+                            <a href="{{ route('register') }}" class="btn-solid text-sm font-semibold px-4 py-2 rounded-full transition-all">Počni besplatno</a>
+                        @endif
+                    @endauth
                 </div>
             </div>
         </header>
@@ -115,11 +119,17 @@
                     </p>
 
                     <div class="flex flex-wrap items-center gap-4">
-                        @if (Route::has('register'))
-                            <a href="{{ route('register') }}" class="btn-solid font-semibold px-7 py-3.5 rounded-full transition-all">
-                                Kreiraj organizaciju
+                        @auth
+                            <a href="{{ route('dashboard') }}" class="btn-solid font-semibold px-7 py-3.5 rounded-full transition-all">
+                                Moj Dashboard
                             </a>
-                        @endif
+                        @else
+                            @if (Route::has('register'))
+                                <a href="{{ route('register') }}" class="btn-solid font-semibold px-7 py-3.5 rounded-full transition-all">
+                                    Kreiraj organizaciju
+                                </a>
+                            @endif
+                        @endauth
                         <a href="{{ route('public.leagues.index') }}" class="inline-flex items-center gap-2 font-semibold px-7 py-3.5 rounded-full border border-line hover:border-ink-dim transition-all">
                             Pregledaj takmičenja
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
