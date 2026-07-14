@@ -129,35 +129,43 @@
         </div>
     </div>
 @else
+    @php
+        // Kolo se historijski upisivalo ili u 'round' ili u 'round_number' zavisno od
+        // generatora - uzmi koje god od ta dva postoji da grupisanje ne bi palo na
+        // pogresan default.
+        $roundOf = fn($match) => $match->round_number ?? $match->round;
+    @endphp
     <div class="space-y-6">
-        <!-- Standings -->
-        <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50">
-            <h3 class="text-xl font-bold text-white mb-4">Tabela</h3>
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-700">
-                    <thead>
-                        <tr>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Poz</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Igrač</th>
-                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider">OU</th>
-                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider">P</th>
-                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider">I</th>
-                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider">Bod</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-700">
-                        @foreach($competition->standings->sortByDesc('points') as $standing)
-                        <tr>
-                            <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-300">{{ $loop->iteration }}.</td>
-                            <td class="px-4 py-4 whitespace-nowrap text-sm font-medium text-white">{{ $standing->player->name ?? 'Nepoznato' }}</td>
-                            <td class="px-4 py-4 whitespace-nowrap text-center text-sm text-gray-300">{{ $standing->played }}</td>
-                            <td class="px-4 py-4 whitespace-nowrap text-center text-sm text-gray-300">{{ $standing->won }}</td>
-                            <td class="px-4 py-4 whitespace-nowrap text-center text-sm text-gray-300">{{ $standing->lost }}</td>
-                            <td class="px-4 py-4 whitespace-nowrap text-center text-sm font-bold text-blue-400">{{ $standing->points }}</td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+        <!-- Standings - liga sa jednom tabelom razvucena na cijelu sirinu stranice -->
+        <div class="relative left-1/2 -mx-[50vw] w-screen px-4 sm:px-6 lg:px-8">
+            <div class="max-w-[1800px] mx-auto bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50">
+                <h3 class="text-xl font-bold text-white mb-4">Tabela</h3>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-700">
+                        <thead>
+                            <tr>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Poz</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Igrač</th>
+                                <th class="px-4 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider">OU</th>
+                                <th class="px-4 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider">P</th>
+                                <th class="px-4 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider">I</th>
+                                <th class="px-4 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider">Bod</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-700">
+                            @foreach($competition->standings->sortByDesc('points') as $standing)
+                            <tr>
+                                <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-300">{{ $loop->iteration }}.</td>
+                                <td class="px-4 py-4 whitespace-nowrap text-sm font-medium text-white">{{ $standing->player->name ?? 'Nepoznato' }}</td>
+                                <td class="px-4 py-4 whitespace-nowrap text-center text-sm text-gray-300">{{ $standing->played }}</td>
+                                <td class="px-4 py-4 whitespace-nowrap text-center text-sm text-gray-300">{{ $standing->won }}</td>
+                                <td class="px-4 py-4 whitespace-nowrap text-center text-sm text-gray-300">{{ $standing->lost }}</td>
+                                <td class="px-4 py-4 whitespace-nowrap text-center text-sm font-bold text-blue-400">{{ $standing->points }}</td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
@@ -165,7 +173,7 @@
         <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50">
             <h3 class="text-xl font-bold text-white mb-6">Raspored i Rezultati</h3>
             <div class="space-y-8">
-                @foreach($competition->matches->sortBy('round')->groupBy('round') as $round => $matches)
+                @foreach($competition->matches->sortBy($roundOf)->groupBy($roundOf) as $round => $matches)
                     <div class="space-y-4">
                         <div class="flex items-center space-x-4">
                             <div class="h-px flex-1 bg-gray-700"></div>

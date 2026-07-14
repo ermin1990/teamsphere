@@ -101,6 +101,7 @@ class BergerScheduleService
                         'tournament_group_id' => $group->id,
                         'home_player_id' => $matchData['home_player_id'],
                         'away_player_id' => $matchData['away_player_id'],
+                        'round' => $matchData['round'],
                         'round_number' => $matchData['round'],
                         'status' => 'scheduled',
                         'phase' => 'group',
@@ -364,6 +365,10 @@ class BergerScheduleService
                     'competition_id' => $competition->id,
                     'home_player_id' => $matchData['home_player_id'],
                     'away_player_id' => $matchData['away_player_id'],
+                    // Oba polja - 'round' je ono sto league-content.blade.php grupise/prikazuje,
+                    // 'round_number' je ono sto tournament view-ovi koriste. Bez ovoga 'round'
+                    // ostaje na default vrijednosti (1) za sve mecceve iz cijele lige.
+                    'round' => $matchData['round'],
                     'round_number' => $matchData['round'],
                     'status' => 'scheduled',
                     'phase' => 'groups', // Leagues don't have phases, but we'll use 'groups' for consistency
