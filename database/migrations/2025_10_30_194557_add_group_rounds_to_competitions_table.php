@@ -11,9 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('competitions', function (Blueprint $table) {
-            $table->integer('group_rounds')->default(1)->after('players_advancing_per_group');
-        });
+        if (!Schema::hasColumn('competitions', 'group_rounds')) {
+            Schema::table('competitions', function (Blueprint $table) {
+                $table->integer('group_rounds')->default(1)->after('players_advancing_per_group');
+            });
+        }
     }
 
     /**
