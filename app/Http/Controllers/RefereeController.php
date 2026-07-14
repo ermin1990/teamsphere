@@ -22,6 +22,9 @@ class RefereeController extends Controller
      */
     protected function hasRefereeRights($user, $competition, $match = null)
     {
+        // Organization owner always has referee rights on their own competitions.
+        $isOwner = $competition->organization->user_id === $user->id;
+
         // Check if user is organization referee
         $isOrgReferee = $user->organizationUsers()
             ->where('organization_id', $competition->organization_id)
@@ -34,7 +37,7 @@ class RefereeController extends Controller
         // Check if user is assigned as match referee
         $isMatchReferee = $match && $match->referee_user_id === $user->id;
 
-        return $isOrgReferee || $isMatchModerator || $isMatchReferee;
+        return $isOwner || $isOrgReferee || $isMatchModerator || $isMatchReferee;
     }
 
     /**
