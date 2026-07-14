@@ -41,12 +41,14 @@ class SetLocale
             }
         }
 
-        // Set locale from session or default to English
-        $locale = Session::get('locale', 'en');
+        // Set locale from session or default to Bosnian - resources/lang/en does not
+        // exist, so defaulting to 'en' left every __('messages....') call unresolved
+        // (printing the raw key) for any visitor who never explicitly picked a language.
+        $locale = Session::get('locale', 'bs');
 
         // Ensure locale is valid
         if (!in_array($locale, ['en', 'bs'])) {
-            $locale = 'en';
+            $locale = 'bs';
         }
 
         App::setLocale($locale);
