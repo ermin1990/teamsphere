@@ -193,6 +193,13 @@
                         🏁 End Match
                     </button>
                     @endif
+                    @if(($match->league?->is_recreational ?? $match->competition?->is_recreational ?? false))
+                    <button type="button" wire:click="forceFinishMatch"
+                            wire:confirm="Završi meč sa trenutnim rezultatom? Ovo se ne može poništiti."
+                            class="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors font-semibold">
+                        🏁 Završi meč sada
+                    </button>
+                    @endif
                     @elseif($match->status === 'completed')
                     <div class="text-center text-green-400 font-semibold">
                         ✅ Match Completed

@@ -197,6 +197,38 @@ class TennisLiveScore extends Component
         ]);
     }
 
+    /**
+     * Rekreativna liga: zavrsi mec odmah, uzimajuci trenutni rezultat gemova
+     * u tekucem setu kao konacan rezultat tog seta (npr. 3-1 gemova racuna se
+     * kao osvojen set), bez cekanja da neko dodje do standardnih 6 gemova ili
+     * tiebreak-a, i bez cekanja da bude odigran ceo broj setova za pobjedu.
+     */
+    public function finishMatchNow()
+    {
+        if ($this->matchComplete) {
+            return;
+        }
+
+        if ($this->homeGames > 0 || $this->awayGames > 0) {
+            $this->completedSets[] = ['home' => $this->homeGames, 'away' => $this->awayGames];
+            if ($this->homeGames > $this->awayGames) {
+                $this->homeSets++;
+            } elseif ($this->awayGames > $this->homeGames) {
+                $this->awaySets++;
+            }
+        }
+
+        $this->homeGames = 0;
+        $this->awayGames = 0;
+        $this->homePoints = 0;
+        $this->awayPoints = 0;
+        $this->inTiebreak = false;
+        $this->matchComplete = true;
+
+        $this->persist();
+        $this->updateLeagueStandingsIfNeeded();
+    }
+
     public function resetMatch()
     {
         $this->homePoints = 0;

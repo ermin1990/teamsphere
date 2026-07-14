@@ -83,7 +83,12 @@
                 </button>
             </div>
 
-            <div class="text-center mt-3">
+            <div class="text-center mt-3 flex items-center justify-center gap-4">
+                @if($match->competition?->is_recreational)
+                    <button wire:click="finishMatchNow" wire:confirm="Završi meč sa trenutnim rezultatom? Ovo se ne može poništiti." class="text-xs font-semibold text-purple-400 hover:text-purple-300 transition-colors">
+                        🏁 Završi meč sada
+                    </button>
+                @endif
                 <button wire:click="resetMatch" wire:confirm="Sigurno želite resetovati meč od početka?" class="text-xs text-gray-600 hover:text-red-400 transition-colors">
                     Resetuj meč
                 </button>

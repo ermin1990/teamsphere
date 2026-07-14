@@ -359,6 +359,18 @@
                         </label>
                     </div>
 
+                    <div class="mb-6 pt-4 border-t border-gray-700/50">
+                        <label class="flex items-center space-x-3 cursor-pointer">
+                            <input type="checkbox" id="is_recreational" name="is_recreational" value="1"
+                                   {{ old('is_recreational', $competition->is_recreational) ? 'checked' : '' }}
+                                   class="w-5 h-5 bg-gray-700 border-gray-600 rounded text-blue-600 focus:ring-blue-500">
+                            <div>
+                                <span class="text-white font-medium">Rekreativna liga</span>
+                                <p class="text-gray-400 text-xs">Za društvo koje igra radi zabave: ručno dodavanje dodatnih mečeva između istih igrača (revanš), i ranije završavanje meča/seta sa trenutnim rezultatom bez čekanja zvanične pobjede.</p>
+                            </div>
+                        </label>
+                    </div>
+
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <!-- Points for Win -->
                         <div>

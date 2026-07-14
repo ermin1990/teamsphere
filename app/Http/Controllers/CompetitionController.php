@@ -56,6 +56,7 @@ class CompetitionController extends Controller
                 'type' => ['required', 'in:tournament,league'],
                 'is_team_based' => ['required_if:type,league', 'boolean'],
                 'is_double_round' => ['nullable', 'boolean'],
+                'is_recreational' => ['nullable', 'boolean'],
                 'start_date' => ['required', 'date'],
                 // Tournament specific validation
                 'players_advancing_per_group' => ['required_if:type,tournament', 'integer', 'min:1', 'max:4'],
@@ -83,6 +84,7 @@ class CompetitionController extends Controller
             'max_teams' => $request->max_teams ?: 8,
             'is_team_based' => (bool) ($request->input('is_team_based', 0)),
             'is_double_round' => (bool) ($request->input('is_double_round', 0)),
+            'is_recreational' => (bool) ($request->input('is_recreational', 0)),
             'status' => 'draft',
             'is_active' => true,
             // Tournament fields - use defaults if not provided, but keep flexible
@@ -638,6 +640,7 @@ class CompetitionController extends Controller
             'has_tiebreak' => ['boolean'],
             'tiebreak_points' => ['nullable', 'integer', 'min:5', 'max:15'],
             'is_double_round' => ['nullable', 'boolean'],
+            'is_recreational' => ['nullable', 'boolean'],
             // Tournament-specific validation
             'players_advancing_per_group' => ['nullable', 'integer', 'min:1', 'max:4'],
             'group_rounds' => ['nullable', 'integer', 'min:1', 'max:2'],
@@ -656,6 +659,7 @@ class CompetitionController extends Controller
             'has_tiebreak' => $request->boolean('has_tiebreak'),
             'tiebreak_points' => $request->tiebreak_points ?? $competition->tiebreak_points,
             'is_double_round' => $request->boolean('is_double_round'),
+            'is_recreational' => $request->boolean('is_recreational'),
         ];
 
         // Only update tournament-specific fields if it's a tournament
@@ -1053,6 +1057,43 @@ class CompetitionController extends Controller
             $homeStanding->increment('points', $pointsForDraw * $direction);
             $awayStanding->increment('points', $pointsForDraw * $direction);
         }
+    }
+
+    /**
+     * Manually add an extra match to an individual (non-team) league - only
+     * allowed for recreational leagues, where players might play each other
+     * more than once (a rematch), unlike the round-robin generator which
+     * pairs everyone exactly once.
+     */
+    public function storeMatch(Request $request, Organization $organization, Competition $competition)
+    {
+        Gate::authorize('update', $organization);
+
+        abort_unless($competition->is_recreational, 403, 'Ručno dodavanje mečeva je dostupno samo za rekreativne lige.');
+
+        $request->validate([
+            'home_player_id' => ['required', 'exists:players,id'],
+            'away_player_id' => ['required', 'different:home_player_id', 'exists:players,id'],
+        ]);
+
+        // Both players must actually belong to this competition.
+        $validPlayerIds = $competition->players()->pluck('players.id');
+        if (!$validPlayerIds->contains((int) $request->home_player_id) || !$validPlayerIds->contains((int) $request->away_player_id)) {
+            return back()->withErrors(['home_player_id' => 'Oba igrača moraju biti prijavljeni na ovo takmičenje.']);
+        }
+
+        $nextRound = (int) ($competition->matches()->max('round_number') ?? 0) + 1;
+
+        CompetitionMatch::create([
+            'competition_id' => $competition->id,
+            'home_player_id' => $request->home_player_id,
+            'away_player_id' => $request->away_player_id,
+            'round' => $nextRound,
+            'round_number' => $nextRound,
+            'status' => 'scheduled',
+        ]);
+
+        return back()->with('success', 'Meč je dodan.');
     }
 
     /**

@@ -944,6 +944,123 @@ class LiveScore extends Component
         $this->setDurations = $tempDurations;
     }
 
+    /**
+     * Rekreativna liga: zavrsi mec odmah sa trenutnim rezultatom, bez
+     * cekanja da neko zvanicno osvoji potreban broj setova. Zavrsava i
+     * trenutni set kao sto trenutno stoji (ako je bar jedan poen odigran),
+     * pa zatvara cijeli mec tim rezultatom. Zasebna metoda od endMatch()
+     * kako standardne lige/turniri ne bi mogli zaobici uslov pobjede.
+     */
+    public function forceFinishMatch()
+    {
+        if ($this->match->status === 'completed') {
+            return;
+        }
+
+        if ($this->homeScore > 0 || $this->awayScore > 0) {
+            $this->sets[] = [
+                'home_score' => $this->homeScore,
+                'away_score' => $this->awayScore,
+            ];
+        }
+
+        $homeSetsWon = 0;
+        $awaySetsWon = 0;
+        foreach ($this->sets as $set) {
+            if (($set['home_score'] ?? $set['home'] ?? 0) > ($set['away_score'] ?? $set['away'] ?? 0)) {
+                $homeSetsWon++;
+            } elseif (($set['away_score'] ?? $set['away'] ?? 0) > ($set['home_score'] ?? $set['home'] ?? 0)) {
+                $awaySetsWon++;
+            }
+        }
+
+        $this->match->update([
+            'home_score' => $homeSetsWon,
+            'away_score' => $awaySetsWon,
+            'sets' => $this->sets,
+            'set_durations' => $this->setDurations,
+            'status' => 'completed',
+            'played_at' => now(),
+        ]);
+
+        if ($this->match->league) {
+            $this->updateLeagueStandings($this->match);
+        } elseif ($this->match->competition && $this->match->tournament_group_id) {
+            $tournamentGroup = $this->match->tournamentGroup;
+            if ($tournamentGroup) {
+                $tournamentGroup->updateStandings($this->match);
+                $this->match->refresh();
+                $this->recalculateGroupStandings($tournamentGroup);
+            }
+        } elseif ($this->match->competition && $this->match->competition->isLeague()) {
+            $this->applyCompetitionLeagueStandings($this->match, $homeSetsWon, $awaySetsWon);
+        }
+
+        $this->dispatch('stop-timers');
+        $this->dispatch('reset-timer-display');
+
+        if ($this->match->league) {
+            return redirect()->route('leagues.matches.show', [
+                'league' => $this->match->league,
+                'match' => $this->match,
+            ]);
+        }
+
+        return redirect()->route('organizations.competitions.show', [
+            'organization' => $this->match->competition->organization,
+            'competition' => $this->match->competition,
+        ]);
+    }
+
+    /**
+     * Standings za Competition-tipa lige (round-robin preko competition_id, bez
+     * tournament_group_id) - ista logika kao CompetitionController::applyLeagueStandingsDelta,
+     * ponovljena ovdje jer taj metod nije javno dostupan iz Livewire komponente.
+     */
+    private function applyCompetitionLeagueStandings(CompetitionMatch $match, int $homeScore, int $awayScore): void
+    {
+        $competition = $match->competition;
+        $isTeamBased = $competition->is_team_based;
+        $homeId = $isTeamBased ? $match->home_team_id : $match->home_player_id;
+        $awayId = $isTeamBased ? $match->away_team_id : $match->away_player_id;
+
+        $homeStanding = Standing::firstOrCreate([
+            'competition_id' => $competition->id,
+            'player_id' => $isTeamBased ? null : $homeId,
+            'team_id' => $isTeamBased ? $homeId : null,
+        ], ['played' => 0, 'won' => 0, 'drawn' => 0, 'lost' => 0, 'points' => 0, 'position' => 999]);
+
+        $awayStanding = Standing::firstOrCreate([
+            'competition_id' => $competition->id,
+            'player_id' => $isTeamBased ? null : $awayId,
+            'team_id' => $isTeamBased ? $awayId : null,
+        ], ['played' => 0, 'won' => 0, 'drawn' => 0, 'lost' => 0, 'points' => 0, 'position' => 999]);
+
+        $homeStanding->increment('played');
+        $awayStanding->increment('played');
+
+        $pointsForWin = $competition->points_for_win ?? 2;
+        $pointsForDraw = $competition->points_for_draw ?? 1;
+        $pointsForLoss = $competition->points_for_loss ?? 0;
+
+        if ($homeScore > $awayScore) {
+            $homeStanding->increment('won');
+            $homeStanding->increment('points', $pointsForWin);
+            $awayStanding->increment('lost');
+            $awayStanding->increment('points', $pointsForLoss);
+        } elseif ($awayScore > $homeScore) {
+            $awayStanding->increment('won');
+            $awayStanding->increment('points', $pointsForWin);
+            $homeStanding->increment('lost');
+            $homeStanding->increment('points', $pointsForLoss);
+        } else {
+            $homeStanding->increment('drawn');
+            $awayStanding->increment('drawn');
+            $homeStanding->increment('points', $pointsForDraw);
+            $awayStanding->increment('points', $pointsForDraw);
+        }
+    }
+
     public function pauseTimer()
     {
         // Stop the timer by dispatching stop event

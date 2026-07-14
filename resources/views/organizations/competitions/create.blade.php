@@ -156,6 +156,15 @@
                             </label>
                         </div>
                         <p class="text-xs text-gray-400 ml-8">Ako je označeno, svaka ekipa će igrati protiv svake ekipe dva puta (jednom kod kuće, jednom u gostima).</p>
+
+                        <div class="flex items-center pt-2 border-t border-gray-700/50">
+                            <input type="checkbox" id="is_recreational" name="is_recreational" value="1" {{ old('is_recreational') ? 'checked' : '' }}
+                                   class="w-5 h-5 border-gray-600/50 bg-gray-700/50 text-blue-600 focus:ring-blue-500 focus:ring-2 rounded">
+                            <label for="is_recreational" class="ml-3 text-sm font-medium text-white">
+                                Rekreativna liga
+                            </label>
+                        </div>
+                        <p class="text-xs text-gray-400 ml-8">Za društvo koje igra radi zabave: možete ručno dodati dodatne mečeve između istih igrača (revanš) i ranije završiti meč/set sa trenutnim rezultatom, bez čekanja da neko zvanično osvoji.</p>
                     </div>
 
                     <!-- Tournament Settings -->

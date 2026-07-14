@@ -139,7 +139,14 @@
         <!-- Standings - liga sa jednom tabelom razvucena na cijelu sirinu stranice -->
         <div class="relative left-1/2 -mx-[50vw] w-screen px-4 sm:px-6 lg:px-8">
             <div class="max-w-[1800px] mx-auto bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50">
-                <h3 class="text-xl font-bold text-white mb-4">Tabela</h3>
+                <div class="flex items-center gap-3 mb-4">
+                    <h3 class="text-xl font-bold text-white">Tabela</h3>
+                    @if($competition->is_recreational)
+                        <span class="px-2 py-0.5 text-xs font-medium rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30" title="Ručno dodavanje revanš-mečeva i ranije završavanje meča su dozvoljeni">
+                            Rekreativna liga
+                        </span>
+                    @endif
+                </div>
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-700">
                         <thead>
@@ -171,7 +178,18 @@
 
         <!-- Matches -->
         <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50">
-            <h3 class="text-xl font-bold text-white mb-6">Raspored i Rezultati</h3>
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-bold text-white">Raspored i Rezultati</h3>
+                @if($competition->is_recreational && $isOwner)
+                    <button type="button" onclick="document.getElementById('addRecreationalMatchModal').classList.remove('hidden')"
+                            class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-xl text-sm font-bold transition flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                        </svg>
+                        Dodaj Meč
+                    </button>
+                @endif
+            </div>
             <div class="space-y-8">
                 @foreach($competition->matches->sortBy($roundOf)->groupBy($roundOf) as $round => $matches)
                     <div class="space-y-4">
@@ -236,5 +254,51 @@
                 @endforeach
             </div>
         </div>
+
+        @if($competition->is_recreational && $isOwner)
+        <!-- Dodaj Meč Modal (samo rekreativne lige) -->
+        <div id="addRecreationalMatchModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div class="bg-gray-800 rounded-2xl p-6 max-w-md w-full border border-gray-700 shadow-xl">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-white">Dodaj Meč</h3>
+                    <button type="button" onclick="document.getElementById('addRecreationalMatchModal').classList.add('hidden')" class="text-gray-400 hover:text-white">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                <p class="text-gray-400 text-xs mb-4">Rekreativna liga - možeš dodati meč između bilo koje dvojice prijavljenih igrača, uključujući ponovni meč (revanš) između istih igrača.</p>
+                <form method="POST" action="{{ route('organizations.competitions.matches.store', [$organization, $competition]) }}">
+                    @csrf
+                    <label for="rec_home_player_id" class="block text-sm font-medium text-gray-300 mb-2">Domaći igrač</label>
+                    <select name="home_player_id" id="rec_home_player_id" required
+                            class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500 mb-4">
+                        <option value="">Odaberi igrača...</option>
+                        @foreach($competition->players as $player)
+                            <option value="{{ $player->id }}">{{ $player->name }}</option>
+                        @endforeach
+                    </select>
+
+                    <label for="rec_away_player_id" class="block text-sm font-medium text-gray-300 mb-2">Gostujući igrač</label>
+                    <select name="away_player_id" id="rec_away_player_id" required
+                            class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500 mb-4">
+                        <option value="">Odaberi igrača...</option>
+                        @foreach($competition->players as $player)
+                            <option value="{{ $player->id }}">{{ $player->name }}</option>
+                        @endforeach
+                    </select>
+
+                    <div class="flex gap-3">
+                        <button type="button" onclick="document.getElementById('addRecreationalMatchModal').classList.add('hidden')" class="flex-1 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors">
+                            Odustani
+                        </button>
+                        <button type="submit" class="flex-1 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors">
+                            Dodaj meč
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        @endif
     </div>
 @endif
