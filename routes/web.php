@@ -98,6 +98,8 @@ Route::middleware('auth')->group(function () {
 
     // Player dashboard + invitations
     Route::get('/moje-lige', [\App\Http\Controllers\PlayerDashboardController::class, 'dashboard'])->name('player.dashboard');
+    Route::get('/moje-lige/{competition}/mecevi/novi', [\App\Http\Controllers\PlayerMatchController::class, 'create'])->name('player.matches.create');
+    Route::post('/moje-lige/{competition}/mecevi', [\App\Http\Controllers\PlayerMatchController::class, 'store'])->name('player.matches.store');
     Route::get('/pozivnica/{token}', [\App\Http\Controllers\PlayerInvitationController::class, 'accept'])->name('player-invitations.accept');
     Route::post('organizations/{organization}/competitions/{competition}/invite-player', [\App\Http\Controllers\PlayerInvitationController::class, 'store'])->name('organizations.competitions.invite-player');
 

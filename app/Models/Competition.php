@@ -35,6 +35,7 @@ class Competition extends Model
         'is_active',
         'is_public',
         'is_recreational',
+        'allow_rematches',
         // Tournament fields
         'type',
         'max_participants',
@@ -76,6 +77,7 @@ class Competition extends Model
         'is_active' => 'boolean',
         'is_public' => 'boolean',
         'is_recreational' => 'boolean',
+        'allow_rematches' => 'boolean',
         // Tournament casts
         'max_participants' => 'integer',
         'group_count' => 'integer',

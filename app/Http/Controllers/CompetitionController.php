@@ -62,6 +62,7 @@ class CompetitionController extends Controller
                 'is_team_based' => ['required_if:type,league', 'boolean'],
                 'is_double_round' => ['nullable', 'boolean'],
                 'is_recreational' => ['nullable', 'boolean'],
+                'allow_rematches' => ['nullable', 'boolean'],
                 'start_date' => ['required', 'date'],
                 // Tournament specific validation
                 'players_advancing_per_group' => ['required_if:type,tournament', 'integer', 'min:1', 'max:4'],
@@ -93,6 +94,7 @@ class CompetitionController extends Controller
             'is_team_based' => (bool) ($request->input('is_team_based', 0)),
             'is_double_round' => (bool) ($request->input('is_double_round', 0)),
             'is_recreational' => (bool) ($request->input('is_recreational', 0)),
+            'allow_rematches' => (bool) ($request->input('allow_rematches', 0)),
             'status' => 'draft',
             'is_active' => true,
             // Tournament fields - use defaults if not provided, but keep flexible
@@ -654,6 +656,7 @@ class CompetitionController extends Controller
             'tiebreak_points' => ['nullable', 'integer', 'min:5', 'max:15'],
             'is_double_round' => ['nullable', 'boolean'],
             'is_recreational' => ['nullable', 'boolean'],
+            'allow_rematches' => ['nullable', 'boolean'],
             // Tournament-specific validation
             'players_advancing_per_group' => ['nullable', 'integer', 'min:1', 'max:4'],
             'group_rounds' => ['nullable', 'integer', 'min:1', 'max:2'],
@@ -676,6 +679,7 @@ class CompetitionController extends Controller
             'tiebreak_points' => $request->tiebreak_points ?? $competition->tiebreak_points,
             'is_double_round' => $request->boolean('is_double_round'),
             'is_recreational' => $request->boolean('is_recreational'),
+            'allow_rematches' => $request->boolean('allow_rematches'),
         ];
 
         // Only update tournament-specific fields if it's a tournament
@@ -1007,78 +1011,14 @@ class CompetitionController extends Controller
         // only touched tournament standings, so a league match marked complete
         // this way never affected the table at all.
         if ($competition->isLeague()) {
+            $standingsService = app(\App\Services\LeagueStandingsService::class);
             if ($wasCompleted) {
-                $this->reverseLeagueStandingsFromMatch($competition, $match, $previousHomeScore, $previousAwayScore);
+                $standingsService->reverseForMatch($competition, $match, $previousHomeScore, $previousAwayScore);
             }
-            $this->updateLeagueStandingsFromMatch($competition, $match);
+            $standingsService->applyForMatch($competition, $match);
         }
 
         return back()->with('success', 'Match result saved successfully!');
-    }
-
-    /**
-     * Update the standings table for an individual/team league match, using the
-     * competition's own points_for_win/draw/loss settings. Idempotent per match
-     * is NOT enforced here (matches quick-result's existing "mark complete and
-     * increment" behaviour) - re-submitting a result via quick-result will double
-     * count, same as it already could for tournament standings recalculation.
-     */
-    private function updateLeagueStandingsFromMatch(Competition $competition, CompetitionMatch $match): void
-    {
-        $this->applyLeagueStandingsDelta($competition, $match, $match->home_score, $match->away_score, 1);
-    }
-
-    /**
-     * Undoes a previous updateLeagueStandingsFromMatch() call - used when
-     * quick-result edits an already-completed match, so re-saving a corrected
-     * score doesn't double-count the match's original result.
-     */
-    private function reverseLeagueStandingsFromMatch(Competition $competition, CompetitionMatch $match, int $previousHomeScore, int $previousAwayScore): void
-    {
-        $this->applyLeagueStandingsDelta($competition, $match, $previousHomeScore, $previousAwayScore, -1);
-    }
-
-    private function applyLeagueStandingsDelta(Competition $competition, CompetitionMatch $match, int $homeScore, int $awayScore, int $direction): void
-    {
-        $isTeamBased = $competition->is_team_based;
-        $homeId = $isTeamBased ? $match->home_team_id : $match->home_player_id;
-        $awayId = $isTeamBased ? $match->away_team_id : $match->away_player_id;
-
-        $homeStanding = Standing::firstOrCreate([
-            'competition_id' => $competition->id,
-            'player_id' => $isTeamBased ? null : $homeId,
-            'team_id' => $isTeamBased ? $homeId : null,
-        ], ['played' => 0, 'won' => 0, 'drawn' => 0, 'lost' => 0, 'points' => 0, 'position' => 999]);
-
-        $awayStanding = Standing::firstOrCreate([
-            'competition_id' => $competition->id,
-            'player_id' => $isTeamBased ? null : $awayId,
-            'team_id' => $isTeamBased ? $awayId : null,
-        ], ['played' => 0, 'won' => 0, 'drawn' => 0, 'lost' => 0, 'points' => 0, 'position' => 999]);
-
-        $homeStanding->increment('played', $direction);
-        $awayStanding->increment('played', $direction);
-
-        $pointsForWin = $competition->points_for_win ?? 2;
-        $pointsForDraw = $competition->points_for_draw ?? 1;
-        $pointsForLoss = $competition->points_for_loss ?? 0;
-
-        if ($homeScore > $awayScore) {
-            $homeStanding->increment('won', $direction);
-            $homeStanding->increment('points', $pointsForWin * $direction);
-            $awayStanding->increment('lost', $direction);
-            $awayStanding->increment('points', $pointsForLoss * $direction);
-        } elseif ($awayScore > $homeScore) {
-            $awayStanding->increment('won', $direction);
-            $awayStanding->increment('points', $pointsForWin * $direction);
-            $homeStanding->increment('lost', $direction);
-            $homeStanding->increment('points', $pointsForLoss * $direction);
-        } else {
-            $homeStanding->increment('drawn', $direction);
-            $awayStanding->increment('drawn', $direction);
-            $homeStanding->increment('points', $pointsForDraw * $direction);
-            $awayStanding->increment('points', $pointsForDraw * $direction);
-        }
     }
 
     /**
@@ -1102,6 +1042,10 @@ class CompetitionController extends Controller
         $validPlayerIds = $competition->players()->pluck('players.id');
         if (!$validPlayerIds->contains((int) $request->home_player_id) || !$validPlayerIds->contains((int) $request->away_player_id)) {
             return back()->withErrors(['home_player_id' => 'Oba igrača moraju biti prijavljeni na ovo takmičenje.']);
+        }
+
+        if (!$competition->allow_rematches && CompetitionMatch::pairAlreadyPlayed($competition->id, (int) $request->home_player_id, (int) $request->away_player_id)) {
+            return back()->withErrors(['home_player_id' => 'Ovaj par igrača je već odigrao meč. Uključi "Dozvoli povratne mečeve" u podešavanjima da bi mogli igrati ponovo.']);
         }
 
         $nextRound = (int) ($competition->matches()->max('round_number') ?? 0) + 1;

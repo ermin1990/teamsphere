@@ -26,9 +26,8 @@
                     <h3 class="text-lg font-bold text-white mb-4">{{ $seasonName }}</h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         @foreach($seasonCompetitions as $competition)
-                            <a href="{{ route('public.leagues.show', $competition) }}"
-                               class="flex items-center justify-between p-4 bg-gray-700/30 border border-gray-600/50 rounded-xl hover:border-blue-500/50 transition-all">
-                                <div>
+                            <div class="flex items-center justify-between p-4 bg-gray-700/30 border border-gray-600/50 rounded-xl hover:border-blue-500/50 transition-all">
+                                <a href="{{ route('public.leagues.show', $competition) }}" class="flex-1">
                                     <p class="text-white font-semibold">{{ $competition->name }}</p>
                                     <p class="text-gray-400 text-xs mt-1">
                                         {{ $competition->organization->name }}
@@ -36,9 +35,16 @@
                                             · Rang {{ $rankings[$competition->organization_id]['position'] }}/{{ $rankings[$competition->organization_id]['total'] }}
                                         @endif
                                     </p>
+                                </a>
+                                <div class="flex items-center gap-3">
+                                    @if($competition->isLeague())
+                                        <a href="{{ route('player.matches.create', $competition) }}" class="text-purple-400 hover:text-purple-300 text-sm font-medium whitespace-nowrap">
+                                            + Zabilježi meč
+                                        </a>
+                                    @endif
+                                    <a href="{{ route('public.leagues.show', $competition) }}" class="text-blue-400 text-sm font-medium whitespace-nowrap">Pogledaj →</a>
                                 </div>
-                                <span class="text-blue-400 text-sm font-medium">Pogledaj →</span>
-                            </a>
+                            </div>
                         @endforeach
                     </div>
                 </div>

@@ -393,14 +393,24 @@
                         </label>
                     </div>
 
-                    <div class="mb-6 pt-4 border-t border-gray-700/50">
+                    <div class="mb-6 pt-4 border-t border-gray-700/50 space-y-4">
                         <label class="flex items-center space-x-3 cursor-pointer">
                             <input type="checkbox" id="is_recreational" name="is_recreational" value="1"
                                    {{ old('is_recreational', $competition->is_recreational) ? 'checked' : '' }}
                                    class="w-5 h-5 bg-gray-700 border-gray-600 rounded text-blue-600 focus:ring-blue-500">
                             <div>
                                 <span class="text-white font-medium">Rekreativna liga</span>
-                                <p class="text-gray-400 text-xs">Za društvo koje igra radi zabave: ručno dodavanje dodatnih mečeva između istih igrača (revanš), i ranije završavanje meča/seta sa trenutnim rezultatom bez čekanja zvanične pobjede.</p>
+                                <p class="text-gray-400 text-xs">Za društvo koje igra radi zabave: ručno dodavanje mečeva i ranije završavanje meča/seta sa trenutnim rezultatom bez čekanja zvanične pobjede.</p>
+                            </div>
+                        </label>
+
+                        <label class="flex items-center space-x-3 cursor-pointer">
+                            <input type="checkbox" id="allow_rematches" name="allow_rematches" value="1"
+                                   {{ old('allow_rematches', $competition->allow_rematches) ? 'checked' : '' }}
+                                   class="w-5 h-5 bg-gray-700 border-gray-600 rounded text-blue-600 focus:ring-blue-500">
+                            <div>
+                                <span class="text-white font-medium">Dozvoli povratne mečeve (revanš)</span>
+                                <p class="text-gray-400 text-xs">Isti par igrača može igrati više puta jedan protiv drugog u ovom takmičenju.</p>
                             </div>
                         </label>
                     </div>

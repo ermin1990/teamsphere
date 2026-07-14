@@ -196,7 +196,16 @@
                                 Rekreativna liga
                             </label>
                         </div>
-                        <p class="text-xs text-gray-400 ml-8">Za društvo koje igra radi zabave: možete ručno dodati dodatne mečeve između istih igrača (revanš) i ranije završiti meč/set sa trenutnim rezultatom, bez čekanja da neko zvanično osvoji.</p>
+                        <p class="text-xs text-gray-400 ml-8">Za društvo koje igra radi zabave: organizator može ručno dodati mečeve i ranije završiti meč/set sa trenutnim rezultatom, bez čekanja da neko zvanično osvoji.</p>
+
+                        <div class="flex items-center pt-2">
+                            <input type="checkbox" id="allow_rematches" name="allow_rematches" value="1" {{ old('allow_rematches') ? 'checked' : '' }}
+                                   class="w-5 h-5 border-gray-600/50 bg-gray-700/50 text-blue-600 focus:ring-blue-500 focus:ring-2 rounded">
+                            <label for="allow_rematches" class="ml-3 text-sm font-medium text-white">
+                                Dozvoli povratne mečeve (revanš)
+                            </label>
+                        </div>
+                        <p class="text-xs text-gray-400 ml-8">Isti par igrača može igrati više puta jedan protiv drugog u ovom takmičenju.</p>
                     </div>
 
                     <!-- Tournament Settings -->
