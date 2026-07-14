@@ -48,25 +48,14 @@
                         @enderror
                     </div>
 
-                    <!-- Sport Selection -->
+                    <!-- Sport (naslijeđen od organizacije - ne bira se po takmičenju) -->
                     <div>
-                        <label for="sport_id" class="block text-sm font-medium text-white mb-2">
-                            Sport <span class="text-red-400">*</span>
-                        </label>
-                        <select id="sport_id"
-                                name="sport_id"
-                                required
-                                class="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200">
-                            <option value="">Odaberite sport</option>
-                            @foreach($sports as $sport)
-                                <option value="{{ $sport->id }}" {{ old('sport_id') == $sport->id ? 'selected' : '' }}>
-                                    {{ $sport->name }}
-                                </option>
-                            @endforeach
-                        </select>
-                        @error('sport_id')
-                            <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
-                        @enderror
+                        <label class="block text-sm font-medium text-white mb-2">Sport</label>
+                        <div class="flex items-center gap-2 w-full px-4 py-3 bg-gray-700/30 border border-gray-600/50 rounded-lg text-gray-300">
+                            <span class="text-xl">{{ $organization->sport->icon }}</span>
+                            <span>{{ $organization->sport->name }}</span>
+                            <span class="text-gray-500 text-xs ml-auto">Sport organizacije "{{ $organization->name }}"</span>
+                        </div>
                     </div>
 
                     <!-- Category Selection -->

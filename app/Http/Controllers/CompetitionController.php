@@ -30,10 +30,9 @@ class CompetitionController extends Controller
 
         Gate::authorize('update', $organization);
 
-        $sports = Sport::active()->get();
         $categories = $organization->categories()->active()->get();
 
-        return view('organizations.competitions.create', compact('organization', 'sports', 'categories'));
+        return view('organizations.competitions.create', compact('organization', 'categories'));
     }
 
     /**
@@ -53,7 +52,6 @@ class CompetitionController extends Controller
         try {
             $request->validate([
                 'name' => ['required', 'string', 'max:255'],
-                'sport_id' => ['required', 'exists:sports,id'],
                 'category_id' => ['nullable', 'exists:categories,id'],
                 'type' => ['required', 'in:tournament,league'],
                 'is_team_based' => ['required_if:type,league', 'boolean'],
@@ -77,7 +75,7 @@ class CompetitionController extends Controller
             'slug' => Str::slug($request->name . '-' . time()),
             'description' => $request->description,
             'organization_id' => $organization->id,
-            'sport_id' => $request->sport_id,
+            'sport_id' => $organization->sport_id,
             'category_id' => $request->category_id,
             'type' => $request->type,
             'start_date' => $request->start_date,

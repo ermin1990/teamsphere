@@ -15,6 +15,9 @@
                         @if($organization->is_active)
                             <span class="px-2 py-1 bg-green-500/10 text-green-400 rounded-md border border-green-500/20">Aktivno</span>
                         @endif
+                        @if($organization->sport)
+                            <span class="px-2 py-1 bg-gray-700/50 text-gray-300 rounded-md border border-gray-600/50">{{ $organization->sport->icon }} {{ $organization->sport->name }}</span>
+                        @endif
                     </div>
                 </div>
             </div>

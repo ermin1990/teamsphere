@@ -20,12 +20,14 @@ class Organization extends Model
         'logo',
         'logo_url',
         'user_id',
+        'sport_id',
         'is_active',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
         'user_id' => 'integer',
+        'sport_id' => 'integer',
     ];
 
     /**
@@ -43,6 +45,15 @@ class Organization extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Get the single sport this organization runs. Every competition created
+     * within this organization inherits it - an organization cannot mix sports.
+     */
+    public function sport(): BelongsTo
+    {
+        return $this->belongsTo(Sport::class);
     }
 
     /**

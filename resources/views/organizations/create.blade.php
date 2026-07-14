@@ -39,6 +39,36 @@
                         @enderror
                     </div>
 
+                    <!-- Sport -->
+                    <div>
+                        <label class="block text-sm font-medium text-white mb-2">
+                            Sport
+                        </label>
+                        <p class="text-xs text-gray-400 mb-3">
+                            Organizacija vodi jedan sport - sva takmičenja koja kreirate unutar nje će biti tog sporta.
+                            Za drugi sport (npr. Padel pored Stonog tenisa), kreirajte posebnu organizaciju.
+                        </p>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                            @foreach($sports as $sport)
+                                <label class="relative cursor-pointer">
+                                    <input type="radio"
+                                           name="sport_id"
+                                           value="{{ $sport->id }}"
+                                           class="peer sr-only"
+                                           {{ old('sport_id') == $sport->id ? 'checked' : '' }}
+                                           required>
+                                    <div class="flex flex-col items-center justify-center gap-2 px-4 py-4 bg-gray-700/50 border-2 border-gray-600 rounded-xl text-center transition-all duration-200 peer-checked:border-blue-500 peer-checked:bg-blue-500/10 hover:border-gray-500">
+                                        <span class="text-2xl">{{ $sport->icon }}</span>
+                                        <span class="text-sm font-medium text-white">{{ $sport->name }}</span>
+                                    </div>
+                                </label>
+                            @endforeach
+                        </div>
+                        @error('sport_id')
+                            <p class="mt-2 text-sm text-red-400">{{ $message }}</p>
+                        @enderror
+                    </div>
+
                     <!-- Slug -->
                     <div>
                         <label for="slug" class="block text-sm font-medium text-white mb-2">

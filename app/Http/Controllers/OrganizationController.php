@@ -157,7 +157,8 @@ class OrganizationController extends Controller
      */
     public function create()
     {
-        return view('organizations.create');
+        $sports = \App\Models\Sport::active()->orderBy('name')->get();
+        return view('organizations.create', compact('sports'));
     }
 
     /**
@@ -168,6 +169,7 @@ class OrganizationController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
+            'sport_id' => 'required|exists:sports,id',
             'url_slug' => [
                 'required',
                 'string',
@@ -181,6 +183,7 @@ class OrganizationController extends Controller
             'name' => $request->name,
             'slug' => $request->url_slug,
             'description' => $request->description,
+            'sport_id' => $request->sport_id,
             'user_id' => auth()->id(),
         ]);
 
