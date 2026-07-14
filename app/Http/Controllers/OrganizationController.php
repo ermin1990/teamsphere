@@ -139,6 +139,10 @@ class OrganizationController extends Controller
 
         Gate::authorize('update', $organization);
 
+        // Prijateljski mecevi trenutno rade samo za stoni tenis - organizacije
+        // drugih sportova (Tenis, Padel) nemaju jos implementiranu ovu funkciju.
+        abort_unless($organization->sport->slug === 'stoni-tenis', 404);
+
         return view('organizations.friendly-matches.table-tennis', compact('organization'));
     }
 

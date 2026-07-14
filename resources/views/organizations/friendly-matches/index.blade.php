@@ -41,58 +41,48 @@
                 <!-- Content -->
                 <div class="p-8">
                     @if(isset($isOwner) && $isOwner)
-                    <!-- Sports Selection -->
+                    <!-- Sports Selection - sport organizacije (Faza 1: jedan sport po organizaciji) -->
                     <div class="mb-8">
                         <h4 class="text-lg font-semibold text-white mb-4">{{ __('Choose Sport & Match Type') }}</h4>
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            <!-- Table Tennis -->
-                            <div class="bg-gray-700/30 rounded-xl p-4 hover:bg-gray-600/30 transition-all duration-200">
-                                <div class="text-center mb-3">
-                                    <div class="w-12 h-12 bg-gradient-to-r from-green-500 to-green-600 rounded-xl flex items-center justify-center mx-auto mb-2">
-                                        <span class="text-white text-xl">🏓</span>
+                            @if($organization->sport->slug === 'stoni-tenis')
+                                <!-- Table Tennis -->
+                                <div class="bg-gray-700/30 rounded-xl p-4 hover:bg-gray-600/30 transition-all duration-200">
+                                    <div class="text-center mb-3">
+                                        <div class="w-12 h-12 bg-gradient-to-r from-green-500 to-green-600 rounded-xl flex items-center justify-center mx-auto mb-2">
+                                            <span class="text-white text-xl">{{ $organization->sport->icon }}</span>
+                                        </div>
+                                        <h5 class="text-white font-semibold">{{ $organization->sport->name }}</h5>
                                     </div>
-                                    <h5 class="text-white font-semibold">{{ __('Table Tennis') }}</h5>
-                                </div>
 
-                                <div class="space-y-2">
-                                    <a href="{{ route('organizations.friendly-matches.table-tennis', ['organization' => $organization->slug]) }}?type=individual"
-                                       class="w-full bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 hover:border-blue-500/50 rounded-lg p-2 transition-all block text-center text-sm">
-                                        <div class="text-blue-400 font-medium">{{ __('Individual Match') }}</div>
-                                        <div class="text-gray-400 text-xs">{{ __('1 vs 1') }}</div>
-                                    </a>
+                                    <div class="space-y-2">
+                                        <a href="{{ route('organizations.friendly-matches.table-tennis', ['organization' => $organization->slug]) }}?type=individual"
+                                           class="w-full bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 hover:border-blue-500/50 rounded-lg p-2 transition-all block text-center text-sm">
+                                            <div class="text-blue-400 font-medium">{{ __('Individual Match') }}</div>
+                                            <div class="text-gray-400 text-xs">{{ __('1 vs 1') }}</div>
+                                        </a>
 
-                                    <a href="{{ route('organizations.friendly-matches.table-tennis', ['organization' => $organization->slug]) }}?type=team"
-                                       class="w-full bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/30 hover:border-purple-500/50 rounded-lg p-2 transition-all block text-center text-sm">
-                                        <div class="text-purple-400 font-medium">{{ __('Team Match (Doubles)') }}</div>
-                                        <div class="text-gray-400 text-xs">{{ __('2 vs 2') }}</div>
-                                    </a>
-                                </div>
-                            </div>
-
-                            <!-- Placeholder for other sports -->
-                            <div class="bg-gray-700/30 rounded-xl p-4 opacity-50">
-                                <div class="text-center mb-3">
-                                    <div class="w-12 h-12 bg-gradient-to-r from-gray-500 to-gray-600 rounded-xl flex items-center justify-center mx-auto mb-2">
-                                        <span class="text-white text-xl">⚽</span>
+                                        <a href="{{ route('organizations.friendly-matches.table-tennis', ['organization' => $organization->slug]) }}?type=team"
+                                           class="w-full bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/30 hover:border-purple-500/50 rounded-lg p-2 transition-all block text-center text-sm">
+                                            <div class="text-purple-400 font-medium">{{ __('Team Match (Doubles)') }}</div>
+                                            <div class="text-gray-400 text-xs">{{ __('2 vs 2') }}</div>
+                                        </a>
                                     </div>
-                                    <h5 class="text-gray-400 font-semibold">{{ __('Football') }}</h5>
                                 </div>
-                                <div class="text-center text-gray-500 text-sm">
-                                    {{ __('Coming Soon') }}
-                                </div>
-                            </div>
-
-                            <div class="bg-gray-700/30 rounded-xl p-4 opacity-50">
-                                <div class="text-center mb-3">
-                                    <div class="w-12 h-12 bg-gradient-to-r from-gray-500 to-gray-600 rounded-xl flex items-center justify-center mx-auto mb-2">
-                                        <span class="text-white text-xl">🏀</span>
+                            @else
+                                <!-- Prijateljski mečevi za ovaj sport jos nisu implementirani -->
+                                <div class="bg-gray-700/30 rounded-xl p-4 opacity-50">
+                                    <div class="text-center mb-3">
+                                        <div class="w-12 h-12 bg-gradient-to-r from-gray-500 to-gray-600 rounded-xl flex items-center justify-center mx-auto mb-2">
+                                            <span class="text-white text-xl">{{ $organization->sport->icon }}</span>
+                                        </div>
+                                        <h5 class="text-gray-400 font-semibold">{{ $organization->sport->name }}</h5>
                                     </div>
-                                    <h5 class="text-gray-400 font-semibold">{{ __('Basketball') }}</h5>
+                                    <div class="text-center text-gray-500 text-sm">
+                                        {{ __('Uskoro dostupno') }}
+                                    </div>
                                 </div>
-                                <div class="text-center text-gray-500 text-sm">
-                                    {{ __('Coming Soon') }}
-                                </div>
-                            </div>
+                            @endif
                         </div>
                     </div>
 
