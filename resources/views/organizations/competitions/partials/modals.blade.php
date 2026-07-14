@@ -25,7 +25,7 @@
                             </div>
                             <span class="text-white font-medium" id="homePlayerName">Player 1</span>
                         </div>
-                        <input type="number" name="home_score" id="homeScoreInput" min="0" max="10" required
+                        <input type="number" name="home_score" id="homeScoreInput" min="0" max="10" required onblur="syncSetScoreRows()"
                                class="w-20 text-center text-2xl font-bold bg-gray-600/50 border border-gray-500 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div class="flex items-center justify-between">
@@ -35,22 +35,26 @@
                             </div>
                             <span class="text-white font-medium" id="awayPlayerName">Player 2</span>
                         </div>
-                        <input type="number" name="away_score" id="awayScoreInput" min="0" max="10" required
+                        <input type="number" name="away_score" id="awayScoreInput" min="0" max="10" required onblur="syncSetScoreRows()"
                                class="w-20 text-center text-2xl font-bold bg-gray-600/50 border border-gray-500 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
+                    <p class="text-gray-500 text-xs mt-2">Konačan rezultat (broj osvojenih setova)</p>
                 </div>
 
                 <!-- Set Scores (Optional) -->
                 <div class="bg-gray-700/30 rounded-lg p-4">
                     <div class="flex items-center justify-between mb-3">
-                        <label class="text-sm font-medium text-gray-300">Rezultati setova (opcionalno)</label>
-                        <button type="button" onclick="addSetScore()" 
-                                class="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded transition-colors">
+                        <div>
+                            <label class="text-sm font-medium text-gray-300">Gemovi po setu (opcionalno)</label>
+                            <p class="text-gray-500 text-xs mt-0.5">Nije obavezno - unesi samo ako želiš da sačuvaš detaljan tok meča</p>
+                        </div>
+                        <button type="button" onclick="addSetScore()"
+                                class="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded transition-colors whitespace-nowrap">
                             ➕ Dodaj set
                         </button>
                     </div>
                     <div id="setScoresContainer" class="space-y-2">
-                        <!-- Set scores will be added here dynamically -->
+                        <!-- Set scores will be added here dynamically; auto-populated to match the score above via syncSetScoreRows() -->
                     </div>
                 </div>
 

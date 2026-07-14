@@ -948,6 +948,14 @@ class CompetitionController extends Controller
             }
         }
 
+        // Capture the pre-update state so a re-edit of an already-completed match
+        // (quick-result now also serves as "edit result") can reverse its old
+        // standings contribution before applying the new one, instead of
+        // double-counting.
+        $wasCompleted = $match->status === 'completed';
+        $previousHomeScore = $match->home_score;
+        $previousAwayScore = $match->away_score;
+
         // Update match with results
         $match->update([
             'home_score' => $request->home_score,
@@ -973,6 +981,9 @@ class CompetitionController extends Controller
         // only touched tournament standings, so a league match marked complete
         // this way never affected the table at all.
         if ($competition->isLeague()) {
+            if ($wasCompleted) {
+                $this->reverseLeagueStandingsFromMatch($competition, $match, $previousHomeScore, $previousAwayScore);
+            }
             $this->updateLeagueStandingsFromMatch($competition, $match);
         }
 
@@ -987,6 +998,21 @@ class CompetitionController extends Controller
      * count, same as it already could for tournament standings recalculation.
      */
     private function updateLeagueStandingsFromMatch(Competition $competition, CompetitionMatch $match): void
+    {
+        $this->applyLeagueStandingsDelta($competition, $match, $match->home_score, $match->away_score, 1);
+    }
+
+    /**
+     * Undoes a previous updateLeagueStandingsFromMatch() call - used when
+     * quick-result edits an already-completed match, so re-saving a corrected
+     * score doesn't double-count the match's original result.
+     */
+    private function reverseLeagueStandingsFromMatch(Competition $competition, CompetitionMatch $match, int $previousHomeScore, int $previousAwayScore): void
+    {
+        $this->applyLeagueStandingsDelta($competition, $match, $previousHomeScore, $previousAwayScore, -1);
+    }
+
+    private function applyLeagueStandingsDelta(Competition $competition, CompetitionMatch $match, int $homeScore, int $awayScore, int $direction): void
     {
         $isTeamBased = $competition->is_team_based;
         $homeId = $isTeamBased ? $match->home_team_id : $match->home_player_id;
@@ -1004,28 +1030,28 @@ class CompetitionController extends Controller
             'team_id' => $isTeamBased ? $awayId : null,
         ], ['played' => 0, 'won' => 0, 'drawn' => 0, 'lost' => 0, 'points' => 0, 'position' => 999]);
 
-        $homeStanding->increment('played');
-        $awayStanding->increment('played');
+        $homeStanding->increment('played', $direction);
+        $awayStanding->increment('played', $direction);
 
         $pointsForWin = $competition->points_for_win ?? 2;
         $pointsForDraw = $competition->points_for_draw ?? 1;
         $pointsForLoss = $competition->points_for_loss ?? 0;
 
-        if ($match->home_score > $match->away_score) {
-            $homeStanding->increment('won');
-            $homeStanding->increment('points', $pointsForWin);
-            $awayStanding->increment('lost');
-            $awayStanding->increment('points', $pointsForLoss);
-        } elseif ($match->away_score > $match->home_score) {
-            $awayStanding->increment('won');
-            $awayStanding->increment('points', $pointsForWin);
-            $homeStanding->increment('lost');
-            $homeStanding->increment('points', $pointsForLoss);
+        if ($homeScore > $awayScore) {
+            $homeStanding->increment('won', $direction);
+            $homeStanding->increment('points', $pointsForWin * $direction);
+            $awayStanding->increment('lost', $direction);
+            $awayStanding->increment('points', $pointsForLoss * $direction);
+        } elseif ($awayScore > $homeScore) {
+            $awayStanding->increment('won', $direction);
+            $awayStanding->increment('points', $pointsForWin * $direction);
+            $homeStanding->increment('lost', $direction);
+            $homeStanding->increment('points', $pointsForLoss * $direction);
         } else {
-            $homeStanding->increment('drawn');
-            $awayStanding->increment('drawn');
-            $homeStanding->increment('points', $pointsForDraw);
-            $awayStanding->increment('points', $pointsForDraw);
+            $homeStanding->increment('drawn', $direction);
+            $awayStanding->increment('drawn', $direction);
+            $homeStanding->increment('points', $pointsForDraw * $direction);
+            $awayStanding->increment('points', $pointsForDraw * $direction);
         }
     }
 

@@ -197,15 +197,13 @@
 
                                         @if($isOwner)
                                             <div class="flex items-center gap-1">
-                                                @if($match->status !== 'completed')
-                                                    <button type="button"
-                                                            onclick="openQuickResultModal({{ $match->id }}, '{{ addslashes($match->homePlayer->name ?? 'TBD') }}', '{{ addslashes($match->awayPlayer->name ?? 'TBD') }}')"
-                                                            class="text-gray-500 hover:text-yellow-400 transition-colors p-1" title="Brzi unos rezultata">
-                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                                                        </svg>
-                                                    </button>
-                                                @endif
+                                                <button type="button"
+                                                        onclick="openQuickResultModal({{ $match->id }}, '{{ addslashes($match->homePlayer->name ?? 'TBD') }}', '{{ addslashes($match->awayPlayer->name ?? 'TBD') }}', {{ $match->status === 'completed' ? $match->home_score : 'null' }}, {{ $match->status === 'completed' ? $match->away_score : 'null' }}, {{ json_encode($match->sets ?? []) }})"
+                                                        class="text-gray-500 hover:text-yellow-400 transition-colors p-1" title="{{ $match->status === 'completed' ? 'Uredi rezultat' : 'Brzi unos rezultata' }}">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                                                    </svg>
+                                                </button>
                                                 @if($match->status !== 'completed' && ($organization->sport->isPointsBased() || $organization->sport->isSetsGamesBased()))
                                                     <a href="{{ route('referee.competition.match.live', [$competition, $match]) }}" class="text-gray-500 hover:text-green-400 transition-colors p-1" title="Uživo bodovanje">
                                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
