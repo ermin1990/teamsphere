@@ -3,7 +3,6 @@
 namespace App\Livewire;
 
 use App\Models\CompetitionMatch;
-use App\Models\Standing;
 use Livewire\Component;
 
 /**
@@ -257,10 +256,12 @@ class TennisLiveScore extends Component
     }
 
     /**
-     * Mirrors LiveScore::updateLeagueStandings for the same competition types
-     * (individual/team league matches) - kept as a separate copy rather than a
-     * shared call into LiveScore.php so this component cannot affect the
-     * existing table-tennis live-scoring behavior.
+     * Delegates to the shared LeagueStandingsService (same one used by
+     * CompetitionController::quickResult and LiveScore::forceFinishMatch) so
+     * ties are handled correctly (draw, not a silent win for "away") and the
+     * points math can't drift between the three places that complete a
+     * league match. $this->match already has home_score/away_score/status
+     * persisted by persist() before this is called.
      */
     private function updateLeagueStandingsIfNeeded()
     {
@@ -269,36 +270,7 @@ class TennisLiveScore extends Component
             return;
         }
 
-        $homeId = $this->match->home_player_id;
-        $awayId = $this->match->away_player_id;
-
-        $homeStanding = Standing::firstOrCreate([
-            'competition_id' => $competition->id,
-            'player_id' => $homeId,
-        ], ['played' => 0, 'won' => 0, 'drawn' => 0, 'lost' => 0, 'points' => 0, 'position' => 999]);
-
-        $awayStanding = Standing::firstOrCreate([
-            'competition_id' => $competition->id,
-            'player_id' => $awayId,
-        ], ['played' => 0, 'won' => 0, 'drawn' => 0, 'lost' => 0, 'points' => 0, 'position' => 999]);
-
-        $homeStanding->increment('played');
-        $awayStanding->increment('played');
-
-        $pointsForWin = $competition->points_for_win ?? 2;
-        $pointsForLoss = $competition->points_for_loss ?? 0;
-
-        if ($this->homeSets > $this->awaySets) {
-            $homeStanding->increment('won');
-            $homeStanding->increment('points', $pointsForWin);
-            $awayStanding->increment('lost');
-            $awayStanding->increment('points', $pointsForLoss);
-        } else {
-            $awayStanding->increment('won');
-            $awayStanding->increment('points', $pointsForWin);
-            $homeStanding->increment('lost');
-            $homeStanding->increment('points', $pointsForLoss);
-        }
+        app(\App\Services\LeagueStandingsService::class)->applyForMatch($competition, $this->match);
     }
 
     public function render()
