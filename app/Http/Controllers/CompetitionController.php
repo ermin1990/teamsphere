@@ -1164,6 +1164,13 @@ class CompetitionController extends Controller
             abort(404);
         }
 
+        // Capture pre-update state so a league match's standings contribution
+        // can be reversed if it's being un-completed (e.g. reverted back to
+        // "scheduled") or re-scored, instead of leaving stale points behind.
+        $wasCompleted = $match->status === 'completed';
+        $previousHomeScore = $match->home_score;
+        $previousAwayScore = $match->away_score;
+
         // Validation
         $validated = $request->validate([
             'status' => 'required|in:scheduled,in_progress,completed,forfeited,cancelled',
@@ -1255,6 +1262,20 @@ class CompetitionController extends Controller
             $competition->propagateWinnerChanges($match);
         }
 
+        // Update standings for individual/team leagues - reverse the old
+        // contribution first if the match was previously completed (whether
+        // it's being un-completed, e.g. reverted to "scheduled", or re-scored),
+        // then reapply only if it's completed again with the new result.
+        if ($competition->isLeague()) {
+            $standingsService = app(\App\Services\LeagueStandingsService::class);
+            if ($wasCompleted) {
+                $standingsService->reverseForMatch($competition, $match, $previousHomeScore, $previousAwayScore);
+            }
+            if ($match->status === 'completed') {
+                $standingsService->applyForMatch($competition, $match);
+            }
+        }
+
         return redirect()
             ->route('organizations.competitions.show', [$organization, $competition])
             ->with('success', 'Match updated successfully!');
@@ -1269,6 +1290,13 @@ class CompetitionController extends Controller
 
         if ($match->competition_id !== $competition->id) {
             abort(403);
+        }
+
+        // Reverse this match's standings contribution before deleting it, so
+        // a completed league match's points don't linger in the table.
+        if ($competition->isLeague() && $match->status === 'completed') {
+            app(\App\Services\LeagueStandingsService::class)
+                ->reverseForMatch($competition, $match, $match->home_score, $match->away_score);
         }
 
         $match->delete();
