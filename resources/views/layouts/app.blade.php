@@ -17,6 +17,43 @@
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
+        <link href="https://fonts.bunny.net/css?family=unbounded:600,700&display=swap" rel="stylesheet" />
+
+        {{-- Shared "kampanja" palette (periwinkle akcent + ljubičasti sjaj), same tokens
+             as layouts/public.blade.php so partials shared with the public area
+             (npr. public.leagues.partials.content) render s ispravnim bojama ovdje. --}}
+        <style>
+            :root {
+                --bg-primary: #0B0B12;
+                --bg-secondary: #14141F;
+                --bg-tertiary: #1F1F30;
+                --bg-card: rgba(20, 20, 31, 0.7);
+                --bg-card-solid: #14141F;
+                --bg-accent: rgba(11, 11, 18, 0.95);
+                --bg-hover: rgba(31, 31, 48, 0.6);
+
+                --text-primary: #F6F6FB;
+                --text-secondary: #CDCEDE;
+                --text-tertiary: #9C9EB5;
+                --text-muted: #6E7086;
+
+                --border-primary: rgba(148, 130, 255, 0.16);
+                --border-secondary: rgba(255, 255, 255, 0.07);
+                --border-accent: rgba(148, 130, 255, 0.3);
+
+                --accent-blue: #B4C0FF;
+                --accent-green: rgba(34, 197, 94, 0.85);
+                --accent-green-solid: #16a34a;
+                --accent-red: #f87171;
+                --accent-yellow: #eab308;
+                --accent-cyan: #22d3ee;
+                --accent-amber: #f59e0b;
+
+                --shadow-primary: rgba(0, 0, 0, 0.65);
+                --backdrop-blur: blur(12px);
+                --glow-purple: radial-gradient(ellipse 900px 700px at 88% -5%, rgba(109, 40, 217, 0.35), transparent 60%);
+            }
+        </style>
 
         <!-- Tailwind CSS CDN -->
         <script src="https://cdn.tailwindcss.com"></script>
@@ -57,6 +94,10 @@
                     @endif
                 </div>
             </main>
+
+            @if(request()->routeIs('player.*'))
+                @include('player.partials.bottom-nav')
+            @endif
         </div>
 
         <!-- PWA Install Prompt -->

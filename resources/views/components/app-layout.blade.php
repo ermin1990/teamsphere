@@ -13,6 +13,44 @@
 
         <title>{{ config('app.name', 'MojTurnir') }}</title>
 
+        {{-- CSS custom properties shared with resources/views/layouts/public.blade.php
+             (dark values only - this shell has no light/dark toggle), so content
+             partials shared between the public and authenticated areas (see
+             public.leagues.partials.content) render with working colors here too. --}}
+        <style>
+            [x-cloak] { display: none !important; }
+            :root {
+                --bg-primary: #0B0B12;
+                --bg-secondary: #14141F;
+                --bg-tertiary: #1F1F30;
+                --bg-card: rgba(20, 20, 31, 0.7);
+                --bg-card-solid: #14141F;
+                --bg-accent: rgba(11, 11, 18, 0.95);
+                --bg-hover: rgba(31, 31, 48, 0.6);
+
+                --text-primary: #F6F6FB;
+                --text-secondary: #CDCEDE;
+                --text-tertiary: #9C9EB5;
+                --text-muted: #6E7086;
+
+                --border-primary: rgba(148, 130, 255, 0.16);
+                --border-secondary: rgba(255, 255, 255, 0.07);
+                --border-accent: rgba(148, 130, 255, 0.3);
+
+                --accent-blue: #B4C0FF;
+                --accent-green: rgba(34, 197, 94, 0.85);
+                --accent-green-solid: #16a34a;
+                --accent-red: #f87171;
+                --accent-yellow: #eab308;
+                --accent-cyan: #22d3ee;
+                --accent-amber: #f59e0b;
+
+                --shadow-primary: rgba(0, 0, 0, 0.65);
+                --backdrop-blur: blur(12px);
+                --glow-purple: radial-gradient(ellipse 900px 700px at 88% -5%, rgba(109, 40, 217, 0.35), transparent 60%);
+            }
+        </style>
+
     <!-- PWA manifest -->
     <link rel="manifest" href="{{ asset('manifest.webmanifest') }}">
     <meta name="theme-color" content="#4f46e5">
@@ -105,7 +143,7 @@
                 });
             }
         </script>
-            </main>
-        </div>
+
+        @stack('scripts')
     </body>
 </html>

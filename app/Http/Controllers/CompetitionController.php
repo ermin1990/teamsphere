@@ -54,6 +54,10 @@ class CompetitionController extends Controller
         try {
             $request->validate([
                 'name' => ['required', 'string', 'max:255'],
+                'description' => ['nullable', 'string'],
+                'location' => ['nullable', 'string', 'max:255'],
+                'organizer_contact' => ['nullable', 'string', 'max:255'],
+                'entry_fee' => ['nullable', 'string', 'max:255'],
                 'category_id' => ['nullable', 'exists:categories,id'],
                 'city_id' => ['nullable', 'exists:cities,id'],
                 'season_id' => ['nullable', 'exists:seasons,id'],
@@ -81,6 +85,9 @@ class CompetitionController extends Controller
             'name' => $request->name,
             'slug' => Str::slug($request->name . '-' . time()),
             'description' => $request->description,
+            'location' => $request->location,
+            'organizer_contact' => $request->organizer_contact,
+            'entry_fee' => $request->entry_fee,
             'organization_id' => $organization->id,
             'sport_id' => $organization->sport_id,
             'category_id' => $request->category_id,
@@ -248,7 +255,15 @@ class CompetitionController extends Controller
             ->orderBy('match_order')
             ->get();
 
-        return view('organizations.competitions.show', compact('organization', 'competition', 'isOwner', 'isPlayer', 'isReferee', 'knockoutMatches'));
+        $venues = \App\Models\Venue::orderBy('name')->get();
+
+        $pendingJoinRequests = $competition->joinRequests()
+            ->where('status', 'pending')
+            ->with('user')
+            ->latest()
+            ->get();
+
+        return view('organizations.competitions.show', compact('organization', 'competition', 'isOwner', 'isPlayer', 'isReferee', 'knockoutMatches', 'venues', 'pendingJoinRequests'));
     }
 
     /**
@@ -275,6 +290,17 @@ class CompetitionController extends Controller
             return back()->with('success', $message);
         }
 
+        // Handle "open for applications" toggle (controls the player-facing
+        // "Takmičenja" browse/apply list; independent of public visibility)
+        if ($request->has('registration_open')) {
+            $open = $request->boolean('registration_open');
+            $competition->update(['registration_open' => $open]);
+            $message = $open
+                ? 'Prijave su otvorene - liga je sada na listi za prijavu igrača.'
+                : 'Prijave su zatvorene - liga više nije na listi za prijavu.';
+            return back()->with('success', $message);
+        }
+
         // For other updates, ensure competition is in draft status
         // if ($competition->status !== 'draft') {
         //     return back()->withErrors(['general' => __('Cannot modify settings for a competition that has already started.')]);
@@ -282,8 +308,9 @@ class CompetitionController extends Controller
 
         // Allow updating basic settings even if started
         $competition->update($request->only([
-            'name', 'description', 'start_date', 'end_date', 
-            'max_teams', 'max_participants', 'sets_to_win', 
+            'name', 'description', 'location', 'organizer_contact', 'entry_fee',
+            'start_date', 'end_date',
+            'max_teams', 'max_participants', 'sets_to_win',
             'points_per_set', 'deuce_at', 'must_win_by_two',
             'points_for_win', 'points_for_draw', 'points_for_loss'
         ]));
@@ -641,6 +668,10 @@ class CompetitionController extends Controller
         // TennisLiveScore), pa ne treba da budu obavezna van stonog tenisa.
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
+            'description' => ['nullable', 'string'],
+            'location' => ['nullable', 'string', 'max:255'],
+            'organizer_contact' => ['nullable', 'string', 'max:255'],
+            'entry_fee' => ['nullable', 'string', 'max:255'],
             'category_id' => ['nullable', 'exists:categories,id'],
             'city_id' => ['nullable', 'exists:cities,id'],
             'season_id' => ['nullable', 'exists:seasons,id'],
@@ -664,6 +695,10 @@ class CompetitionController extends Controller
 
         $updateData = [
             'name' => $request->name,
+            'description' => $request->description,
+            'location' => $request->location,
+            'organizer_contact' => $request->organizer_contact,
+            'entry_fee' => $request->entry_fee,
             'category_id' => $request->category_id,
             'city_id' => $request->city_id,
             'season_id' => $organization->seasons()->where('id', $request->season_id)->exists() ? $request->season_id : null,
@@ -943,11 +978,8 @@ class CompetitionController extends Controller
             'sets.*.away' => 'required_with:sets|integer|min:0',
             'scroll_position' => 'nullable|integer|min:0',
             'venue_id' => 'nullable|exists:venues,id',
+            'played_at' => 'nullable|date',
         ]);
-
-        if ($request->filled('venue_id') && !$organization->venues()->where('id', $request->venue_id)->exists()) {
-            return back()->withErrors(['venue_id' => 'Teren ne pripada ovoj organizaciji.']);
-        }
 
         // Save scroll position to session
         if ($request->has('scroll_position')) {
@@ -977,14 +1009,6 @@ class CompetitionController extends Controller
             }
         }
 
-        // Capture the pre-update state so a re-edit of an already-completed match
-        // (quick-result now also serves as "edit result") can reverse its old
-        // standings contribution before applying the new one, instead of
-        // double-counting.
-        $wasCompleted = $match->status === 'completed';
-        $previousHomeScore = $match->home_score;
-        $previousAwayScore = $match->away_score;
-
         // Update match with results
         $match->update([
             'home_score' => $request->home_score,
@@ -992,7 +1016,7 @@ class CompetitionController extends Controller
             'sets' => $normalizedSets,
             'venue_id' => $request->venue_id ?: $match->venue_id,
             'status' => 'completed',
-            'played_at' => now(),
+            'played_at' => $request->filled('played_at') ? $request->played_at : now(),
         ]);
 
         // Update standings if tournament
@@ -1011,11 +1035,7 @@ class CompetitionController extends Controller
         // only touched tournament standings, so a league match marked complete
         // this way never affected the table at all.
         if ($competition->isLeague()) {
-            $standingsService = app(\App\Services\LeagueStandingsService::class);
-            if ($wasCompleted) {
-                $standingsService->reverseForMatch($competition, $match, $previousHomeScore, $previousAwayScore);
-            }
-            $standingsService->applyForMatch($competition, $match);
+            app(\App\Services\LeagueStandingsService::class)->rebuildForCompetition($competition);
         }
 
         return back()->with('success', 'Match result saved successfully!');
@@ -1036,6 +1056,7 @@ class CompetitionController extends Controller
         $request->validate([
             'home_player_id' => ['required', 'exists:players,id'],
             'away_player_id' => ['required', 'different:home_player_id', 'exists:players,id'],
+            'scheduled_at' => ['nullable', 'date'],
         ]);
 
         // Both players must actually belong to this competition.
@@ -1057,6 +1078,7 @@ class CompetitionController extends Controller
             'round' => $nextRound,
             'round_number' => $nextRound,
             'status' => 'scheduled',
+            'scheduled_at' => $request->scheduled_at,
         ]);
 
         return back()->with('success', 'Meč je dodan.');
@@ -1140,14 +1162,17 @@ class CompetitionController extends Controller
             ->distinct()
             ->pluck('referee_name');
 
+        $venues = \App\Models\Venue::orderBy('name')->get();
+
         return view('organizations.competitions.matches.edit', compact(
-            'organization', 
-            'competition', 
-            'match', 
-            'isOwner', 
-            'homePlayers', 
+            'organization',
+            'competition',
+            'match',
+            'isOwner',
+            'homePlayers',
             'awayPlayers',
-            'referees'
+            'referees',
+            'venues'
         ));
     }
 
@@ -1164,13 +1189,6 @@ class CompetitionController extends Controller
             abort(404);
         }
 
-        // Capture pre-update state so a league match's standings contribution
-        // can be reversed if it's being un-completed (e.g. reverted back to
-        // "scheduled") or re-scored, instead of leaving stale points behind.
-        $wasCompleted = $match->status === 'completed';
-        $previousHomeScore = $match->home_score;
-        $previousAwayScore = $match->away_score;
-
         // Validation
         $validated = $request->validate([
             'status' => 'required|in:scheduled,in_progress,completed,forfeited,cancelled',
@@ -1183,6 +1201,8 @@ class CompetitionController extends Controller
             'home_captain_id' => 'nullable|exists:players,id',
             'away_captain_id' => 'nullable|exists:players,id',
             'referee_name' => 'nullable|string|max:255',
+            'played_at' => 'nullable|date',
+            'venue_id' => 'nullable|exists:venues,id',
         ]);
 
         // Prepare update data
@@ -1191,7 +1211,13 @@ class CompetitionController extends Controller
             'home_captain_id' => $validated['home_captain_id'] ?? null,
             'away_captain_id' => $validated['away_captain_id'] ?? null,
             'referee_name' => $validated['referee_name'] ?? null,
+            'venue_id' => $validated['venue_id'] ?? null,
         ];
+
+        // The organizer can pick a custom date/time (e.g. backdating a match
+        // entered after the fact); fall back to the previous behaviour
+        // (existing played_at, or now()) when left blank.
+        $playedAt = $request->filled('played_at') ? $validated['played_at'] : ($match->played_at ?? now());
 
         if ($validated['status'] === 'scheduled') {
             // Reset everything
@@ -1216,7 +1242,7 @@ class CompetitionController extends Controller
                 }
             }
             $updateData['sets'] = $normalizedSets;
-            $updateData['played_at'] = $match->played_at ?? now();
+            $updateData['played_at'] = $playedAt;
         } elseif ($validated['status'] === 'completed') {
             $updateData['home_score'] = $validated['home_score'] ?? 0;
             $updateData['away_score'] = $validated['away_score'] ?? 0;
@@ -1232,10 +1258,10 @@ class CompetitionController extends Controller
                 }
             }
             $updateData['sets'] = $normalizedSets;
-            $updateData['played_at'] = $match->played_at ?? now();
+            $updateData['played_at'] = $playedAt;
         } elseif ($validated['status'] === 'forfeited') {
             $updateData['forfeited_by'] = $validated['forfeited_by'];
-            $updateData['played_at'] = now();
+            $updateData['played_at'] = $playedAt;
         }
 
         $match->update($updateData);
@@ -1262,18 +1288,9 @@ class CompetitionController extends Controller
             $competition->propagateWinnerChanges($match);
         }
 
-        // Update standings for individual/team leagues - reverse the old
-        // contribution first if the match was previously completed (whether
-        // it's being un-completed, e.g. reverted to "scheduled", or re-scored),
-        // then reapply only if it's completed again with the new result.
+        // Update standings for individual/team leagues.
         if ($competition->isLeague()) {
-            $standingsService = app(\App\Services\LeagueStandingsService::class);
-            if ($wasCompleted) {
-                $standingsService->reverseForMatch($competition, $match, $previousHomeScore, $previousAwayScore);
-            }
-            if ($match->status === 'completed') {
-                $standingsService->applyForMatch($competition, $match);
-            }
+            app(\App\Services\LeagueStandingsService::class)->rebuildForCompetition($competition);
         }
 
         return redirect()
@@ -1292,14 +1309,12 @@ class CompetitionController extends Controller
             abort(403);
         }
 
-        // Reverse this match's standings contribution before deleting it, so
-        // a completed league match's points don't linger in the table.
-        if ($competition->isLeague() && $match->status === 'completed') {
-            app(\App\Services\LeagueStandingsService::class)
-                ->reverseForMatch($competition, $match, $match->home_score, $match->away_score);
-        }
-
         $match->delete();
+
+        // Recompute standings so a deleted completed match's contribution is gone.
+        if ($competition->isLeague()) {
+            app(\App\Services\LeagueStandingsService::class)->rebuildForCompetition($competition);
+        }
 
         return back()->with('success', 'Meč je uspješno obrisan.');
     }

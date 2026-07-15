@@ -27,6 +27,14 @@ class DashboardController extends Controller
         $ownedOrganizationIds = $user->organizations()->pluck('id');
         $allOrganizationIds = $playerOrganizationIds->merge($ownedOrganizationIds)->unique();
 
+        // This dashboard is for organizers/staff only - a plain player (no
+        // owned organization, no staff role) is sent to their own area
+        // instead, even if they've joined leagues owned by someone else
+        // (which would otherwise still populate $allOrganizationIds above).
+        if (!$user->isOrganizerOrStaff()) {
+            return redirect()->route('player.dashboard');
+        }
+
         // Load all organizations with eager loading for better performance
         $organizations = Organization::whereIn('id', $allOrganizationIds)
             ->with([
@@ -57,9 +65,6 @@ class DashboardController extends Controller
         // Check if user is a referee in any organization
         $isReferee = $user->organizationUsers()->where('role', 'referee')->exists();
 
-        // Get current plan for usage statistics
-        $currentPlan = $user->currentPlan();
-
         // Calculate player counts per organization
         $playerCountsByOrganization = [];
         foreach ($players as $player) {
@@ -68,23 +73,11 @@ class DashboardController extends Controller
             }
         }
 
-        // Calculate usage statistics
-        $usageStats = [
-            'organizations_used' => $user->organizations()->count(),
-            'competitions_used' => \App\Models\Competition::whereIn('organization_id', $allOrganizationIds)->where('type', 'tournament')->count(),
-            'leagues_used' => \App\Models\Competition::whereIn('organization_id', $allOrganizationIds)->where('type', 'league')->count(),
-            'max_organizations' => $currentPlan ? $currentPlan->max_organizations : null,
-            'max_competitions_per_organization' => $currentPlan ? $currentPlan->max_competitions_per_organization : null,
-            'max_leagues_per_organization' => $currentPlan ? $currentPlan->max_leagues_per_organization : null,
-        ];
-
         return view('dashboard', compact(
             'organizations',
             'players',
             'upcomingMatches',
             'isReferee',
-            'currentPlan',
-            'usageStats',
             'playerCountsByOrganization'
         ));
     }

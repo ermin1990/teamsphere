@@ -5,38 +5,40 @@ namespace App\Services;
 use App\Models\Competition;
 use App\Models\CompetitionMatch;
 use App\Models\Standing;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Standings math for individual/team leagues (Competition type='league',
  * keyed by competition_id + player_id/team_id - not tournament-group
- * standings, which have their own service). Extracted so the three places
- * that complete a league match (organizer quick-result, live-score forced
- * finish, player self-entry) share one implementation instead of drifting.
+ * standings, which have their own service).
+ *
+ * Standings are recomputed from scratch from every completed match rather
+ * than patched with incremental +/- deltas: every place that completes,
+ * edits, resets, or deletes a league match just calls rebuildForCompetition()
+ * afterwards, so there's no separate ledger that can drift out of sync with
+ * the match data (the source of three separate "table wasn't updated"
+ * bugs fixed the same day this was introduced).
  */
 class LeagueStandingsService
 {
     /**
-     * Apply a completed match's result to standings. Idempotent per match is
-     * NOT enforced here (matches quick-result's existing "mark complete and
-     * increment" behaviour) - re-submitting a result will double count unless
-     * the caller reverses the previous result first (see reverseForMatch()).
+     * Recompute this competition's entire standings table from its completed
+     * matches. Safe to call after any match create/update/delete.
      */
-    public function applyForMatch(Competition $competition, CompetitionMatch $match): void
+    public function rebuildForCompetition(Competition $competition): void
     {
-        $this->applyDelta($competition, $match, $match->home_score, $match->away_score, 1);
+        DB::transaction(function () use ($competition) {
+            Standing::where('competition_id', $competition->id)
+                ->update(['played' => 0, 'won' => 0, 'drawn' => 0, 'lost' => 0, 'points' => 0]);
+
+            $competition->matches()
+                ->where('status', 'completed')
+                ->get()
+                ->each(fn (CompetitionMatch $match) => $this->applyMatch($competition, $match));
+        });
     }
 
-    /**
-     * Undoes a previous applyForMatch() call - used when a completed match's
-     * result is edited, so re-saving a corrected score doesn't double-count
-     * the match's original result.
-     */
-    public function reverseForMatch(Competition $competition, CompetitionMatch $match, int $previousHomeScore, int $previousAwayScore): void
-    {
-        $this->applyDelta($competition, $match, $previousHomeScore, $previousAwayScore, -1);
-    }
-
-    private function applyDelta(Competition $competition, CompetitionMatch $match, int $homeScore, int $awayScore, int $direction): void
+    private function applyMatch(Competition $competition, CompetitionMatch $match): void
     {
         $isTeamBased = $competition->is_team_based;
         $homeId = $isTeamBased ? $match->home_team_id : $match->home_player_id;
@@ -54,28 +56,28 @@ class LeagueStandingsService
             'team_id' => $isTeamBased ? $awayId : null,
         ], ['played' => 0, 'won' => 0, 'drawn' => 0, 'lost' => 0, 'points' => 0, 'position' => 999]);
 
-        $homeStanding->increment('played', $direction);
-        $awayStanding->increment('played', $direction);
+        $homeStanding->increment('played');
+        $awayStanding->increment('played');
 
         $pointsForWin = $competition->points_for_win ?? 2;
         $pointsForDraw = $competition->points_for_draw ?? 1;
         $pointsForLoss = $competition->points_for_loss ?? 0;
 
-        if ($homeScore > $awayScore) {
-            $homeStanding->increment('won', $direction);
-            $homeStanding->increment('points', $pointsForWin * $direction);
-            $awayStanding->increment('lost', $direction);
-            $awayStanding->increment('points', $pointsForLoss * $direction);
-        } elseif ($awayScore > $homeScore) {
-            $awayStanding->increment('won', $direction);
-            $awayStanding->increment('points', $pointsForWin * $direction);
-            $homeStanding->increment('lost', $direction);
-            $homeStanding->increment('points', $pointsForLoss * $direction);
+        if ($match->home_score > $match->away_score) {
+            $homeStanding->increment('won');
+            $homeStanding->increment('points', $pointsForWin);
+            $awayStanding->increment('lost');
+            $awayStanding->increment('points', $pointsForLoss);
+        } elseif ($match->away_score > $match->home_score) {
+            $awayStanding->increment('won');
+            $awayStanding->increment('points', $pointsForWin);
+            $homeStanding->increment('lost');
+            $homeStanding->increment('points', $pointsForLoss);
         } else {
-            $homeStanding->increment('drawn', $direction);
-            $awayStanding->increment('drawn', $direction);
-            $homeStanding->increment('points', $pointsForDraw * $direction);
-            $awayStanding->increment('points', $pointsForDraw * $direction);
+            $homeStanding->increment('drawn');
+            $awayStanding->increment('drawn');
+            $homeStanding->increment('points', $pointsForDraw);
+            $awayStanding->increment('points', $pointsForDraw);
         }
     }
 }

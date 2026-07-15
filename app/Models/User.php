@@ -89,6 +89,16 @@ class User extends Authenticatable
     }
 
     /**
+     * Whether this user owns an organization or is staff (e.g. referee) in
+     * one - the generic /dashboard is for these users only; a plain player
+     * lands on /moje-lige instead.
+     */
+    public function isOrganizerOrStaff(): bool
+    {
+        return $this->organizations()->exists() || $this->organizationUsers()->exists();
+    }
+
+    /**
      * Get the current active plan for this user.
      */
     public function currentPlan()

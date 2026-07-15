@@ -28,9 +28,16 @@ class ManagePlayers extends Component
         // Refresh the competition relationship to get updated players
         $this->competition->load('players');
 
+        $pendingJoinRequests = $this->competition->joinRequests()
+            ->where('status', 'pending')
+            ->with('user')
+            ->latest()
+            ->get();
+
         return view('livewire.manage-players', [
             'competition' => $this->competition,
             'organization' => $this->organization,
+            'pendingJoinRequests' => $pendingJoinRequests,
         ]);
     }
 }

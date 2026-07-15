@@ -61,6 +61,42 @@
 
                 <!-- Main Content - Add Players (2 columns) -->
                 <div class="lg:col-span-2">
+                    @if($pendingJoinRequests->count() > 0)
+                        <div class="mb-6 bg-gray-800/50 backdrop-blur-xl rounded-xl p-6 border border-yellow-500/30 shadow-xl">
+                            <h3 class="text-xl font-bold text-white mb-4">
+                                Zahtjevi za pridruživanje
+                                <span class="text-gray-400 text-sm ml-2">({{ $pendingJoinRequests->count() }})</span>
+                            </h3>
+                            <div class="space-y-3">
+                                @foreach($pendingJoinRequests as $joinRequest)
+                                    <div class="flex items-center justify-between bg-gray-700/30 rounded-lg p-3 gap-3">
+                                        <div class="min-w-0 flex-1">
+                                            <p class="text-white font-medium truncate">{{ $joinRequest->user->name }}</p>
+                                            <p class="text-gray-400 text-xs truncate">{{ $joinRequest->user->email }}</p>
+                                            @if($joinRequest->message)
+                                                <p class="text-gray-500 text-xs mt-1 italic">"{{ $joinRequest->message }}"</p>
+                                            @endif
+                                        </div>
+                                        <div class="flex items-center gap-2 shrink-0">
+                                            <form method="POST" action="{{ route('organizations.competitions.join-requests.reject', [$organization, $competition, $joinRequest]) }}">
+                                                @csrf
+                                                <button type="submit" class="px-3 py-1.5 bg-gray-600 hover:bg-gray-700 text-white text-xs rounded-lg transition-colors">
+                                                    Odbij
+                                                </button>
+                                            </form>
+                                            <form method="POST" action="{{ route('organizations.competitions.join-requests.approve', [$organization, $competition, $joinRequest]) }}">
+                                                @csrf
+                                                <button type="submit" class="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs rounded-lg transition-colors">
+                                                    Prihvati
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
+
                     @livewire('add-player-to-competition', ['organization' => $organization, 'competition' => $competition], key('add-player-' . $competition->id))
 
                     <!-- Current Participants -->

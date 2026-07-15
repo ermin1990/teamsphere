@@ -21,14 +21,16 @@
                 <x-nav-link :href="route('home')" :active="request()->routeIs('home')" class="text-white hover:text-blue-400 transition-colors">
                         {{ __('Početna') }}
                     </x-nav-link>
+                @if(auth()->user()->isOrganizerOrStaff())
                 <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')" class="text-white hover:text-blue-400 transition-colors">
                         {{ __('Dashboard') }}
                     </x-nav-link>
-                    <x-nav-link :href="route('public.leagues.index')" :active="request()->routeIs('public.leagues.index')" class="text-white hover:text-blue-400 transition-colors">
-                        {{ __('Javna takmičenja') }}
-                    </x-nav-link>
+                @endif
                     <x-nav-link :href="route('player.dashboard')" :active="request()->routeIs('player.dashboard')" class="text-white hover:text-blue-400 transition-colors">
                         {{ __('Moje lige') }}
+                    </x-nav-link>
+                    <x-nav-link :href="route('player.leagues.index')" :active="request()->routeIs('player.leagues.index')" class="text-white hover:text-blue-400 transition-colors">
+                        {{ __('Takmičenja') }}
                     </x-nav-link>
 
                 </div>
@@ -53,6 +55,12 @@
                         <x-dropdown-link :href="route('profile.edit')" class="text-white hover:bg-gray-700/50">
                             {{ __('Profile') }}
                         </x-dropdown-link>
+
+                        @if(auth()->user()->organizations()->exists())
+                            <x-dropdown-link :href="route('plan.show')" class="text-white hover:bg-gray-700/50">
+                                {{ __('Moj plan') }}
+                            </x-dropdown-link>
+                        @endif
 
                         @if(auth()->user()->isAdmin())
                             <x-dropdown-link :href="route('admin.dashboard')" class="text-white hover:bg-gray-700/50">
@@ -100,19 +108,21 @@
                 {{ __('Početna') }}
             </x-responsive-nav-link>
         </div>
-        <div class="pt-2 pb-3 space-y-1"> 
+        @if(auth()->user()->isOrganizerOrStaff())
+        <div class="pt-2 pb-3 space-y-1">
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')" class="text-white hover:bg-gray-700/50" @click="open = false">
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
         </div>
-        <div class="pt-2 pb-3 space-y-1">
-            <x-responsive-nav-link :href="route('public.leagues.index')" :active="request()->routeIs('public.leagues.index')" class="text-white hover:bg-gray-700/50" @click="open = false">
-                {{ __('Javna takmičenja') }}
-            </x-responsive-nav-link>
-        </div>
+        @endif
         <div class="pt-2 pb-3 space-y-1">
             <x-responsive-nav-link :href="route('player.dashboard')" :active="request()->routeIs('player.dashboard')" class="text-white hover:bg-gray-700/50" @click="open = false">
                 {{ __('Moje lige') }}
+            </x-responsive-nav-link>
+        </div>
+        <div class="pt-2 pb-3 space-y-1">
+            <x-responsive-nav-link :href="route('player.leagues.index')" :active="request()->routeIs('player.leagues.index')" class="text-white hover:bg-gray-700/50" @click="open = false">
+                {{ __('Takmičenja') }}
             </x-responsive-nav-link>
         </div>
 
@@ -127,6 +137,12 @@
                 <x-responsive-nav-link :href="route('profile.edit')" class="text-white hover:bg-gray-700/50" @click="open = false">
                     {{ __('Profile') }}
                 </x-responsive-nav-link>
+
+                @if(auth()->user()->organizations()->exists())
+                    <x-responsive-nav-link :href="route('plan.show')" class="text-white hover:bg-gray-700/50" @click="open = false">
+                        {{ __('Moj plan') }}
+                    </x-responsive-nav-link>
+                @endif
 
                 @if(auth()->user()->isAdmin())
                     <x-responsive-nav-link :href="route('admin.bug-reports.index')" class="text-white hover:bg-gray-700/50" @click="open = false">

@@ -20,6 +20,8 @@
             @include('organizations.competitions.partials.actions-bar')
 
             <div class="space-y-6">
+                @include('organizations.competitions.partials.join-requests')
+
                 @include('organizations.competitions.partials.info-cards')
                 
                 @include('organizations.competitions.partials.setup-wizard')
@@ -29,8 +31,6 @@
                 @else
                     @include('organizations.competitions.partials.league-content')
                 @endif
-
-                @include('organizations.competitions.partials.match-rules')
             </div>
 
         </div>

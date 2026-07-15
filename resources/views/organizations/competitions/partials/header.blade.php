@@ -27,6 +27,11 @@
                     Liga
                 </span>
                 @endif
+                @if($competition->sets_to_win)
+                <span class="px-3 py-1 text-xs rounded-full bg-gray-700/50 text-gray-300">
+                    Do {{ $competition->sets_to_win }} {{ $competition->sets_to_win == 1 ? 'dobijenog seta' : 'dobijena seta' }}
+                </span>
+                @endif
             </div>
         </div>
     </div>
@@ -58,6 +63,11 @@
             @else
             <span class="px-3 py-1 text-sm rounded-full bg-blue-500/20 text-blue-400">
                 Liga
+            </span>
+            @endif
+            @if($competition->sets_to_win)
+            <span class="px-3 py-1 text-sm rounded-full bg-gray-700/50 text-gray-300">
+                Do {{ $competition->sets_to_win }} {{ $competition->sets_to_win == 1 ? 'dobijenog seta' : 'dobijena seta' }}
             </span>
             @endif
         </div>

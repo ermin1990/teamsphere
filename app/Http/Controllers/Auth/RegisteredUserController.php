@@ -3,12 +3,12 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\Player;
 use App\Models\Setting;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rules;
@@ -35,6 +35,7 @@ class RegisteredUserController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'role' => ['required', 'in:organizer,player'],
         ]);
 
         $user = User::create([
@@ -42,6 +43,15 @@ class RegisteredUserController extends Controller
             'email' => $request->email,
             'password' => Hash::make($request->password),
         ]);
+
+        if ($request->role === 'player') {
+            Player::create([
+                'name' => $user->name,
+                'email' => $user->email,
+                'user_id' => $user->id,
+                'organization_id' => null,
+            ]);
+        }
 
         event(new Registered($user));
 
@@ -54,8 +64,6 @@ class RegisteredUserController extends Controller
             }
         }
 
-        Auth::login($user);
-
-        return redirect()->intended(route('dashboard', absolute: false));
+        return redirect()->route('login')->with('status', 'Registracija je uspješna! Prijavite se sa vašim novim nalogom.');
     }
 }

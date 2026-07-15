@@ -58,6 +58,32 @@
                 </form>
             </div>
 
+            <!-- Registration Open Toggle -->
+            <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl mb-6">
+                <form method="POST" action="{{ route('organizations.competitions.update', [$organization, $competition]) }}" class="space-y-3">
+                    @csrf
+                    @method('PATCH')
+
+                    <input type="hidden" name="registration_open" value="0">
+
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h4 class="text-white font-medium">Otvori prijave igračima</h4>
+                            <p class="text-sm text-gray-400">Prikaži ovu ligu na listi "Takmičenja" da joj se igrači mogu prijaviti</p>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox"
+                                   name="registration_open"
+                                   value="1"
+                                   {{ $competition->registration_open ? 'checked' : '' }}
+                                   class="sr-only peer"
+                                   onchange="this.form.submit()">
+                            <div class="w-11 h-6 bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
+                        </label>
+                    </div>
+                </form>
+            </div>
+
             @if($competition->sport->isPointsBased())
             <!-- Quick Presets -->
             <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl mb-6">
@@ -153,6 +179,37 @@
                             <label for="registration_deadline" class="block text-sm font-medium text-white mb-2">Prijave otvorene do</label>
                             <input type="datetime-local" id="registration_deadline" name="registration_deadline"
                                    value="{{ old('registration_deadline', optional($competition->registration_deadline)->format('Y-m-d\TH:i')) }}"
+                                   class="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+                        </div>
+                    </div>
+
+                    <div class="mt-6">
+                        <label for="description" class="block text-sm font-medium text-white mb-2">Opis</label>
+                        <textarea id="description" name="description" rows="3"
+                                  class="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                                  placeholder="Opcionalni opis takmičenja">{{ old('description', $competition->description) }}</textarea>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+                        <div>
+                            <label for="location" class="block text-sm font-medium text-white mb-2">Lokacija/adresa igranja</label>
+                            <input type="text" id="location" name="location"
+                                   value="{{ old('location', $competition->location) }}"
+                                   placeholder="Npr. SC Mejdan, teren 2"
+                                   class="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+                        </div>
+                        <div>
+                            <label for="organizer_contact" class="block text-sm font-medium text-white mb-2">Kontakt organizatora</label>
+                            <input type="text" id="organizer_contact" name="organizer_contact"
+                                   value="{{ old('organizer_contact', $competition->organizer_contact) }}"
+                                   placeholder="Telefon ili email"
+                                   class="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+                        </div>
+                        <div>
+                            <label for="entry_fee" class="block text-sm font-medium text-white mb-2">Kotizacija/cijena učešća</label>
+                            <input type="text" id="entry_fee" name="entry_fee"
+                                   value="{{ old('entry_fee', $competition->entry_fee) }}"
+                                   placeholder="Npr. 20 KM po sezoni, besplatno"
                                    class="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
                         </div>
                     </div>

@@ -12,16 +12,10 @@ class Venue extends Model
     use HasFactory;
 
     protected $fillable = [
-        'organization_id',
         'city_id',
         'name',
         'address',
     ];
-
-    public function organization(): BelongsTo
-    {
-        return $this->belongsTo(Organization::class);
-    }
 
     public function city(): BelongsTo
     {

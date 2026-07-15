@@ -226,44 +226,40 @@
                     @endphp
                     <div id="group-{{ $group->id }}-standings-content" class="group-subtab-content">
                     @if($groupStandings->count() > 0)
-                    <div class="mb-4">
-                        <!-- Table Header -->
-                        <div class="grid grid-cols-12 gap-2 mb-2 text-xs table-header-text font-medium px-2">
-                            <div class="col-span-6"></div>
-                            <div class="col-span-1 text-center">P</div>
-                            <div class="col-span-1 text-center">I</div>
-                            <div class="col-span-1 text-center">Set±</div>
-                            <div class="col-span-1 text-center">Gem±</div>
-                            <div class="col-span-2 text-center">B</div>
-                        </div>                        <!-- Table Rows -->
-                        <div class="space-y-1">
+                    <div class="bg-[#0d1527] rounded-xl p-3 border border-slate-800">
+                        <div class="grid grid-cols-[auto_1fr_auto_auto_auto_auto_auto] md:grid-cols-[auto_1fr_auto_auto_auto_auto_auto_auto] gap-x-1.5 mb-1.5 text-[9px] text-slate-500 font-bold uppercase tracking-tighter px-2.5">
+                            <div class="flex items-center w-5 justify-center">#</div>
+                            <div>Igrač</div>
+                            <div class="hidden md:block text-center w-6">M</div>
+                            <div class="text-center w-5">P</div>
+                            <div class="text-center w-5">I</div>
+                            <div class="text-center w-7">S</div>
+                            <div class="text-center w-7">G</div>
+                            <div class="text-center w-8 text-blue-400">Bod</div>
+                        </div>
+                        <div class="space-y-1.5">
                             @php
                                 $advancingPlayers = $competition->players_advancing_per_group ?? 2;
                             @endphp
                             @foreach($groupStandings as $index => $standing)
-                            <div class="grid grid-cols-12 gap-2 items-center py-2 px-2 {{ $index < $advancingPlayers ? 'table-advancing-bg' : 'bg-[var(--bg-tertiary)]' }} hover:bg-[var(--bg-secondary)] rounded text-xs md:text-sm transition-all duration-200">
-                                <div class="col-span-6 flex items-center space-x-2">
-                                    <span class="font-bold table-number-text w-6 text-center">{{ $index + 1 }}</span>
-                                    <span class="table-player-name font-medium text-xs truncate">{{ $standing->player->name }}@if($standing->player->position) <span class="table-player-position text-xs">({{ $standing->player->position }})</span>@endif</span>
+                                @php
+                                    $played = ($standing->won ?? 0) + ($standing->lost ?? 0);
+                                    $setDiff = ($standing->sets_won ?? 0) - ($standing->sets_lost ?? 0);
+                                    $gemDiff = ($standing->points_won ?? 0) - ($standing->points_lost ?? 0);
+                                    $advancing = $index < $advancingPlayers;
+                                @endphp
+                                <div class="grid grid-cols-[auto_1fr_auto_auto_auto_auto_auto] md:grid-cols-[auto_1fr_auto_auto_auto_auto_auto_auto] gap-x-1.5 items-center py-2 px-2.5 rounded-lg transition-all duration-300 border {{ $advancing ? 'bg-emerald-500/5 border-emerald-500/30' : 'bg-slate-900/40 border-slate-800/80 hover:bg-slate-800/60' }}">
+                                    <span class="w-5 text-center text-[10px] font-black text-slate-500">{{ $index + 1 }}</span>
+                                    <div class="flex flex-col min-w-0 overflow-hidden">
+                                        <span class="text-white font-bold text-[12px] truncate leading-tight">{{ $standing->player->name }}@if($standing->player->position) <span class="text-slate-500 text-[10px]">({{ $standing->player->position }})</span>@endif</span>
+                                    </div>
+                                    <div class="hidden md:flex w-6 justify-center text-slate-300 font-bold text-[11px]">{{ $played }}</div>
+                                    <div class="w-5 text-center text-emerald-300 font-bold text-[11px]">{{ $standing->won ?? 0 }}</div>
+                                    <div class="w-5 text-center text-rose-300 font-bold text-[11px]">{{ $standing->lost ?? 0 }}</div>
+                                    <div class="w-7 text-center font-black text-[11px] {{ $setDiff > 0 ? 'text-emerald-400' : ($setDiff < 0 ? 'text-rose-400' : 'text-slate-400') }}">{{ $setDiff > 0 ? '+' : '' }}{{ $setDiff }}</div>
+                                    <div class="w-7 text-center text-[10px] font-bold {{ $gemDiff > 0 ? 'text-emerald-500/80' : ($gemDiff < 0 ? 'text-rose-500/80' : 'text-slate-400') }}">{{ $gemDiff > 0 ? '+' : '' }}{{ $gemDiff }}</div>
+                                    <div class="w-8 flex justify-center"><span class="bg-blue-500/15 text-blue-300 px-1.5 py-0.5 rounded-md text-[11px] font-black ring-1 ring-inset ring-blue-500/20">{{ $standing->points ?? 0 }}</span></div>
                                 </div>
-                                <div class="col-span-1 text-center">
-                                    <span class="table-number-text ">{{ $standing->won ?? 0 }}</span>
-                                </div>
-
-                                <div class="col-span-1 text-center">
-                                    <span class="table-number-text ">{{ $standing->lost ?? 0 }}</span>
-                                </div>
-                                <div class="col-span-1 text-center">
-                                    <span class="table-number-text ">{{ ($standing->sets_won ?? 0) - ($standing->sets_lost ?? 0) }}</span>
-                                </div>
-                                <div class="col-span-1 text-center">
-                                    @php $gemDiff = ($standing->points_won ?? 0) - ($standing->points_lost ?? 0); @endphp
-                                    <span class="table-number-text {{ $gemDiff >= 0 ? 'text-green-400' : 'text-red-400' }}">{{ $gemDiff >= 0 ? '+' : '' }}{{ $gemDiff }}</span>
-                                </div>
-                                <div class="col-span-2 text-center">
-                                    <span class="table-number-text-points table-points-text font-bold">{{ $standing->points ?? 0 }}</span>
-                                </div>
-                            </div>
                             @endforeach
                         </div>
                     </div>
@@ -279,255 +275,93 @@
                             <span class="text-xs font-bold uppercase tracking-wider" style="color: var(--text-tertiary);">Kolo {{ $round }}</span>
                             <div class="h-px flex-1" style="background: var(--border-primary);"></div>
                         </div>
-                        <div class="space-y-1 md:space-y-3">
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-2">
                             @foreach($roundMatches as $match)
-                            <div class="block bg-[var(--bg-tertiary)] hover:bg-[var(--bg-tertiary)] rounded-md transition-all duration-200 hover:scale-[1.01]">
-                                @if($match->status === 'in_progress')
-                                <div class="text-center mb-2">
-                                    <span class="text-red-400 font-semibold text-xs uppercase tracking-wider">Live</span>
-                                </div>
+                            @php
+                                $homeSetsWon = 0; $awaySetsWon = 0;
+                                $displaySets = collect($match->sets ?? [])->map(fn ($s) => [
+                                    'h' => $s['home_score'] ?? $s['home'] ?? null,
+                                    'a' => $s['away_score'] ?? $s['away'] ?? null,
+                                ])->filter(fn ($s) => !is_null($s['h']) || !is_null($s['a']));
+                                foreach ($displaySets as $s) {
+                                    if ((int) $s['h'] > (int) $s['a']) $homeSetsWon++;
+                                    if ((int) $s['a'] > (int) $s['h']) $awaySetsWon++;
+                                }
+                                if ($displaySets->isEmpty() && $match->status === 'completed') {
+                                    $homeSetsWon = $match->home_score ?? 0;
+                                    $awaySetsWon = $match->away_score ?? 0;
+                                }
+                                $displaySets = $displaySets->values();
+                                // Cap placeholders at the competition's actual max sets
+                                // (best-of-(2*sets_to_win - 1)) instead of a hardcoded 5.
+                                $maxPossibleSets = max(1, (2 * ($competition->sets_to_win ?: 1)) - 1);
+                                $cellCount = max($maxPossibleSets, $displaySets->count());
+                                $completed = $match->status === 'completed';
+                                $live = $match->status === 'in_progress';
+                                $homeWin = $completed && $homeSetsWon > $awaySetsWon;
+                                $awayWin = $completed && $awaySetsWon > $homeSetsWon;
+                                $homeName = $match->homePlayer->name ?? 'TBD';
+                                $awayName = $match->awayPlayer->name ?? 'TBD';
+                                $homeSeed = $playerPositionSeeding[$match->home_player_id] ?? null;
+                                $awaySeed = $playerPositionSeeding[$match->away_player_id] ?? null;
+                            @endphp
+                            <div class="relative overflow-hidden bg-[#10192d] border border-slate-800 rounded-lg">
+                                @if($completed)
+                                    <div class="absolute left-0 top-0 bottom-0 w-1 bg-emerald-500/60"></div>
+                                @elseif($live)
+                                    <div class="absolute left-0 top-0 bottom-0 w-1 bg-blue-500/70 animate-pulse"></div>
                                 @endif
-
-                                @php
-                                    $homeSetsWon = 0;
-                                    $awaySetsWon = 0;
-                                    $homeFinalScore = $match->home_score ?? 0;
-                                    $awayFinalScore = $match->away_score ?? 0;
-                                    if($match->played_at) {
-                                        if(isset($match->sets) && is_array($match->sets) && count($match->sets) > 0) {
-                                            foreach($match->sets as $set) {
-                                                if(($set['home_score'] ?? 0) > ($set['away_score'] ?? 0)) {
-                                                    $homeSetsWon++;
-                                                }
-                                                if(($set['away_score'] ?? 0) > ($set['home_score'] ?? 0)) {
-                                                    $awaySetsWon++;
-                                                }
-                                            }
-                                        } elseif ($match->status === 'completed') {
-                                            $homeSetsWon = $match->home_score ?? 0;
-                                            $awaySetsWon = $match->away_score ?? 0;
-                                        }
-                                    }
-                                    $displaySets = isset($match->sets) && is_array($match->sets) && count($match->sets) > 0 ? $match->sets : [];
-                                @endphp
-
-                                <!-- Mobile Layout -->
-                                <div class="block md:hidden p-4">
-                                    <div class="flex items-center justify-between mb-3">
-                                        <div class="flex items-center gap-3 flex-1 min-w-0">
-                                            <div class="text-sm font-semibold {{ $homeSetsWon > $awaySetsWon ? 'font-bold' : '' }} text-[var(--text-primary)] truncate">
-                                                {{ $match->homePlayer->name ?? 'Home Player' }}@if(isset($playerPositionSeeding[$match->home_player_id])) <span class="text-[var(--text-tertiary)] text-xs">({{ $playerPositionSeeding[$match->home_player_id] }})</span>@endif
-                                            </div>
-                                        </div>
-                                        <div class="flex-shrink-0 ml-2">
-                                            @if($match->status === 'in_progress')
-                                                <div class="w-8 h-8 bg-green-900/80 rounded-lg flex items-center justify-center">
-                                                    <div class="text-sm font-bold text-green-300">
-                                                        {{ $match->home_score ?? 0 }}
-                                                    </div>
+                                <div class="p-2.5 md:p-3">
+                                    <div class="flex items-stretch gap-3">
+                                        <div class="flex-1 flex flex-col justify-between gap-2 min-w-0">
+                                            <div class="flex items-center justify-between gap-2 min-w-0">
+                                                <div class="flex items-center gap-2 min-w-0">
+                                                    <div class="flex-shrink-0 w-1.5 h-1.5 rounded-full {{ $homeWin ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-transparent' }}"></div>
+                                                    <div class="text-[12px] md:text-[13px] font-bold truncate {{ $homeWin ? 'text-white' : ($awayWin ? 'text-slate-500' : 'text-slate-300') }}">{{ $homeName }}@if($homeSeed) <span class="text-slate-500 text-[10px]">({{ $homeSeed }})</span>@endif</div>
                                                 </div>
-                                            @elseif($match->status === 'completed')
-                                                <div class="w-8 h-8 bg-green-900/80 rounded-lg flex items-center justify-center">
-                                                    <div class="text-sm font-bold text-green-300">
-                                                        {{ $homeFinalScore ?: $homeSetsWon }}
-                                                    </div>
-                                                </div>
-                                            @else
-                                                <div class="w-8 h-8 bg-[var(--bg-tertiary)] rounded-lg flex items-center justify-center">
-                                                    <div class="text-sm font-bold text-[var(--text-muted)]">-</div>
-                                                </div>
-                                            @endif
-                                        </div>
-                                    </div>
-
-                                    <div class="flex items-center justify-between">
-                                        <div class="flex items-center gap-3 flex-1 min-w-0">
-                                            <div class="text-sm font-semibold {{ $awaySetsWon > $homeSetsWon ? 'font-bold' : '' }} text-[var(--text-primary)] truncate">
-                                                {{ $match->awayPlayer->name ?? 'Away Player' }}@if(isset($playerPositionSeeding[$match->away_player_id])) <span class="text-[var(--text-tertiary)] text-xs">({{ $playerPositionSeeding[$match->away_player_id] }})</span>@endif
-                                            </div>
-                                        </div>
-                                        <div class="flex-shrink-0 ml-2">
-                                            @if($match->status === 'in_progress')
-                                                <div class="w-8 h-8 bg-green-900/80 rounded-lg flex items-center justify-center">
-                                                    <div class="text-sm font-bold text-green-300">
-                                                        {{ $match->away_score ?? 0 }}
-                                                    </div>
-                                                </div>
-                                            @elseif($match->status === 'completed')
-                                                <div class="w-8 h-8 bg-green-900/80 rounded-lg flex items-center justify-center">
-                                                    <div class="text-sm font-bold text-green-300">
-                                                        {{ $awayFinalScore ?: $awaySetsWon }}
-                                                    </div>
-                                                </div>
-                                            @else
-                                                <div class="w-8 h-8 bg-[var(--bg-tertiary)] rounded-lg flex items-center justify-center">
-                                                    <div class="text-sm font-bold text-[var(--text-muted)]">-</div>
-                                                </div>
-                                            @endif
-                                        </div>
-                                    </div>
-
-                                    <!-- Mobile Set Display -->
-                                    @if(isset($match->sets) && is_array($match->sets) && count($match->sets) > 0)
-                                    <div class="mt-3 pt-3 border-t border-[var(--border-secondary)] md:hidden">
-                                        <details class="group">
-                                            <summary class="flex items-center justify-center gap-2 cursor-pointer text-xs text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors py-2">
-                                                <span>Prikaži po setovima</span>
-                                                <svg class="w-3 h-3 transform transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                                                </svg>
-                                            </summary>
-                                            <div class="pt-2">
-                                                <div class="grid grid-cols-5 gap-1">
-                                                    @php
-                                                        $displaySets = isset($match->sets) && is_array($match->sets) && count($match->sets) > 0 ? $match->sets : [];
-                                                    @endphp
-                                                    @for($i = 1; $i <= 5; $i++)
-                                                    <div class="flex flex-col items-center">
-                                                        <div class="text-xs text-[var(--text-tertiary)] mb-1 font-medium">{{ $i }}</div>
-                                                        <div class="flex flex-col gap-0.5">
-                                                            @if(isset($displaySets[$i-1]))
-                                                                @php
-                                                                    $homeScore = $displaySets[$i-1]['home_score'] ?? $displaySets[$i-1]['home'] ?? 0;
-                                                                    $awayScore = $displaySets[$i-1]['away_score'] ?? $displaySets[$i-1]['away'] ?? 0;
-                                                                @endphp
-                                                                <span class="text-xs px-1 py-0.5 rounded text-center {{ $homeScore > $awayScore ? 'bg-green-900/60 text-white font-bold' : 'text-[var(--text-tertiary)]' }}">
-                                                                    {{ $homeScore }}
-                                                                </span>
-                                                                <span class="text-xs px-1 py-0.5 rounded text-center {{ $awayScore > $homeScore ? 'bg-green-900/60 text-white font-bold' : 'text-[var(--text-tertiary)]' }}">
-                                                                    {{ $awayScore }}
-                                                                </span>
+                                                <div class="flex items-center gap-1 ml-auto">
+                                                    @for($i = 0; $i < $cellCount; $i++)
+                                                        @php $c = $displaySets[$i] ?? null; @endphp
+                                                        <div class="w-[18px] text-center">
+                                                            @if($c && !is_null($c['h']))
+                                                                <span class="text-[9px] font-black {{ (int) $c['h'] >= (int) $c['a'] ? 'text-emerald-400' : 'text-slate-600' }}">{{ $c['h'] }}</span>
                                                             @else
-                                                                <span class="text-xs px-1 py-0.5 rounded text-[var(--text-muted)] text-center">-</span>
-                                                                <span class="text-xs px-1 py-0.5 rounded text-[var(--text-muted)] text-center">-</span>
+                                                                <span class="text-[9px] text-slate-700">-</span>
                                                             @endif
                                                         </div>
-                                                    </div>
                                                     @endfor
                                                 </div>
                                             </div>
-                                        </details>
+                                            <div class="flex items-center justify-between gap-2 min-w-0">
+                                                <div class="flex items-center gap-2 min-w-0">
+                                                    <div class="flex-shrink-0 w-1.5 h-1.5 rounded-full {{ $awayWin ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-transparent' }}"></div>
+                                                    <div class="text-[12px] md:text-[13px] font-bold truncate {{ $awayWin ? 'text-white' : ($homeWin ? 'text-slate-500' : 'text-slate-300') }}">{{ $awayName }}@if($awaySeed) <span class="text-slate-500 text-[10px]">({{ $awaySeed }})</span>@endif</div>
+                                                </div>
+                                                <div class="flex items-center gap-1 ml-auto">
+                                                    @for($i = 0; $i < $cellCount; $i++)
+                                                        @php $c = $displaySets[$i] ?? null; @endphp
+                                                        <div class="w-[18px] text-center">
+                                                            @if($c && !is_null($c['a']))
+                                                                <span class="text-[9px] font-black {{ (int) $c['a'] >= (int) $c['h'] ? 'text-emerald-400' : 'text-slate-600' }}">{{ $c['a'] }}</span>
+                                                            @else
+                                                                <span class="text-[9px] text-slate-700">-</span>
+                                                            @endif
+                                                        </div>
+                                                    @endfor
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="flex flex-col items-center justify-center gap-1.5 pl-2.5 border-l border-slate-800 min-w-[36px]">
+                                            <div class="w-7 h-7 rounded-md flex items-center justify-center transition-all duration-300 {{ $homeWin ? 'bg-emerald-500 text-white shadow-[0_0_15px_rgba(16,185,129,0.25)]' : 'bg-slate-800/50 text-slate-500' }}">
+                                                <span class="text-[13px] font-black italic">{{ $match->status === 'scheduled' ? 0 : ($live ? ($match->home_score ?? 0) : $homeSetsWon) }}</span>
+                                            </div>
+                                            <div class="w-7 h-7 rounded-md flex items-center justify-center transition-all duration-300 {{ $awayWin ? 'bg-emerald-500 text-white shadow-[0_0_15px_rgba(16,185,129,0.25)]' : 'bg-slate-800/50 text-slate-500' }}">
+                                                <span class="text-[13px] font-black italic">{{ $match->status === 'scheduled' ? 0 : ($live ? ($match->away_score ?? 0) : $awaySetsWon) }}</span>
+                                            </div>
+                                        </div>
                                     </div>
-                                    @endif
                                 </div>
-
-                                <!-- Desktop Layout -->
-                                <div class="hidden md:block p-4">
-                                    @php
-                                        $homeSetsWon = 0;
-                                        $awaySetsWon = 0;
-                                        if(isset($match->sets) && is_array($match->sets) && count($match->sets) > 0) {
-                                            foreach($match->sets as $set) {
-                                                if(($set['home_score'] ?? $set['home'] ?? 0) > ($set['away_score'] ?? $set['away'] ?? 0)) {
-                                                    $homeSetsWon++;
-                                                }
-                                                if(($set['away_score'] ?? $set['away'] ?? 0) > ($set['home_score'] ?? $set['home'] ?? 0)) {
-                                                    $awaySetsWon++;
-                                                }
-                                            }
-                                        } elseif ($match->status === 'completed') {
-                                            $homeSetsWon = $match->home_score ?? 0;
-                                            $awaySetsWon = $match->away_score ?? 0;
-                                        }
-                                    @endphp
-                                    <div class="flex items-center justify-between">
-                                        <!-- Left side: Players and sets -->
-                                        <div class="flex-1 space-y-4">
-                                            <!-- Home Player -->
-                                            <div class="flex items-center gap-3">
-                                                <div class="text-xs md:text-sm font-semibold {{ $homeSetsWon > $awaySetsWon ? 'font-bold' : '' }} text-[var(--text-primary)] truncate flex-1 min-w-0">
-                                                    {{ $match->homePlayer->name ?? 'Home Player' }}@if(isset($playerPositionSeeding[$match->home_player_id])) <span class="text-[var(--text-tertiary)] text-xs">({{ $playerPositionSeeding[$match->home_player_id] }})</span>@endif
-                                                </div>
-                                                <!-- Sets -->
-                                                <div class="flex gap-1 ml-4">
-                                                    @php
-                                                        $displaySets = isset($match->sets) && is_array($match->sets) && count($match->sets) > 0 ? $match->sets : [];
-                                                    @endphp
-                                                    @for($i = 1; $i <= 5; $i++)
-                                                    <div class="w-6 text-center {{ $i < 5 ? 'border-r border-[var(--border-secondary)]' : '' }}">
-                                                        @if(isset($displaySets[$i-1]))
-                                                            @php
-                                                                $homeScore = $displaySets[$i-1]['home_score'] ?? $displaySets[$i-1]['home'] ?? 0;
-                                                                $awayScore = $displaySets[$i-1]['away_score'] ?? $displaySets[$i-1]['away'] ?? 0;
-                                                            @endphp
-                                                            <span class="text-xs px-1 py-0.5 rounded {{ $homeScore > $awayScore ? 'bg-green-900 text-white font-bold' : 'text-[var(--text-tertiary)]' }}">
-                                                                {{ $homeScore }}
-                                                            </span>
-                                                        @else
-                                                            <span class="text-xs px-1 py-0.5 rounded text-[var(--text-muted)]">-</span>
-                                                        @endif
-                                                    </div>
-                                                    @endfor
-                                                </div>
-                                            </div>
-
-                                            <!-- Away Player -->
-                                            <div class="flex items-center gap-3">
-                                                <div class="text-xs md:text-sm font-semibold {{ $awaySetsWon > $homeSetsWon ? 'font-bold' : '' }} text-[var(--text-primary)] truncate flex-1 min-w-0">
-                                                    {{ $match->awayPlayer->name ?? 'Away Player' }}@if(isset($playerPositionSeeding[$match->away_player_id])) <span class="text-[var(--text-tertiary)] text-xs">({{ $playerPositionSeeding[$match->away_player_id] }})</span>@endif
-                                                </div>
-                                                <!-- Sets -->
-                                                <div class="flex gap-1 ml-4">
-                                                    @for($i = 1; $i <= 5; $i++)
-                                                    <div class="w-6 text-center {{ $i < 5 ? 'border-r border-[var(--border-secondary)]' : '' }}">
-                                                        @if(isset($displaySets[$i-1]))
-                                                            @php
-                                                                $homeScore = $displaySets[$i-1]['home_score'] ?? $displaySets[$i-1]['home'] ?? 0;
-                                                                $awayScore = $displaySets[$i-1]['away_score'] ?? $displaySets[$i-1]['away'] ?? 0;
-                                                            @endphp
-                                                            <span class="text-xs px-1 py-0.5 rounded {{ $awayScore > $homeScore ? 'bg-green-900 text-white font-bold' : 'text-[var(--text-tertiary)]' }}">
-                                                                {{ $awayScore }}
-                                                            </span>
-                                                        @else
-                                                            <span class="text-xs px-1 py-0.5 rounded text-[var(--text-muted)]">-</span>
-                                                        @endif
-                                                    </div>
-                                                    @endfor
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <!-- Right side: Final scores -->
-                                        <div class="flex flex-col items-center justify-center space-y-2 ml-6">
-                                            @if($match->status === 'in_progress')
-                                                <div class="flex flex-col items-center space-y-2">
-                                                    <div class="w-10 h-10 bg-green-900 rounded-lg flex items-center justify-center">
-                                                        <div class="text-sm font-bold text-white">
-                                                            {{ $match->home_score ?? 0 }}
-                                                        </div>
-                                                    </div>
-                                                    <div class="w-10 h-10 bg-green-900 rounded-lg flex items-center justify-center">
-                                                        <div class="text-sm font-bold text-white">
-                                                            {{ $match->away_score ?? 0 }}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            @elseif($match->status === 'completed')
-                                                <div class="flex flex-col items-center space-y-2">
-                                                    <div class="w-10 h-10 bg-green-900 rounded-lg flex items-center justify-center">
-                                                        <div class="text-sm font-bold text-white">
-                                                            {{ $homeSetsWon }}
-                                                        </div>
-                                                    </div>
-                                                    <div class="w-10 h-10 bg-green-900 rounded-lg flex items-center justify-center">
-                                                        <div class="text-sm font-bold text-white">
-                                                            {{ $match->away_score ?? 0 }}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            @else
-                                                <div class="flex flex-col items-center space-y-2">
-                                                    <div class="w-10 h-10 bg-[var(--bg-tertiary)] rounded-lg flex items-center justify-center">
-                                                        <div class="text-sm font-bold text-[var(--text-muted)">-</div>
-                                                    </div>
-                                                    <div class="w-10 h-10 bg-[var(--bg-tertiary)] rounded-lg flex items-center justify-center">
-                                                        <div class="text-sm font-bold text-[var(--text-muted)">-</div>
-                                                    </div>
-                                                </div>
-                                            @endif
-                                        </div>
-                                    </div>
-                                </div>                            </div>
+                            </div>
                             @endforeach
                         </div>
                         @endforeach

@@ -19,6 +19,9 @@ class Competition extends Model
         'name',
         'slug',
         'description',
+        'location',
+        'organizer_contact',
+        'entry_fee',
         'organization_id',
         'sport_id',
         'category_id',
@@ -34,6 +37,7 @@ class Competition extends Model
         'settings',
         'is_active',
         'is_public',
+        'registration_open',
         'is_recreational',
         'allow_rematches',
         // Tournament fields
@@ -76,6 +80,7 @@ class Competition extends Model
         'settings' => 'array',
         'is_active' => 'boolean',
         'is_public' => 'boolean',
+        'registration_open' => 'boolean',
         'is_recreational' => 'boolean',
         'allow_rematches' => 'boolean',
         // Tournament casts
@@ -172,6 +177,14 @@ class Competition extends Model
                     ->withCasts([
                         'joined_at' => 'datetime'
                     ]);
+    }
+
+    /**
+     * Get the join requests submitted for this competition.
+     */
+    public function joinRequests(): HasMany
+    {
+        return $this->hasMany(CompetitionJoinRequest::class);
     }
 
     /**

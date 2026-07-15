@@ -180,6 +180,27 @@
                         </div>
                     </div>
 
+                    <!-- Date/Time & Venue -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                        <div>
+                            <label for="played_at" class="block text-sm font-medium text-gray-300 mb-2">Datum i vrijeme</label>
+                            <input type="datetime-local" name="played_at" id="played_at"
+                                   value="{{ old('played_at', optional($match->played_at)->format('Y-m-d\TH:i')) }}"
+                                   class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                        <div>
+                            <label for="venue_id" class="block text-sm font-medium text-gray-300 mb-2">Teren</label>
+                            <select name="venue_id" id="venue_id" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <option value="">— nije odabran —</option>
+                                @foreach($venues as $venue)
+                                    <option value="{{ $venue->id }}" {{ (string) old('venue_id', $match->venue_id) === (string) $venue->id ? 'selected' : '' }}>
+                                        {{ $venue->name }}{{ $venue->city ? ' ('.$venue->city->name.')' : '' }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+
                     <!-- Set Details (for table tennis) -->
                     <div id="sets-section" class="space-y-4">
                         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
@@ -250,33 +271,6 @@
                             </select>
                             <p class="text-xs text-gray-400 mt-1">Sudija će imati puna prava za ažuriranje rezultata ovog meča</p>
                         @endif
-                    </div>
-
-                    <!-- Table Assignment -->
-                    <div>
-                        <label for="table_id" class="block text-sm font-medium text-gray-300 mb-2">
-                            <span class="flex items-center space-x-2">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
-                                </svg>
-                                <span>Sto</span>
-                            </span>
-                        </label>
-                        <select name="table_id" id="table_id" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent">
-                            <option value="">Bez stola</option>
-                            @php
-                                $tables = \App\Models\Table::where('organization_id', $organization->id)
-                                    ->where('is_active', true)
-                                    ->orderBy('name')
-                                    ->get();
-                            @endphp
-                            @foreach($tables as $table)
-                                <option value="{{ $table->id }}" {{ $match->table_id == $table->id ? 'selected' : '' }}>
-                                    {{ $table->name }}
-                                </option>
-                            @endforeach
-                        </select>
-                        <p class="text-xs text-gray-400 mt-1">Odaberite sto na kojem će se igrati ovaj meč</p>
                     </div>
 
                     <!-- Submit Button -->

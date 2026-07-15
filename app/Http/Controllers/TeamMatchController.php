@@ -9,6 +9,7 @@ use App\Models\CompetitionMatch;
 use App\Models\Team;
 use App\Models\Player;
 use App\Models\Standing;
+use App\Models\Venue;
 use Illuminate\Http\Request;
 
 class TeamMatchController extends Controller
@@ -79,8 +80,9 @@ class TeamMatchController extends Controller
 
         $homePlayers = $teamMatch->homeTeam->players;
         $awayPlayers = $teamMatch->awayTeam->players;
+        $venues = Venue::orderBy('name')->get();
 
-        return view('organizations.competitions.team-matches.show', compact('organization', 'competition', 'teamMatch', 'doublesPlayers', 'homePlayers', 'awayPlayers'));
+        return view('organizations.competitions.team-matches.show', compact('organization', 'competition', 'teamMatch', 'doublesPlayers', 'homePlayers', 'awayPlayers', 'venues'));
     }
 
     public function protocol(Organization $organization, Competition $competition, TeamMatch $teamMatch)

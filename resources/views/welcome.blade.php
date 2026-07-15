@@ -90,7 +90,7 @@
                         <a href="{{ route('dashboard') }}" class="btn-solid text-sm font-semibold px-4 py-2 rounded-full transition-all">Moj Dashboard</a>
                     @else
                         @if (Route::has('login'))
-                            <a href="{{ route('login') }}" class="hidden sm:inline text-sm text-ink-dim hover:text-ink transition-colors">Prijava</a>
+                            <a href="{{ route('login') }}" class="text-sm text-ink-dim hover:text-ink transition-colors">Prijava</a>
                         @endif
                         @if (Route::has('register'))
                             <a href="{{ route('register') }}" class="btn-solid text-sm font-semibold px-4 py-2 rounded-full transition-all">Počni besplatno</a>

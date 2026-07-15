@@ -48,6 +48,30 @@
             <x-input-error :messages="$errors->get('email')" class="mt-2 text-red-400 text-sm" />
         </div>
 
+        <!-- Role -->
+        <div class="space-y-2">
+            <label class="block text-sm font-medium text-gray-300">
+                Registruj se kao
+            </label>
+            <div class="grid grid-cols-2 gap-3">
+                <label class="relative cursor-pointer">
+                    <input type="radio" name="role" value="organizer" class="peer sr-only" {{ old('role', 'organizer') === 'organizer' ? 'checked' : '' }} />
+                    <div class="px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-xl text-center text-gray-300 peer-checked:border-blue-500 peer-checked:bg-blue-500/10 peer-checked:text-white transition-all duration-200">
+                        <span class="block font-medium">Organizator</span>
+                        <span class="block text-xs text-gray-400 mt-0.5">Vodim ligu/turnir</span>
+                    </div>
+                </label>
+                <label class="relative cursor-pointer">
+                    <input type="radio" name="role" value="player" class="peer sr-only" {{ old('role') === 'player' ? 'checked' : '' }} />
+                    <div class="px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-xl text-center text-gray-300 peer-checked:border-purple-500 peer-checked:bg-purple-500/10 peer-checked:text-white transition-all duration-200">
+                        <span class="block font-medium">Igrač</span>
+                        <span class="block text-xs text-gray-400 mt-0.5">Igram u ligama</span>
+                    </div>
+                </label>
+            </div>
+            <x-input-error :messages="$errors->get('role')" class="mt-2 text-red-400 text-sm" />
+        </div>
+
         <!-- Password -->
         <div class="space-y-2">
             <label for="password" class="block text-sm font-medium text-gray-300">

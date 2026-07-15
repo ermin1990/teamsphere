@@ -51,15 +51,6 @@
                             </svg>
                             <span class="hidden lg:inline text-sm font-semibold">Sezone</span>
                         </a>
-                        <a href="{{ route('organizations.venues.index', $organization) }}"
-                           class="flex items-center space-x-2 px-4 py-2 text-gray-300 hover:text-white hover:bg-gray-700/50 rounded-xl transition-all duration-200"
-                           title="Tereni">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.828 0l-4.243-4.243a8 8 0 1111.314 0z"></path>
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                            </svg>
-                            <span class="hidden lg:inline text-sm font-semibold">Tereni</span>
-                        </a>
                     </div>
                     
                     <a href="{{ route('organizations.users.index', $organization) }}" 

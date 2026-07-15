@@ -63,6 +63,12 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::put('/cities/{city}', [\App\Http\Controllers\Admin\CityController::class, 'update'])->name('cities.update');
     Route::delete('/cities/{city}', [\App\Http\Controllers\Admin\CityController::class, 'destroy'])->name('cities.destroy');
 
+    // Venues admin
+    Route::get('/venues', [\App\Http\Controllers\Admin\VenueController::class, 'index'])->name('venues.index');
+    Route::post('/venues', [\App\Http\Controllers\Admin\VenueController::class, 'store'])->name('venues.store');
+    Route::put('/venues/{venue}', [\App\Http\Controllers\Admin\VenueController::class, 'update'])->name('venues.update');
+    Route::delete('/venues/{venue}', [\App\Http\Controllers\Admin\VenueController::class, 'destroy'])->name('venues.destroy');
+
     // Users admin
     Route::get('/users', [\App\Http\Controllers\AdminUserController::class, 'index'])->name('users.index');
     Route::get('/users/{user}', [\App\Http\Controllers\AdminUserController::class, 'show'])->name('users.show');
@@ -95,13 +101,22 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::post('/plan-upgrade-request', [\App\Http\Controllers\PlanUpgradeController::class, 'store'])->name('plan-upgrade.request');
+    Route::get('/moj-plan', [\App\Http\Controllers\PlanController::class, 'show'])->name('plan.show');
 
     // Player dashboard + invitations
     Route::get('/moje-lige', [\App\Http\Controllers\PlayerDashboardController::class, 'dashboard'])->name('player.dashboard');
+    Route::get('/moje-lige/mecevi', [\App\Http\Controllers\PlayerDashboardController::class, 'matches'])->name('player.dashboard.matches');
+    Route::get('/moje-lige/takmicenja', [\App\Http\Controllers\PlayerLeagueController::class, 'index'])->name('player.leagues.index');
+    Route::post('/moje-lige/takmicenja/{competition}/prijava', [\App\Http\Controllers\PlayerLeagueController::class, 'store'])->name('player.leagues.apply');
+    Route::get('/moje-lige/takmicenja/{competition}', [\App\Http\Controllers\PlayerLeagueController::class, 'show'])->name('player.leagues.show');
     Route::get('/moje-lige/{competition}/mecevi/novi', [\App\Http\Controllers\PlayerMatchController::class, 'create'])->name('player.matches.create');
     Route::post('/moje-lige/{competition}/mecevi', [\App\Http\Controllers\PlayerMatchController::class, 'store'])->name('player.matches.store');
+    Route::get('/moje-lige/mecevi/{match}/rezultat', [\App\Http\Controllers\PlayerMatchController::class, 'editResult'])->name('player.matches.result.edit');
+    Route::put('/moje-lige/mecevi/{match}/rezultat', [\App\Http\Controllers\PlayerMatchController::class, 'updateResult'])->name('player.matches.result.update');
     Route::get('/pozivnica/{token}', [\App\Http\Controllers\PlayerInvitationController::class, 'accept'])->name('player-invitations.accept');
     Route::post('organizations/{organization}/competitions/{competition}/invite-player', [\App\Http\Controllers\PlayerInvitationController::class, 'store'])->name('organizations.competitions.invite-player');
+    Route::post('organizations/{organization}/competitions/{competition}/join-requests/{joinRequest}/approve', [\App\Http\Controllers\CompetitionJoinRequestController::class, 'approve'])->name('organizations.competitions.join-requests.approve');
+    Route::post('organizations/{organization}/competitions/{competition}/join-requests/{joinRequest}/reject', [\App\Http\Controllers\CompetitionJoinRequestController::class, 'reject'])->name('organizations.competitions.join-requests.reject');
 
     // Organization routes
     Route::resource('organizations', OrganizationController::class);
@@ -115,11 +130,6 @@ Route::middleware('auth')->group(function () {
     Route::put('organizations/{organization}/seasons/{season}', [App\Http\Controllers\SeasonController::class, 'update'])->name('organizations.seasons.update');
     Route::delete('organizations/{organization}/seasons/{season}', [App\Http\Controllers\SeasonController::class, 'destroy'])->name('organizations.seasons.destroy');
 
-    // Venue routes
-    Route::get('organizations/{organization}/venues', [App\Http\Controllers\VenueController::class, 'index'])->name('organizations.venues.index');
-    Route::post('organizations/{organization}/venues', [App\Http\Controllers\VenueController::class, 'store'])->name('organizations.venues.store');
-    Route::put('organizations/{organization}/venues/{venue}', [App\Http\Controllers\VenueController::class, 'update'])->name('organizations.venues.update');
-    Route::delete('organizations/{organization}/venues/{venue}', [App\Http\Controllers\VenueController::class, 'destroy'])->name('organizations.venues.destroy');
 
     // Team routes
     Route::get('organizations/{organization}/teams', [TeamController::class, 'index'])->name('organizations.teams.index');

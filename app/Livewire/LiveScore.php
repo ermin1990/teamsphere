@@ -714,13 +714,6 @@ class LiveScore extends Component
 
     public function resetMatch()
     {
-        // Reverse this match's league standings contribution before wiping
-        // its score, otherwise a reset match leaves stale points/wins behind.
-        if ($this->match->status === 'completed' && $this->match->competition && $this->match->competition->isLeague()) {
-            app(\App\Services\LeagueStandingsService::class)
-                ->reverseForMatch($this->match->competition, $this->match, $this->match->home_score, $this->match->away_score);
-        }
-
         // Reset local state
         $this->homeScore = 0;
         $this->awayScore = 0;
@@ -746,6 +739,11 @@ class LiveScore extends Component
             'first_server' => null,
             'current_server' => null,
         ]);
+
+        // Recompute league standings so a reset match's contribution is gone.
+        if ($this->match->competition && $this->match->competition->isLeague()) {
+            app(\App\Services\LeagueStandingsService::class)->rebuildForCompetition($this->match->competition);
+        }
 
         // Stop any running timers and reset UI
         $this->dispatch('stop-timers');
@@ -836,6 +834,8 @@ class LiveScore extends Component
                 $this->match->refresh(); // Refresh to get updated sets data
                 $this->recalculateGroupStandings($tournamentGroup);
             }
+        } elseif ($this->match->competition && $this->match->competition->isLeague()) {
+            app(\App\Services\LeagueStandingsService::class)->rebuildForCompetition($this->match->competition);
         }
 
         // Generate next knockout round if this is a knockout match and all matches in current round are completed
@@ -1000,7 +1000,7 @@ class LiveScore extends Component
                 $this->recalculateGroupStandings($tournamentGroup);
             }
         } elseif ($this->match->competition && $this->match->competition->isLeague()) {
-            app(\App\Services\LeagueStandingsService::class)->applyForMatch($this->match->competition, $this->match);
+            app(\App\Services\LeagueStandingsService::class)->rebuildForCompetition($this->match->competition);
         }
 
         $this->dispatch('stop-timers');

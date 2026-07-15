@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Competition;
+use App\Models\CompetitionMatch;
 use App\Models\Player;
 use App\Models\Standing;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class PlayerDashboardController extends Controller
@@ -21,6 +23,27 @@ class PlayerDashboardController extends Controller
                 $query->where('players.user_id', $userId);
             })
             ->with(['organization', 'sport', 'season'])
+            ->get();
+
+        $playerIds = Player::where('user_id', $userId)->pluck('id');
+
+        $matchesQuery = fn () => CompetitionMatch::where(function ($query) use ($playerIds) {
+                $query->whereIn('home_player_id', $playerIds)
+                      ->orWhereIn('away_player_id', $playerIds);
+            })
+            ->with(['competition', 'homePlayer', 'awayPlayer']);
+
+        $upcomingMatches = $matchesQuery()
+            ->whereIn('status', ['scheduled', 'in_progress'])
+            ->orderByRaw("status = 'in_progress' desc")
+            ->orderBy('scheduled_at')
+            ->limit(6)
+            ->get();
+
+        $completedMatches = $matchesQuery()
+            ->where('status', 'completed')
+            ->orderByDesc('played_at')
+            ->limit(6)
             ->get();
 
         $bySeason = $competitions->groupBy(function ($competition) {
@@ -60,6 +83,49 @@ class PlayerDashboardController extends Controller
             }
         }
 
-        return view('player.dashboard', compact('bySeason', 'rankings'));
+        return view('player.dashboard', compact('bySeason', 'rankings', 'upcomingMatches', 'completedMatches', 'playerIds'));
+    }
+
+    /**
+     * All matches across every competition/organization this player plays
+     * in - the per-competition self-entry flow only ever shows one
+     * competition at a time, this aggregates across all of them. Filterable
+     * by season/league/round (shown above the list) once the player has
+     * more than one to choose from.
+     */
+    public function matches(Request $request)
+    {
+        $playerIds = Player::where('user_id', auth()->id())->pluck('id');
+
+        $playerMatches = fn () => CompetitionMatch::where(function ($query) use ($playerIds) {
+            $query->whereIn('home_player_id', $playerIds)
+                  ->orWhereIn('away_player_id', $playerIds);
+        });
+
+        $competitionIds = $playerMatches()->distinct()->pluck('competition_id');
+        $competitions = Competition::whereIn('id', $competitionIds)->with('season')->orderBy('name')->get();
+        $seasons = $competitions->pluck('season')->filter()->unique('id')->sortBy('name')->values();
+
+        $filteredQuery = fn () => $playerMatches()
+            ->when($request->filled('season_id'), function ($query) use ($competitions, $request) {
+                $query->whereIn('competition_id', $competitions->where('season_id', $request->season_id)->pluck('id'));
+            })
+            ->when($request->filled('competition_id'), fn ($query) => $query->where('competition_id', $request->competition_id));
+
+        $rounds = $filteredQuery()
+            ->selectRaw('DISTINCT COALESCE(round_number, round) as round_value')
+            ->orderBy('round_value')
+            ->pluck('round_value')
+            ->filter(fn ($round) => $round !== null)
+            ->values();
+
+        $matches = $filteredQuery()
+            ->when($request->filled('round'), fn ($query) => $query->whereRaw('COALESCE(round_number, round) = ?', [$request->round]))
+            ->with(['competition', 'homePlayer', 'awayPlayer', 'venue'])
+            ->orderByRaw('played_at IS NULL, played_at DESC, scheduled_at DESC')
+            ->paginate(20)
+            ->withQueryString();
+
+        return view('player.matches.index', compact('matches', 'playerIds', 'competitions', 'seasons', 'rounds'));
     }
 }

@@ -28,6 +28,7 @@ class LeagueMatch extends Model
         'sets',
         'forfeited_by',
         'table_id',
+        'venue_id',
         'referee_user_id',
         'first_server',
         'current_server',
@@ -49,6 +50,7 @@ class LeagueMatch extends Model
         'home_player_id' => 'integer',
         'away_player_id' => 'integer',
         'table_id' => 'integer',
+        'venue_id' => 'integer',
         'referee_user_id' => 'integer',
         'moderator_id' => 'integer',
         'edited_by' => 'integer',
@@ -201,5 +203,13 @@ class LeagueMatch extends Model
     public function referee(): BelongsTo
     {
         return $this->belongsTo(User::class, 'referee_user_id');
+    }
+
+    /**
+     * Get the venue (teren) this match was played at.
+     */
+    public function venue(): BelongsTo
+    {
+        return $this->belongsTo(Venue::class);
     }
 }

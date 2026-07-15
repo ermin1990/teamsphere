@@ -48,6 +48,52 @@
                         @enderror
                     </div>
 
+                    <!-- Lokacija / kontakt / kotizacija -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label for="location" class="block text-sm font-medium text-white mb-2">
+                                Lokacija/adresa igranja
+                            </label>
+                            <input type="text"
+                                   id="location"
+                                   name="location"
+                                   value="{{ old('location') }}"
+                                   class="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                                   placeholder="Npr. SC Mejdan, teren 2">
+                            @error('location')
+                                <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
+                            @enderror
+                        </div>
+                        <div>
+                            <label for="organizer_contact" class="block text-sm font-medium text-white mb-2">
+                                Kontakt organizatora
+                            </label>
+                            <input type="text"
+                                   id="organizer_contact"
+                                   name="organizer_contact"
+                                   value="{{ old('organizer_contact') }}"
+                                   class="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                                   placeholder="Telefon ili email">
+                            @error('organizer_contact')
+                                <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
+                            @enderror
+                        </div>
+                        <div>
+                            <label for="entry_fee" class="block text-sm font-medium text-white mb-2">
+                                Kotizacija/cijena učešća
+                            </label>
+                            <input type="text"
+                                   id="entry_fee"
+                                   name="entry_fee"
+                                   value="{{ old('entry_fee') }}"
+                                   class="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                                   placeholder="Npr. 20 KM po sezoni, besplatno">
+                            @error('entry_fee')
+                                <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
+                            @enderror
+                        </div>
+                    </div>
+
                     <!-- Sport (naslijeđen od organizacije - ne bira se po takmičenju) -->
                     <div>
                         <label class="block text-sm font-medium text-white mb-2">Sport</label>

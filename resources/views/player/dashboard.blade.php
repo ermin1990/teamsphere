@@ -1,62 +1,161 @@
 <x-app-layout>
     <x-slot name="header">
         <div>
-            <h2 class="font-bold text-3xl bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+            <h2 class="font-bold text-2xl sm:text-3xl bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent" style="font-family: 'Unbounded', ui-sans-serif, sans-serif; letter-spacing: -0.01em;">
                 Moje lige
             </h2>
-            <p class="text-gray-400 mt-1">Takmičenja u kojima igraš, grupisano po sezonama</p>
+            <p class="text-sm mt-1" style="color: var(--text-tertiary);">Tvoji mečevi i takmičenja na jednom mjestu</p>
         </div>
     </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+    <div class="py-6 sm:py-10">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+            @include('player.partials.nav')
+        </div>
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-8">
             @if(session('success'))
-                <div class="bg-green-500/10 border border-green-500/30 rounded-xl p-4 text-green-400 text-sm">
-                    {{ session('success') }}
-                </div>
+                <div class="rounded-xl p-4 text-sm" style="background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3); color: #4ade80;">{{ session('success') }}</div>
             @endif
             @if(session('error'))
-                <div class="bg-red-500/10 border border-red-500/30 rounded-xl p-4 text-red-400 text-sm">
-                    {{ session('error') }}
-                </div>
+                <div class="rounded-xl p-4 text-sm" style="background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.3); color: #f87171;">{{ session('error') }}</div>
             @endif
 
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+                {{-- Naredni mečevi --}}
+                <div class="rounded-2xl p-5 sm:p-6 backdrop-blur-xl" style="background: var(--bg-card); border: 1px solid var(--border-primary); box-shadow: 0 10px 30px var(--shadow-primary);">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-base font-bold flex items-center gap-2" style="color: var(--text-primary);">
+                            <span>📅</span> Naredni mečevi
+                        </h3>
+                        @if($upcomingMatches->isNotEmpty())
+                            <a href="{{ route('player.dashboard.matches') }}" class="text-xs font-semibold" style="color: var(--accent-blue);">Svi →</a>
+                        @endif
+                    </div>
+                    <div class="space-y-2">
+                    @forelse($upcomingMatches as $match)
+                        @php
+                            $isHome = $playerIds->contains($match->home_player_id);
+                            $opponent = $isHome ? $match->awayPlayer : $match->homePlayer;
+                            $canEnterResult = $match->competition
+                                && $match->competition->isLeague()
+                                && !$match->competition->is_team_based
+                                && $match->competition->status === 'active';
+                        @endphp
+                        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between p-3 rounded-xl" style="background: var(--bg-hover); border: 1px solid var(--border-secondary);">
+                            <div class="min-w-0">
+                                <p class="font-semibold text-sm truncate" style="color: var(--text-primary);">protiv {{ $opponent->name ?? 'TBD' }}</p>
+                                <p class="text-xs truncate mt-0.5" style="color: var(--text-tertiary);">
+                                    {{ $match->competition->name ?? '' }}
+                                    @if($match->scheduled_at) · {{ $match->scheduled_at->format('d.m.Y. H:i') }} @endif
+                                </p>
+                            </div>
+                            <div class="flex items-center gap-2 shrink-0">
+                                @if($match->status === 'in_progress')
+                                    <span class="px-2.5 py-1 text-[11px] rounded-full font-bold animate-pulse" style="background: rgba(248,113,113,0.2); color: #f87171;">UŽIVO</span>
+                                @else
+                                    <span class="px-2.5 py-1 text-[11px] rounded-full font-semibold" style="background: rgba(234,179,8,0.15); color: #eab308;">Zakazano</span>
+                                @endif
+                                @if($canEnterResult)
+                                    <a href="{{ route('player.matches.result.edit', $match) }}" class="text-xs font-semibold whitespace-nowrap" style="color: #c4b5fd;">Upiši rezultat</a>
+                                @endif
+                            </div>
+                        </div>
+                    @empty
+                        <p class="text-sm py-2" style="color: var(--text-muted);">Nemaš zakazanih mečeva.</p>
+                    @endforelse
+                    </div>
+                </div>
+
+                {{-- Završeni mečevi --}}
+                <div class="rounded-2xl p-5 sm:p-6 backdrop-blur-xl" style="background: var(--bg-card); border: 1px solid var(--border-primary); box-shadow: 0 10px 30px var(--shadow-primary);">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-base font-bold flex items-center gap-2" style="color: var(--text-primary);">
+                            <span>🏁</span> Završeni mečevi
+                        </h3>
+                        @if($completedMatches->isNotEmpty())
+                            <a href="{{ route('player.dashboard.matches') }}" class="text-xs font-semibold" style="color: var(--accent-blue);">Svi →</a>
+                        @endif
+                    </div>
+                    <div class="space-y-2">
+                    @forelse($completedMatches as $match)
+                        @php
+                            $isHome = $playerIds->contains($match->home_player_id);
+                            $opponent = $isHome ? $match->awayPlayer : $match->homePlayer;
+                            $myScore = $isHome ? $match->home_score : $match->away_score;
+                            $theirScore = $isHome ? $match->away_score : $match->home_score;
+                            $win = $myScore > $theirScore; $loss = $myScore < $theirScore;
+                            $canEditResult = $match->competition
+                                && $match->competition->isLeague()
+                                && !$match->competition->is_team_based
+                                && $match->competition->status === 'active';
+                        @endphp
+                        <div class="flex items-center justify-between p-3 rounded-xl" style="background: var(--bg-hover); border: 1px solid var(--border-secondary);">
+                            <div class="min-w-0">
+                                <p class="font-semibold text-sm truncate" style="color: var(--text-primary);">protiv {{ $opponent->name ?? 'TBD' }}</p>
+                                <p class="text-xs truncate mt-0.5" style="color: var(--text-tertiary);">
+                                    {{ $match->competition->name ?? '' }}
+                                    @if($match->played_at) · {{ $match->played_at->format('d.m.Y.') }} @endif
+                                </p>
+                            </div>
+                            <div class="flex items-center gap-2 shrink-0 ml-2">
+                                <span class="text-sm font-black" style="color: {{ $win ? 'var(--accent-green-solid)' : ($loss ? 'var(--accent-red)' : 'var(--text-tertiary)') }};">
+                                    {{ $myScore }} : {{ $theirScore }}
+                                </span>
+                                @if($canEditResult)
+                                    <a href="{{ route('player.matches.result.edit', $match) }}" class="text-xs font-semibold whitespace-nowrap" style="color: #c4b5fd;">Uredi</a>
+                                @endif
+                            </div>
+                        </div>
+                    @empty
+                        <p class="text-sm py-2" style="color: var(--text-muted);">Još nemaš odigranih mečeva.</p>
+                    @endforelse
+                    </div>
+                </div>
+            </div>
+
+            @if($bySeason->isNotEmpty())
+                <h3 class="text-[11px] font-bold uppercase tracking-[0.18em] px-1" style="color: var(--text-muted); font-family: 'Unbounded', ui-sans-serif, sans-serif;">Moja takmičenja</h3>
+            @endif
             @forelse($bySeason as $seasonName => $seasonCompetitions)
-                <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl border border-gray-700/50 shadow-xl p-6">
-                    <h3 class="text-lg font-bold text-white mb-4">{{ $seasonName }}</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="rounded-2xl p-5 sm:p-6 backdrop-blur-xl" style="background: var(--bg-card); border: 1px solid var(--border-primary); box-shadow: 0 10px 30px var(--shadow-primary);">
+                    <h3 class="text-base font-bold mb-4" style="color: var(--text-primary);">{{ $seasonName }}</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
                         @foreach($seasonCompetitions as $competition)
-                            <div class="flex items-center justify-between p-4 bg-gray-700/30 border border-gray-600/50 rounded-xl hover:border-blue-500/50 transition-all">
-                                <a href="{{ route('public.leagues.show', $competition) }}" class="flex-1">
-                                    <p class="text-white font-semibold">{{ $competition->name }}</p>
-                                    <p class="text-gray-400 text-xs mt-1">
+                            <div class="mt-comp-card flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between p-4 rounded-xl transition-all" style="background: var(--bg-hover); border: 1px solid var(--border-secondary);">
+                                <a href="{{ route('player.leagues.show', $competition) }}" class="min-w-0 sm:flex-1">
+                                    <p class="font-semibold truncate" style="color: var(--text-primary);">{{ $competition->name }}</p>
+                                    <p class="text-xs mt-1 truncate" style="color: var(--text-tertiary);">
                                         {{ $competition->organization->name }}
                                         @if(isset($rankings[$competition->organization_id]))
                                             · Rang {{ $rankings[$competition->organization_id]['position'] }}/{{ $rankings[$competition->organization_id]['total'] }}
                                         @endif
                                     </p>
                                 </a>
-                                <div class="flex items-center gap-3">
+                                <div class="flex items-center gap-4 shrink-0">
                                     @if($competition->isLeague())
-                                        <a href="{{ route('player.matches.create', $competition) }}" class="text-purple-400 hover:text-purple-300 text-sm font-medium whitespace-nowrap">
-                                            + Zabilježi meč
-                                        </a>
+                                        <a href="{{ route('player.matches.create', $competition) }}" class="text-sm font-semibold whitespace-nowrap" style="color: #c4b5fd;">+ Zabilježi</a>
                                     @endif
-                                    <a href="{{ route('public.leagues.show', $competition) }}" class="text-blue-400 text-sm font-medium whitespace-nowrap">Pogledaj →</a>
+                                    <a href="{{ route('player.leagues.show', $competition) }}" class="text-sm font-semibold whitespace-nowrap" style="color: var(--accent-blue);">Pogledaj →</a>
                                 </div>
                             </div>
                         @endforeach
                     </div>
                 </div>
             @empty
-                <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl border border-gray-700/50 shadow-xl p-10 text-center">
-                    <p class="text-gray-400">Još nisi dodan ni na jedno takmičenje.</p>
-                    <p class="text-gray-500 text-sm mt-2">Kada te organizator doda ili pozove na ligu, ona će se pojaviti ovdje.</p>
-                    <a href="{{ route('public.leagues.index') }}" class="inline-block mt-4 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-all">
+                <div class="rounded-2xl p-8 sm:p-10 text-center backdrop-blur-xl" style="background: var(--bg-card); border: 1px solid var(--border-primary); box-shadow: 0 10px 30px var(--shadow-primary);">
+                    <p style="color: var(--text-secondary);">Još nisi dodan ni na jedno takmičenje.</p>
+                    <p class="text-sm mt-2" style="color: var(--text-muted);">Kada te organizator doda ili pozove na ligu, ona će se pojaviti ovdje.</p>
+                    <a href="{{ route('player.leagues.index') }}" class="inline-block mt-5 px-6 py-3 font-semibold rounded-full transition-all active:scale-95" style="background: var(--accent-blue); color: #14141F;">
                         Pronađi ligu
                     </a>
                 </div>
             @endforelse
         </div>
     </div>
+
+    @once
+    <style>
+        .mt-comp-card:hover { border-color: var(--border-accent) !important; }
+    </style>
+    @endonce
 </x-app-layout>

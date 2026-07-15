@@ -14,7 +14,7 @@
         }
     });
 
-    window.openQuickResultModal = function(matchId, homeName, awayName, homeScore, awayScore, existingSets) {
+    window.openQuickResultModal = function(matchId, homeName, awayName, homeScore, awayScore, existingSets, playedAt, venueId) {
         currentMatchId = matchId;
 
         // Set match ID in hidden input
@@ -26,11 +26,12 @@
 
         document.getElementById('homePlayerName').textContent = homeName;
         document.getElementById('awayPlayerName').textContent = awayName;
-        document.getElementById('homeInitials').textContent = (homeName || 'TBD').substring(0, 2).toUpperCase();
-        document.getElementById('awayInitials').textContent = (awayName || 'TBD').substring(0, 2).toUpperCase();
 
         document.getElementById('homeScoreInput').value = (homeScore ?? '') === null ? '' : (homeScore ?? '');
         document.getElementById('awayScoreInput').value = (awayScore ?? '') === null ? '' : (awayScore ?? '');
+        document.getElementById('quickPlayedAt').value = playedAt || '';
+        const venueSelect = document.getElementById('quickVenueId');
+        if (venueSelect) venueSelect.value = venueId || '';
         document.getElementById('setScoresContainer').innerHTML = '';
         setScoreCount = 0;
 
@@ -55,18 +56,20 @@
         setScoreCount++;
         const container = document.getElementById('setScoresContainer');
         const setDiv = document.createElement('div');
-        setDiv.className = 'flex items-center gap-2';
+        setDiv.className = 'flex items-center gap-2 bg-gray-800 p-1.5 rounded-xl border border-white/5';
         setDiv.innerHTML = `
-            <span class="text-gray-400 text-sm w-16">Set ${setScoreCount}:</span>
-            <input type="number" name="sets[${setScoreCount-1}][home]" min="0" placeholder="gemova"
-                   value="${homeValue ?? ''}"
-                   class="w-20 text-center bg-gray-600/50 border border-gray-500 rounded px-2 py-1 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <span class="text-gray-400">-</span>
-            <input type="number" name="sets[${setScoreCount-1}][away]" min="0" placeholder="gemova"
-                   value="${awayValue ?? ''}"
-                   class="w-20 text-center bg-gray-600/50 border border-gray-500 rounded px-2 py-1 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <button type="button" onclick="this.parentElement.remove()" class="text-red-400 hover:text-red-300 ml-2">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <span class="text-[9px] font-black text-gray-500 w-5 pl-1 shrink-0">${setScoreCount}</span>
+            <div class="flex items-center gap-1.5 flex-1">
+                <input type="number" name="sets[${setScoreCount-1}][home]" min="0" placeholder="0"
+                       value="${homeValue ?? ''}"
+                       class="w-full bg-gray-900/60 border-none rounded-lg p-1.5 text-center font-black text-white outline-none text-xs focus:ring-2 focus:ring-blue-500/40">
+                <span class="text-gray-700 font-black text-[10px] shrink-0">:</span>
+                <input type="number" name="sets[${setScoreCount-1}][away]" min="0" placeholder="0"
+                       value="${awayValue ?? ''}"
+                       class="w-full bg-gray-900/60 border-none rounded-lg p-1.5 text-center font-black text-white outline-none text-xs focus:ring-2 focus:ring-blue-500/40">
+            </div>
+            <button type="button" onclick="this.closest('.flex').remove()" class="text-gray-500 hover:text-red-400 transition-colors shrink-0">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                 </svg>
             </button>

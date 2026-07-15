@@ -25,3 +25,6 @@ database/database.sqlite.backup
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Separate app cloned locally only as a design reference - not part of this repo
+/pingpong.ba
