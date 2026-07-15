@@ -36,6 +36,11 @@ class TennisLiveScore extends Component
     public $currentServer = null;
     public $needsServerSelection = false;
     public $matchComplete = false;
+    public $pointHistory = [];
+
+    public $playedAt;
+    public $venueId;
+    public $venues = [];
 
     public function mount($match)
     {
@@ -51,23 +56,135 @@ class TennisLiveScore extends Component
         $this->needsServerSelection = empty($this->currentServer) && $this->match->status !== 'completed';
         $this->matchComplete = $this->match->status === 'completed';
 
+        $this->playedAt = optional($this->match->played_at)->format('Y-m-d\TH:i') ?? now()->format('Y-m-d\TH:i');
+        $this->venueId = $this->match->venue_id;
+
+        $competition = $this->match->competition;
+        $this->venues = $competition && $competition->city_id
+            ? \App\Models\Venue::where('city_id', $competition->city_id)->orderBy('name')->get(['id', 'name'])->toArray()
+            : [];
+
         // Resume in-progress game/set state if cached (kept only in memory per-session;
         // a page refresh mid-game restarts the current game at 0-0, which is an
         // acceptable trade-off given games/sets already won are persisted).
     }
 
+    /**
+     * True if the authenticated user is one of the two players in this
+     * (individual, non-team) match - lets a player run live scoring on
+     * their own match, same as an organizer/referee can.
+     */
+    private function isPlayerParticipant(): bool
+    {
+        $playerIds = array_filter([$this->match->home_player_id, $this->match->away_player_id]);
+
+        if (empty($playerIds)) {
+            return false;
+        }
+
+        return \App\Models\Player::whereIn('id', $playerIds)
+            ->where('user_id', auth()->id())
+            ->exists();
+    }
+
+    private function isOrganizationStaff(): bool
+    {
+        $organization = $this->match->league
+            ? $this->match->league->organization
+            : $this->match->competition->organization;
+
+        $isOrganizationOwner = $organization->user_id === auth()->id();
+        $isOrganizationReferee = auth()->user()->organizationUsers()
+            ->where('organization_id', $organization->id)
+            ->where('role', 'referee')
+            ->exists();
+        $isMatchReferee = $this->match->referee_user_id === auth()->id();
+
+        return $isOrganizationOwner || $isOrganizationReferee || $isMatchReferee;
+    }
+
+    public function canManageLiveScore(): bool
+    {
+        return $this->isOrganizationStaff() || $this->isPlayerParticipant();
+    }
+
+    private function assertCanManageLiveScore(): void
+    {
+        abort_unless($this->canManageLiveScore(), 403, 'Nemaš dozvolu za upravljanje ovim mečom.');
+    }
+
     public function selectFirstServer($side)
     {
+        $this->assertCanManageLiveScore();
+
         $this->currentServer = $side;
         $this->needsServerSelection = false;
-        $this->match->update(['current_server' => $side, 'first_server' => $side, 'status' => 'in_progress']);
+        $this->match->update([
+            'current_server' => $side,
+            'first_server' => $side,
+            'status' => 'in_progress',
+            'played_at' => $this->playedAt ?: now(),
+            'venue_id' => $this->venueId ?: null,
+        ]);
+    }
+
+    /**
+     * Snapshot the full score state before a point is applied, so a
+     * mis-tap (wrong player) can be undone via undoPoint() below.
+     */
+    private function pushHistory(): void
+    {
+        $this->pointHistory[] = [
+            'homePoints' => $this->homePoints,
+            'awayPoints' => $this->awayPoints,
+            'homeGames' => $this->homeGames,
+            'awayGames' => $this->awayGames,
+            'homeSets' => $this->homeSets,
+            'awaySets' => $this->awaySets,
+            'completedSets' => $this->completedSets,
+            'inTiebreak' => $this->inTiebreak,
+            'tiebreakHome' => $this->tiebreakHome,
+            'tiebreakAway' => $this->tiebreakAway,
+            'currentServer' => $this->currentServer,
+            'matchComplete' => $this->matchComplete,
+        ];
+    }
+
+    public function undoPoint()
+    {
+        $this->assertCanManageLiveScore();
+
+        if (empty($this->pointHistory)) {
+            return;
+        }
+
+        $state = array_pop($this->pointHistory);
+
+        $this->homePoints = $state['homePoints'];
+        $this->awayPoints = $state['awayPoints'];
+        $this->homeGames = $state['homeGames'];
+        $this->awayGames = $state['awayGames'];
+        $this->homeSets = $state['homeSets'];
+        $this->awaySets = $state['awaySets'];
+        $this->completedSets = $state['completedSets'];
+        $this->inTiebreak = $state['inTiebreak'];
+        $this->tiebreakHome = $state['tiebreakHome'];
+        $this->tiebreakAway = $state['tiebreakAway'];
+        $this->currentServer = $state['currentServer'];
+        $this->matchComplete = $state['matchComplete'];
+
+        $this->persist();
     }
 
     public function addPoint($side)
     {
+        $this->assertCanManageLiveScore();
+
         if ($this->matchComplete || $this->needsServerSelection) {
             return;
         }
+
+        $this->pushHistory();
 
         if ($this->inTiebreak) {
             $this->addTiebreakPoint($side);
@@ -204,6 +321,8 @@ class TennisLiveScore extends Component
      */
     public function finishMatchNow()
     {
+        $this->assertCanManageLiveScore();
+
         if ($this->matchComplete) {
             return;
         }
@@ -230,6 +349,8 @@ class TennisLiveScore extends Component
 
     public function resetMatch()
     {
+        $this->assertCanManageLiveScore();
+
         $this->homePoints = 0;
         $this->awayPoints = 0;
         $this->homeGames = 0;
@@ -243,6 +364,7 @@ class TennisLiveScore extends Component
         $this->matchComplete = false;
         $this->needsServerSelection = true;
         $this->currentServer = null;
+        $this->pointHistory = [];
 
         $this->match->update([
             'home_score' => 0,

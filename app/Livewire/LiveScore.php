@@ -24,6 +24,10 @@ class LiveScore extends Component
     public $matchPaused = false;
     public $currentSet = 1;
 
+    public $playedAt;
+    public $venueId;
+    public $venues = [];
+
     /**
      * Recalculate all standings for a tournament group based on completed matches
      */
@@ -58,6 +62,31 @@ class LiveScore extends Component
             // Odd number of points - same server continues
             return $this->currentServer;
         }
+    }
+
+    /**
+     * Count sets won by each side from a sets history array - the single
+     * source of truth for the match's persisted home_score/away_score
+     * (sets won), kept separate from the in-memory live point tally of
+     * whichever set is currently being played.
+     */
+    private function countSetsWon(array $sets): array
+    {
+        $home = 0;
+        $away = 0;
+
+        foreach ($sets as $set) {
+            $h = $set['home_score'] ?? $set['home'] ?? 0;
+            $a = $set['away_score'] ?? $set['away'] ?? 0;
+
+            if ($h > $a) {
+                $home++;
+            } elseif ($a > $h) {
+                $away++;
+            }
+        }
+
+        return [$home, $away];
     }
 
     /**
@@ -262,6 +291,57 @@ class LiveScore extends Component
         }
     }
 
+    /**
+     * True if the authenticated user is one of the two players in this
+     * (individual, non-team) match - lets a player run live scoring on
+     * their own match, same as an organizer/referee can.
+     */
+    private function isPlayerParticipant(): bool
+    {
+        $match = $this->match;
+        $playerIds = array_filter([$match->home_player_id, $match->away_player_id]);
+
+        if (empty($playerIds)) {
+            return false;
+        }
+
+        return \App\Models\Player::whereIn('id', $playerIds)
+            ->where('user_id', auth()->id())
+            ->exists();
+    }
+
+    /**
+     * Recompute the same permission used in render()'s canManageLiveScore
+     * server-side, and abort if the user doesn't have it - render() alone
+     * only gates the UI, so mutating actions need their own check.
+     */
+    private function isOrganizationStaff(): bool
+    {
+        if ($this->match->league) {
+            $organization = $this->match->league->organization;
+        } else {
+            $organization = $this->match->competition->organization;
+        }
+
+        $isOrganizationOwner = $organization->user_id === auth()->id();
+        $isOrganizationReferee = auth()->user()->organizationUsers()
+            ->where('organization_id', $organization->id)
+            ->where('role', 'referee')
+            ->exists();
+        $isMatchReferee = $this->match->referee_user_id === auth()->id();
+
+        return $isOrganizationOwner || $isOrganizationReferee || $isMatchReferee;
+    }
+
+    private function assertCanManageLiveScore(): void
+    {
+        abort_unless(
+            $this->isOrganizationStaff() || $this->isPlayerParticipant(),
+            403,
+            'Nemaš dozvolu za upravljanje ovim mečom.'
+        );
+    }
+
     public function mount($match)
     {
         \Log::info('LiveScore mount called', [
@@ -274,6 +354,14 @@ class LiveScore extends Component
         $match->refresh();
 
         $this->match = $match;
+
+        $this->playedAt = optional($match->played_at)->format('Y-m-d\TH:i') ?? now()->format('Y-m-d\TH:i');
+        $this->venueId = $match->venue_id;
+
+        $competition = $match->competition;
+        $this->venues = $competition && $competition->city_id
+            ? \App\Models\Venue::where('city_id', $competition->city_id)->orderBy('name')->get(['id', 'name'])->toArray()
+            : [];
 
         // If match is scheduled (not started), always reset to initial state
         if ($match && $match->status === 'scheduled') {
@@ -320,9 +408,12 @@ class LiveScore extends Component
                 $this->currentServer = $match->current_server ?? $match->first_server;
             }
 
-            // Load scores and sets data
-            $this->homeScore = $match->home_score ?? 0;
-            $this->awayScore = $match->away_score ?? 0;
+            // Load sets history - home_score/away_score is the sets-won tally,
+            // not the live point score of whichever set is in progress, so the
+            // current set's points restart at 0-0 on a refresh (same accepted
+            // trade-off TennisLiveScore uses for its in-progress game state).
+            $this->homeScore = 0;
+            $this->awayScore = 0;
             $this->sets = $match->sets ?? [];
             $this->setDurations = $match->set_durations ?? [];
             $this->currentSet = count($this->sets) + 1;
@@ -367,6 +458,8 @@ class LiveScore extends Component
 
     public function selectFirstServer($player)
     {
+        $this->assertCanManageLiveScore();
+
         $this->firstServer = $player;
         $this->currentServer = $player;
 
@@ -378,7 +471,8 @@ class LiveScore extends Component
             'first_server' => $player,
             'current_server' => $player,
             'status' => 'in_progress',
-            'played_at' => $now,
+            'played_at' => $this->playedAt ? \Carbon\Carbon::parse($this->playedAt) : $now,
+            'venue_id' => $this->venueId ?: null,
             'current_set_started_at' => $now,
         ]);
 
@@ -394,6 +488,8 @@ class LiveScore extends Component
 
     public function resetServerSelection()
     {
+        $this->assertCanManageLiveScore();
+
         \Log::info('resetServerSelection called', [
             'match_id' => $this->match->id,
             'current_first_server' => $this->firstServer,
@@ -440,6 +536,8 @@ class LiveScore extends Component
 
     public function startMatch()
     {
+        $this->assertCanManageLiveScore();
+
         \Log::info('startMatch called', [
             'match_id' => $this->match->id,
             'first_server' => $this->firstServer,
@@ -464,6 +562,8 @@ class LiveScore extends Component
 
     public function startTimer()
     {
+        $this->assertCanManageLiveScore();
+
         $now = now();
         $this->matchStartTime = $now;
         $this->setStartTime = $now;
@@ -478,6 +578,8 @@ class LiveScore extends Component
 
     public function addPoint($team)
     {
+        $this->assertCanManageLiveScore();
+
         // Save current state for undo functionality
         $this->pointHistory[] = [
             'homeScore' => $this->homeScore,
@@ -499,16 +601,23 @@ class LiveScore extends Component
         // Calculate next server
         $this->currentServer = $this->calculateNextServer();
 
-        // Optimized batch update using raw SQL for maximum speed
+        // Optimized batch update using raw SQL for maximum speed. Note:
+        // home_score/away_score are NOT touched here - they hold the match's
+        // sets-won tally (what public/admin/player tables display), not the
+        // live point count of whichever set is in progress.
         \DB::update(
-            'UPDATE matches SET home_score = ?, away_score = ?, current_server = ?, updated_at = ? WHERE id = ?',
-            [$this->homeScore, $this->awayScore, $this->currentServer, now(), $this->match->id]
+            'UPDATE matches SET current_server = ?, updated_at = ? WHERE id = ?',
+            [$this->currentServer, now(), $this->match->id]
         );
 
         // Check for set completion
         $this->checkSetCompletion();
-    }    public function subtractPoint($team)
+    }
+
+    public function subtractPoint($team)
     {
+        $this->assertCanManageLiveScore();
+
         // Save current state for undo functionality
         $this->pointHistory[] = [
             'homeScore' => $this->homeScore,
@@ -530,10 +639,13 @@ class LiveScore extends Component
         // Calculate next server
         $this->currentServer = $this->calculateNextServer();
 
-        // Optimized batch update using raw SQL for maximum speed
+        // Optimized batch update using raw SQL for maximum speed. Note:
+        // home_score/away_score are NOT touched here - they hold the match's
+        // sets-won tally (what public/admin/player tables display), not the
+        // live point count of whichever set is in progress.
         \DB::update(
-            'UPDATE matches SET home_score = ?, away_score = ?, current_server = ?, updated_at = ? WHERE id = ?',
-            [$this->homeScore, $this->awayScore, $this->currentServer, now(), $this->match->id]
+            'UPDATE matches SET current_server = ?, updated_at = ? WHERE id = ?',
+            [$this->currentServer, now(), $this->match->id]
         );
 
         // Check for set completion
@@ -542,6 +654,8 @@ class LiveScore extends Component
 
     public function undoPoint()
     {
+        $this->assertCanManageLiveScore();
+
         if (count($this->pointHistory) > 0) {
             $lastState = array_pop($this->pointHistory);
 
@@ -553,10 +667,14 @@ class LiveScore extends Component
             $this->setDurations = $lastState['setDurations'];
             $this->currentSet = $lastState['currentSet'];
 
-            // Update database
+            // Update database - home_score/away_score reflect sets won so
+            // far (recomputed from the restored sets history), not the
+            // live point tally of the current set.
+            [$homeSetsWon, $awaySetsWon] = $this->countSetsWon($this->sets);
+
             $this->match->update([
-                'home_score' => $this->homeScore,
-                'away_score' => $this->awayScore,
+                'home_score' => $homeSetsWon,
+                'away_score' => $awaySetsWon,
                 'current_server' => $this->currentServer,
                 'sets' => $this->sets,
                 'set_durations' => $this->setDurations,
@@ -642,14 +760,19 @@ class LiveScore extends Component
             'current_set_started_at' => $this->setStartTime
         ]);
 
+        // home_score/away_score persist the sets-won tally (recomputed from
+        // the just-updated sets history), NOT $this->homeScore/$this->awayScore
+        // which were just reset to 0-0 to track the next set's live points.
+        [$homeSetsWon, $awaySetsWon] = $this->countSetsWon($this->sets);
+
         $result = $this->match->update([
             'sets' => $this->sets,
             'set_durations' => $this->setDurations,
             'current_set_started_at' => $this->setStartTime,
             'current_server' => $this->currentServer,
             'first_server' => $this->firstServer,
-            'home_score' => $this->homeScore,
-            'away_score' => $this->awayScore,
+            'home_score' => $homeSetsWon,
+            'away_score' => $awaySetsWon,
         ]);
 
         \Log::info('Database update result', [
@@ -696,24 +819,10 @@ class LiveScore extends Component
         $this->setsVersion++;
     }
 
-    public function togglePause()
-    {
-        $this->matchPaused = !$this->matchPaused;
-
-        if ($this->matchPaused) {
-            // Stop timers on pause
-            $this->dispatch('stop-timers');
-        } else {
-            // Resume timers - calculate correct start time accounting for pause duration
-            $this->dispatch('start-timers', [
-                'playedAt' => optional($this->match->played_at)->toIso8601String(),
-                'setStartedAt' => optional($this->setStartTime)->toIso8601String(),
-            ]);
-        }
-    }
-
     public function resetMatch()
     {
+        $this->assertCanManageLiveScore();
+
         // Reset local state
         $this->homeScore = 0;
         $this->awayScore = 0;
@@ -777,6 +886,8 @@ class LiveScore extends Component
 
     public function endMatch()
     {
+        $this->assertCanManageLiveScore();
+
         // Record final set duration if not already recorded
         if ($this->setStartTime && empty($this->setDurations) || count($this->setDurations) < $this->currentSet) {
             $setDuration = now()->diffInSeconds($this->setStartTime);
@@ -847,7 +958,12 @@ class LiveScore extends Component
         $this->dispatch('stop-timers');
         $this->dispatch('reset-timer-display');
 
-        // Redirect based on match type
+        // Redirect based on who is scoring: a plain player goes back to
+        // their own dashboard, organizers/referees back to the org view.
+        if (!$this->isOrganizationStaff()) {
+            return redirect()->route('player.dashboard.matches')->with('success', 'Meč je završen!');
+        }
+
         if ($this->match->league) {
             return redirect()->route('leagues.matches.show', [
                 'league' => $this->match->league,
@@ -904,6 +1020,8 @@ class LiveScore extends Component
 
     public function confirmSetWin()
     {
+        $this->assertCanManageLiveScore();
+
         // Debug logging
         \Log::info('confirmSetWin called', [
             'match_id' => $this->match->id,
@@ -960,6 +1078,8 @@ class LiveScore extends Component
      */
     public function forceFinishMatch()
     {
+        $this->assertCanManageLiveScore();
+
         if ($this->match->status === 'completed') {
             return;
         }
@@ -1005,6 +1125,10 @@ class LiveScore extends Component
 
         $this->dispatch('stop-timers');
         $this->dispatch('reset-timer-display');
+
+        if (!$this->isOrganizationStaff()) {
+            return redirect()->route('player.dashboard.matches')->with('success', 'Meč je završen!');
+        }
 
         if ($this->match->league) {
             return redirect()->route('leagues.matches.show', [
@@ -1286,9 +1410,9 @@ class LiveScore extends Component
         // Check if user is specifically assigned as referee for this match
         $isMatchReferee = $this->match->referee_user_id === auth()->id();
 
-        // User can manage live scoring if they are owner, organization referee, or match referee
-        $canManageLiveScore = $isOrganizationOwner || $isOrganizationReferee || $isMatchReferee;
-        
+        // User can manage live scoring if they are owner, organization referee, match referee, or a player in the match
+        $canManageLiveScore = $isOrganizationOwner || $isOrganizationReferee || $isMatchReferee || $this->isPlayerParticipant();
+
         return view('livewire.live-score', [
             'match' => $this->match,
             'firstServer' => $this->firstServer,

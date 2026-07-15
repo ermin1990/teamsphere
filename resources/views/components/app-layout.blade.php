@@ -144,6 +144,8 @@
             }
         </script>
 
+        <x-pwa-install-prompt />
+
         @stack('scripts')
     </body>
 </html>

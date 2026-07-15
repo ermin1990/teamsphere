@@ -1,10 +1,10 @@
 <section class="space-y-6">
     <header>
-        <h2 class="text-lg font-medium text-gray-900">
+        <h2 class="text-lg font-semibold" style="color: var(--text-primary);">
             Obrišite Nalog
         </h2>
 
-        <p class="mt-1 text-sm text-gray-600">
+        <p class="mt-1 text-sm" style="color: var(--text-tertiary);">
             Jednom kada obrišete svoj nalog, svi njegovi resursi i podaci će biti trajno obrisani. Prije brisanja naloga, molimo vas da preuzmete sve podatke ili informacije koje želite zadržati.
         </p>
     </header>
@@ -19,11 +19,11 @@
             @csrf
             @method('delete')
 
-            <h2 class="text-lg font-medium text-gray-900">
+            <h2 class="text-lg font-semibold" style="color: var(--text-primary);">
                 Da li ste sigurni da želite obrisati svoj nalog?
             </h2>
 
-            <p class="mt-1 text-sm text-gray-600">
+            <p class="mt-1 text-sm" style="color: var(--text-tertiary);">
                 Jednom kada obrišete svoj nalog, svi njegovi resursi i podaci će biti trajno obrisani. Molimo vas da unesete svoju lozinku da potvrdite da želite trajno obrisati svoj nalog.
             </p>
 

@@ -17,6 +17,21 @@
                 <div class="rounded-xl p-4 text-sm" style="background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3); color: #4ade80;">{{ session('success') }}</div>
             @endif
 
+            @php
+                $singleCompetition = request()->filled('competition_id')
+                    ? $competitions->firstWhere('id', (int) request('competition_id'))
+                    : ($competitions->count() === 1 ? $competitions->first() : null);
+            @endphp
+
+            <div class="flex items-center justify-between gap-3">
+                @if($singleCompetition)
+                    <a href="{{ route('player.leagues.show', $singleCompetition) }}" class="text-xs font-semibold whitespace-nowrap" style="color: var(--accent-blue);">Pogledaj ligu →</a>
+                @else
+                    <span></span>
+                @endif
+                @include('player.partials.new-match-button')
+            </div>
+
             @if($seasons->count() > 1 || $competitions->count() > 1 || $rounds->count() > 1)
                 <form method="GET" action="{{ route('player.dashboard.matches') }}" class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     @if($seasons->count() > 1)
@@ -65,11 +80,11 @@
                         @include('public.leagues.partials.match-card', ['match' => $match, 'competition' => $competition])
                     @endif
                     <div class="flex items-center justify-end gap-4 px-1">
+                        @if($canEnterResult && $match->status !== 'completed')
+                            <a href="{{ route('player.matches.live', $match) }}" class="text-xs font-semibold whitespace-nowrap" style="color: #4ade80;">Uživo</a>
+                        @endif
                         @if($canEnterResult)
                             <a href="{{ route('player.matches.result.edit', $match) }}" class="text-xs font-semibold whitespace-nowrap" style="color: #c4b5fd;">{{ $match->status === 'completed' ? 'Uredi rezultat' : 'Upiši rezultat' }}</a>
-                        @endif
-                        @if($competition)
-                            <a href="{{ route('player.leagues.show', $competition) }}" class="text-xs font-semibold whitespace-nowrap" style="color: var(--accent-blue);">Pogledaj ligu →</a>
                         @endif
                     </div>
                 </div>

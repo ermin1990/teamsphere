@@ -111,8 +111,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/moje-lige/takmicenja/{competition}', [\App\Http\Controllers\PlayerLeagueController::class, 'show'])->name('player.leagues.show');
     Route::get('/moje-lige/{competition}/mecevi/novi', [\App\Http\Controllers\PlayerMatchController::class, 'create'])->name('player.matches.create');
     Route::post('/moje-lige/{competition}/mecevi', [\App\Http\Controllers\PlayerMatchController::class, 'store'])->name('player.matches.store');
+    Route::get('/moje-lige/mecevi/{match}/uzivo', [\App\Http\Controllers\PlayerMatchController::class, 'liveScore'])->name('player.matches.live');
     Route::get('/moje-lige/mecevi/{match}/rezultat', [\App\Http\Controllers\PlayerMatchController::class, 'editResult'])->name('player.matches.result.edit');
     Route::put('/moje-lige/mecevi/{match}/rezultat', [\App\Http\Controllers\PlayerMatchController::class, 'updateResult'])->name('player.matches.result.update');
+    Route::post('/moje-lige/mecevi/{match}/reset', [\App\Http\Controllers\PlayerMatchController::class, 'resetResult'])->name('player.matches.result.reset');
     Route::get('/pozivnica/{token}', [\App\Http\Controllers\PlayerInvitationController::class, 'accept'])->name('player-invitations.accept');
     Route::post('organizations/{organization}/competitions/{competition}/invite-player', [\App\Http\Controllers\PlayerInvitationController::class, 'store'])->name('organizations.competitions.invite-player');
     Route::post('organizations/{organization}/competitions/{competition}/join-requests/{joinRequest}/approve', [\App\Http\Controllers\CompetitionJoinRequestController::class, 'approve'])->name('organizations.competitions.join-requests.approve');

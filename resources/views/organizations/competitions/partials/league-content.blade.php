@@ -220,6 +220,9 @@
                                         <span class="text-white font-medium text-sm sm:text-base break-words">{{ $match->homePlayer->name ?? 'TBD' }}</span>
                                     </div>
                                     <div class="w-full sm:w-auto flex flex-col items-center px-2 sm:px-4 sm:min-w-[110px] shrink-0 order-3 sm:order-2 mt-3 sm:mt-0">
+                                        @if($match->status === 'in_progress')
+                                            <span class="mb-1 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wide animate-pulse" style="background: rgba(248,113,113,0.2); color: #f87171;">🔴 Uživo</span>
+                                        @endif
                                         <span class="text-lg sm:text-xl font-black text-white">
                                             {{ $match->status === 'scheduled' ? '-' : $match->home_score }} : {{ $match->status === 'scheduled' ? '-' : $match->away_score }}
                                         </span>

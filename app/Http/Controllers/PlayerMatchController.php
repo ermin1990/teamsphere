@@ -70,8 +70,12 @@ class PlayerMatchController extends Controller
             return back()->withErrors(['opponent_id' => 'Protivnik mora biti prijavljen na ovo takmičenje.']);
         }
 
-        if (!$competition->allow_rematches && CompetitionMatch::pairAlreadyPlayed($competition->id, $player->id, $opponentId)) {
-            return back()->withErrors(['opponent_id' => 'Već ste odigrali meč protiv ovog igrača. Organizator mora uključiti "Dozvoli povratne mečeve" da bi se moglo igrati ponovo.']);
+        // Rekreativne lige po prirodi dozvoljavaju revanš mečeve (isto kao
+        // organizatorov "Dodaj Meč"), pored postojećeg zasebnog prekidača
+        // "Dozvoli povratne mečeve".
+        $rematchesAllowed = $competition->allow_rematches || $competition->is_recreational;
+        if (!$rematchesAllowed && CompetitionMatch::pairAlreadyPlayed($competition->id, $player->id, $opponentId)) {
+            return back()->withErrors(['opponent_id' => 'Već ste odigrali meč protiv ovog igrača. Organizator mora označiti ligu kao rekreativnu ili uključiti "Dozvoli povratne mečeve" da bi se moglo igrati ponovo.']);
         }
 
         // Drop trailing all-zero rows (fields left blank at 0-0 by a player
@@ -174,6 +178,20 @@ class PlayerMatchController extends Controller
         ));
     }
 
+    /**
+     * Live, point-by-point scoring for a player's own match - same
+     * Livewire component the organizer uses, gated by the same
+     * authorization check as editResult()/updateResult() above.
+     */
+    public function liveScore(CompetitionMatch $match)
+    {
+        $this->myPlayerInMatch($match);
+
+        $match->load(['competition.organization', 'homePlayer', 'awayPlayer']);
+
+        return view('live-score-page', ['match' => $match]);
+    }
+
     public function updateResult(Request $request, CompetitionMatch $match, LeagueStandingsService $standingsService)
     {
         $player = $this->myPlayerInMatch($match);
@@ -221,5 +239,31 @@ class PlayerMatchController extends Controller
         }
 
         return redirect()->route('player.dashboard.matches')->with('success', 'Rezultat je sačuvan!');
+    }
+
+    /**
+     * Reset a match back to "scheduled" with no result - lets a player undo
+     * a result they entered on the wrong match, and re-enter it correctly
+     * afterwards via editResult()/updateResult() above.
+     */
+    public function resetResult(CompetitionMatch $match, LeagueStandingsService $standingsService)
+    {
+        $this->myPlayerInMatch($match);
+        $competition = $match->competition;
+
+        $match->update([
+            'home_score' => null,
+            'away_score' => null,
+            'sets' => null,
+            'venue_id' => null,
+            'played_at' => null,
+            'status' => 'scheduled',
+        ]);
+
+        if ($competition->isLeague()) {
+            $standingsService->rebuildForCompetition($competition);
+        }
+
+        return redirect()->route('player.dashboard.matches')->with('success', 'Meč je resetovan - možeš ponovo unijeti rezultat.');
     }
 }

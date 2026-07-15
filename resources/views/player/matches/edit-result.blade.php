@@ -5,6 +5,11 @@
                 Upiši rezultat
             </h2>
             <p class="text-sm mt-1" style="color: var(--text-tertiary);">{{ $competition->name }} · protiv {{ $opponent->name ?? 'TBD' }}</p>
+            @if($match->status !== 'completed')
+                <p class="text-sm mt-2">
+                    <a href="{{ route('player.matches.live', $match) }}" class="font-semibold" style="color: #4ade80;">🏓 Ili unesi rezultat uživo, poen po poen →</a>
+                </p>
+            @endif
         </div>
     </x-slot>
 
@@ -89,6 +94,18 @@
                         </button>
                     </div>
                 </form>
+
+                @if($match->status !== 'scheduled')
+                    <div class="mt-4 pt-4" style="border-top: 1px solid var(--border-secondary);">
+                        <form method="POST" action="{{ route('player.matches.result.reset', $match) }}"
+                              onsubmit="return confirm('Resetovati ovaj meč? Uneseni rezultat, setovi, datum i teren će biti obrisani, a meč vraćen na zakazano - koristi ovo ako si unio rezultat na pogrešan meč.');">
+                            @csrf
+                            <button type="submit" class="w-full px-4 py-2.5 rounded-xl text-xs font-semibold transition-all" style="background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.3); color: #f87171;">
+                                Resetuj meč (obriši uneseni rezultat)
+                            </button>
+                        </form>
+                    </div>
+                @endif
             </div>
         </div>
     </div>

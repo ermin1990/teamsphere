@@ -56,6 +56,7 @@
                                     <span class="px-2.5 py-1 text-[11px] rounded-full font-semibold" style="background: rgba(234,179,8,0.15); color: #eab308;">Zakazano</span>
                                 @endif
                                 @if($canEnterResult)
+                                    <a href="{{ route('player.matches.live', $match) }}" class="text-xs font-semibold whitespace-nowrap" style="color: #4ade80;">Uživo</a>
                                     <a href="{{ route('player.matches.result.edit', $match) }}" class="text-xs font-semibold whitespace-nowrap" style="color: #c4b5fd;">Upiši rezultat</a>
                                 @endif
                             </div>

@@ -7,61 +7,35 @@
             font-weight: 600 !important;
         }
 
-        /* Light theme table colors */
-        [data-theme="light"] .table-header-text {
-            color: #111827 !important; /* gray-900 */
-        }
-
-        [data-theme="light"] .table-number-text {
-            color: #111827 !important; /* gray-900 */
-        }
-
-        [data-theme="light"] .table-player-name {
-            color: #3f4041ff !important; /* gray-900 */
-        }
-
-        [data-theme="light"] .table-player-position {
-            color: #4b5563 !important; /* gray-600 */
-        }
-
-        [data-theme="light"] .table-advancing-bg {
-            background-color: #f0fdf4 !important; /* green-50 */
-        }
-
-        /* Dark theme table colors */
-        [data-theme="dark"] .table-header-text {
+        .table-header-text {
             color: var(--text-tertiary) !important;
         }
 
-        [data-theme="dark"] .table-number-text {
+        .table-number-text {
             color: #d1d5db !important; /* gray-300 */
         }
 
-        [data-theme="dark"] .table-number-text-pints {
-            color: #2be013ff !important; /* gray-300 */
-        }
-
-         [data-theme="dark"] .table-number-text-pints {
+        .table-number-text-pints {
             color: #226818ff !important; /* gray-300 */
         }
 
-        [data-theme="dark"] .table-player-name {
+        .table-player-name {
             color: var(--text-primary) !important;
         }
 
-        [data-theme="dark"] .table-player-position {
+        .table-player-position {
             color: var(--text-tertiary) !important;
         }
 
-        [data-theme="dark"] .table-advancing-bg {
+        .table-advancing-bg {
             background-color: rgba(6, 78, 59, 0.3) !important; /* green-900/30 */
         }
 
-        [data-theme="dark"] .table-loss-text {
+        .table-loss-text {
             color: #f87171 !important; /* red-400 */
         }
 
-        [data-theme="dark"] .table-points-text {
+        .table-points-text {
             color: #4ade80 !important; /* green-400 */
         }
 
@@ -118,16 +92,9 @@
             margin: -2px -4px;
         }
 
-        /* Dark theme highlight */
         .player-container.player-highlight {
             box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.6);
             background-color: rgba(59, 130, 246, 0.1) !important;
-        }
-
-        /* Light theme highlight */
-        [data-theme="light"] .player-container.player-highlight {
-            box-shadow: 0 0 0 2px rgba(217, 119, 6, 0.7);
-            background-color: rgba(217, 119, 6, 0.15) !important;
         }
     </style>
     @php
@@ -310,6 +277,11 @@
                                     <div class="absolute left-0 top-0 bottom-0 w-1 bg-emerald-500/60"></div>
                                 @elseif($live)
                                     <div class="absolute left-0 top-0 bottom-0 w-1 bg-blue-500/70 animate-pulse"></div>
+                                @endif
+                                @if($live)
+                                    <div class="px-3 pt-2">
+                                        <span class="inline-block px-1.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wide animate-pulse" style="background: rgba(248,113,113,0.2); color: #f87171;">🔴 Uživo</span>
+                                    </div>
                                 @endif
                                 <div class="p-2.5 md:p-3">
                                     <div class="flex items-stretch gap-3">

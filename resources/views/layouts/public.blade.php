@@ -53,38 +53,6 @@
             --glow-purple: radial-gradient(ellipse 900px 700px at 88% -5%, rgba(109, 40, 217, 0.35), transparent 60%);
         }
 
-        [data-theme="light"] {
-            /* Light Theme */
-            --bg-primary: #F7F7FB;
-            --bg-secondary: #ECEDF6;
-            --bg-tertiary: #DFE0F0;
-            --bg-card: rgba(255, 255, 255, 0.9);
-            --bg-card-solid: #ffffff;
-            --bg-accent: rgba(247, 247, 251, 0.95);
-            --bg-hover: rgba(223, 224, 240, 0.5);
-
-            --text-primary: #10101C;
-            --text-secondary: #34354A;
-            --text-tertiary: #55566E;
-            --text-muted: #74758C;
-
-            --border-primary: rgba(99, 74, 217, 0.18);
-            --border-secondary: rgba(16, 16, 28, 0.08);
-            --border-accent: rgba(99, 74, 217, 0.28);
-
-            --accent-blue: #4F46E5; /* darkened periwinkle for legible text/borders on light bg */
-            --accent-green: rgba(34, 197, 94, 0.9);
-            --accent-green-solid: #16a34a;
-            --accent-red: #dc2626;
-            --accent-yellow: #ca8a04;
-            --accent-cyan: #0891b2;
-            --accent-amber: #d97706;
-
-            --shadow-primary: rgba(0, 0, 0, 0.1);
-            --backdrop-blur: blur(16px);
-            --glow-purple: none;
-        }
-
         body {
             font-family: 'Manrope', ui-sans-serif, sans-serif;
         }
@@ -92,70 +60,11 @@
             font-family: 'Unbounded', ui-sans-serif, sans-serif;
         }
 
-        /* Smooth transitions for theme changes */
-        * {
-            transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
-        }
-
         /* Ensure clickable elements are not blocked */
         select, input, button, a {
             position: relative;
             z-index: 10;
             pointer-events: auto !important;
-        }
-
-        /* Theme toggle button */
-        .theme-toggle {
-            position: relative;
-            width: 48px;
-            height: 24px;
-            border-radius: 12px;
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border-primary);
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            padding: 2px;
-        }
-
-        .theme-toggle:hover {
-            background: var(--bg-secondary);
-            transform: scale(1.05);
-        }
-
-        .theme-toggle-slider {
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            background: var(--text-primary);
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 10px;
-        }
-
-        [data-theme="light"] .theme-toggle-slider {
-            transform: translateX(22px);
-        }
-
-        /* Custom scrollbar for light theme */
-        [data-theme="light"] ::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        [data-theme="light"] ::-webkit-scrollbar-track {
-            background: var(--bg-tertiary);
-        }
-
-        [data-theme="light"] ::-webkit-scrollbar-thumb {
-            background: var(--border-primary);
-            border-radius: 4px;
-        }
-
-        [data-theme="light"] ::-webkit-scrollbar-thumb:hover {
-            background: var(--text-tertiary);
         }
     </style>
 
@@ -183,16 +92,6 @@
                             🎬 Projektor
                         </a>
                     </div>
-
-                    <!-- Theme Toggle -->
-                    <div class="flex items-center space-x-3">
-                        <span class="text-sm font-medium" style="color: var(--text-tertiary);">Tema</span>
-                        <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme">
-                            <div class="theme-toggle-slider">
-                                <span id="theme-icon">🌙</span>
-                            </div>
-                        </button>
-                    </div>
                 </div>
             </nav>
 
@@ -218,40 +117,6 @@
             </a>
         </div>
     </nav>
-
-    <!-- Theme Toggle Script -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const themeToggle = document.getElementById('theme-toggle');
-            const themeIcon = document.getElementById('theme-icon');
-            const html = document.documentElement;
-
-            // Load saved theme
-            const savedTheme = localStorage.getItem('theme') || 'dark';
-            html.setAttribute('data-theme', savedTheme);
-            updateThemeIcon(savedTheme);
-
-            // Theme toggle handler
-            themeToggle.addEventListener('click', function() {
-                const currentTheme = html.getAttribute('data-theme');
-                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-
-                html.setAttribute('data-theme', newTheme);
-                localStorage.setItem('theme', newTheme);
-                updateThemeIcon(newTheme);
-
-                // Add smooth transition effect
-                document.body.style.transition = 'background-color 0.5s ease, color 0.5s ease';
-                setTimeout(() => {
-                    document.body.style.transition = '';
-                }, 500);
-            });
-
-            function updateThemeIcon(theme) {
-                themeIcon.textContent = theme === 'dark' ? '🌙' : '☀️';
-            }
-        });
-    </script>
 
     <!-- PWA Install Prompt -->
     <x-pwa-install-prompt />

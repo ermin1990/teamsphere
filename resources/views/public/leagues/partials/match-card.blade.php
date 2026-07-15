@@ -43,6 +43,11 @@
     @elseif($live)
         <div class="absolute left-0 top-0 bottom-0 w-[3px] animate-pulse" style="background: var(--accent-blue);"></div>
     @endif
+    @if($live)
+        <div class="px-3 md:px-3.5 pl-4 pt-2">
+            <span class="inline-block px-1.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wide animate-pulse" style="background: rgba(248,113,113,0.2); color: #f87171;">🔴 Uživo</span>
+        </div>
+    @endif
     <div class="p-3 md:p-3.5 pl-4">
         <div class="flex items-stretch gap-3">
             <div class="flex-1 flex flex-col justify-between gap-2.5 min-w-0">

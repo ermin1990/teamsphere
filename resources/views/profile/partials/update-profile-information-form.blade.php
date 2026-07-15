@@ -1,10 +1,10 @@
 <section>
     <header>
-        <h2 class="text-lg font-medium text-gray-900">
+        <h2 class="text-lg font-semibold" style="color: var(--text-primary);">
             Informacije o Profilu
         </h2>
 
-        <p class="mt-1 text-sm text-gray-600">
+        <p class="mt-1 text-sm" style="color: var(--text-tertiary);">
             Ažurirajte informacije o vašem profilu i email adresu.
         </p>
     </header>
@@ -30,16 +30,16 @@
 
             @if ($user instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && ! $user->hasVerifiedEmail())
                 <div>
-                    <p class="text-sm mt-2 text-gray-800">
+                    <p class="text-sm mt-2" style="color: var(--text-secondary);">
                         Vaša email adresa nije verifikovana.
 
-                        <button form="send-verification" class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        <button form="send-verification" class="underline text-sm focus:outline-none" style="color: var(--accent-blue);">
                             Kliknite ovdje da ponovo pošaljete email za verifikaciju.
                         </button>
                     </p>
 
                     @if (session('status') === 'verification-link-sent')
-                        <p class="mt-2 font-medium text-sm text-green-600">
+                        <p class="mt-2 font-medium text-sm" style="color: #4ade80;">
                             Novi link za verifikaciju je poslan na vašu email adresu.
                         </p>
                     @endif
@@ -56,7 +56,8 @@
                     x-show="show"
                     x-transition
                     x-init="setTimeout(() => show = false, 2000)"
-                    class="text-sm text-gray-600"
+                    class="text-sm"
+                    style="color: #4ade80;"
                 >Spremljeno.</p>
             @endif
         </div>
