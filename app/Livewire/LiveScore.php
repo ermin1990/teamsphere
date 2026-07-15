@@ -714,6 +714,13 @@ class LiveScore extends Component
 
     public function resetMatch()
     {
+        // Reverse this match's league standings contribution before wiping
+        // its score, otherwise a reset match leaves stale points/wins behind.
+        if ($this->match->status === 'completed' && $this->match->competition && $this->match->competition->isLeague()) {
+            app(\App\Services\LeagueStandingsService::class)
+                ->reverseForMatch($this->match->competition, $this->match, $this->match->home_score, $this->match->away_score);
+        }
+
         // Reset local state
         $this->homeScore = 0;
         $this->awayScore = 0;

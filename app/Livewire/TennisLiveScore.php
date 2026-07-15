@@ -230,6 +230,13 @@ class TennisLiveScore extends Component
 
     public function resetMatch()
     {
+        // Reverse this match's league standings contribution before wiping
+        // its score, otherwise a reset match leaves stale points/wins behind.
+        if ($this->match->status === 'completed' && $this->match->competition && $this->match->competition->isLeague()) {
+            app(\App\Services\LeagueStandingsService::class)
+                ->reverseForMatch($this->match->competition, $this->match, $this->match->home_score, $this->match->away_score);
+        }
+
         $this->homePoints = 0;
         $this->awayPoints = 0;
         $this->homeGames = 0;
