@@ -5,42 +5,12 @@
     <!-- Mobile menu overlay -->
     <div id="mobile-menu-overlay" class="fixed inset-0 z-40 hidden bg-black bg-opacity-50 lg:hidden" onclick="closeMobileMenu()"></div>
 
-    <!-- Admin Header -->
-    <div class="bg-gray-800/50 backdrop-blur-xl border-b border-gray-700/50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between h-16">
-                <div class="flex items-center space-x-4">
-                    <!-- Mobile menu button -->
-                    <button id="mobile-menu-button" class="lg:hidden p-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white" onclick="toggleMobileMenu()">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-                        </svg>
-                    </button>
-
-                    <div class="w-8 h-8 bg-gradient-to-r from-red-500 to-pink-600 rounded-lg flex items-center justify-center">
-                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
-                        </svg>
-                    </div>
-                    <div class="hidden sm:block">
-                        <h1 class="text-xl font-bold text-white">Admin Panel</h1>
-                        <p class="text-sm text-gray-400">MojTurnir Management</p>
-                    </div>
-                </div>
-                <div class="flex items-center space-x-4">
-                    <a href="{{ route('admin.dashboard') }}" class="text-gray-300 hover:text-white px-3 py-2 rounded-lg transition-colors hidden sm:inline-flex">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
-                        </svg>
-                    </a>
-                    <div class="text-right">
-                        <p class="text-sm text-gray-300">{{ Auth::user()->name }}</p>
-                        <p class="text-xs text-gray-500 hidden sm:block">Administrator</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- Mobile sidebar toggle (kept - it's the only way to open the nav on small screens) -->
+    <button id="mobile-menu-button" class="lg:hidden fixed top-3 left-3 z-50 p-2 rounded-lg bg-gray-800/70 backdrop-blur-xl text-gray-300 hover:text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white" onclick="toggleMobileMenu()">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+        </svg>
+    </button>
 
     <div class="flex">
         <!-- Sidebar -->
@@ -123,7 +93,7 @@
         </div>
 
         <!-- Main Content -->
-        <div class="flex-1 p-4 sm:p-6 lg:p-8 lg:ml-0">
+        <div class="flex-1 pt-16 p-4 sm:p-6 lg:p-8 lg:pt-8 lg:ml-0">
             @yield('admin-content')
         </div>
     </div>

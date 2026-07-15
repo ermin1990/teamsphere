@@ -28,7 +28,10 @@
                 $fmtDiff = fn ($n) => ($n > 0 ? '+' : '') . $n;
                 $roundOf = fn ($m) => $m->round_number ?? $m->round;
                 $leagueMatches = $competition->is_team_based ? $competition->teamMatches : $competition->leagueMatches;
-                $leagueMatches->loadMissing('venue');
+                // TeamMatch has no venue relation/column - only LeagueMatch does.
+                if (!$competition->is_team_based) {
+                    $leagueMatches->loadMissing('venue');
+                }
                 $matchesByRound = $leagueMatches->sortBy($roundOf)->groupBy($roundOf);
 
                 // S (set diff) and G (game diff) per player, computed from completed

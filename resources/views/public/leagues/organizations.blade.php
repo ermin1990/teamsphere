@@ -1,88 +1,438 @@
-@extends('layouts.public')
+<!DOCTYPE html>
+<html class="dark" lang="bs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="csrf-token" content="{{ csrf_token() }}">
+<title>Takmičenja - MojTurnir</title>
 
-@section('title', 'Organizacije - MojTurnir')
+<link rel="manifest" href="{{ asset('manifest.webmanifest') }}">
+<meta name="theme-color" content="#0b0e14">
+<link rel="apple-touch-icon" href="/icons/icon-192.svg">
+<link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
 
-@section('content')
-    <!-- Header -->
-    <div class="backdrop-blur-xl rounded-2xl p-4 md:p-6 shadow-xl mb-6 md:mb-8 border" style="background: var(--bg-card); border-color: var(--border-primary); box-shadow: 0 10px 25px var(--shadow-primary);">
-        <h1 class="text-2xl md:text-3xl font-bold text-center bg-gradient-to-r from-green-400 to-blue-400 bg-clip-text text-transparent">
-            🏢 Organizacije i Savezi
-        </h1>
-        <p class="text-center mt-2 text-sm md:text-base" style="color: var(--text-tertiary);">Izaberite organizaciju za pregled aktivnih liga i turnira</p>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&family=Inter:wght@400;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap">
+
+<script>
+    tailwind.config = {
+        darkMode: "class",
+        theme: {
+            extend: {
+                colors: {
+                    "surface-container-lowest": "#0b0e14",
+                    "surface-dim": "#10131a",
+                    "surface": "#10131a",
+                    "surface-container-low": "#191c22",
+                    "surface-container": "#1d2026",
+                    "surface-container-high": "#272a31",
+                    "surface-container-highest": "#32353c",
+                    "surface-variant": "#32353c",
+                    "surface-bright": "#363940",
+                    "on-surface": "#e1e2eb",
+                    "on-surface-variant": "#bacac5",
+                    "outline": "#859490",
+                    "outline-variant": "#3c4a46",
+                    "primary": "#57f1db",
+                    "primary-container": "#2dd4bf",
+                    "on-primary": "#003731",
+                    "on-primary-container": "#00574d",
+                    "secondary": "#ffb95f",
+                    "secondary-container": "#ee9800",
+                    "on-secondary-container": "#5b3800",
+                    "tertiary-container": "#b3bed5",
+                    "on-tertiary-container": "#424d61",
+                    "error": "#ffb4ab",
+                },
+                borderRadius: { DEFAULT: "0.25rem", lg: "0.5rem", xl: "0.75rem", full: "9999px" },
+                spacing: { gutter: "24px", "margin-mobile": "16px", "sidebar-width": "260px" },
+                fontFamily: {
+                    "headline-md": ["Montserrat"], "body-sm": ["Inter"], display: ["Montserrat"],
+                    "headline-lg-mobile": ["Montserrat"], "body-md": ["Inter"], "body-lg": ["Inter"],
+                    "label-bold": ["Inter"], "headline-lg": ["Montserrat"],
+                },
+                fontSize: {
+                    "headline-md": ["20px", { lineHeight: "1.3", fontWeight: "700" }],
+                    "body-sm": ["14px", { lineHeight: "1.5", fontWeight: "400" }],
+                    display: ["44px", { lineHeight: "1.1", letterSpacing: "-0.02em", fontWeight: "800" }],
+                    "headline-lg-mobile": ["22px", { lineHeight: "1.2", fontWeight: "700" }],
+                    "body-md": ["16px", { lineHeight: "1.5", fontWeight: "400" }],
+                    "label-bold": ["12px", { lineHeight: "1.2", letterSpacing: "0.05em", fontWeight: "600" }],
+                    "headline-lg": ["28px", { lineHeight: "1.2", letterSpacing: "-0.01em", fontWeight: "700" }],
+                },
+            },
+        },
+    }
+</script>
+<style>
+    .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+    body { background-color: #0b0e14; color: #e1e2eb; overflow-x: hidden; }
+    .card-glow:hover { box-shadow: 0 0 15px rgba(87, 241, 219, 0.2); border-color: #57f1db; }
+    .custom-scrollbar::-webkit-scrollbar { display: none; }
+    .custom-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #10131a; }
+    ::-webkit-scrollbar-thumb { background: #32353c; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #3c4a46; }
+</style>
+</head>
+<body class="font-body-md bg-surface-container-lowest text-on-surface min-h-screen pb-24 lg:pb-0">
+
+@php
+    $sportIcon = function ($sport) {
+        $n = mb_strtolower($sport?->name ?? '');
+        if (str_contains($n, 'fudbal')) return 'sports_soccer';
+        if (str_contains($n, 'košark') || str_contains($n, 'kosark')) return 'sports_basketball';
+        if (str_contains($n, 'odbojk')) return 'sports_volleyball';
+        if (str_contains($n, 'padel') || str_contains($n, 'padel')) return 'sports_tennis';
+        return 'sports_tennis';
+    };
+    $activeCity = $cities->firstWhere('id', (int) request('city_id'));
+    $activeSport = $sports->firstWhere('id', (int) request('sport_id'));
+    $filterUrl = fn ($overrides) => route('public.leagues.index', array_filter(array_merge([
+        'city_id' => request('city_id'), 'sport_id' => request('sport_id'), 'q' => request('q'), 'status' => $statusFilter,
+    ], $overrides)));
+@endphp
+
+<!-- Persistent SideNavBar (desktop) -->
+<nav class="hidden lg:flex w-sidebar-width h-screen fixed left-0 top-0 border-r border-outline-variant bg-surface-container-low flex-col py-2 z-50">
+    <div class="px-6 py-8">
+        <a href="{{ route('home') }}" class="font-display text-primary tracking-tighter text-2xl uppercase block">MojTurnir</a>
+        <p class="font-label-bold text-on-surface-variant opacity-70 text-xs">Organizuj. Igraj. Pobijedi.</p>
     </div>
+    <div class="flex-1 px-4 space-y-6 overflow-y-auto custom-scrollbar">
+        <div class="space-y-1">
+            <a class="flex items-center gap-3 px-4 py-3 text-primary border-l-4 border-primary bg-primary/5 font-label-bold" href="{{ route('home') }}">
+                <span class="material-symbols-outlined">dashboard</span><span>Početna</span>
+            </a>
+            <a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface font-body-md hover:bg-surface-variant/50 transition-colors duration-200" href="{{ route('public.leagues.index') }}">
+                <span class="material-symbols-outlined">emoji_events</span><span>Takmičenja</span>
+            </a>
+        </div>
 
-    @if($cities->isNotEmpty())
-        <!-- Browse by city -->
-        <div class="backdrop-blur-xl rounded-2xl p-4 md:p-6 shadow-xl mb-6 md:mb-8 border" style="background: var(--bg-card); border-color: var(--border-primary); box-shadow: 0 10px 25px var(--shadow-primary);">
-            <h2 class="text-sm font-semibold mb-3" style="color: var(--text-tertiary);">📍 Pronađi ligu u svom gradu</h2>
-            <div class="flex flex-wrap gap-2">
+        @if($cities->isNotEmpty())
+        <div class="pt-4 border-t border-outline-variant/30">
+            <span class="px-4 font-label-bold text-primary uppercase tracking-widest block mb-4">Gradovi</span>
+            <div class="space-y-1 px-2">
+                <a href="{{ $filterUrl(['city_id' => null]) }}" class="w-full text-left px-4 py-2 {{ !$activeCity ? 'text-primary' : 'text-on-surface-variant' }} hover:text-primary transition-colors text-sm flex items-center justify-between rounded-lg">
+                    Svi gradovi @if(!$activeCity)<span class="w-2 h-2 rounded-full bg-primary"></span>@endif
+                </a>
                 @foreach($cities as $city)
-                    <a href="{{ route('public.leagues.by-city', $city) }}"
-                       class="px-4 py-2 rounded-full border text-sm font-medium transition-all duration-200 hover:scale-[1.03]"
-                       style="background: var(--bg-tertiary); border-color: var(--border-secondary); color: var(--text-primary);">
-                        {{ $city->name }}
+                    <a href="{{ $filterUrl(['city_id' => $city->id]) }}" class="w-full text-left px-4 py-2 {{ $activeCity?->id === $city->id ? 'text-primary' : 'text-on-surface-variant' }} hover:text-primary transition-colors text-sm flex items-center justify-between rounded-lg">
+                        {{ $city->name }} @if($activeCity?->id === $city->id)<span class="w-2 h-2 rounded-full bg-primary"></span>@endif
                     </a>
                 @endforeach
             </div>
         </div>
-    @endif
+        @endif
 
-    @if($organizations->count() > 0)
-        <!-- Organizations Grid -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
-            @foreach($organizations as $organization)
-            <a href="{{ route('public.leagues.organization', $organization) }}"
-               class="backdrop-blur-xl rounded-xl p-5 md:p-6 border transition-all duration-300 hover:scale-[1.03] hover:shadow-2xl group flex flex-col items-center text-center" 
-               style="background: var(--bg-card); border-color: var(--border-primary); box-shadow: 0 10px 20px var(--shadow-primary);">
-                
-                <!-- Logo / Icon -->
-                <div class="mb-4 relative">
-                    @if($organization->logo)
-                        <img src="{{ asset('storage/' . $organization->logo) }}" alt="{{ $organization->name }}" class="w-20 h-20 md:w-24 md:h-24 rounded-2xl object-cover shadow-lg border-2 border-transparent group-hover:border-blue-400 transition-all duration-300">
-                    @else
-                        <div class="w-20 h-20 md:w-24 md:h-24 bg-gradient-to-br from-blue-500/20 to-purple-600/20 rounded-2xl flex items-center justify-center border-2 border-dashed border-gray-600 group-hover:border-blue-400 transition-all duration-300">
-                            <span class="text-3xl md:text-4xl">🏢</span>
-                        </div>
-                    @endif
-                </div>
-
-                <!-- Info -->
-                <div class="flex-1">
-                    <h2 class="text-lg md:text-xl font-bold group-hover:text-blue-400 transition-colors mb-2" style="color: var(--text-primary);">
-                        {{ $organization->name }}
-                    </h2>
-                    @if($organization->description)
-                        <p class="text-xs md:text-sm line-clamp-2 mb-3 px-2" style="color: var(--text-tertiary);">
-                            {{ $organization->description }}
-                        </p>
-                    @endif
-                </div>
-
-                <!-- Footer Stats -->
-                <div class="mt-4 pt-4 border-t w-full flex justify-between items-center" style="border-color: var(--border-secondary);">
-                    <div class="flex items-center text-xs" style="color: var(--text-muted);">
-                        <span class="mr-1">🏆</span>
-                        {{ $organization->competitions_count }} Takmičenja
-                    </div>
-                    <span class="text-xs font-semibold group-hover:translate-x-1 transition-transform" style="color: var(--accent-blue);">
-                        Pogledaj →
-                    </span>
-                </div>
+        @if($sports->isNotEmpty())
+        <div class="pt-4 border-t border-outline-variant/30">
+            <span class="px-4 font-label-bold text-primary uppercase tracking-widest block mb-4">Sportovi</span>
+            <div class="grid grid-cols-2 gap-2 px-2">
+                @foreach($sports as $sport)
+                    <a href="{{ $filterUrl(['sport_id' => $activeSport?->id === $sport->id ? null : $sport->id]) }}"
+                       class="flex flex-col items-center justify-center p-3 rounded-lg {{ $activeSport?->id === $sport->id ? 'bg-primary/10 border-primary/50' : 'bg-surface-container border-outline-variant/30' }} hover:bg-surface-variant transition-all border group">
+                        <span class="material-symbols-outlined {{ $activeSport?->id === $sport->id ? 'text-primary' : 'text-on-surface-variant group-hover:text-primary' }} transition-colors">{{ $sportIcon($sport) }}</span>
+                        <span class="text-[10px] mt-1 uppercase font-bold text-on-surface-variant truncate w-full text-center">{{ $sport->name }}</span>
+                    </a>
+                @endforeach
+            </div>
+        </div>
+        @endif
+    </div>
+    <div class="p-4 space-y-1">
+        @auth
+            <a class="flex items-center gap-3 px-4 py-2 text-on-surface-variant hover:text-on-surface font-body-md hover:bg-surface-variant/50 transition-colors rounded-lg" href="{{ auth()->user()->isOrganizerOrStaff() ? route('dashboard') : route('player.dashboard') }}">
+                <span class="material-symbols-outlined">account_circle</span><span>Moj nalog</span>
             </a>
+        @else
+            <a class="flex items-center gap-3 px-4 py-2 text-on-surface-variant hover:text-on-surface font-body-md hover:bg-surface-variant/50 transition-colors rounded-lg" href="{{ route('login') }}">
+                <span class="material-symbols-outlined">login</span><span>Prijava</span>
+            </a>
+        @endauth
+    </div>
+</nav>
+
+<!-- Mobile Top App Bar -->
+<header class="lg:hidden fixed top-0 left-0 w-full h-16 bg-surface-container-lowest/80 backdrop-blur-md z-40 px-margin-mobile flex items-center justify-between border-b border-outline-variant/30">
+    <div class="flex items-center gap-3">
+        <button class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-surface-variant transition-colors" id="filter-trigger">
+            <span class="material-symbols-outlined text-primary">menu</span>
+        </button>
+        <a href="{{ route('home') }}" class="font-headline-md text-on-surface tracking-tight">MojTurnir</a>
+    </div>
+    <div class="flex items-center gap-2">
+        @auth
+            <a href="{{ auth()->user()->isOrganizerOrStaff() ? route('dashboard') : route('player.dashboard') }}" class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center border border-primary/20">
+                <span class="material-symbols-outlined text-on-primary-container text-[20px]">person</span>
+            </a>
+        @else
+            <a href="{{ route('login') }}" class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-surface-variant transition-colors">
+                <span class="material-symbols-outlined text-on-surface-variant">login</span>
+            </a>
+        @endauth
+    </div>
+</header>
+
+<!-- TopAppBar (desktop) -->
+<header class="hidden lg:flex justify-between items-center px-gutter w-[calc(100%-260px)] ml-[260px] h-16 fixed top-0 z-40 bg-surface border-b border-outline-variant">
+    <div class="flex items-center gap-6">
+        <h2 class="font-headline-md text-on-surface font-bold">Takmičenja</h2>
+        <nav class="hidden md:flex gap-6">
+            <a class="text-primary font-bold border-b-2 border-primary pb-1" href="{{ route('public.leagues.index') }}">Sve</a>
+        </nav>
+    </div>
+    <form method="GET" action="{{ route('public.leagues.index') }}" class="flex items-center gap-4">
+        @if(request('city_id'))<input type="hidden" name="city_id" value="{{ request('city_id') }}">@endif
+        @if(request('sport_id'))<input type="hidden" name="sport_id" value="{{ request('sport_id') }}">@endif
+        <div class="relative hidden lg:block">
+            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-lg">search</span>
+            <input name="q" value="{{ request('q') }}" class="bg-surface-container-lowest border border-outline-variant rounded-full pl-10 pr-4 py-1.5 text-sm w-64 focus:border-primary focus:ring-0 focus:outline-none transition-all" placeholder="Pretraži takmičenja..." type="text">
+        </div>
+    </form>
+</header>
+
+<!-- Main Content Canvas -->
+<main class="lg:ml-[260px] lg:mt-16 mt-16 lg:mt-16 p-margin-mobile lg:p-gutter min-h-screen">
+    <!-- Welcome Hero -->
+    <section class="relative rounded-xl overflow-hidden mb-6 lg:mb-8 lg:h-40 flex items-center bg-surface-container-low border border-outline-variant p-6 lg:p-8">
+        <div class="relative z-10">
+            <div class="flex items-center gap-3 mb-2">
+                <span class="material-symbols-outlined text-primary text-3xl lg:text-4xl">emoji_events</span>
+                <h2 class="font-display text-2xl lg:text-4xl font-extrabold text-primary tracking-tight">Takmičenja</h2>
+            </div>
+            <p class="text-on-surface-variant font-body-md lg:font-body-lg max-w-lg text-sm lg:text-base">Pregledaj aktivne lige i turnire, prati rezultate uživo i pronađi takmičenje u svom gradu.</p>
+        </div>
+    </section>
+
+    <!-- Mobile: sport chips + search -->
+    <section class="lg:hidden mb-6 space-y-4">
+        <div class="relative">
+            <form method="GET" action="{{ route('public.leagues.index') }}">
+                @if(request('city_id'))<input type="hidden" name="city_id" value="{{ request('city_id') }}">@endif
+                @if(request('sport_id'))<input type="hidden" name="sport_id" value="{{ request('sport_id') }}">@endif
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-lg">search</span>
+                <input name="q" value="{{ request('q') }}" class="w-full bg-surface-container-lowest border border-outline-variant rounded-full pl-10 pr-4 py-2.5 text-sm focus:border-primary focus:ring-0 focus:outline-none transition-all" placeholder="Pretraži takmičenja..." type="text">
+            </form>
+        </div>
+        @if($sports->isNotEmpty())
+        <div class="overflow-x-auto custom-scrollbar -mx-margin-mobile px-margin-mobile flex gap-2">
+            <a href="{{ $filterUrl(['sport_id' => null]) }}" class="whitespace-nowrap px-4 py-2 {{ !$activeSport ? 'bg-primary text-surface-container-lowest' : 'bg-surface-container-high text-on-surface border border-outline-variant' }} font-label-bold rounded-lg flex items-center gap-2 transition-all">
+                <span class="material-symbols-outlined text-[18px]">category</span> Sve
+            </a>
+            @foreach($sports as $sport)
+                <a href="{{ $filterUrl(['sport_id' => $activeSport?->id === $sport->id ? null : $sport->id]) }}" class="whitespace-nowrap px-4 py-2 {{ $activeSport?->id === $sport->id ? 'bg-primary text-surface-container-lowest' : 'bg-surface-container-high text-on-surface border border-outline-variant' }} font-label-bold rounded-lg flex items-center gap-2 transition-all">
+                    <span class="material-symbols-outlined text-[18px]">{{ $sportIcon($sport) }}</span> {{ $sport->name }}
+                </a>
             @endforeach
         </div>
-    @else
-        <div class="text-center py-16 backdrop-blur-xl rounded-2xl border" style="background: var(--bg-card); border-color: var(--border-primary);">
-            <div class="text-6xl mb-6">🏢</div>
-            <h2 class="text-2xl font-bold mb-3" style="color: var(--text-tertiary);">Trenutno nema dostupnih organizacija</h2>
-            <p class="max-w-md mx-auto" style="color: var(--text-muted);">Uskoro ćemo imati nove saveze i organizatore koji objavljuju svoja takmičenja.</p>
-        </div>
-    @endif
+        @endif
 
-    <!-- Footer Info -->
-    <div class="mt-12 text-center">
-        <div class="inline-block px-4 py-2 rounded-full border text-xs" style="background: var(--bg-card); border-color: var(--border-primary); color: var(--text-tertiary);">
-            Želite li dodati vašu ligu? <a href="{{ route('register') }}" class="font-bold hover:text-blue-400 transition-colors" style="color: var(--accent-blue);">Registrujte se ovdje</a>
+        @if($cities->isNotEmpty())
+        <div class="p-5 rounded-xl bg-surface-container border border-outline-variant space-y-4">
+            <div class="flex items-center gap-2 text-secondary">
+                <span class="material-symbols-outlined text-[20px]">location_on</span>
+                <h2 class="font-label-bold uppercase tracking-widest">Pronađi ligu u svom gradu</h2>
+            </div>
+            <div class="flex flex-wrap gap-2">
+                <a href="{{ $filterUrl(['city_id' => null]) }}" class="px-4 py-2 bg-surface-container-lowest border border-outline-variant rounded-lg font-label-bold {{ !$activeCity ? 'text-primary' : 'text-on-surface-variant opacity-60' }}">Svi</a>
+                @foreach($cities as $city)
+                    <a href="{{ $filterUrl(['city_id' => $city->id]) }}" class="px-4 py-2 bg-surface-container-lowest border border-outline-variant rounded-lg font-label-bold {{ $activeCity?->id === $city->id ? 'text-primary' : 'text-on-surface-variant opacity-60' }}">{{ $city->name }}</a>
+                @endforeach
+            </div>
+        </div>
+        @endif
+    </section>
+
+    <!-- Desktop filter chips row -->
+    <div class="hidden lg:flex items-center gap-4 mb-8 overflow-x-auto pb-2">
+        <span class="material-symbols-outlined text-primary">location_on</span>
+        <div class="flex gap-2">
+            <a href="{{ $filterUrl(['city_id' => null]) }}" class="px-4 py-1.5 rounded-full {{ !$activeCity ? 'bg-primary-container text-on-primary-container' : 'border border-outline-variant text-on-surface-variant hover:border-primary' }} font-label-bold text-sm transition-all">Svi gradovi</a>
+            @foreach($cities as $city)
+                <a href="{{ $filterUrl(['city_id' => $city->id]) }}" class="px-4 py-1.5 rounded-full {{ $activeCity?->id === $city->id ? 'bg-primary-container text-on-primary-container' : 'border border-outline-variant text-on-surface-variant hover:border-primary' }} font-label-bold text-sm transition-all">{{ $city->name }}</a>
+            @endforeach
         </div>
     </div>
-@endsection
+
+    <!-- Takmičenja - compact list -->
+    <section class="mb-10 lg:mb-12">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+            <div class="flex bg-surface-container-low p-1 rounded-lg border border-outline-variant">
+                <a href="{{ $filterUrl(['status' => 'active']) }}" class="px-4 py-1.5 rounded-md text-sm font-label-bold transition-all {{ $statusFilter === 'active' ? 'bg-primary text-on-primary' : 'text-on-surface-variant hover:text-on-surface' }}">Aktivne</a>
+                <a href="{{ $filterUrl(['status' => 'zavrsene']) }}" class="px-4 py-1.5 rounded-md text-sm font-label-bold transition-all {{ $statusFilter === 'zavrsene' ? 'bg-primary text-on-primary' : 'text-on-surface-variant hover:text-on-surface' }}">Završene</a>
+                <a href="{{ $filterUrl(['status' => 'sve']) }}" class="px-4 py-1.5 rounded-md text-sm font-label-bold transition-all {{ $statusFilter === 'sve' ? 'bg-primary text-on-primary' : 'text-on-surface-variant hover:text-on-surface' }}">Sve</a>
+            </div>
+            <div class="flex items-center gap-3">
+                <span class="text-on-surface-variant text-body-sm">{{ $competitionsCount }} {{ $competitionsCount === 1 ? 'takmičenje' : 'takmičenja' }}</span>
+                @if($activeCity || $activeSport || request('q'))
+                    <a href="{{ $filterUrl(['city_id' => null, 'sport_id' => null, 'q' => null]) }}" class="text-primary flex items-center gap-1 font-label-bold hover:gap-2 transition-all text-sm">
+                        Ukloni filtere <span class="material-symbols-outlined text-sm">close</span>
+                    </a>
+                @endif
+            </div>
+        </div>
+
+        @if($competitions->isNotEmpty())
+        <div class="space-y-4">
+            @foreach($competitions as $organizationName => $orgCompetitions)
+                <div class="bg-surface-container-low rounded-xl border border-outline-variant overflow-hidden">
+                    <div class="bg-surface-container-high px-4 py-2 border-b border-outline-variant flex items-center gap-3">
+                        <span class="material-symbols-outlined text-primary text-lg">corporate_fare</span>
+                        <h4 class="font-label-bold text-sm text-on-surface uppercase tracking-wider truncate">{{ $organizationName }}</h4>
+                    </div>
+                    <div class="divide-y divide-outline-variant/20">
+                        @foreach($orgCompetitions as $competition)
+                            @php
+                                $cLive = $competition->status === 'in_progress';
+                                $cCompleted = $competition->status === 'completed';
+                            @endphp
+                            <a href="{{ route('public.leagues.show', $competition) }}" class="flex items-center justify-between gap-3 px-4 py-3 hover:bg-surface-variant/30 transition-colors group">
+                                <div class="flex items-center gap-3 sm:gap-4 min-w-0">
+                                    <span class="material-symbols-outlined text-on-surface-variant text-lg shrink-0">{{ $sportIcon($competition->sport) }}</span>
+                                    <span class="font-body-md text-on-surface truncate">{{ $competition->name }}</span>
+                                    <span class="hidden md:inline text-xs text-on-surface-variant truncate shrink-0">{{ $competition->city->name ?? '' }}</span>
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase shrink-0 {{ $cCompleted ? 'bg-outline-variant/20 text-on-surface-variant' : ($cLive ? 'bg-primary/10 text-primary animate-pulse' : 'bg-secondary/10 text-secondary') }}">
+                                        {{ $cCompleted ? 'Završeno' : ($cLive ? 'U toku' : 'Aktivno') }}
+                                    </span>
+                                </div>
+                                <span class="text-primary opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 text-xs font-label-bold shrink-0">
+                                    Pogledaj <span class="material-symbols-outlined text-xs">chevron_right</span>
+                                </span>
+                            </a>
+                        @endforeach
+                    </div>
+                </div>
+            @endforeach
+        </div>
+        @else
+        <div class="text-center py-16 bg-surface-container-low border border-outline-variant rounded-xl">
+            <span class="material-symbols-outlined text-5xl text-on-surface-variant mb-4 block">emoji_events</span>
+            <h4 class="font-headline-md text-on-surface-variant mb-2">Nema takmičenja za odabrane filtere</h4>
+            <p class="text-on-surface-variant text-sm">Pokušaj ukloniti filter grada, sporta ili pretrage.</p>
+        </div>
+        @endif
+    </section>
+
+    <!-- Footer -->
+    <div class="mt-10 text-center pb-6">
+        <div class="inline-block px-4 py-2 rounded-full border text-xs border-outline-variant text-on-surface-variant">
+            Želite li dodati vašu ligu? <a href="{{ route('register') }}" class="font-bold hover:text-primary transition-colors text-primary">Registrujte se ovdje</a>
+        </div>
+    </div>
+</main>
+
+<!-- BottomNavBar for Mobile -->
+<nav class="fixed bottom-0 w-full h-16 bg-surface-container-highest/95 backdrop-blur-md border-t border-outline-variant z-50 flex lg:hidden items-center justify-around px-4 rounded-t-xl shadow-[0_-10px_20px_rgba(0,0,0,0.4)]">
+    <a href="{{ route('home') }}" class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-full px-4 py-1">
+        <span class="material-symbols-outlined">home</span><span class="text-[10px] font-label-bold">Home</span>
+    </a>
+    <button id="filter-trigger-2" class="flex flex-col items-center justify-center text-on-surface-variant">
+        <span class="material-symbols-outlined">tune</span><span class="text-[10px] font-label-bold">Filteri</span>
+    </button>
+    @auth
+        <a href="{{ auth()->user()->isOrganizerOrStaff() ? route('dashboard') : route('player.dashboard') }}" class="flex flex-col items-center justify-center text-on-surface-variant">
+            <span class="material-symbols-outlined">person</span><span class="text-[10px] font-label-bold">Nalog</span>
+        </a>
+    @else
+        <a href="{{ route('login') }}" class="flex flex-col items-center justify-center text-on-surface-variant">
+            <span class="material-symbols-outlined">login</span><span class="text-[10px] font-label-bold">Prijava</span>
+        </a>
+    @endauth
+</nav>
+
+<!-- Mobile Filter Drawer -->
+<div class="fixed inset-0 bg-black/60 z-[60] hidden backdrop-blur-sm transition-opacity opacity-0" id="drawer-overlay"></div>
+<aside class="fixed top-0 left-0 h-full w-[280px] bg-surface-container-low z-[70] transition-transform -translate-x-full border-r border-outline-variant flex flex-col p-6" id="filter-drawer">
+    <div class="flex items-center justify-between mb-8">
+        <span class="font-headline-md text-primary">Filteri</span>
+        <button class="p-2 hover:bg-surface-variant rounded-full transition-colors" id="drawer-close">
+            <span class="material-symbols-outlined">close</span>
+        </button>
+    </div>
+    <form method="GET" action="{{ route('public.leagues.index') }}" class="space-y-6 flex-1 overflow-y-auto custom-scrollbar">
+        @if(request('q'))<input type="hidden" name="q" value="{{ request('q') }}">@endif
+        <div class="space-y-3">
+            <h4 class="font-label-bold text-on-surface-variant uppercase">Grad</h4>
+            <select name="city_id" class="w-full bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface p-3 focus:ring-1 focus:ring-primary outline-none transition-all">
+                <option value="">Svi gradovi</option>
+                @foreach($cities as $city)
+                    <option value="{{ $city->id }}" {{ $activeCity?->id === $city->id ? 'selected' : '' }}>{{ $city->name }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div class="space-y-3">
+            <h4 class="font-label-bold text-on-surface-variant uppercase">Sport</h4>
+            <select name="sport_id" class="w-full bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface p-3 focus:ring-1 focus:ring-primary outline-none transition-all">
+                <option value="">Svi sportovi</option>
+                @foreach($sports as $sport)
+                    <option value="{{ $sport->id }}" {{ $activeSport?->id === $sport->id ? 'selected' : '' }}>{{ $sport->name }}</option>
+                @endforeach
+            </select>
+        </div>
+        <button type="submit" class="w-full py-4 bg-primary text-surface-container-lowest font-headline-md rounded-xl mt-auto shadow-lg active:scale-95 transition-transform">
+            Primijeni Filter
+        </button>
+    </form>
+</aside>
+
+<x-pwa-install-prompt />
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Filter drawer
+        const drawer = document.getElementById('filter-drawer');
+        const overlay = document.getElementById('drawer-overlay');
+        const openDrawer = () => {
+            drawer.classList.remove('-translate-x-full');
+            overlay.classList.remove('hidden');
+            setTimeout(() => overlay.classList.add('opacity-100'), 10);
+            document.body.style.overflow = 'hidden';
+        };
+        const closeDrawer = () => {
+            drawer.classList.add('-translate-x-full');
+            overlay.classList.remove('opacity-100');
+            setTimeout(() => overlay.classList.add('hidden'), 300);
+            document.body.style.overflow = '';
+        };
+        document.getElementById('filter-trigger')?.addEventListener('click', openDrawer);
+        document.getElementById('filter-trigger-2')?.addEventListener('click', openDrawer);
+        document.getElementById('drawer-close')?.addEventListener('click', closeDrawer);
+        overlay?.addEventListener('click', closeDrawer);
+
+        // Schedule tabs
+        const tabPast = document.getElementById('tab-past');
+        const tabFuture = document.getElementById('tab-future');
+        const panelPast = document.getElementById('panel-past');
+        const panelFuture = document.getElementById('panel-future');
+
+        tabPast?.addEventListener('click', () => {
+            tabPast.classList.add('bg-primary', 'text-on-primary');
+            tabPast.classList.remove('text-on-surface-variant');
+            tabFuture.classList.remove('bg-primary', 'text-on-primary');
+            tabFuture.classList.add('text-on-surface-variant');
+            panelPast.classList.remove('hidden');
+            panelFuture.classList.add('hidden');
+        });
+        tabFuture?.addEventListener('click', () => {
+            tabFuture.classList.add('bg-primary', 'text-on-primary');
+            tabFuture.classList.remove('text-on-surface-variant');
+            tabPast.classList.remove('bg-primary', 'text-on-primary');
+            tabPast.classList.add('text-on-surface-variant');
+            panelFuture.classList.remove('hidden');
+            panelPast.classList.add('hidden');
+        });
+    });
+</script>
+
+<script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function () {
+            navigator.serviceWorker.register('/sw.js').catch(function () {});
+        });
+    }
+</script>
+</body>
+</html>

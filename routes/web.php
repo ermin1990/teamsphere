@@ -80,6 +80,8 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     // Leagues admin
     Route::get('/leagues', [\App\Http\Controllers\AdminLeagueController::class, 'index'])->name('leagues.index');
     Route::get('/leagues/{league}', [\App\Http\Controllers\AdminLeagueController::class, 'show'])->name('leagues.show');
+    Route::post('/leagues/{league}/close', [\App\Http\Controllers\AdminLeagueController::class, 'close'])->name('leagues.close');
+    Route::post('/leagues/bulk-close', [\App\Http\Controllers\AdminLeagueController::class, 'bulkClose'])->name('leagues.bulk-close');
 
     // Plans admin
     Route::get('/plans', [\App\Http\Controllers\AdminPlanController::class, 'index'])->name('plans.index');
@@ -350,9 +352,6 @@ Route::prefix('public')->name('public.')->group(function () {
     // Public team/club profile
     Route::get('/teams/{team}', [App\Http\Controllers\PublicMatchController::class, 'showTeam'])->name('teams.show');
     Route::get('/teams/{team}/competitions/{competition}/matches', [App\Http\Controllers\PublicMatchController::class, 'showTeamCompetitionMatches'])->name('teams.competition-matches');
-
-    // Live matches overview
-    Route::get('/live-matches', [App\Http\Controllers\PublicMatchController::class, 'liveMatches'])->name('live-matches');
 
     // API endpoint for live matches data
     Route::get('/api/live-matches', [App\Http\Controllers\PublicMatchController::class, 'getLiveMatchesData'])->name('api.live-matches');

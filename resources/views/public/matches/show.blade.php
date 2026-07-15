@@ -185,10 +185,6 @@
                 <span class="text-lg">🏠</span>
                 <span class="mt-1">Home</span>
             </a>
-            <a href="{{ route('public.live-matches') }}" class="flex flex-col items-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors text-xs flex-1">
-                <span class="text-lg">📺</span>
-                <span class="mt-1">Live</span>
-            </a>
             <a href="{{ route('public.leagues.index') }}" class="flex flex-col items-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors text-xs flex-1">
                 <span class="text-lg">🏆</span>
                 <span class="mt-1">Takmičenja</span>

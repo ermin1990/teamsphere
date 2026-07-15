@@ -6,6 +6,7 @@ use App\Models\City;
 use App\Models\Competition;
 use App\Models\League;
 use App\Models\LeagueMatch;
+use App\Models\Sport;
 use App\Models\TeamMatch;
 use App\Models\Organization;
 use App\Models\Player;
@@ -15,28 +16,61 @@ use Illuminate\Http\Request;
 class PublicMatchController extends Controller
 {
     /**
-     * Display all organizations that have public competitions (leagues and tournaments).
+     * Display all public competitions (leagues and tournaments), filterable by
+     * city/sport, plus a cross-league feed of recent results and upcoming
+     * matches so visitors can see activity without picking a league first.
      */
-    public function indexLeagues()
+    public function indexLeagues(Request $request)
     {
-        // Get all organizations that have at least one public competition
-        $organizations = Organization::where('is_active', true)
-            ->whereHas('competitions', function ($query) {
-                $query->where('is_public', true);
-            })
-            ->withCount(['competitions' => function ($query) {
-                $query->where('is_public', true);
-            }])
-            ->get();
+        $competitionsQuery = Competition::where('is_public', true)
+            ->with(['organization', 'sport', 'city']);
 
-        // Cities that have at least one public competition, for the browse-by-city filter.
+        if ($request->filled('city_id')) {
+            $competitionsQuery->where('city_id', $request->city_id);
+        }
+        if ($request->filled('sport_id')) {
+            $competitionsQuery->where('sport_id', $request->sport_id);
+        }
+        if ($request->filled('q')) {
+            $competitionsQuery->where('name', 'like', '%' . $request->q . '%');
+        }
+
+        // Active/finished toggle - defaults to "active" so the browse page
+        // isn't dominated by long-finished leagues; "sve" (all) and
+        // "zavrsene" (finished) are one click away.
+        $statusFilter = $request->get('status', 'active');
+        if ($statusFilter === 'active') {
+            $competitionsQuery->whereIn('status', ['active', 'in_progress']);
+        } elseif ($statusFilter === 'zavrsene') {
+            $competitionsQuery->where('status', 'completed');
+        }
+
+        // Grouped by organization (sorted alphabetically) so visitors can
+        // scan "who's running what" at a glance, same layout as the admin
+        // leagues list.
+        $competitions = $competitionsQuery
+            ->join('organizations', 'organizations.id', '=', 'competitions.organization_id')
+            ->orderBy('organizations.name')
+            ->orderBy('competitions.name')
+            ->select('competitions.*')
+            ->get()
+            ->groupBy(fn ($competition) => $competition->organization->name);
+
+        $competitionsCount = $competitions->sum->count();
+
+        // Cities/sports that have at least one public competition, for the filters.
         $cities = City::whereHas('competitions', function ($query) {
                 $query->where('is_public', true);
             })
             ->orderBy('name')
             ->get();
 
-        return view('public.leagues.organizations', compact('organizations', 'cities'));
+        $sportIds = Competition::where('is_public', true)->pluck('sport_id')->unique();
+        $sports = Sport::whereIn('id', $sportIds)->orderBy('name')->get();
+
+        return view('public.leagues.organizations', compact(
+            'competitions', 'competitionsCount', 'cities', 'sports', 'statusFilter'
+        ));
     }
 
     /**
@@ -307,20 +341,6 @@ class PublicMatchController extends Controller
             'total_live_matches' => $allLiveMatches->count(),
             'last_updated' => now()->toISOString(),
         ]);
-    }
-
-    /**
-     * Display all live matches across all leagues.
-     */
-    public function liveMatches()
-    {
-        // Get all live matches from all leagues
-        $liveMatches = LeagueMatch::where('status', 'in_progress')
-            ->with(['competition.organization', 'homeTeam', 'awayTeam', 'homePlayer', 'awayPlayer', 'moderator'])
-            ->orderBy('updated_at', 'desc')
-            ->get();
-
-        return view('public.live-matches', compact('liveMatches'));
     }
 
     /**
