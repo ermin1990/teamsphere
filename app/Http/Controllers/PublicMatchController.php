@@ -26,13 +26,13 @@ class PublicMatchController extends Controller
             ->with(['organization', 'sport', 'city']);
 
         if ($request->filled('city_id')) {
-            $competitionsQuery->where('city_id', $request->city_id);
+            $competitionsQuery->where('competitions.city_id', $request->city_id);
         }
         if ($request->filled('sport_id')) {
-            $competitionsQuery->where('sport_id', $request->sport_id);
+            $competitionsQuery->where('competitions.sport_id', $request->sport_id);
         }
         if ($request->filled('q')) {
-            $competitionsQuery->where('name', 'like', '%' . $request->q . '%');
+            $competitionsQuery->where('competitions.name', 'like', '%' . $request->q . '%');
         }
 
         // Active/finished toggle - defaults to "active" so the browse page
@@ -236,6 +236,16 @@ class PublicMatchController extends Controller
     }
 
     /**
+     * Display a minimal embeddable widget for a match (for iframes on external sites).
+     */
+    public function embedMatch(LeagueMatch $match)
+    {
+        $match->load(['competition', 'homeTeam', 'awayTeam', 'homePlayer', 'awayPlayer', 'moderator']);
+
+        return view('public.matches.embed', compact('match'));
+    }
+
+    /**
      * Get live matches data as JSON for AJAX updates.
      */
     public function getLiveMatchesData()
@@ -414,95 +424,6 @@ class PublicMatchController extends Controller
             ],
             'last_updated' => now()->toISOString(),
         ]);
-    }
-
-    /**
-     * Display tournament PDF export.
-     */
-    public function tournamentPdf(Competition $competition)
-    {
-        // Ensure competition is public, or allow access if user is the owner
-        $isOwner = auth()->check() && auth()->id() === $competition->organization->user_id;
-        if (!$competition->is_public && !$isOwner) {
-            abort(404, 'Competition not found.');
-        }
-
-        // Only allow for tournaments
-        if ($competition->type !== 'tournament') {
-            abort(404, 'PDF export is only available for tournaments.');
-        }
-
-        try {
-            // Load necessary relationships for PDF export
-            $competition->load([
-                'organization',
-                'sport',
-                'tournamentGroups.standings.player',
-                'matches' => function ($query) {
-                    $query->orderBy('round_number')
-                          ->orderBy('match_order')
-                          ->with(['homePlayer', 'awayPlayer', 'tournamentGroup']);
-                }
-            ]);
-
-            // Recalculate standings for all tournament groups to ensure they are up to date
-            foreach ($competition->tournamentGroups as $group) {
-                $groupService = app(\App\Services\TournamentGroupService::class);
-                $groupService->recalculateGroupStandings($group);
-            }
-
-            // Reload standings after recalculation
-            $competition->load([
-                'tournamentGroups.standings.player',
-            ]);
-
-            // Create player seeding maps
-            $playerGroupSeeding = []; // For knockout phase: "A-1" format
-            $playerPositionSeeding = []; // For group phase: just position number
-            foreach ($competition->tournamentGroups as $group) {
-                foreach ($group->player_ids ?? [] as $index => $playerId) {
-                    $playerGroupSeeding[$playerId] = $group->name . '-' . ($index + 1);
-                    $playerPositionSeeding[$playerId] = $index + 1;
-                }
-            }
-
-            // Group matches for display
-            $groupMatches = $competition->matches->whereNotNull('tournament_group_id')->groupBy('tournament_group_id');
-            $knockoutMatches = $competition->matches->where('phase', 'knockout')
-                ->sortBy(['round_number', 'match_order'])
-                ->groupBy('round_number');
-
-            // Determine what tabs to show
-            $hasGroupMatches = $groupMatches->count() > 0;
-            $hasKnockoutMatches = $knockoutMatches->count() > 0;
-            $showGroupsTab = $hasGroupMatches;
-            $showKnockoutTab = $hasKnockoutMatches;
-            $showPdfTab = $hasGroupMatches || $hasKnockoutMatches;
-
-            $organization = $competition->organization;
-
-            return view('public.leagues.tournament_pdf', compact(
-                'competition',
-                'organization',
-                'groupMatches',
-                'knockoutMatches',
-                'hasGroupMatches',
-                'hasKnockoutMatches',
-                'showGroupsTab',
-                'showKnockoutTab',
-                'showPdfTab',
-                'playerGroupSeeding',
-                'playerPositionSeeding'
-            ));
-
-        } catch (\Exception $e) {
-            \Log::error('Error loading tournament PDF: ' . $e->getMessage(), [
-                'competition_id' => $competition->id,
-                'user_id' => auth()->id(),
-                'trace' => $e->getTraceAsString()
-            ]);
-            abort(500, 'Error loading tournament PDF: ' . $e->getMessage());
-        }
     }
 
     /**

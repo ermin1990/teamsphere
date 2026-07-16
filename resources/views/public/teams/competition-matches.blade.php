@@ -20,7 +20,7 @@
                     </p>
                 </div>
             </div>
-            <a href="{{ route('public.teams.show', $team->id) }}" class="px-6 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-white font-bold transition-all flex items-center gap-2">
+            <a href="{{ route('teams.show', $team->id) }}" class="px-6 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-white font-bold transition-all flex items-center gap-2">
                 <span>&larr;</span> Nazad na profil
             </a>
         </div>
@@ -49,7 +49,7 @@
                         $opponent = $isHome ? $match->awayTeam : $match->homeTeam;
                         $won = ($isHome && $match->home_score > $match->away_score) || (!$isHome && $match->away_score > $match->home_score);
                         $lost = ($isHome && $match->home_score < $match->away_score) || (!$isHome && $match->away_score < $match->home_score);
-                        $matchUrl = route('public.team-matches.show', [$match->competition->slug, $match->id]);
+                        $matchUrl = route('competitions.team-matches.show', [$match->competition->slug, $match->id]);
                     @endphp
                     <tr class="hover:bg-white/5 transition-colors cursor-pointer" onclick="window.location='{{ $matchUrl }}'">
                         <td class="hidden md:table-cell px-6 py-4 whitespace-nowrap">
@@ -62,7 +62,7 @@
                                 <span class="text-[9px] font-black px-2 py-0.5 rounded {{ $isHome ? 'bg-blue-500/20 text-blue-400' : 'bg-purple-500/20 text-purple-400' }} uppercase tracking-tighter min-w-[45px] text-center">
                                     {{ $isHome ? 'Kući' : 'Gosti' }}
                                 </span>
-                                <a href="{{ route('public.teams.show', $opponent->id) }}" class="text-sm font-bold text-white hover:text-blue-400 transition-colors" onclick="event.stopPropagation()">
+                                <a href="{{ route('teams.show', $opponent->id) }}" class="text-sm font-bold text-white hover:text-blue-400 transition-colors" onclick="event.stopPropagation()">
                                     {{ $opponent->name }}
                                 </a>
                             </div>

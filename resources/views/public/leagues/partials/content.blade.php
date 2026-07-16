@@ -157,7 +157,7 @@
 @push('scripts')
 <script>
     function updateCompetitionMatches() {
-        fetch('{{ route("public.api.live-matches") }}')
+        fetch('{{ route("api.live-matches") }}')
             .then(response => response.json())
             .then(data => {
                 if (data.success) {

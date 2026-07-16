@@ -90,7 +90,7 @@
     };
     $activeCity = $cities->firstWhere('id', (int) request('city_id'));
     $activeSport = $sports->firstWhere('id', (int) request('sport_id'));
-    $filterUrl = fn ($overrides) => route('public.leagues.index', array_filter(array_merge([
+    $filterUrl = fn ($overrides) => route('competitions.index', array_filter(array_merge([
         'city_id' => request('city_id'), 'sport_id' => request('sport_id'), 'q' => request('q'), 'status' => $statusFilter,
     ], $overrides)));
 @endphp
@@ -106,7 +106,7 @@
             <a class="flex items-center gap-3 px-4 py-3 text-primary border-l-4 border-primary bg-primary/5 font-label-bold" href="{{ route('home') }}">
                 <span class="material-symbols-outlined">dashboard</span><span>Početna</span>
             </a>
-            <a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface font-body-md hover:bg-surface-variant/50 transition-colors duration-200" href="{{ route('public.leagues.index') }}">
+            <a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface font-body-md hover:bg-surface-variant/50 transition-colors duration-200" href="{{ route('competitions.index') }}">
                 <span class="material-symbols-outlined">emoji_events</span><span>Takmičenja</span>
             </a>
         </div>
@@ -181,10 +181,10 @@
     <div class="flex items-center gap-6">
         <h2 class="font-headline-md text-on-surface font-bold">Takmičenja</h2>
         <nav class="hidden md:flex gap-6">
-            <a class="text-primary font-bold border-b-2 border-primary pb-1" href="{{ route('public.leagues.index') }}">Sve</a>
+            <a class="text-primary font-bold border-b-2 border-primary pb-1" href="{{ route('competitions.index') }}">Sve</a>
         </nav>
     </div>
-    <form method="GET" action="{{ route('public.leagues.index') }}" class="flex items-center gap-4">
+    <form method="GET" action="{{ route('competitions.index') }}" class="flex items-center gap-4">
         @if(request('city_id'))<input type="hidden" name="city_id" value="{{ request('city_id') }}">@endif
         @if(request('sport_id'))<input type="hidden" name="sport_id" value="{{ request('sport_id') }}">@endif
         <div class="relative hidden lg:block">
@@ -210,7 +210,7 @@
     <!-- Mobile: sport chips + search -->
     <section class="lg:hidden mb-6 space-y-4">
         <div class="relative">
-            <form method="GET" action="{{ route('public.leagues.index') }}">
+            <form method="GET" action="{{ route('competitions.index') }}">
                 @if(request('city_id'))<input type="hidden" name="city_id" value="{{ request('city_id') }}">@endif
                 @if(request('sport_id'))<input type="hidden" name="sport_id" value="{{ request('sport_id') }}">@endif
                 <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-lg">search</span>
@@ -289,7 +289,7 @@
                                 $cLive = $competition->status === 'in_progress';
                                 $cCompleted = $competition->status === 'completed';
                             @endphp
-                            <a href="{{ route('public.leagues.show', $competition) }}" class="flex items-center justify-between gap-3 px-4 py-3 hover:bg-surface-variant/30 transition-colors group">
+                            <a href="{{ route('competitions.show', $competition) }}" class="flex items-center justify-between gap-3 px-4 py-3 hover:bg-surface-variant/30 transition-colors group">
                                 <div class="flex items-center gap-3 sm:gap-4 min-w-0">
                                     <span class="material-symbols-outlined text-on-surface-variant text-lg shrink-0">{{ $sportIcon($competition->sport) }}</span>
                                     <span class="font-body-md text-on-surface truncate">{{ $competition->name }}</span>
@@ -352,7 +352,7 @@
             <span class="material-symbols-outlined">close</span>
         </button>
     </div>
-    <form method="GET" action="{{ route('public.leagues.index') }}" class="space-y-6 flex-1 overflow-y-auto custom-scrollbar">
+    <form method="GET" action="{{ route('competitions.index') }}" class="space-y-6 flex-1 overflow-y-auto custom-scrollbar">
         @if(request('q'))<input type="hidden" name="q" value="{{ request('q') }}">@endif
         <div class="space-y-3">
             <h4 class="font-label-bold text-on-surface-variant uppercase">Grad</h4>

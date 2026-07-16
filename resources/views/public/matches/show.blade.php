@@ -1,13 +1,13 @@
 @extends('layouts.public')
 
-@section('title', $match->homeTeam?->name ?? $match->homePlayer?->name ?? 'Home' . ' vs ' . $match->awayTeam?->name ?? $match->awayPlayer?->name ?? 'Away' . ' - ' . $organization->name)
+@section('title', ($match->homeTeam?->name ?? $match->homePlayer?->name ?? 'Domaći') . ' vs ' . ($match->awayTeam?->name ?? $match->awayPlayer?->name ?? 'Gost') . ' - ' . $organization->name)
 
 @push('scripts')
     <script>
         let lastUpdate = null;
 
         function updateMatchDetails() {
-            fetch('{{ route("public.api.match", $match) }}')
+            fetch('{{ route("api.match", $match) }}')
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
@@ -50,9 +50,9 @@
                         const matchStatusElement = document.getElementById('match-status');
                         if (matchStatusElement) {
                             if (matchData.status === 'in_progress') {
-                                matchStatusElement.innerHTML = '<div class="text-green-400 font-semibold text-sm md:text-base">🔴 LIVE</div>';
+                                matchStatusElement.innerHTML = '<div class="text-green-400 font-semibold text-sm md:text-base">🔴 UŽIVO</div>';
                             } else if (matchData.status === 'completed') {
-                                matchStatusElement.innerHTML = '<div class="text-green-400 font-semibold text-sm md:text-base">✅ COMPLETED</div>';
+                                matchStatusElement.innerHTML = '<div class="text-green-400 font-semibold text-sm md:text-base">✅ ZAVRŠENO</div>';
                             } else {
                                 matchStatusElement.innerHTML = '';
                             }
@@ -62,7 +62,7 @@
                         const lastUpdatedElement = document.getElementById('last-updated-time');
                         if (lastUpdatedElement && data.last_updated) {
                             const date = new Date(data.last_updated);
-                            lastUpdatedElement.textContent = 'Last updated: ' + date.toLocaleTimeString();
+                            lastUpdatedElement.textContent = 'Ažurirano: ' + date.toLocaleTimeString();
                         }
                         
                         lastUpdate = data.last_updated;
@@ -130,7 +130,7 @@
             }
         });
     </script>
-@endsection
+@endpush
 
 @section('content')
             <!-- Header -->
@@ -170,25 +170,9 @@
 
             <!-- Back to League -->
             <div class="text-center mt-8 mb-20 md:mb-8">
-                <a href="{{ route('public.leagues.show', $competition) }}"
-                   class="inline-flex items-center px-6 py-3 bg-[var(--bg-button)] hover:bg-[var(--bg-button-hover)] text-[var(--text-primary)] rounded-lg transition-colors">
-                    ← Back to League
+                <a href="{{ route('competitions.show', $competition) }}"
+                   class="inline-flex items-center px-6 py-3 bg-[var(--bg-tertiary)] hover:bg-[var(--bg-hover)] text-[var(--text-primary)] rounded-lg transition-colors">
+                    ← Nazad na takmičenje
                 </a>
             </div>
-        </div>
-    </div>
-
-    <!-- Mobile Navigation Menu (Fixed Bottom) -->
-    <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-[var(--bg-nav)] backdrop-blur-xl border-t border-[var(--border-primary)] shadow-2xl z-50">
-        <div class="flex items-center justify-between py-3 px-4 w-full">
-            <a href="{{ route('home') }}" class="flex flex-col items-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors text-xs flex-1">
-                <span class="text-lg">🏠</span>
-                <span class="mt-1">Home</span>
-            </a>
-            <a href="{{ route('public.leagues.index') }}" class="flex flex-col items-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors text-xs flex-1">
-                <span class="text-lg">🏆</span>
-                <span class="mt-1">Takmičenja</span>
-            </a>
-        </div>
-    </nav>
 @endsection

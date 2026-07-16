@@ -75,11 +75,6 @@
         if (str_contains($n, 'odbojk')) return 'sports_volleyball';
         return 'sports_tennis';
     };
-    $initials = function ($name) {
-        $parts = preg_split('/\s+/', trim($name ?? ''));
-        return mb_strtoupper(collect($parts)->filter()->map(fn ($p) => mb_substr($p, 0, 1))->take(2)->implode('')) ?: '–';
-    };
-
     $isTournament = $competition->type === 'tournament';
     $advancingPlayers = $competition->players_advancing_per_group ?? 0;
     $fmtDiff = fn ($n) => ($n > 0 ? '+' : '') . $n;
@@ -134,10 +129,10 @@
         <a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-surface-variant/50 transition-colors duration-200 font-body-md rounded-lg" href="{{ route('home') }}">
             <span class="material-symbols-outlined">dashboard</span> Početna
         </a>
-        <a class="flex items-center gap-3 px-4 py-3 text-primary border-l-4 border-primary bg-primary/5 font-label-bold rounded-r-lg" href="{{ route('public.leagues.index') }}">
+        <a class="flex items-center gap-3 px-4 py-3 text-primary border-l-4 border-primary bg-primary/5 font-label-bold rounded-r-lg" href="{{ route('competitions.index') }}">
             <span class="material-symbols-outlined">emoji_events</span> Takmičenja
         </a>
-        <a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-surface-variant/50 transition-colors duration-200 font-body-md rounded-lg" href="{{ route('public.leagues.organization', $organization) }}">
+        <a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-surface-variant/50 transition-colors duration-200 font-body-md rounded-lg" href="{{ route('competitions.organization', $organization) }}">
             <span class="material-symbols-outlined">corporate_fare</span> {{ \Illuminate\Support\Str::limit($organization->name, 18) }}
         </a>
     </nav>
@@ -158,7 +153,7 @@
 <header class="lg:hidden sticky top-0 z-40 bg-surface/90 backdrop-blur-md border-b border-outline-variant px-4 py-3">
     <div class="flex items-center justify-between">
         <div class="flex items-center gap-3 min-w-0">
-            <a href="{{ route('public.leagues.index') }}" class="w-9 h-9 flex items-center justify-center rounded-lg bg-surface-container-high shrink-0">
+            <a href="{{ route('competitions.index') }}" class="w-9 h-9 flex items-center justify-center rounded-lg bg-surface-container-high shrink-0">
                 <span class="material-symbols-outlined text-primary">arrow_back</span>
             </a>
             <div class="min-w-0">
@@ -173,13 +168,10 @@
 <header class="hidden lg:flex justify-between items-center px-gutter w-[calc(100%-260px)] ml-[260px] h-16 fixed top-0 z-40 bg-surface border-b border-outline-variant">
     <nav class="flex gap-6">
         <a class="text-on-surface-variant hover:text-primary transition-all font-medium" href="{{ route('home') }}">Home</a>
-        <a class="text-primary font-bold border-b-2 border-primary pb-1" href="{{ route('public.leagues.index') }}">Takmičenja</a>
+        <a class="text-primary font-bold border-b-2 border-primary pb-1" href="{{ route('competitions.index') }}">Takmičenja</a>
     </nav>
     @if($isTournament)
         <div class="flex items-center gap-3">
-            <a href="{{ route('public.leagues.tournament.pdf', $competition->slug) }}" target="_blank" class="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-lg border border-outline-variant text-on-surface-variant hover:text-primary hover:border-primary transition-colors">
-                <span class="material-symbols-outlined text-[18px]">picture_as_pdf</span> PDF
-            </a>
             <a href="{{ route('projector.display', ['ids' => $competition->id, 'resolution' => '1024x768', 'layout' => 'single']) }}" target="_blank" class="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-lg bg-primary/10 text-primary border border-primary/30 hover:bg-primary/20 transition-colors">
                 <span class="material-symbols-outlined text-[18px]">cast</span> Projektor
             </a>
@@ -191,11 +183,11 @@
 <main class="lg:ml-[260px] lg:mt-16 mt-0 p-margin-mobile lg:p-gutter min-h-screen">
     <div class="max-w-container-max mx-auto">
         <!-- Hero -->
-        <section class="mb-6 lg:mb-10 bg-surface-container-low p-5 lg:p-8 rounded-xl border border-outline-variant relative overflow-hidden">
+        <section class="-mx-margin-mobile lg:mx-0 mb-6 lg:mb-10 bg-surface-container-low lg:p-8 border-y lg:border border-outline-variant lg:rounded-xl relative overflow-hidden">
             <div class="absolute top-0 right-0 p-6 lg:p-8 opacity-10 hidden sm:block">
                 <span class="material-symbols-outlined text-[80px] lg:text-[120px]">{{ $sportIcon($competition->sport) }}</span>
             </div>
-            <div class="relative z-10">
+            <div class="relative z-10 px-margin-mobile py-5 lg:p-0">
                 <div class="flex flex-wrap items-center gap-2 mb-3 lg:mb-4">
                     <span class="bg-primary/20 text-primary px-3 py-1 rounded-full text-label-bold uppercase">
                         @if($competition->status === 'completed') Završeno
@@ -209,7 +201,7 @@
                 </div>
                 <h1 class="font-display text-3xl lg:text-display mb-2 truncate">{{ $competition->name }}</h1>
                 <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-on-surface-variant text-sm lg:text-body-md">
-                    <a href="{{ route('public.leagues.organization', $organization) }}" class="flex items-center gap-1 hover:text-primary transition-colors"><span class="material-symbols-outlined text-body-sm">group</span> {{ $organization->name }}</a>
+                    <a href="{{ route('competitions.organization', $organization) }}" class="flex items-center gap-1 hover:text-primary transition-colors"><span class="material-symbols-outlined text-body-sm">group</span> {{ $organization->name }}</a>
                     <span class="flex items-center gap-1"><span class="material-symbols-outlined text-body-sm">{{ $sportIcon($competition->sport) }}</span> {{ $competition->sport->name }}</span>
                     @if($competition->city)
                         <span class="flex items-center gap-1"><span class="material-symbols-outlined text-body-sm">location_on</span> {{ $competition->city->name }}</span>
@@ -219,7 +211,7 @@
         </section>
 
         @if($competition->description || $competition->location || $competition->organizer_contact || $competition->entry_fee)
-        <section class="mb-6 lg:mb-8 bg-surface-container-low border border-outline-variant rounded-xl p-5 space-y-2">
+        <section class="-mx-margin-mobile lg:mx-0 mb-6 lg:mb-8 bg-surface-container-low border-y lg:border border-outline-variant lg:rounded-xl px-margin-mobile py-4 lg:p-5 space-y-2">
             @if($competition->description)
                 <p class="text-on-surface-variant text-sm">{{ $competition->description }}</p>
             @endif
@@ -231,43 +223,32 @@
         </section>
         @endif
 
-        <!-- Mobile section-jump tabs -->
-        <nav class="lg:hidden sticky top-[57px] z-30 -mx-margin-mobile px-margin-mobile py-2 mb-6 bg-surface-container-lowest/95 backdrop-blur-md">
-            <div class="flex bg-surface-container-low p-1 rounded-xl border border-outline-variant">
-                <a href="#standings-section" class="flex-1 text-center py-2 rounded-lg text-label-bold font-label-bold text-on-surface-variant hover:text-primary transition-all">Tabela</a>
-                <a href="#schedule-section" class="flex-1 text-center py-2 rounded-lg text-label-bold font-label-bold text-on-surface-variant hover:text-primary transition-all">Raspored</a>
-                @if(!$isTournament)
-                    <a href="#stats-section" class="flex-1 text-center py-2 rounded-lg text-label-bold font-label-bold text-on-surface-variant hover:text-primary transition-all">Statistika</a>
-                @endif
-            </div>
-        </nav>
-
         @if($isTournament)
             <!-- Tournament: reuse the existing group/knockout renderer, wrapped in the new shell -->
-            <div id="standings-section" class="bg-surface-container-low border border-outline-variant rounded-xl p-4 lg:p-6">
+            <div id="standings-section">
                 @include('public.leagues._tournament')
             </div>
         @else
             <div class="grid grid-cols-1 xl:grid-cols-12 gap-6 lg:gap-8">
                 <!-- Left: Standings + Schedule -->
                 <div class="xl:col-span-8 space-y-6 lg:space-y-8">
-                    <section id="standings-section" class="bg-surface-container-low border border-outline-variant rounded-xl overflow-hidden shadow-2xl">
-                        <div class="p-5 lg:p-6 border-b border-outline-variant">
+                    <section id="standings-section" class="-mx-margin-mobile lg:mx-0 bg-surface-container-low border-y lg:border border-outline-variant lg:rounded-xl overflow-hidden lg:shadow-2xl">
+                        <div class="px-margin-mobile py-4 lg:p-6 border-b border-outline-variant">
                             <h2 class="font-headline-md">Tabela</h2>
                         </div>
                         @if($sortedStandings->isNotEmpty())
                             <div class="overflow-x-auto">
-                                <table class="w-full text-left border-collapse">
+                                <table class="w-full text-left border-collapse text-sm">
                                     <thead class="bg-surface-container-lowest text-on-surface-variant text-label-bold uppercase">
                                         <tr>
-                                            <th class="px-4 lg:px-6 py-3 lg:py-4">#</th>
-                                            <th class="px-2 lg:px-6 py-3 lg:py-4">{{ $competition->is_team_based ? 'Ekipa' : 'Igrač' }}</th>
-                                            <th class="hidden md:table-cell px-4 py-4 text-center">M</th>
-                                            <th class="px-2 lg:px-4 py-3 lg:py-4 text-center">P</th>
-                                            <th class="px-2 lg:px-4 py-3 lg:py-4 text-center">I</th>
-                                            <th class="px-2 lg:px-4 py-3 lg:py-4 text-center">S</th>
-                                            <th class="hidden sm:table-cell px-4 py-4 text-center">G</th>
-                                            <th class="px-4 lg:px-6 py-3 lg:py-4 text-center text-primary">Bod</th>
+                                            <th class="px-3 lg:px-4 py-2.5 lg:py-3">#</th>
+                                            <th class="px-2 lg:px-4 py-2.5 lg:py-3">{{ $competition->is_team_based ? 'Ekipa' : 'Igrač' }}</th>
+                                            <th class="hidden md:table-cell px-2 py-2.5 lg:py-3 text-center">M</th>
+                                            <th class="px-2 py-2.5 lg:py-3 text-center">P</th>
+                                            <th class="px-2 py-2.5 lg:py-3 text-center">I</th>
+                                            <th class="px-2 py-2.5 lg:py-3 text-center">S</th>
+                                            <th class="hidden sm:table-cell px-2 py-2.5 lg:py-3 text-center">G</th>
+                                            <th class="px-3 lg:px-4 py-2.5 lg:py-3 text-center text-primary">Bod</th>
                                         </tr>
                                     </thead>
                                     <tbody class="divide-y divide-outline-variant">
@@ -278,21 +259,22 @@
                                                 $sd = $d['s'] ?? null; $gd = $d['g'] ?? null;
                                                 $played = ($standing->won ?? 0) + ($standing->drawn ?? 0) + ($standing->lost ?? 0);
                                                 $advancing = $advancingPlayers > 0 && $index < $advancingPlayers;
+                                                $clubName = !$competition->is_team_based ? ($standing->player->organization->name ?? null) : null;
                                             @endphp
                                             <tr class="transition-colors group {{ $advancing ? 'bg-primary/5' : 'hover:bg-surface-variant/30' }}">
-                                                <td class="px-4 lg:px-6 py-3 lg:py-4 font-bold {{ $index < 3 ? 'text-primary' : '' }}">{{ $index + 1 }}</td>
-                                                <td class="px-2 lg:px-6 py-3 lg:py-4">
-                                                    <div class="flex items-center gap-2 lg:gap-3">
-                                                        <div class="w-7 h-7 lg:w-8 lg:h-8 rounded-full bg-surface-container-high flex items-center justify-center font-bold text-on-surface text-xs lg:text-sm shrink-0">{{ $initials($standing->participant_name) }}</div>
-                                                        <span class="font-semibold group-hover:text-primary transition-colors truncate text-sm lg:text-base">{{ $standing->participant_name }}</span>
-                                                    </div>
+                                                <td class="px-3 lg:px-4 py-2 lg:py-2.5 font-bold {{ $index < 3 ? 'text-primary' : '' }}">{{ $index + 1 }}</td>
+                                                <td class="px-2 lg:px-4 py-2 lg:py-2.5">
+                                                    <span class="font-semibold group-hover:text-primary transition-colors truncate block">{{ $standing->participant_name }}</span>
+                                                    @if($clubName)
+                                                        <span class="text-xs text-on-surface-variant truncate block">{{ $clubName }}</span>
+                                                    @endif
                                                 </td>
-                                                <td class="hidden md:table-cell px-4 py-4 text-center">{{ $played }}</td>
-                                                <td class="px-2 lg:px-4 py-3 lg:py-4 text-center text-primary font-bold">{{ $standing->won ?? 0 }}</td>
-                                                <td class="px-2 lg:px-4 py-3 lg:py-4 text-center text-error">{{ $standing->lost ?? 0 }}</td>
-                                                <td class="px-2 lg:px-4 py-3 lg:py-4 text-center {{ is_null($sd) ? '' : ($sd > 0 ? 'text-primary' : ($sd < 0 ? 'text-error' : '')) }} font-bold">{{ is_null($sd) ? '–' : $fmtDiff($sd) }}</td>
-                                                <td class="hidden sm:table-cell px-4 py-4 text-center {{ is_null($gd) ? '' : ($gd > 0 ? 'text-primary' : ($gd < 0 ? 'text-error' : '')) }}">{{ is_null($gd) ? '–' : $fmtDiff($gd) }}</td>
-                                                <td class="px-4 lg:px-6 py-3 lg:py-4 text-center"><span class="{{ $index < 3 ? 'bg-primary text-on-primary' : 'bg-surface-container-high text-on-surface-variant' }} px-3 py-1 rounded font-bold">{{ $standing->points ?? 0 }}</span></td>
+                                                <td class="hidden md:table-cell px-2 py-2 lg:py-2.5 text-center">{{ $played }}</td>
+                                                <td class="px-2 py-2 lg:py-2.5 text-center text-primary font-bold">{{ $standing->won ?? 0 }}</td>
+                                                <td class="px-2 py-2 lg:py-2.5 text-center text-error">{{ $standing->lost ?? 0 }}</td>
+                                                <td class="px-2 py-2 lg:py-2.5 text-center {{ is_null($sd) ? '' : ($sd > 0 ? 'text-primary' : ($sd < 0 ? 'text-error' : '')) }} font-bold">{{ is_null($sd) ? '–' : $fmtDiff($sd) }}</td>
+                                                <td class="hidden sm:table-cell px-2 py-2 lg:py-2.5 text-center {{ is_null($gd) ? '' : ($gd > 0 ? 'text-primary' : ($gd < 0 ? 'text-error' : '')) }}">{{ is_null($gd) ? '–' : $fmtDiff($gd) }}</td>
+                                                <td class="px-3 lg:px-4 py-2 lg:py-2.5 text-center"><span class="{{ $index < 3 ? 'bg-primary text-on-primary' : 'bg-surface-container-high text-on-surface-variant' }} px-2.5 py-1 rounded font-bold text-xs">{{ $standing->points ?? 0 }}</span></td>
                                             </tr>
                                         @endforeach
                                     </tbody>
@@ -335,7 +317,7 @@
                                                     $mAwaySets = $mSets->map(fn ($s) => $s['away'] ?? $s['away_score'] ?? $s['p2'] ?? null)->filter(fn ($v) => $v !== null)->implode(', ');
                                                     $mVenue = !$isTeamMatch ? $match->venue : null;
                                                 @endphp
-                                                <div class="bg-surface-container-low p-5 rounded-xl transition-all-200 {{ $mCompleted ? 'border-l-4 border-primary rounded-r-xl' : ($mLive ? 'border-l-4 border-secondary rounded-r-xl glow-teal' : 'border border-outline-variant hover:border-primary/50') }}">
+                                                <div class="bg-surface-container-low p-4 lg:p-5 rounded-xl transition-all-200 {{ $mCompleted ? 'border-l-4 border-primary rounded-r-xl' : ($mLive ? 'border-l-4 border-secondary rounded-r-xl glow-teal' : 'border border-outline-variant hover:border-primary/50') }}">
                                                     <div class="flex justify-between items-center mb-4 text-label-bold text-on-surface-variant uppercase">
                                                         @if($mCompleted)
                                                             <span>Završeno</span>
@@ -387,7 +369,7 @@
 
                 <!-- Right: Stats + Organization -->
                 <aside class="xl:col-span-4 space-y-6 lg:space-y-8">
-                    <section id="stats-section" class="bg-surface-container-low border border-outline-variant rounded-xl p-6 relative overflow-hidden">
+                    <section id="stats-section" class="-mx-margin-mobile lg:mx-0 bg-surface-container-low border-y lg:border border-outline-variant lg:rounded-xl px-margin-mobile py-5 lg:p-6 relative overflow-hidden">
                         <div class="absolute -top-10 -right-10 w-32 h-32 bg-primary/10 rounded-full blur-2xl"></div>
                         <h3 class="font-headline-md mb-6 flex items-center gap-2"><span class="material-symbols-outlined text-primary">insights</span> Statistika</h3>
                         <div class="space-y-5">
@@ -422,7 +404,7 @@
                         </div>
                     </section>
 
-                    <section class="bg-surface-container-low border border-outline-variant rounded-xl p-6">
+                    <section class="-mx-margin-mobile lg:mx-0 bg-surface-container-low border-y lg:border border-outline-variant lg:rounded-xl px-margin-mobile py-5 lg:p-6">
                         <h3 class="font-headline-md mb-4">Organizacija</h3>
                         <div class="p-4 bg-surface-container-lowest border border-outline-variant rounded-lg mb-4 flex items-center gap-4">
                             @if($organization->logo)
@@ -435,7 +417,7 @@
                                 <p class="text-body-sm text-on-surface-variant truncate">{{ $competition->sport->name }}</p>
                             </div>
                         </div>
-                        <a href="{{ route('public.leagues.organization', $organization) }}" class="w-full py-2.5 bg-surface-container-high hover:bg-surface-container-highest border border-outline-variant rounded-lg font-medium transition-all text-body-sm flex items-center justify-center gap-2">
+                        <a href="{{ route('competitions.organization', $organization) }}" class="w-full py-2.5 bg-surface-container-high hover:bg-surface-container-highest border border-outline-variant rounded-lg font-medium transition-all text-body-sm flex items-center justify-center gap-2">
                             <span class="material-symbols-outlined text-[18px]">emoji_events</span> Sva takmičenja organizacije
                         </a>
                     </section>
@@ -450,7 +432,7 @@
     <a class="flex flex-col items-center justify-center text-on-surface-variant" href="{{ route('home') }}">
         <span class="material-symbols-outlined">home</span><span class="text-[10px] font-label-bold">Home</span>
     </a>
-    <a class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-full px-4 py-1" href="{{ route('public.leagues.index') }}">
+    <a class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-full px-4 py-1" href="{{ route('competitions.index') }}">
         <span class="material-symbols-outlined">emoji_events</span><span class="text-[10px] font-label-bold">Takmičenja</span>
     </a>
     @auth

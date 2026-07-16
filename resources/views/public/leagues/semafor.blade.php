@@ -162,7 +162,7 @@
                     </div>
 
                     <!-- Back Button -->
-                    <a href="{{ route('public.leagues.show', $competition) }}"
+                    <a href="{{ route('competitions.show', $competition) }}"
                        class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-white font-medium transition-colors flex items-center space-x-2">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>

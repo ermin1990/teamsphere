@@ -97,7 +97,7 @@
         </div>
     </div>
 
-    <a href="{{ route('public.leagues.show', $league) }}" target="_blank" class="inline-flex items-center gap-2 text-blue-400 hover:text-blue-300 text-sm font-medium">
+    <a href="{{ route('competitions.show', $league) }}" target="_blank" class="inline-flex items-center gap-2 text-blue-400 hover:text-blue-300 text-sm font-medium">
         Otvori javnu stranicu takmičenja →
     </a>
 </div>

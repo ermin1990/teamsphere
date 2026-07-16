@@ -1,6 +1,6 @@
 @extends('layouts.public')
 
-@section('title', 'Live: ' . $match->homeTeam?->name ?? $match->homePlayer?->name ?? 'Home' . ' vs ' . $match->awayTeam?->name ?? $match->awayPlayer?->name ?? 'Away')
+@section('title', 'Uživo: ' . ($match->homeTeam?->name ?? $match->homePlayer?->name ?? 'Domaći') . ' vs ' . ($match->awayTeam?->name ?? $match->awayPlayer?->name ?? 'Gost'))
 
 @push('scripts')
     <script>
@@ -8,7 +8,7 @@
         let lastUpdated = null;
         
         function updateMatchData() {
-            fetch('{{ route("public.api.match", $match) }}')
+            fetch('{{ route("api.match", $match) }}')
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
@@ -19,7 +19,7 @@
                         const lastUpdatedElement = document.getElementById('last-updated-time');
                         if (lastUpdatedElement) {
                             const time = new Date(data.last_updated);
-                            lastUpdatedElement.textContent = 'Last updated: ' + time.toLocaleTimeString();
+                            lastUpdatedElement.textContent = 'Ažurirano: ' + time.toLocaleTimeString();
                         }
                     }
                 })
@@ -50,9 +50,9 @@
             const statusElement = document.getElementById('match-status');
             if (statusElement) {
                 if (matchData.status === 'in_progress') {
-                    statusElement.innerHTML = '<div class="text-green-400 font-semibold text-sm md:text-base">🔴 LIVE</div>';
+                    statusElement.innerHTML = '<div class="text-green-400 font-semibold text-sm md:text-base">🔴 UŽIVO</div>';
                 } else if (matchData.status === 'completed') {
-                    statusElement.innerHTML = '<div class="text-green-400 font-semibold text-sm md:text-base">✅ COMPLETED</div>';
+                    statusElement.innerHTML = '<div class="text-green-400 font-semibold text-sm md:text-base">✅ ZAVRŠENO</div>';
                 } else {
                     statusElement.innerHTML = '';
                 }
@@ -63,13 +63,13 @@
             // Update sets breakdown for individual matches
             const setsContainer = document.getElementById('sets-breakdown');
             if (setsContainer && sets.length > 0) {
-                let html = '<h3 class="text-lg md:text-xl font-bold text-center mb-4 bg-gradient-to-r from-green-400 to-blue-400 bg-clip-text text-transparent">Set Scores</h3>';
+                let html = '<h3 class="text-lg md:text-xl font-bold text-center mb-4 bg-gradient-to-r from-green-400 to-blue-400 bg-clip-text text-transparent">Rezultati po setovima</h3>';
                 html += '<div class="overflow-x-auto"><table class="w-full text-center text-sm md:text-base">';
                 html += '<thead><tr class="border-b border-[var(--border-primary)]">';
                 html += '<th class="pb-2 md:pb-3 text-[var(--text-secondary)] font-medium text-xs md:text-sm">Set</th>';
-                html += '<th class="pb-2 md:pb-3 text-blue-400 font-medium text-xs md:text-sm">{{ $match->homePlayer->name ?? "Home" }}</th>';
+                html += '<th class="pb-2 md:pb-3 text-blue-400 font-medium text-xs md:text-sm">{{ $match->homePlayer->name ?? "Domaći" }}</th>';
                 html += '<th class="pb-2 md:pb-3 text-[var(--text-muted)] font-medium text-xs md:text-sm">-</th>';
-                html += '<th class="pb-2 md:pb-3 text-red-400 font-medium text-xs md:text-sm">{{ $match->awayPlayer->name ?? "Away" }}</th>';
+                html += '<th class="pb-2 md:pb-3 text-red-400 font-medium text-xs md:text-sm">{{ $match->awayPlayer->name ?? "Gost" }}</th>';
                 html += '</tr></thead><tbody>';
                 
                 sets.forEach((set, index) => {
@@ -118,20 +118,18 @@
         }, 1000);
     });
     </script>
-@endsection
+@endpush
 
 @section('content')
             <!-- Header -->
             <div class="bg-[var(--bg-card)] backdrop-blur-xl rounded-2xl p-4 border border-[var(--border-primary)] shadow-xl mb-4">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <h1 class="text-2xl md:text-3xl font-bold bg-gradient-to-r from-green-400 to-blue-400 bg-clip-text text-transparent">
-                            🏓 Live Table Tennis Score
-                        </h1>
-                        <p class="text-[var(--text-secondary)] text-sm md:text-base mt-1">{{ $competition->name }} • Round {{ $match->round_number ?? $match->round }}</p>
-                    </div>
-                    <div class="flex items-center space-x-2 md:space-x-4">
-                        <span class="px-3 py-1 md:px-4 md:py-2 bg-[var(--bg-button)] hover:bg-[var(--bg-button-hover)] text-[var(--text-primary)] rounded-lg transition-colors text-sm">
+                <div>
+                    <h1 class="text-2xl md:text-3xl font-bold bg-gradient-to-r from-green-400 to-blue-400 bg-clip-text text-transparent">
+                        🏓 Uživo rezultat
+                    </h1>
+                    <p class="text-[var(--text-secondary)] text-sm md:text-base mt-1">{{ $competition->name }} • Kolo {{ $match->round_number ?? $match->round }}</p>
+                </div>
+            </div>
 
             <!-- Live Score Display -->
             @livewire('public-live-score', ['match' => $match])
@@ -161,20 +159,4 @@
             <div class="text-center mt-8 text-[var(--text-secondary)] text-sm">
                 <p>Powered by MojTurnir • {{ $organization->name }}</p>
             </div>
-        </div>
-    </div>
-
-    <!-- Mobile Navigation Menu (Fixed Bottom) -->
-    <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-[var(--bg-nav)] backdrop-blur-xl border-t border-[var(--border-primary)] shadow-2xl z-50">
-        <div class="flex items-center justify-between py-3 px-4 w-full">
-            <a href="{{ route('home') }}" class="flex flex-col items-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors text-xs flex-1">
-                <span class="text-lg">🏠</span>
-                <span class="mt-1">Home</span>
-            </a>
-            <a href="{{ route('public.leagues.index') }}" class="flex flex-col items-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors text-xs flex-1">
-                <span class="text-lg">🏆</span>
-                <span class="mt-1">Competitions</span>
-            </a>
-        </div>
-    </nav>
 @endsection

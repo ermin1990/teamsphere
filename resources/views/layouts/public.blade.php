@@ -85,7 +85,7 @@
                         <a href="{{ route('home') }}" class="transition-colors text-sm md:text-base font-medium hover:text-blue-400" style="color: var(--text-secondary);">
                             🏠 Home
                         </a>
-                        <a href="{{ route('public.leagues.index') }}" class="transition-colors text-sm md:text-base font-medium hover:text-blue-400 {{ request()->routeIs('public.leagues*') ? 'font-semibold' : '' }}" style="color: {{ request()->routeIs('public.leagues*') ? 'var(--accent-blue)' : 'var(--text-secondary)' }};">
+                        <a href="{{ route('competitions.index') }}" class="transition-colors text-sm md:text-base font-medium hover:text-blue-400 {{ request()->routeIs('competitions.*') ? 'font-semibold' : '' }}" style="color: {{ request()->routeIs('competitions.*') ? 'var(--accent-blue)' : 'var(--text-secondary)' }};">
                             🏆 Takmičenja
                         </a>
                         <a href="{{ route('projector.builder') }}" class="transition-colors text-sm md:text-base font-medium hover:text-blue-400 {{ request()->routeIs('projector*') ? 'font-semibold' : '' }}" style="color: {{ request()->routeIs('projector*') ? 'var(--accent-blue)' : 'var(--text-secondary)' }};">
@@ -107,7 +107,7 @@
                 <span class="text-lg">🏠</span>
                 <span class="mt-1">Home</span>
             </a>
-            <a href="{{ route('public.leagues.index') }}" class="flex flex-col items-center transition-colors text-xs flex-1 hover:text-blue-400 {{ request()->routeIs('public.leagues*') ? 'text-blue-400' : '' }}" style="color: {{ request()->routeIs('public.leagues*') ? 'var(--accent-blue)' : 'var(--text-secondary)' }};">
+            <a href="{{ route('competitions.index') }}" class="flex flex-col items-center transition-colors text-xs flex-1 hover:text-blue-400 {{ request()->routeIs('competitions.*') ? 'text-blue-400' : '' }}" style="color: {{ request()->routeIs('competitions.*') ? 'var(--accent-blue)' : 'var(--text-secondary)' }};">
                 <span class="text-lg">🏆</span>
                 <span class="mt-1">Takmičenja</span>
             </a>

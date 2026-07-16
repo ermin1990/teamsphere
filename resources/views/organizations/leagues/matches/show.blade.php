@@ -517,8 +517,8 @@
 
     <script>
         function shareMatch() {
-            const publicUrl = '{{ route("public.matches.show", [$league, $match]) }}';
-            const liveUrl = '{{ route("public.matches.show", [$league, $match]) }}';
+            const publicUrl = '{{ route("competitions.matches.show", [$league, $match]) }}';
+            const liveUrl = '{{ route("competitions.matches.show", [$league, $match]) }}';
 
             const shareText = `Check out this match: {{ $match->homeTeam?->name ?? $match->homePlayer?->name ?? "Home" }} vs {{ $match->awayTeam?->name ?? $match->awayPlayer?->name ?? "Away" }}\n\n${publicUrl}`;
 

@@ -1,43 +1,7 @@
 <!-- Tournament Groups with Tables and Matches -->
 @if($competition->type === 'tournament')
     <style>
-        .tab-button.active {
-            border-color: var(--accent-blue) !important;
-            color: var(--accent-blue) !important;
-            font-weight: 600 !important;
-        }
-
-        .table-header-text {
-            color: var(--text-tertiary) !important;
-        }
-
-        .table-number-text {
-            color: #d1d5db !important; /* gray-300 */
-        }
-
-        .table-number-text-pints {
-            color: #226818ff !important; /* gray-300 */
-        }
-
-        .table-player-name {
-            color: var(--text-primary) !important;
-        }
-
-        .table-player-position {
-            color: var(--text-tertiary) !important;
-        }
-
-        .table-advancing-bg {
-            background-color: rgba(6, 78, 59, 0.3) !important; /* green-900/30 */
-        }
-
-        .table-loss-text {
-            color: #f87171 !important; /* red-400 */
-        }
-
-        .table-points-text {
-            color: #4ade80 !important; /* green-400 */
-        }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; vertical-align: middle; }
 
         /* PDF Print Styles */
         @media print {
@@ -93,8 +57,8 @@
         }
 
         .player-container.player-highlight {
-            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.6);
-            background-color: rgba(59, 130, 246, 0.1) !important;
+            box-shadow: 0 0 0 2px rgba(87, 241, 219, 0.6);
+            background-color: rgba(87, 241, 219, 0.1) !important;
         }
     </style>
     @php
@@ -130,21 +94,19 @@
 
     <!-- Tournament Tabs -->
     <div class="mb-6 md:mb-8">
-        <div class="border-b" style="border-color: var(--border-primary);">
-            <nav class="-mb-px flex space-x-6 md:space-x-8">
-                @if($showGroupsTab)
-                <button onclick="showTournamentTab('groups')" id="groups-tab"
-                        class="tab-button border-b-2 py-2 px-1 text-sm md:text-base font-medium transition-colors" style="border-color: transparent; color: var(--text-tertiary);">
-                    🏆 Grupna faza
-                </button>
-                @endif
-                @if($showKnockoutTab)
-                <button onclick="showTournamentTab('knockout')" id="knockout-tab"
-                        class="tab-button border-b-2 py-2 px-1 text-sm md:text-base font-medium transition-colors" style="border-color: transparent; color: var(--text-tertiary);">
-                    🏅 Eliminaciona faza
-                </button>
-                @endif
-            </nav>
+        <div class="flex bg-surface-container-low p-1 rounded-lg border border-outline-variant w-fit">
+            @if($showGroupsTab)
+            <button onclick="showTournamentTab('groups')" id="groups-tab"
+                    class="tab-button px-4 py-1.5 rounded-md text-sm font-label-bold transition-all bg-primary text-on-primary">
+                🏆 Grupna faza
+            </button>
+            @endif
+            @if($showKnockoutTab)
+            <button onclick="showTournamentTab('knockout')" id="knockout-tab"
+                    class="tab-button px-4 py-1.5 rounded-md text-sm font-label-bold transition-all text-on-surface-variant hover:text-on-surface">
+                🏅 Eliminaciona faza
+            </button>
+            @endif
         </div>
 
         <!-- Groups Tab Content -->
@@ -155,7 +117,7 @@
                 // pola kolone kao da postoji jos jedna pored nje.
                 $groupCount = $competition->tournamentGroups->count();
             @endphp
-            <div class="grid grid-cols-1 {{ $groupCount > 1 ? 'md:grid-cols-2' : '' }} gap-4 md:gap-6">
+            <div class="grid grid-cols-1 {{ $groupCount > 1 ? 'xl:grid-cols-2' : '' }} gap-6 lg:gap-8">
                 @foreach($competition->tournamentGroups as $group)
                 @php
                     $currentGroupMatches = $groupMatches->get($group->id) ?? collect();
@@ -163,24 +125,25 @@
                     $groupMatchesByRound = $currentGroupMatches->sortBy($groupRoundOf)->groupBy($groupRoundOf);
                 @endphp
                 @if($currentGroupMatches->count() > 0)
-                                            <div class="[var(--bg-card)] backdrop-blur-xl rounded-xl p-4 md:p-6 border border-[var(--border-primary)] shadow-xl">
-                    <h4 class="text-base md:text-lg font-bold text-[var(--text-primary)] mb-3 md:mb-4">{{ $group->name }}</h4>
-
-                    <!-- Tabela / Mečevi sub-tabs -->
-                    <div class="flex gap-4 mb-4 border-b" style="border-color: var(--border-primary);">
-                        <button type="button" onclick="showGroupSubTab({{ $group->id }}, 'standings')" id="group-{{ $group->id }}-standings-tab"
-                                class="pb-2 text-sm font-semibold border-b-2 transition-colors" style="color: var(--accent-blue); border-color: var(--accent-blue);">
-                            Tabela
-                        </button>
-                        <button type="button" onclick="showGroupSubTab({{ $group->id }}, 'matches')" id="group-{{ $group->id }}-matches-tab"
-                                class="pb-2 text-sm font-semibold border-b-2 transition-colors" style="color: var(--text-tertiary); border-color: transparent;">
-                            Mečevi
-                        </button>
+                <section class="-mx-margin-mobile lg:mx-0 bg-surface-container-low border-y lg:border border-outline-variant lg:rounded-xl overflow-hidden lg:shadow-2xl">
+                    <div class="px-margin-mobile py-4 lg:p-6 border-b border-outline-variant flex items-center justify-between gap-3 flex-wrap">
+                        <h2 class="font-headline-md text-on-surface">{{ $group->name }}</h2>
+                        <!-- Tabela / Mečevi sub-tabs -->
+                        <div class="flex bg-surface-container-lowest p-1 rounded-lg border border-outline-variant">
+                            <button type="button" onclick="showGroupSubTab({{ $group->id }}, 'standings')" id="group-{{ $group->id }}-standings-tab"
+                                    class="group-subtab px-4 py-1.5 rounded-md text-sm font-label-bold transition-all bg-primary text-on-primary">
+                                Tabela
+                            </button>
+                            <button type="button" onclick="showGroupSubTab({{ $group->id }}, 'matches')" id="group-{{ $group->id }}-matches-tab"
+                                    class="group-subtab px-4 py-1.5 rounded-md text-sm font-label-bold transition-all text-on-surface-variant hover:text-on-surface">
+                                Mečevi
+                            </button>
+                        </div>
                     </div>
 
                     <!-- Group Standings -->
                     @php
-                        $groupStandings = $group->standings()->with('player')
+                        $groupStandings = $group->standings()->with('player.organization')
                             ->orderByRaw('CASE WHEN manual_order IS NULL THEN 1 ELSE 0 END ASC, manual_order ASC')
                             ->orderBy('points', 'desc')
                             ->orderByRaw('(sets_won - sets_lost) desc')
@@ -190,59 +153,66 @@
                             ->orderByDesc('won')
                             ->orderBy('id')
                             ->get();
+                        $advancingPlayers = $competition->players_advancing_per_group ?? 2;
                     @endphp
                     <div id="group-{{ $group->id }}-standings-content" class="group-subtab-content">
                     @if($groupStandings->count() > 0)
-                    <div class="bg-[#0d1527] rounded-xl p-3 border border-slate-800">
-                        <div class="grid grid-cols-[auto_1fr_auto_auto_auto_auto_auto] md:grid-cols-[auto_1fr_auto_auto_auto_auto_auto_auto] gap-x-1.5 mb-1.5 text-[9px] text-slate-500 font-bold uppercase tracking-tighter px-2.5">
-                            <div class="flex items-center w-5 justify-center">#</div>
-                            <div>Igrač</div>
-                            <div class="hidden md:block text-center w-6">M</div>
-                            <div class="text-center w-5">P</div>
-                            <div class="text-center w-5">I</div>
-                            <div class="text-center w-7">S</div>
-                            <div class="text-center w-7">G</div>
-                            <div class="text-center w-8 text-blue-400">Bod</div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse text-sm">
+                                <thead class="bg-surface-container-lowest text-on-surface-variant text-label-bold uppercase">
+                                    <tr>
+                                        <th class="px-3 lg:px-4 py-2.5 lg:py-3">#</th>
+                                        <th class="px-2 lg:px-4 py-2.5 lg:py-3">Igrač</th>
+                                        <th class="hidden md:table-cell px-2 py-2.5 lg:py-3 text-center">M</th>
+                                        <th class="px-2 py-2.5 lg:py-3 text-center">P</th>
+                                        <th class="px-2 py-2.5 lg:py-3 text-center">I</th>
+                                        <th class="px-2 py-2.5 lg:py-3 text-center">S</th>
+                                        <th class="hidden sm:table-cell px-2 py-2.5 lg:py-3 text-center">G</th>
+                                        <th class="px-3 lg:px-4 py-2.5 lg:py-3 text-center text-primary">Bod</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-outline-variant">
+                                    @foreach($groupStandings as $index => $standing)
+                                        @php
+                                            $played = ($standing->won ?? 0) + ($standing->lost ?? 0);
+                                            $setDiff = ($standing->sets_won ?? 0) - ($standing->sets_lost ?? 0);
+                                            $gemDiff = ($standing->points_won ?? 0) - ($standing->points_lost ?? 0);
+                                            $advancing = $index < $advancingPlayers;
+                                            $clubName = $standing->player->organization->name ?? null;
+                                        @endphp
+                                        <tr class="transition-colors group {{ $advancing ? 'bg-primary/5' : 'hover:bg-surface-variant/30' }}">
+                                            <td class="px-3 lg:px-4 py-2 lg:py-2.5 font-bold {{ $advancing ? 'text-primary' : '' }}">{{ $index + 1 }}</td>
+                                            <td class="px-2 lg:px-4 py-2 lg:py-2.5">
+                                                <span class="font-semibold group-hover:text-primary transition-colors truncate block">{{ $standing->player->name }}</span>
+                                                @if($clubName)
+                                                    <span class="text-xs text-on-surface-variant truncate block">{{ $clubName }}</span>
+                                                @endif
+                                            </td>
+                                            <td class="hidden md:table-cell px-2 py-2 lg:py-2.5 text-center">{{ $played }}</td>
+                                            <td class="px-2 py-2 lg:py-2.5 text-center text-primary font-bold">{{ $standing->won ?? 0 }}</td>
+                                            <td class="px-2 py-2 lg:py-2.5 text-center text-error">{{ $standing->lost ?? 0 }}</td>
+                                            <td class="px-2 py-2 lg:py-2.5 text-center {{ $setDiff > 0 ? 'text-primary' : ($setDiff < 0 ? 'text-error' : '') }} font-bold">{{ $setDiff > 0 ? '+' : '' }}{{ $setDiff }}</td>
+                                            <td class="hidden sm:table-cell px-2 py-2 lg:py-2.5 text-center {{ $gemDiff > 0 ? 'text-primary' : ($gemDiff < 0 ? 'text-error' : '') }}">{{ $gemDiff > 0 ? '+' : '' }}{{ $gemDiff }}</td>
+                                            <td class="px-3 lg:px-4 py-2 lg:py-2.5 text-center"><span class="{{ $advancing ? 'bg-primary text-on-primary' : 'bg-surface-container-high text-on-surface-variant' }} px-2.5 py-1 rounded font-bold text-xs">{{ $standing->points ?? 0 }}</span></td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
                         </div>
-                        <div class="space-y-1.5">
-                            @php
-                                $advancingPlayers = $competition->players_advancing_per_group ?? 2;
-                            @endphp
-                            @foreach($groupStandings as $index => $standing)
-                                @php
-                                    $played = ($standing->won ?? 0) + ($standing->lost ?? 0);
-                                    $setDiff = ($standing->sets_won ?? 0) - ($standing->sets_lost ?? 0);
-                                    $gemDiff = ($standing->points_won ?? 0) - ($standing->points_lost ?? 0);
-                                    $advancing = $index < $advancingPlayers;
-                                @endphp
-                                <div class="grid grid-cols-[auto_1fr_auto_auto_auto_auto_auto] md:grid-cols-[auto_1fr_auto_auto_auto_auto_auto_auto] gap-x-1.5 items-center py-2 px-2.5 rounded-lg transition-all duration-300 border {{ $advancing ? 'bg-emerald-500/5 border-emerald-500/30' : 'bg-slate-900/40 border-slate-800/80 hover:bg-slate-800/60' }}">
-                                    <span class="w-5 text-center text-[10px] font-black text-slate-500">{{ $index + 1 }}</span>
-                                    <div class="flex flex-col min-w-0 overflow-hidden">
-                                        <span class="text-white font-bold text-[12px] truncate leading-tight">{{ $standing->player->name }}@if($standing->player->position) <span class="text-slate-500 text-[10px]">({{ $standing->player->position }})</span>@endif</span>
-                                    </div>
-                                    <div class="hidden md:flex w-6 justify-center text-slate-300 font-bold text-[11px]">{{ $played }}</div>
-                                    <div class="w-5 text-center text-emerald-300 font-bold text-[11px]">{{ $standing->won ?? 0 }}</div>
-                                    <div class="w-5 text-center text-rose-300 font-bold text-[11px]">{{ $standing->lost ?? 0 }}</div>
-                                    <div class="w-7 text-center font-black text-[11px] {{ $setDiff > 0 ? 'text-emerald-400' : ($setDiff < 0 ? 'text-rose-400' : 'text-slate-400') }}">{{ $setDiff > 0 ? '+' : '' }}{{ $setDiff }}</div>
-                                    <div class="w-7 text-center text-[10px] font-bold {{ $gemDiff > 0 ? 'text-emerald-500/80' : ($gemDiff < 0 ? 'text-rose-500/80' : 'text-slate-400') }}">{{ $gemDiff > 0 ? '+' : '' }}{{ $gemDiff }}</div>
-                                    <div class="w-8 flex justify-center"><span class="bg-blue-500/15 text-blue-300 px-1.5 py-0.5 rounded-md text-[11px] font-black ring-1 ring-inset ring-blue-500/20">{{ $standing->points ?? 0 }}</span></div>
-                                </div>
-                            @endforeach
-                        </div>
-                    </div>
+                    @else
+                        <div class="text-center py-10 text-on-surface-variant text-sm">Tabela će se pojaviti kada grupa počne.</div>
                     @endif
                     </div>
 
                     <!-- Group Matches -->
                     @if($currentGroupMatches->count() > 0)
-                    <div id="group-{{ $group->id }}-matches-content" class="group-subtab-content hidden">
+                    <div id="group-{{ $group->id }}-matches-content" class="group-subtab-content hidden px-margin-mobile py-4 lg:p-6">
                         @foreach($groupMatchesByRound as $round => $roundMatches)
                         <div class="flex items-center gap-3 mb-3 mt-4 first:mt-0">
-                            <div class="h-px flex-1" style="background: var(--border-primary);"></div>
-                            <span class="text-xs font-bold uppercase tracking-wider" style="color: var(--text-tertiary);">Kolo {{ $round }}</span>
-                            <div class="h-px flex-1" style="background: var(--border-primary);"></div>
+                            <span class="bg-surface-container-highest px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wider border border-outline-variant">Kolo {{ $round }}</span>
+                            <div class="h-px flex-1 bg-outline-variant"></div>
                         </div>
-                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-2">
+                        <div class="grid grid-cols-1 {{ $groupCount === 1 ? 'lg:grid-cols-2' : '' }} gap-2">
                             @foreach($roundMatches as $match)
                             @php
                                 $homeSetsWon = 0; $awaySetsWon = 0;
@@ -272,64 +242,42 @@
                                 $homeSeed = $playerPositionSeeding[$match->home_player_id] ?? null;
                                 $awaySeed = $playerPositionSeeding[$match->away_player_id] ?? null;
                             @endphp
-                            <div class="relative overflow-hidden bg-[#10192d] border border-slate-800 rounded-lg">
-                                @if($completed)
-                                    <div class="absolute left-0 top-0 bottom-0 w-1 bg-emerald-500/60"></div>
-                                @elseif($live)
-                                    <div class="absolute left-0 top-0 bottom-0 w-1 bg-blue-500/70 animate-pulse"></div>
-                                @endif
-                                @if($live)
-                                    <div class="px-3 pt-2">
-                                        <span class="inline-block px-1.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wide animate-pulse" style="background: rgba(248,113,113,0.2); color: #f87171;">🔴 Uživo</span>
-                                    </div>
-                                @endif
-                                <div class="p-2.5 md:p-3">
-                                    <div class="flex items-stretch gap-3">
-                                        <div class="flex-1 flex flex-col justify-between gap-2 min-w-0">
-                                            <div class="flex items-center justify-between gap-2 min-w-0">
-                                                <div class="flex items-center gap-2 min-w-0">
-                                                    <div class="flex-shrink-0 w-1.5 h-1.5 rounded-full {{ $homeWin ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-transparent' }}"></div>
-                                                    <div class="text-[12px] md:text-[13px] font-bold truncate {{ $homeWin ? 'text-white' : ($awayWin ? 'text-slate-500' : 'text-slate-300') }}">{{ $homeName }}@if($homeSeed) <span class="text-slate-500 text-[10px]">({{ $homeSeed }})</span>@endif</div>
-                                                </div>
-                                                <div class="flex items-center gap-1 ml-auto">
-                                                    @for($i = 0; $i < $cellCount; $i++)
-                                                        @php $c = $displaySets[$i] ?? null; @endphp
-                                                        <div class="w-[18px] text-center">
-                                                            @if($c && !is_null($c['h']))
-                                                                <span class="text-[9px] font-black {{ (int) $c['h'] >= (int) $c['a'] ? 'text-emerald-400' : 'text-slate-600' }}">{{ $c['h'] }}</span>
-                                                            @else
-                                                                <span class="text-[9px] text-slate-700">-</span>
-                                                            @endif
-                                                        </div>
-                                                    @endfor
-                                                </div>
+                            <div class="bg-surface-container-low p-4 lg:p-5 rounded-xl transition-all-200 {{ $completed ? 'border-l-4 border-primary rounded-r-xl' : ($live ? 'border-l-4 border-secondary rounded-r-xl' : 'border border-outline-variant hover:border-primary/50') }}">
+                                <div class="flex justify-between items-center mb-3 text-label-bold text-on-surface-variant uppercase text-xs">
+                                    @if($completed)
+                                        <span>Završeno</span>
+                                    @elseif($live)
+                                        <span class="text-secondary animate-pulse">Uživo</span>
+                                    @else
+                                        <span class="text-secondary">Zakazano</span>
+                                    @endif
+                                    @if($homeSeed || $awaySeed)
+                                        <span>{{ $homeSeed ? '#' . $homeSeed : '' }}@if($homeSeed && $awaySeed) vs @endif{{ $awaySeed ? '#' . $awaySeed : '' }}</span>
+                                    @endif
+                                </div>
+                                <div class="space-y-3">
+                                    <div class="flex justify-between items-center gap-3 {{ $awayWin ? 'opacity-60' : '' }}">
+                                        <span class="font-medium truncate">{{ $homeName }}</span>
+                                        <div class="flex items-center gap-2 shrink-0">
+                                            <div class="flex items-center gap-1">
+                                                @for($i = 0; $i < $cellCount; $i++)
+                                                    @php $c = $displaySets[$i] ?? null; @endphp
+                                                    <span class="w-[18px] text-center text-[11px] font-bold {{ $c && !is_null($c['h']) ? ((int) $c['h'] >= (int) $c['a'] ? 'text-primary' : 'text-on-surface-variant/50') : 'text-on-surface-variant/30' }}">{{ $c && !is_null($c['h']) ? $c['h'] : '-' }}</span>
+                                                @endfor
                                             </div>
-                                            <div class="flex items-center justify-between gap-2 min-w-0">
-                                                <div class="flex items-center gap-2 min-w-0">
-                                                    <div class="flex-shrink-0 w-1.5 h-1.5 rounded-full {{ $awayWin ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-transparent' }}"></div>
-                                                    <div class="text-[12px] md:text-[13px] font-bold truncate {{ $awayWin ? 'text-white' : ($homeWin ? 'text-slate-500' : 'text-slate-300') }}">{{ $awayName }}@if($awaySeed) <span class="text-slate-500 text-[10px]">({{ $awaySeed }})</span>@endif</div>
-                                                </div>
-                                                <div class="flex items-center gap-1 ml-auto">
-                                                    @for($i = 0; $i < $cellCount; $i++)
-                                                        @php $c = $displaySets[$i] ?? null; @endphp
-                                                        <div class="w-[18px] text-center">
-                                                            @if($c && !is_null($c['a']))
-                                                                <span class="text-[9px] font-black {{ (int) $c['a'] >= (int) $c['h'] ? 'text-emerald-400' : 'text-slate-600' }}">{{ $c['a'] }}</span>
-                                                            @else
-                                                                <span class="text-[9px] text-slate-700">-</span>
-                                                            @endif
-                                                        </div>
-                                                    @endfor
-                                                </div>
-                                            </div>
+                                            <span class="font-bold {{ $homeWin ? 'text-primary' : 'text-on-surface-variant' }} text-body-lg">{{ $completed || $live ? $homeSetsWon : '-' }}</span>
                                         </div>
-                                        <div class="flex flex-col items-center justify-center gap-1.5 pl-2.5 border-l border-slate-800 min-w-[36px]">
-                                            <div class="w-7 h-7 rounded-md flex items-center justify-center transition-all duration-300 {{ $homeWin ? 'bg-emerald-500 text-white shadow-[0_0_15px_rgba(16,185,129,0.25)]' : 'bg-slate-800/50 text-slate-500' }}">
-                                                <span class="text-[13px] font-black italic">{{ $match->status === 'scheduled' ? 0 : ($live ? ($match->home_score ?? 0) : $homeSetsWon) }}</span>
+                                    </div>
+                                    <div class="flex justify-between items-center gap-3 {{ $homeWin ? 'opacity-60' : '' }}">
+                                        <span class="font-medium truncate">{{ $awayName }}</span>
+                                        <div class="flex items-center gap-2 shrink-0">
+                                            <div class="flex items-center gap-1">
+                                                @for($i = 0; $i < $cellCount; $i++)
+                                                    @php $c = $displaySets[$i] ?? null; @endphp
+                                                    <span class="w-[18px] text-center text-[11px] font-bold {{ $c && !is_null($c['a']) ? ((int) $c['a'] >= (int) $c['h'] ? 'text-primary' : 'text-on-surface-variant/50') : 'text-on-surface-variant/30' }}">{{ $c && !is_null($c['a']) ? $c['a'] : '-' }}</span>
+                                                @endfor
                                             </div>
-                                            <div class="w-7 h-7 rounded-md flex items-center justify-center transition-all duration-300 {{ $awayWin ? 'bg-emerald-500 text-white shadow-[0_0_15px_rgba(16,185,129,0.25)]' : 'bg-slate-800/50 text-slate-500' }}">
-                                                <span class="text-[13px] font-black italic">{{ $match->status === 'scheduled' ? 0 : ($live ? ($match->away_score ?? 0) : $awaySetsWon) }}</span>
-                                            </div>
+                                            <span class="font-bold {{ $awayWin ? 'text-primary' : 'text-on-surface-variant' }} text-body-lg">{{ $completed || $live ? $awaySetsWon : '-' }}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -339,15 +287,15 @@
                         @endforeach
                     </div>
                     @endif
-                </div>
+                </section>
                 @endif
                 @endforeach
             </div>
             @else
-                        <div class="bg-[var(--bg-card)] backdrop-blur-xl rounded-2xl p-8 md:p-12 border border-[var(--border-primary)] shadow-xl text-center">
-                <div class="text-4xl md:text-6xl mb-4">🏆</div>
-                <h3 class="text-lg md:text-xl font-semibold text-[var(--text-primary)] mb-2">Nema grupa još</h3>
-                <p class="text-[var(--text-tertiary)] text-sm md:text-base">Grupe će se pojaviti kada turnir počne.</p>
+            <div class="-mx-margin-mobile lg:mx-0 text-center py-16 bg-surface-container-low border-y lg:border border-outline-variant lg:rounded-xl">
+                <span class="material-symbols-outlined text-5xl text-on-surface-variant mb-4 block">emoji_events</span>
+                <h3 class="font-headline-md text-on-surface-variant mb-2">Nema grupa još</h3>
+                <p class="text-on-surface-variant text-sm">Grupe će se pojaviti kada turnir počne.</p>
             </div>
             @endif
         </div>        <!-- Knockout Tab Content -->
@@ -388,28 +336,26 @@
             @if($winner)
             <div class="mb-6 md:mb-8 text-center">
                 <div class="text-center">
-                    <h2 class="text-base md:text-lg font-semibold text-amber-400 mb-2 md:mb-3 tracking-wide">
+                    <h2 class="text-base md:text-lg font-semibold text-secondary mb-2 md:mb-3 tracking-wide">
                         🏆 ŠAMPION TURNIRA 🏆
                     </h2>
-                    <p class="text-xl md:text-2xl font-black text-[var(--text-primary)] mb-2" style="font-family: 'Inter', sans-serif; letter-spacing: -0.02em;">
+                    <p class="text-xl md:text-2xl font-display text-on-surface mb-2">
                         {{ $winner->name }}
                     </p>
-                    <p class="text-sm md:text-base text-[var(--text-tertiary)] font-medium">{{ $competition->name }}</p>
+                    <p class="text-sm md:text-base text-on-surface-variant font-medium">{{ $competition->name }}</p>
                 </div>
             </div>
             @endif
 
             <!-- Tournament Bracket -->
-            <div class="bg-[var(--bg-card)] backdrop-blur-xl rounded-xl p-4 md:p-6 border border-[var(--border-primary)] shadow-xl">
+            <div class="-mx-margin-mobile lg:mx-0 bg-surface-container-low border-y lg:border border-outline-variant lg:rounded-xl px-margin-mobile py-4 lg:p-6">
                 <div class="flex justify-end mb-2">
                     <div class="flex items-center gap-2">
-                                                <button id="knockout-zoom-out" type="button" class="px-2 py-1 rounded bg-[var(--bg-tertiary)] hover:bg-[var(--bg-tertiary)] text-[var(--text-primary)] text-lg font-bold" title="Smanji">&minus; </button>
-                        <button id="knockout-zoom-in" type="button" class="px-2 py-1 rounded bg-[var(--bg-tertiary)] hover:bg-[var(--bg-tertiary)] text-[var(--text-primary)] text-lg font-bold" title="Povećaj">
-                            &plus;
-                        </button>
+                        <button id="knockout-zoom-out" type="button" class="w-8 h-8 flex items-center justify-center rounded-lg bg-surface-container-high hover:bg-surface-container-highest text-on-surface text-lg font-bold transition-colors" title="Smanji">&minus;</button>
+                        <button id="knockout-zoom-in" type="button" class="w-8 h-8 flex items-center justify-center rounded-lg bg-surface-container-high hover:bg-surface-container-highest text-on-surface text-lg font-bold transition-colors" title="Povećaj">&plus;</button>
                     </div>
                 </div>
-                <div class="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800 pb-6">
+                <div class="overflow-x-auto custom-scrollbar pb-6">
                     <div class="min-w-max">
                         <!-- Bracket Container -->
                         <div id="knockout-bracket-scale" class="flex justify-center transition-transform duration-200" style="transform: scale(1); transform-origin: top left; gap: 3px;">
@@ -417,7 +363,7 @@
                             @php
                                 // Calculate spacing for bracket alignment
                                 $matchesInRound = $roundMatches->count();
-                                
+
                                 // Calculate round name based on distance to max round
                                 $distanceToFinal = $maxKnockoutRound - (int)$round;
 
@@ -435,7 +381,7 @@
                                 {{-- Round Header (only if roundName exists) --}}
                                 @if($roundName)
                                 <div class="text-center" style="margin-bottom: 3px;">
-                                    <h4 class="text-sm md:text-base font-bold text-[var(--text-primary)] uppercase tracking-wider">
+                                    <h4 class="text-sm md:text-base font-bold text-on-surface uppercase tracking-wider">
                                         {{ $roundName }}
                                     </h4>
                                 </div>
@@ -470,14 +416,14 @@
                                         }
                                     @endphp
 
-                                    <div class="block bg-[var(--bg-tertiary)] hover:bg-[var(--bg-tertiary)] rounded-lg transition-all duration-200 hover:scale-[1.02] border border-[var(--border-primary)] knockout-match"
-                                         data-match-id="{{ $match->id }}" 
-                                         data-home-player="{{ $match->homePlayer->id ?? '' }}" 
+                                    <div class="block bg-surface-container-low hover:bg-surface-variant/30 rounded-lg transition-all duration-200 hover:scale-[1.02] border border-outline-variant knockout-match"
+                                         data-match-id="{{ $match->id }}"
+                                         data-home-player="{{ $match->homePlayer->id ?? '' }}"
                                          data-away-player="{{ $match->awayPlayer->id ?? '' }}"
                                          style="padding-top: 3px; margin-top: 3px; margin-bottom: 3px;">
                                         @if($match->status === 'in_progress' && !$match->is_bye)
                                         <div class="text-center mb-2">
-                                            <span class="text-red-400 font-semibold text-xs uppercase tracking-wider">Live</span>
+                                            <span class="text-secondary font-semibold text-xs uppercase tracking-wider animate-pulse">Uživo</span>
                                         </div>
                                         @endif
 
@@ -486,30 +432,30 @@
                                             <!-- Home Player -->
                                             <div class="flex items-center justify-between mb-2">
                                                 <div class="flex items-center gap-2 flex-1 min-w-0 player-container" data-player-id="{{ $match->homePlayer->id ?? '' }}">
-                                                    <div class="text-xs md:text-sm font-semibold {{ ($homeSetsWon > $awaySetsWon) && ($homeSetsWon > 0 || $awaySetsWon > 0) || ($match->is_bye && $match->homePlayer) ? 'text-green-600' : 'text-[var(--text-tertiary)]' }} truncate">
+                                                    <div class="text-xs md:text-sm font-semibold {{ ($homeSetsWon > $awaySetsWon) && ($homeSetsWon > 0 || $awaySetsWon > 0) || ($match->is_bye && $match->homePlayer) ? 'text-primary' : 'text-on-surface-variant' }} truncate">
                                                         {{ $match->homePlayer->name ?? 'NEMA PROTIVNIKA' }}
                                                     </div>
                                                 </div>
                                                 <div class="flex-shrink-0 ml-2">
                                                     @if($match->status === 'in_progress' && !$match->is_bye)
-                                                        <div class="w-6 h-6 bg-green-900/80 rounded flex items-center justify-center badge-box">
-                                                            <div class="text-xs font-bold text-white badge-number">
+                                                        <div class="w-6 h-6 bg-primary/80 rounded flex items-center justify-center badge-box">
+                                                            <div class="text-xs font-bold text-on-primary badge-number">
                                                                 {{ $homeFinalScore }}
                                                             </div>
                                                         </div>
                                                     @elseif($match->status === 'completed' || ($homeSetsWon > 0 || $awaySetsWon > 0))
-                                                        <div class="w-6 h-6 bg-green-900/80 rounded flex items-center justify-center badge-box">
-                                                            <div class="text-xs font-bold text-white badge-number">
+                                                        <div class="w-6 h-6 bg-primary/80 rounded flex items-center justify-center badge-box">
+                                                            <div class="text-xs font-bold text-on-primary badge-number">
                                                                 {{ $homeFinalScore ?: $homeSetsWon }}
                                                             </div>
                                                         </div>
                                                     @elseif($match->is_bye)
-                                                        <div class="w-6 h-6 bg-[var(--bg-tertiary)] rounded flex items-center justify-center badge-box">
-                                                            <div class="text-xs font-bold text-[var(--text-muted)] badge-number">bye</div>
+                                                        <div class="w-6 h-6 bg-surface-container-highest rounded flex items-center justify-center badge-box">
+                                                            <div class="text-xs font-bold text-on-surface-variant badge-number">bye</div>
                                                         </div>
                                                     @else
-                                                        <div class="w-6 h-6 bg-[var(--bg-tertiary)] rounded flex items-center justify-center badge-box">
-                                                            <div class="text-xs font-bold text-[var(--text-muted)] badge-number">-</div>
+                                                        <div class="w-6 h-6 bg-surface-container-highest rounded flex items-center justify-center badge-box">
+                                                            <div class="text-xs font-bold text-on-surface-variant badge-number">-</div>
                                                         </div>
                                                     @endif
                                                 </div>
@@ -518,30 +464,30 @@
                                             <!-- Away Player -->
                                             <div class="flex items-center justify-between">
                                                 <div class="flex items-center gap-2 flex-1 min-w-0 player-container" data-player-id="{{ $match->awayPlayer->id ?? '' }}">
-                                                    <div class="text-xs md:text-sm font-semibold {{ ($awaySetsWon > $homeSetsWon) && ($homeSetsWon > 0 || $awaySetsWon > 0) || ($match->is_bye && $match->awayPlayer) ? 'text-green-600' : 'text-[var(--text-tertiary)]' }} truncate">
+                                                    <div class="text-xs md:text-sm font-semibold {{ ($awaySetsWon > $homeSetsWon) && ($homeSetsWon > 0 || $awaySetsWon > 0) || ($match->is_bye && $match->awayPlayer) ? 'text-primary' : 'text-on-surface-variant' }} truncate">
                                                         {{ $match->awayPlayer->name ?? 'NEMA PROTIVNIKA' }}
                                                     </div>
                                                 </div>
                                                 <div class="flex-shrink-0 ml-2">
                                                     @if($match->status === 'in_progress' && !$match->is_bye)
-                                                        <div class="w-6 h-6 bg-green-900/80 rounded flex items-center justify-center badge-box">
-                                                            <div class="text-xs font-bold text-white badge-number">
+                                                        <div class="w-6 h-6 bg-primary/80 rounded flex items-center justify-center badge-box">
+                                                            <div class="text-xs font-bold text-on-primary badge-number">
                                                                 {{ $awayFinalScore }}
                                                             </div>
                                                         </div>
                                                     @elseif($match->status === 'completed' || ($homeSetsWon > 0 || $awaySetsWon > 0))
-                                                        <div class="w-6 h-6 bg-green-900/80 rounded flex items-center justify-center badge-box">
-                                                            <div class="text-xs font-bold text-white badge-number">
+                                                        <div class="w-6 h-6 bg-primary/80 rounded flex items-center justify-center badge-box">
+                                                            <div class="text-xs font-bold text-on-primary badge-number">
                                                                 {{ $awayFinalScore ?: $awaySetsWon }}
                                                             </div>
                                                         </div>
                                                     @elseif($match->is_bye)
-                                                        <div class="w-6 h-6 bg-[var(--bg-tertiary)] rounded flex items-center justify-center badge-box">
-                                                            <div class="text-xs font-bold text-[var(--text-muted)] badge-number">bye</div>
+                                                        <div class="w-6 h-6 bg-surface-container-highest rounded flex items-center justify-center badge-box">
+                                                            <div class="text-xs font-bold text-on-surface-variant badge-number">bye</div>
                                                         </div>
                                                     @else
-                                                        <div class="w-6 h-6 bg-[var(--bg-tertiary)] rounded flex items-center justify-center badge-box">
-                                                            <div class="text-xs font-bold text-[var(--text-muted)] badge-number">-</div>
+                                                        <div class="w-6 h-6 bg-surface-container-highest rounded flex items-center justify-center badge-box">
+                                                            <div class="text-xs font-bold text-on-surface-variant badge-number">-</div>
                                                         </div>
                                                     @endif
                                                 </div>
@@ -551,7 +497,7 @@
                                             @if(isset($match->sets) && is_array($match->sets) && count($match->sets) > 0)
                                             <div class="mt-3 text-center">
                                                 <button onclick="toggleMatchSets({{ $match->id }})"
-                                                        class="text-xs text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors flex items-center justify-center gap-1 mx-auto">
+                                                        class="text-xs text-on-surface-variant hover:text-primary transition-colors flex items-center justify-center gap-1 mx-auto">
                                                     <span id="toggle-text-{{ $match->id }}">Prikaži po setovima</span>
                                                     <svg id="arrow-{{ $match->id }}" class="w-3 h-3 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
@@ -563,35 +509,35 @@
 
                                         <!-- Set Details Display (Hidden by default) -->
                                         @if(isset($match->sets) && is_array($match->sets) && count($match->sets) > 0)
-                                        <div id="sets-{{ $match->id }}" class="hidden px-3 md:px-4 pb-3 md:pb-4 border-t border-[var(--border-secondary)]">
+                                        <div id="sets-{{ $match->id }}" class="hidden px-3 md:px-4 pb-3 md:pb-4 border-t border-outline-variant">
                                             <div class="mt-3">
                                                 @if(isset($match->sets) && is_array($match->sets) && count($match->sets) > 0)
                                                 <div class="flex justify-center gap-1">
                                                     @for($i = 1; $i <= 5; $i++)
                                                     <div class="flex flex-col items-center">
-                                                        <div class="text-xs text-[var(--text-tertiary)] mb-1">{{ $i }}</div>
+                                                        <div class="text-xs text-on-surface-variant mb-1">{{ $i }}</div>
                                                         <div class="flex flex-col gap-0.5">
                                                             @if(isset($match->sets[$i-1]))
                                                                 @php
                                                                     $homeScore = $match->sets[$i-1]['home_score'] ?? $match->sets[$i-1]['home'] ?? 0;
                                                                     $awayScore = $match->sets[$i-1]['away_score'] ?? $match->sets[$i-1]['away'] ?? 0;
                                                                 @endphp
-                                                                <span class="text-xs px-1 py-0.5 rounded text-center {{ $homeScore > $awayScore ? 'bg-green-900/60 text-white font-bold' : 'text-[var(--text-tertiary)]' }}">
+                                                                <span class="text-xs px-1 py-0.5 rounded text-center {{ $homeScore > $awayScore ? 'bg-primary/20 text-primary font-bold' : 'text-on-surface-variant' }}">
                                                                     {{ $homeScore }}
                                                                 </span>
-                                                                <span class="text-xs px-1 py-0.5 rounded text-center {{ $awayScore > $homeScore ? 'bg-green-900/60 text-white font-bold' : 'text-[var(--text-tertiary)]' }}">
+                                                                <span class="text-xs px-1 py-0.5 rounded text-center {{ $awayScore > $homeScore ? 'bg-primary/20 text-primary font-bold' : 'text-on-surface-variant' }}">
                                                                     {{ $awayScore }}
                                                                 </span>
                                                             @else
-                                                                <span class="text-xs px-1 py-0.5 rounded text-[var(--text-muted)] text-center">-</span>
-                                                                <span class="text-xs px-1 py-0.5 rounded text-[var(--text-muted)] text-center">-</span>
+                                                                <span class="text-xs px-1 py-0.5 rounded text-on-surface-variant/50 text-center">-</span>
+                                                                <span class="text-xs px-1 py-0.5 rounded text-on-surface-variant/50 text-center">-</span>
                                                             @endif
                                                         </div>
                                                     </div>
                                                     @endfor
                                                 </div>
                                                 @else
-                                                <div class="text-center text-xs text-[var(--text-tertiary)]">
+                                                <div class="text-center text-xs text-on-surface-variant">
                                                     Detalji o setovima nisu dostupni
                                                 </div>
                                                 @endif
@@ -648,10 +594,13 @@
             standingsContent.classList.toggle('hidden', tab !== 'standings');
             matchesContent.classList.toggle('hidden', tab !== 'matches');
 
-            standingsTab.style.color = tab === 'standings' ? 'var(--accent-blue)' : 'var(--text-tertiary)';
-            standingsTab.style.borderColor = tab === 'standings' ? 'var(--accent-blue)' : 'transparent';
-            matchesTab.style.color = tab === 'matches' ? 'var(--accent-blue)' : 'var(--text-tertiary)';
-            matchesTab.style.borderColor = tab === 'matches' ? 'var(--accent-blue)' : 'transparent';
+            const activeClasses = ['bg-primary', 'text-on-primary'];
+            const inactiveClasses = ['text-on-surface-variant'];
+
+            standingsTab.classList.remove(...activeClasses, ...inactiveClasses);
+            standingsTab.classList.add(...(tab === 'standings' ? activeClasses : inactiveClasses));
+            matchesTab.classList.remove(...activeClasses, ...inactiveClasses);
+            matchesTab.classList.add(...(tab === 'matches' ? activeClasses : inactiveClasses));
         }
 
         function showTournamentTab(tabName) {
@@ -660,11 +609,10 @@
                 content.classList.add('hidden');
             });
 
-            // Remove active state from all tabs
+            // Reset all tab buttons to inactive state
             document.querySelectorAll('.tab-button').forEach(button => {
-                button.style.borderColor = 'transparent';
-                button.style.color = 'var(--text-tertiary)';
-                button.classList.remove('active');
+                button.classList.remove('bg-primary', 'text-on-primary');
+                button.classList.add('text-on-surface-variant');
             });
 
             // Show selected tab content
@@ -672,9 +620,8 @@
 
             // Set active state for selected tab
             const activeTab = document.getElementById(tabName + '-tab');
-            activeTab.style.borderColor = 'var(--accent-blue)';
-            activeTab.style.color = 'var(--accent-blue)';
-            activeTab.classList.add('active');
+            activeTab.classList.remove('text-on-surface-variant');
+            activeTab.classList.add('bg-primary', 'text-on-primary');
         }
 
         function toggleMatchSets(matchId) {

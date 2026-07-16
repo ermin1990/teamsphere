@@ -15,7 +15,7 @@
 
     $live = $match->status === 'in_progress';
 @endphp
-<a href="{{ route('public.leagues.show', $competition) }}"
+<a href="{{ route('competitions.show', $competition) }}"
    class="flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl transition-all duration-200"
    style="background: var(--bg-hover); border: 1px solid var(--border-secondary);">
     <div class="flex items-center gap-2.5 min-w-0">

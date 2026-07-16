@@ -6,7 +6,7 @@
 <div class="container mx-auto px-4 py-8">
     <div class="max-w-5xl mx-auto">
         <div class="mb-8">
-            <a href="{{ route('public.leagues.show', $competition->slug) }}" class="inline-flex items-center text-sm font-medium text-gray-400 hover:text-white transition-colors mb-4 group">
+            <a href="{{ route('competitions.show', $competition->slug) }}" class="inline-flex items-center text-sm font-medium text-gray-400 hover:text-white transition-colors mb-4 group">
                 <svg class="w-4 h-4 mr-2 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
                 </svg>
@@ -38,7 +38,7 @@
             <div class="p-8 flex flex-col md:flex-row justify-between items-center gap-8">
                 <div class="text-center flex-1">
                     <span class="text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em] mb-2 block">Domaćin</span>
-                    <a href="{{ route('public.teams.show', $teamMatch->home_team_id) }}" class="hover:text-blue-400 transition-colors">
+                    <a href="{{ route('teams.show', $teamMatch->home_team_id) }}" class="hover:text-blue-400 transition-colors">
                         <h2 class="text-2xl md:text-4xl font-black text-white tracking-tight">{{ $teamMatch->homeTeam->name ?? 'Nepoznato' }}</h2>
                     </a>
                 </div>
@@ -54,7 +54,7 @@
                 </div>
                 <div class="text-center flex-1">
                     <span class="text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em] mb-2 block">Gost</span>
-                    <a href="{{ route('public.teams.show', $teamMatch->away_team_id) }}" class="hover:text-blue-400 transition-colors">
+                    <a href="{{ route('teams.show', $teamMatch->away_team_id) }}" class="hover:text-blue-400 transition-colors">
                         <h2 class="text-2xl md:text-4xl font-black text-white tracking-tight">{{ $teamMatch->awayTeam->name ?? 'Nepoznato' }}</h2>
                     </a>
                 </div>

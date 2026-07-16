@@ -22,10 +22,21 @@ Route::get('/locale/{locale}', function ($locale) {
 })->name('locale');
 
 Route::get('/', function () {
-    // Get count of live matches
     $liveMatchesCount = \App\Models\LeagueMatch::where('status', 'in_progress')->count();
-    
-    return view('welcome', compact('liveMatchesCount'));
+    $organizationsCount = \App\Models\Organization::count();
+    $activeCompetitionsCount = \App\Models\Competition::where('is_public', true)
+        ->whereIn('status', ['active', 'in_progress'])
+        ->count();
+    $playersCount = \App\Models\Player::count();
+    $matchesPlayedCount = \App\Models\LeagueMatch::where('status', 'completed')->count();
+
+    return view('welcome', compact(
+        'liveMatchesCount',
+        'organizationsCount',
+        'activeCompetitionsCount',
+        'playersCount',
+        'matchesPlayedCount'
+    ));
 })->name('home');
 
 Route::get('/dashboard', [DashboardController::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
@@ -335,32 +346,26 @@ Route::prefix('projector')->name('projector.')->group(function () {
 });
 
 // Public routes (no authentication required)
-Route::prefix('public')->name('public.')->group(function () {
-    // Public league routes
-    Route::get('/leagues', [App\Http\Controllers\PublicMatchController::class, 'indexLeagues'])->name('leagues.index');
-    Route::get('/leagues/organization/{organization}', [App\Http\Controllers\PublicMatchController::class, 'indexLeaguesByOrganization'])->name('leagues.organization');
-    Route::get('/leagues/grad/{city}', [App\Http\Controllers\PublicMatchController::class, 'indexLeaguesByCity'])->name('leagues.by-city');
-    Route::get('/leagues/{competition}', [App\Http\Controllers\PublicMatchController::class, 'showLeague'])->name('leagues.show');
-    Route::get('/leagues/{competition}/semafor', [App\Http\Controllers\PublicMatchController::class, 'competitionSemafor'])->name('leagues.semafor');
-    Route::get('/leagues/{competition}/pdf', [App\Http\Controllers\PublicMatchController::class, 'tournamentPdf'])->name('leagues.tournament.pdf');
+// URIs are Bosnian/user-facing; route names stay English per Laravel convention.
+Route::name('competitions.')->group(function () {
+    Route::get('/takmicenja', [App\Http\Controllers\PublicMatchController::class, 'indexLeagues'])->name('index');
+    Route::get('/organizacija/{organization}', [App\Http\Controllers\PublicMatchController::class, 'indexLeaguesByOrganization'])->name('organization');
+    Route::get('/grad/{city}', [App\Http\Controllers\PublicMatchController::class, 'indexLeaguesByCity'])->name('by-city');
+    Route::get('/takmicenja/{competition}', [App\Http\Controllers\PublicMatchController::class, 'showLeague'])->name('show');
+    Route::get('/takmicenja/{competition}/semafor', [App\Http\Controllers\PublicMatchController::class, 'competitionSemafor'])->name('semafor');
 
-    // Public match routes
-    Route::get('/leagues/{competition}/matches/{match}', [App\Http\Controllers\PublicMatchController::class, 'showMatch'])->name('matches.show');
-    Route::get('/leagues/{competition}/team-matches/{teamMatch}', [App\Http\Controllers\PublicMatchController::class, 'showTeamMatch'])->name('team-matches.show');
-    Route::get('/leagues/{competition}/matches/{match}/live', [App\Http\Controllers\PublicMatchController::class, 'liveScore'])->name('matches.live');
-
-    // Public team/club profile
-    Route::get('/teams/{team}', [App\Http\Controllers\PublicMatchController::class, 'showTeam'])->name('teams.show');
-    Route::get('/teams/{team}/competitions/{competition}/matches', [App\Http\Controllers\PublicMatchController::class, 'showTeamCompetitionMatches'])->name('teams.competition-matches');
-
-    // API endpoint for live matches data
-    Route::get('/api/live-matches', [App\Http\Controllers\PublicMatchController::class, 'getLiveMatchesData'])->name('api.live-matches');
-
-    // API endpoint for single match data
-    Route::get('/api/matches/{matchId}', [App\Http\Controllers\PublicMatchController::class, 'getMatchData'])->name('api.match');
-
-    // Embed widget
-    Route::get('/embed/matches/{match}', [App\Http\Controllers\PublicMatchController::class, 'embedMatch'])->name('matches.embed');
+    Route::get('/takmicenja/{competition}/mecevi/{match}', [App\Http\Controllers\PublicMatchController::class, 'showMatch'])->name('matches.show');
+    Route::get('/takmicenja/{competition}/ekipni-mecevi/{teamMatch}', [App\Http\Controllers\PublicMatchController::class, 'showTeamMatch'])->name('team-matches.show');
+    Route::get('/takmicenja/{competition}/mecevi/{match}/uzivo', [App\Http\Controllers\PublicMatchController::class, 'liveScore'])->name('matches.live');
 });
+
+// Public team/club profile
+Route::get('/tim/{team}', [App\Http\Controllers\PublicMatchController::class, 'showTeam'])->name('teams.show');
+Route::get('/tim/{team}/takmicenja/{competition}/mecevi', [App\Http\Controllers\PublicMatchController::class, 'showTeamCompetitionMatches'])->name('teams.competition-matches');
+
+// AJAX/embed endpoints for the public pages above
+Route::get('/api/uzivo-mecevi', [App\Http\Controllers\PublicMatchController::class, 'getLiveMatchesData'])->name('api.live-matches');
+Route::get('/api/mecevi/{matchId}', [App\Http\Controllers\PublicMatchController::class, 'getMatchData'])->name('api.match');
+Route::get('/embed/mec/{match}', [App\Http\Controllers\PublicMatchController::class, 'embedMatch'])->name('embed.match');
 
 require __DIR__.'/auth.php';

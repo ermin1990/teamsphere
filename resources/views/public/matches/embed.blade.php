@@ -34,8 +34,6 @@
             <div class="text-xs text-gray-400 mb-1">
                 @if($match->competition)
                     {{ $match->competition->name }}
-                @elseif($match->competition)
-                    {{ $match->competition->name }}
                 @endif
                 • Round {{ $match->round ?? 'N/A' }}
             </div>
@@ -53,8 +51,6 @@
             <div class="text-center">
                 <div class="text-sm font-semibold text-blue-400 mb-2 truncate">
                     @if($match->competition && $match->competition->is_team_based)
-                        {{ $match->homeTeam?->name ?? 'Home' }}
-                    @elseif($match->competition && $match->competition->is_team_based)
                         {{ $match->homeTeam?->name ?? 'Home' }}
                     @else
                         {{ $match->homePlayer?->name ?? 'Home' }}
@@ -81,8 +77,6 @@
             <div class="text-center">
                 <div class="text-sm font-semibold text-red-400 mb-2 truncate">
                     @if($match->competition && $match->competition->is_team_based)
-                        {{ $match->awayTeam?->name ?? 'Away' }}
-                    @elseif($match->competition && $match->competition->is_team_based)
                         {{ $match->awayTeam?->name ?? 'Away' }}
                     @else
                         {{ $match->awayPlayer?->name ?? 'Away' }}

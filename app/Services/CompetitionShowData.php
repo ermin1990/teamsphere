@@ -21,9 +21,9 @@ class CompetitionShowData
                 $query->orderBy('position', 'asc');
             },
             'standings.team',
-            'standings.player',
+            'standings.player.organization',
             'tournamentGroups', // Load tournament groups for standings
-            'tournamentGroups.standings.player',
+            'tournamentGroups.standings.player.organization',
         ]);
 
         // Create player seeding maps for tournaments
@@ -40,7 +40,6 @@ class CompetitionShowData
 
         // Load matches based on competition type
         if ($competition->type === 'league') {
-            $competition->load(['standings.team', 'standings.player']);
             if ($competition->is_team_based) {
                 $competition->load([
                     'teamMatches' => function ($query) {
