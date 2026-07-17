@@ -35,4 +35,26 @@ return [
         ],
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Firebase (Google sign-in)
+    |--------------------------------------------------------------------------
+    |
+    | These are all public, client-side config values used by the Firebase
+    | JS SDK for "Sign in with Google" - there's no service account/private
+    | key involved. The backend only needs project_id, to check the `aud`/
+    | `iss` claims when verifying a Firebase ID token against Google's
+    | public certs (see App\Services\FirebaseAuthService).
+    |
+    */
+    'firebase' => [
+        'api_key' => env('FIREBASE_API_KEY'),
+        'auth_domain' => env('FIREBASE_AUTH_DOMAIN'),
+        'project_id' => env('FIREBASE_PROJECT_ID'),
+        'storage_bucket' => env('FIREBASE_STORAGE_BUCKET'),
+        'messaging_sender_id' => env('FIREBASE_MESSAGING_SENDER_ID'),
+        'app_id' => env('FIREBASE_APP_ID'),
+        'measurement_id' => env('FIREBASE_MEASUREMENT_ID'),
+    ],
+
 ];

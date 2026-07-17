@@ -18,7 +18,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->singleton(\App\Services\FirebaseAuthService::class, function () {
+            return new \App\Services\FirebaseAuthService(config('services.firebase.project_id'));
+        });
     }
 
     /**

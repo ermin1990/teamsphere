@@ -67,6 +67,10 @@
     </header>
 
     <section class="w-full bg-surface-container p-6 rounded-xl border border-outline-variant login-glow">
+        @if (session('error'))
+            <div class="mb-6 text-sm font-medium text-error">{{ session('error') }}</div>
+        @endif
+
         <form method="POST" action="{{ route('register') }}" class="flex flex-col gap-5">
             @csrf
 
@@ -153,6 +157,8 @@
                 <span class="material-symbols-outlined">arrow_forward</span>
             </button>
         </form>
+
+        @include('auth.partials.google-signin')
     </section>
 
     <footer class="w-full mt-8 flex flex-col items-center gap-4">

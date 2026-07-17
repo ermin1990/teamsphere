@@ -70,6 +70,9 @@
         @if (session('status'))
             <div class="mb-6 text-sm font-medium text-primary">{{ session('status') }}</div>
         @endif
+        @if (session('error'))
+            <div class="mb-6 text-sm font-medium text-error">{{ session('error') }}</div>
+        @endif
 
         <form method="POST" action="{{ route('login') }}" class="flex flex-col gap-5">
             @csrf
@@ -127,6 +130,8 @@
                 </span>
             </button>
         </form>
+
+        @include('auth.partials.google-signin')
     </section>
 
     @if (Route::has('register'))
