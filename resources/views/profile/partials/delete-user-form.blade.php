@@ -23,23 +23,29 @@
                 Da li ste sigurni da želite obrisati svoj nalog?
             </h2>
 
-            <p class="mt-1 text-sm" style="color: var(--text-tertiary);">
-                Jednom kada obrišete svoj nalog, svi njegovi resursi i podaci će biti trajno obrisani. Molimo vas da unesete svoju lozinku da potvrdite da želite trajno obrisati svoj nalog.
-            </p>
+            @if(auth()->user()->password)
+                <p class="mt-1 text-sm" style="color: var(--text-tertiary);">
+                    Jednom kada obrišete svoj nalog, svi njegovi resursi i podaci će biti trajno obrisani. Molimo vas da unesete svoju lozinku da potvrdite da želite trajno obrisati svoj nalog.
+                </p>
 
-            <div class="mt-6">
-                <x-input-label for="password" value="Lozinka" class="sr-only" />
+                <div class="mt-6">
+                    <x-input-label for="password" value="Lozinka" class="sr-only" />
 
-                <x-text-input
-                    id="password"
-                    name="password"
-                    type="password"
-                    class="mt-1 block w-3/4"
-                    placeholder="Lozinka"
-                />
+                    <x-text-input
+                        id="password"
+                        name="password"
+                        type="password"
+                        class="mt-1 block w-3/4"
+                        placeholder="Lozinka"
+                    />
 
-                <x-input-error :messages="$errors->userDeletion->get('password')" class="mt-2" />
-            </div>
+                    <x-input-error :messages="$errors->userDeletion->get('password')" class="mt-2" />
+                </div>
+            @else
+                <p class="mt-1 text-sm" style="color: var(--text-tertiary);">
+                    Jednom kada obrišete svoj nalog, svi njegovi resursi i podaci će biti trajno obrisani.
+                </p>
+            @endif
 
             <div class="mt-6 flex justify-end">
                 <x-secondary-button x-on:click="$dispatch('close')">
