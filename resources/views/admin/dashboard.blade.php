@@ -180,7 +180,7 @@
                     </div>
                     <div class="flex-1">
                         <p class="text-white font-medium">{{ $org->name }}</p>
-                        <p class="text-gray-400 text-sm">od {{ $org->user->name }}</p>
+                        <p class="text-gray-400 text-sm">od {{ $org->user->name ?? 'nepoznat korisnik' }}</p>
                     </div>
                     <div class="text-left sm:text-right">
                         <p class="text-gray-400 text-xs">{{ $org->created_at->diffForHumans() }}</p>
