@@ -21,7 +21,7 @@
                 <x-nav-link :href="route('home')" :active="request()->routeIs('home')" class="text-white hover:text-blue-400 transition-colors">
                         {{ __('Početna') }}
                     </x-nav-link>
-                @if(auth()->user()->isOrganizerOrStaff())
+                @if(auth()->user()->isOrganizerOrStaff() || auth()->user()->needsOrganizationOnboarding())
                 <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')" class="text-white hover:text-blue-400 transition-colors">
                         {{ __('Dashboard') }}
                     </x-nav-link>
@@ -108,7 +108,7 @@
                 {{ __('Početna') }}
             </x-responsive-nav-link>
         </div>
-        @if(auth()->user()->isOrganizerOrStaff())
+        @if(auth()->user()->isOrganizerOrStaff() || auth()->user()->needsOrganizationOnboarding())
         <div class="pt-2 pb-3 space-y-1">
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')" class="text-white hover:bg-gray-700/50" @click="open = false">
                 {{ __('Dashboard') }}
