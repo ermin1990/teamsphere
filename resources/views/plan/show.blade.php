@@ -36,18 +36,10 @@
                     <div class="bg-gray-700/30 rounded-xl p-4">
                         <div class="flex items-center justify-between mb-2">
                             <span class="text-gray-400 text-sm">Trenutni Plan</span>
-                            @if($currentPlan)
-                                <span class="px-2 py-1 bg-green-600/20 text-green-400 text-xs rounded-full">{{ $currentPlan->name }}</span>
-                            @else
-                                <span class="px-2 py-1 bg-gray-600/20 text-gray-400 text-xs rounded-full">Free</span>
-                            @endif
+                            <span class="px-2 py-1 bg-green-600/20 text-green-400 text-xs rounded-full">{{ $currentPlan->name ?? 'Free' }}</span>
                         </div>
                         <div class="text-2xl font-bold text-white">
-                            @if($currentPlan)
-                                {{ $currentPlan->price }} {{ $currentPlan->currency }}/mo
-                            @else
-                                Free
-                            @endif
+                            {{ $currentPlan->formatted_price ?? 'Besplatno' }}
                         </div>
                     </div>
 
@@ -55,17 +47,11 @@
                     <div class="bg-gray-700/30 rounded-xl p-4">
                         <div class="flex items-center justify-between mb-2">
                             <span class="text-gray-400 text-sm">Organizacije</span>
-                            @if($currentPlan)
-                                <span class="text-xs text-gray-500">{{ $usageStats['organizations_used'] }}/{{ $usageStats['max_organizations'] }}</span>
-                            @endif
+                            <span class="text-xs text-gray-500">{{ $usageStats['organizations_used'] }}/{{ $usageStats['max_organizations'] }}</span>
                         </div>
                         <div class="text-2xl font-bold text-white">{{ $usageStats['organizations_used'] }}</div>
                         <div class="text-xs text-gray-400">
-                            @if($currentPlan)
-                                {{ $usageStats['max_organizations'] - $usageStats['organizations_used'] }} preostalo
-                            @else
-                                Neograničeno
-                            @endif
+                            {{ max(0, $usageStats['max_organizations'] - $usageStats['organizations_used']) }} preostalo
                         </div>
                     </div>
 
@@ -73,17 +59,11 @@
                     <div class="bg-gray-700/30 rounded-xl p-4">
                         <div class="flex items-center justify-between mb-2">
                             <span class="text-gray-400 text-sm">Turniri</span>
-                            @if($currentPlan)
-                                <span class="text-xs text-gray-500">{{ $usageStats['competitions_used'] }}/{{ $organizationsCount * $usageStats['max_competitions_per_organization'] }}</span>
-                            @endif
+                            <span class="text-xs text-gray-500">{{ $usageStats['competitions_used'] }}/{{ $organizationsCount * $usageStats['max_competitions_per_organization'] }}</span>
                         </div>
                         <div class="text-2xl font-bold text-white">{{ $usageStats['competitions_used'] }}</div>
                         <div class="text-xs text-gray-400">
-                            @if($currentPlan)
-                                {{ ($organizationsCount * $usageStats['max_competitions_per_organization']) - $usageStats['competitions_used'] }} preostalo
-                            @else
-                                Neograničeno
-                            @endif
+                            {{ max(0, ($organizationsCount * $usageStats['max_competitions_per_organization']) - $usageStats['competitions_used']) }} preostalo
                         </div>
                     </div>
 
@@ -91,17 +71,11 @@
                     <div class="bg-gray-700/30 rounded-xl p-4">
                         <div class="flex items-center justify-between mb-2">
                             <span class="text-gray-400 text-sm">Lige</span>
-                            @if($currentPlan)
-                                <span class="text-xs text-gray-500">{{ $usageStats['leagues_used'] }}/{{ $organizationsCount * $usageStats['max_leagues_per_organization'] }}</span>
-                            @endif
+                            <span class="text-xs text-gray-500">{{ $usageStats['leagues_used'] }}/{{ $organizationsCount * $usageStats['max_leagues_per_organization'] }}</span>
                         </div>
                         <div class="text-2xl font-bold text-white">{{ $usageStats['leagues_used'] }}</div>
                         <div class="text-xs text-gray-400">
-                            @if($currentPlan)
-                                {{ ($organizationsCount * $usageStats['max_leagues_per_organization']) - $usageStats['leagues_used'] }} preostalo
-                            @else
-                                Neograničeno
-                            @endif
+                            {{ max(0, ($organizationsCount * $usageStats['max_leagues_per_organization']) - $usageStats['leagues_used']) }} preostalo
                         </div>
                     </div>
                 </div>

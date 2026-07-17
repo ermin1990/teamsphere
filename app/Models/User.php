@@ -114,12 +114,19 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
-     * Get the current active plan for this user.
+     * Get the current active plan for this user, falling back to the Free
+     * plan when the user has no active UserPlan row - a user without an
+     * explicit subscription is on Free, not unlimited.
      */
     public function currentPlan()
     {
         $userPlan = $this->userPlans()->active()->first();
-        return $userPlan ? $userPlan->plan : null;
+
+        if ($userPlan) {
+            return $userPlan->plan;
+        }
+
+        return Plan::where('slug', 'free')->first();
     }
 
     /**
@@ -128,7 +135,7 @@ class User extends Authenticatable implements MustVerifyEmail
     public function canCreateMoreOrganizations()
     {
         $plan = $this->currentPlan();
-        if (!$plan) return true; // Free plan allows 1 organization
+        if (!$plan) return false;
 
         return $this->organizations()->count() < $plan->max_organizations;
     }
@@ -139,7 +146,7 @@ class User extends Authenticatable implements MustVerifyEmail
     public function canCreateMoreCompetitions($organizationId)
     {
         $plan = $this->currentPlan();
-        if (!$plan) return true; // Free plan allows unlimited competitions
+        if (!$plan) return false;
 
         $competitionCount = \App\Models\Competition::where('organization_id', $organizationId)->count();
         return $competitionCount < $plan->max_competitions_per_organization;

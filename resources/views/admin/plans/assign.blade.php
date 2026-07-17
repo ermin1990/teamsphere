@@ -61,7 +61,7 @@
                             <div class="flex items-center justify-between mb-2">
                                 <h3 class="text-lg font-semibold text-white">{{ $plan->name }}</h3>
                                 <div class="text-right">
-                                    <p class="text-xl font-bold text-blue-400">{{ $plan->price }} {{ $plan->currency }}</p>
+                                    <p class="text-xl font-bold text-blue-400">{{ $plan->formatted_price }}</p>
                                 </div>
                             </div>
                             <p class="text-gray-400 text-sm mb-3">{{ $plan->description }}</p>

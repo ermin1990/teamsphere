@@ -39,7 +39,7 @@
                     <div class="flex flex-col sm:flex-row sm:items-center space-y-4 sm:space-y-0 sm:space-x-6">
                         <div class="flex space-x-6 sm:space-x-0 sm:flex-col sm:items-center">
                             <div class="text-center">
-                                <p class="text-2xl font-bold text-white">{{ $plan->price }} {{ $plan->currency }}</p>
+                                <p class="text-2xl font-bold text-white">{{ $plan->formatted_price }}</p>
                                 <p class="text-gray-400 text-xs">Cijena</p>
                             </div>
 

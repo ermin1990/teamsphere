@@ -15,6 +15,7 @@ class Plan extends Model
         'description',
         'price',
         'currency',
+        'billing_period',
         'max_organizations',
         'max_leagues_per_organization',
         'max_competitions_per_organization',
@@ -64,14 +65,33 @@ class Plan extends Model
     }
 
     /**
-     * Get formatted price.
+     * Bosnian label for the billing period suffix, e.g. "/god" or "/mj".
+     */
+    public function getBillingPeriodLabelAttribute()
+    {
+        return $this->billing_period === 'yearly' ? 'god' : 'mj';
+    }
+
+    /**
+     * Local display label for the currency code, e.g. "BAM" -> "KM".
+     */
+    public function getCurrencyLabelAttribute()
+    {
+        return match ($this->currency) {
+            'BAM' => 'KM',
+            default => $this->currency,
+        };
+    }
+
+    /**
+     * Get formatted price, e.g. "299.00 KM/god" or "Besplatno".
      */
     public function getFormattedPriceAttribute()
     {
         if ($this->isFree()) {
-            return __('Free');
+            return __('Besplatno');
         }
 
-        return number_format($this->price, 2) . ' ' . $this->currency;
+        return number_format($this->price, 2) . ' ' . $this->currency_label . '/' . $this->billing_period_label;
     }
 }

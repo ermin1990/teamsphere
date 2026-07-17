@@ -39,18 +39,25 @@
 
                 <!-- Price -->
                 <div>
-                    <label for="price" class="block text-sm font-medium text-gray-300 mb-2">Price</label>
+                    <label for="price" class="block text-sm font-medium text-gray-300 mb-2">Cijena</label>
                     <div class="flex">
                         <input type="number" step="0.01" name="price" id="price" value="{{ old('price', $plan->price) }}"
                                class="flex-1 px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-l-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white placeholder-gray-400"
                                required>
-                        <select name="currency" class="px-3 py-3 bg-gray-700/50 border border-l-0 border-gray-600 rounded-r-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white">
+                        <select name="currency" class="px-3 py-3 bg-gray-700/50 border-y border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white">
+                            <option value="BAM" {{ old('currency', $plan->currency) == 'BAM' ? 'selected' : '' }}>BAM (KM)</option>
                             <option value="EUR" {{ old('currency', $plan->currency) == 'EUR' ? 'selected' : '' }}>EUR</option>
                             <option value="USD" {{ old('currency', $plan->currency) == 'USD' ? 'selected' : '' }}>USD</option>
-                            <option value="BAM" {{ old('currency', $plan->currency) == 'BAM' ? 'selected' : '' }}>BAM</option>
+                        </select>
+                        <select name="billing_period" class="px-3 py-3 bg-gray-700/50 border border-l-0 border-gray-600 rounded-r-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white">
+                            <option value="yearly" {{ old('billing_period', $plan->billing_period) == 'yearly' ? 'selected' : '' }}>godišnje</option>
+                            <option value="monthly" {{ old('billing_period', $plan->billing_period) == 'monthly' ? 'selected' : '' }}>mjesečno</option>
                         </select>
                     </div>
                     @error('price')
+                        <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
+                    @enderror
+                    @error('billing_period')
                         <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
                     @enderror
                 </div>
@@ -123,12 +130,21 @@
             <!-- Features -->
             <div>
                 <label class="block text-sm font-medium text-gray-300 mb-2">Features (one per line)</label>
-                <textarea name="features[]" id="features" rows="4"
+                <textarea name="features" id="features" rows="4"
                           class="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white placeholder-gray-400"
                           placeholder="Enter each feature on a new line">{{ old('features', collect($plan->features)->implode("\n")) }}</textarea>
                 @error('features')
                     <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
                 @enderror
+            </div>
+
+            <!-- Status -->
+            <div class="flex items-center space-x-3">
+                <input type="hidden" name="is_active" value="0">
+                <input type="checkbox" name="is_active" id="is_active" value="1"
+                       {{ old('is_active', $plan->is_active) ? 'checked' : '' }}
+                       class="w-5 h-5 rounded bg-gray-700/50 border-gray-600 text-blue-500 focus:ring-blue-500">
+                <label for="is_active" class="text-sm font-medium text-gray-300">Plan je aktivan (vidljiv i dodjeljiv korisnicima)</label>
             </div>
 
             <!-- Submit -->

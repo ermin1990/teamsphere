@@ -15,7 +15,7 @@ class AdminPlanController extends Controller
 
     public function show(Plan $plan)
     {
-        $plan->load(['userPlans.user']);
+        $plan->load(['userPlans.user.organizations']);
         return view('admin.plans.show', compact('plan'));
     }
 
@@ -31,13 +31,21 @@ class AdminPlanController extends Controller
             'description' => 'required|string',
             'price' => 'required|numeric|min:0',
             'currency' => 'required|string|size:3',
+            'billing_period' => 'required|in:monthly,yearly',
             'max_organizations' => 'required|integer|min:0',
             'max_leagues_per_organization' => 'required|integer|min:0',
             'max_competitions_per_organization' => 'required|integer|min:0',
             'max_teams_per_league' => 'required|integer|min:0',
             'max_players_per_team' => 'required|integer|min:0',
-            'features' => 'required|array',
+            'features' => 'required|string',
         ]);
+
+        $validated['is_active'] = $request->boolean('is_active');
+        $validated['features'] = collect(preg_split('/\r\n|\r|\n/', $validated['features']))
+            ->map(fn ($line) => trim($line))
+            ->filter()
+            ->values()
+            ->all();
 
         $plan->update($validated);
 

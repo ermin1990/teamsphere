@@ -180,7 +180,7 @@ class Organization extends Model
     public function canCreateMoreLeagues()
     {
         $plan = $this->user->currentPlan();
-        if (!$plan) return true; // Free plan allows unlimited leagues per organization
+        if (!$plan) return false;
 
         return $this->leagues()->count() < $plan->max_leagues_per_organization;
     }
@@ -191,7 +191,7 @@ class Organization extends Model
     public function canCreateMoreCompetitions()
     {
         $plan = $this->user->currentPlan();
-        if (!$plan) return true; // Free plan allows unlimited competitions per organization
+        if (!$plan) return false;
 
         return $this->competitions()->count() < $plan->max_competitions_per_organization;
     }
@@ -202,7 +202,7 @@ class Organization extends Model
     public function getRemainingLeaguesCount()
     {
         $plan = $this->user->currentPlan();
-        if (!$plan) return PHP_INT_MAX; // Free plan allows unlimited
+        if (!$plan) return 0;
 
         return max(0, $plan->max_leagues_per_organization - $this->leagues()->count());
     }
@@ -213,7 +213,7 @@ class Organization extends Model
     public function getRemainingCompetitionsCount()
     {
         $plan = $this->user->currentPlan();
-        if (!$plan) return PHP_INT_MAX; // Free plan allows unlimited
+        if (!$plan) return 0;
 
         return max(0, $plan->max_competitions_per_organization - $this->competitions()->count());
     }

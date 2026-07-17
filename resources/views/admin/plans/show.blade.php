@@ -39,7 +39,7 @@
                     </svg>
                 </div>
                 <div>
-                    <p class="text-2xl font-bold text-white">{{ $plan->price }} {{ $plan->currency }}</p>
+                    <p class="text-2xl font-bold text-white">{{ $plan->formatted_price }}</p>
                     <p class="text-gray-400 text-sm">Cijena</p>
                 </div>
             </div>
@@ -110,6 +110,10 @@
                     <span class="text-white font-semibold">{{ $plan->max_leagues_per_organization }}</span>
                 </div>
                 <div class="flex justify-between items-center">
+                    <span class="text-gray-400">Max takmičenja po organizaciji:</span>
+                    <span class="text-white font-semibold">{{ $plan->max_competitions_per_organization }}</span>
+                </div>
+                <div class="flex justify-between items-center">
                     <span class="text-gray-400">Max timova po ligi:</span>
                     <span class="text-white font-semibold">{{ $plan->max_teams_per_league }}</span>
                 </div>
@@ -161,12 +165,25 @@
                             <div>
                                 <h4 class="text-white font-semibold">{{ $userPlan->user->name }}</h4>
                                 <p class="text-gray-400 text-sm">{{ $userPlan->user->email }}</p>
+                                @if($userPlan->user->organizations->isNotEmpty())
+                                    <p class="text-gray-500 text-xs mt-1">
+                                        Organizacije: {{ $userPlan->user->organizations->pluck('name')->implode(', ') }}
+                                    </p>
+                                @else
+                                    <p class="text-gray-500 text-xs mt-1">Nema organizacija</p>
+                                @endif
                             </div>
                         </div>
 
                         <div class="text-right">
                             <p class="text-sm text-gray-400">Pretplaćen</p>
                             <p class="text-white">{{ $userPlan->created_at->format('d.m.Y') }}</p>
+                            @if($userPlan->expires_at)
+                                <p class="text-xs text-gray-500 mt-1">Ističe {{ $userPlan->expires_at->format('d.m.Y') }}</p>
+                            @endif
+                            @if(!$userPlan->is_active)
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-500/20 text-red-400 mt-1">Neaktivan</span>
+                            @endif
                         </div>
                     </div>
                 </div>
