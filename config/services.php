@@ -57,4 +57,30 @@ return [
         'measurement_id' => env('FIREBASE_MEASUREMENT_ID'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Gemini (AI popuni ligu asistent)
+    |--------------------------------------------------------------------------
+    |
+    | Free-tier Gemini Flash models used by App\Services\GeminiLeagueAssistantService
+    | to turn a plain-language description into suggested competition-create
+    | form values. `model` must be one of `allowed_models` - the service
+    | refuses to call anything outside this free-tier set.
+    |
+    | Verified against the live API (2026-07-17): gemini-2.5-flash and
+    | gemini-2.5-flash-lite are retired for this key ("no longer available
+    | to new users") - NOT transient, don't re-add them without re-testing.
+    | gemini-3.1-flash-lite and gemini-3.5-flash both work (3.5-flash can
+    | occasionally 503 "high demand" - that's transient Google-side load).
+    |
+    */
+    'gemini' => [
+        'api_key' => env('GEMINI_API_KEY'),
+        'model' => env('GEMINI_MODEL', 'gemini-3.1-flash-lite'),
+        'allowed_models' => [
+            'gemini-3.1-flash-lite',
+            'gemini-3.5-flash',
+        ],
+    ],
+
 ];

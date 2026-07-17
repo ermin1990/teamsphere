@@ -12,6 +12,38 @@
 
     <div class="py-12">
         <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
+            <!-- AI popuni ligu -->
+            <div id="aiAssistantCard" class="relative bg-gradient-to-r from-blue-900/30 to-purple-900/30 backdrop-blur-xl rounded-2xl p-6 border border-blue-500/30 shadow-xl mb-6 overflow-hidden transition-all duration-300">
+                <!-- Glatki "shimmer" preliv preko cijele kartice dok AI radi -->
+                <div id="aiShimmer" class="hidden absolute inset-0 bg-gradient-to-r from-transparent via-blue-400/10 to-transparent -translate-x-full animate-[shimmer_1.6s_infinite]"></div>
+
+                <label for="ai_description" class="relative block text-sm font-medium text-white mb-2">
+                    ✨ Opiši takmičenje riječima (opciono) — AI će pokušati popuniti formu ispod
+                </label>
+                <textarea id="ai_description" rows="2"
+                          class="relative w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                          placeholder="Npr. Turnir u stonom tenisu za 16 igrača, dvojica napreduju po grupi, počinje 5. avgusta"></textarea>
+                <div class="relative flex items-center justify-between mt-3">
+                    <div id="aiStatus" class="flex items-center gap-2 text-sm text-gray-400">
+                        <svg id="aiSpinner" class="hidden w-4 h-4 text-blue-400 animate-spin" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                        </svg>
+                        <span id="aiStatusText"></span>
+                    </div>
+                    <button type="button" id="aiSuggestButton"
+                            class="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg transition-all duration-200 font-semibold text-sm disabled:opacity-70 disabled:cursor-not-allowed">
+                        Popuni AI-jem
+                    </button>
+                </div>
+            </div>
+
+            <style>
+                @keyframes shimmer {
+                    100% { transform: translateX(100%); }
+                }
+            </style>
+
             <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-8 border border-gray-700/50 shadow-xl">
                 <form action="{{ route('organizations.competitions.store', $organization) }}" method="POST" id="competitionForm" class="space-y-8">
                     @csrf
@@ -102,27 +134,6 @@
                             <span>{{ $organization->sport->name }}</span>
                             <span class="text-gray-500 text-xs ml-auto">Sport organizacije "{{ $organization->name }}"</span>
                         </div>
-                    </div>
-
-                    <!-- Category Selection -->
-                    <div>
-                        <label for="category_id" class="block text-sm font-medium text-white mb-2">
-                            Kategorija
-                        </label>
-                        <select id="category_id"
-                                name="category_id"
-                                class="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200">
-                            <option value="">Bez kategorije</option>
-                            @foreach($categories as $category)
-                                <option value="{{ $category->id }}" {{ old('category_id') == $category->id ? 'selected' : '' }}>
-                                    {{ $category->name }}
-                                </option>
-                            @endforeach
-                        </select>
-                        @error('category_id')
-                            <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
-                        @enderror
-                        <p class="mt-1 text-xs text-gray-400">Opcionalno: Odaberite kategoriju za ovaj turnir (npr. Veterani, U18, Amateri...)</p>
                     </div>
 
                     <!-- City / Season / Registration deadline -->
@@ -416,5 +427,108 @@
         document.addEventListener('DOMContentLoaded', function() {
             toggleCompetitionType();
         });
+
+        // AI popuni ligu
+        document.getElementById('aiSuggestButton').addEventListener('click', async function () {
+            const button = this;
+            const card = document.getElementById('aiAssistantCard');
+            const shimmer = document.getElementById('aiShimmer');
+            const spinner = document.getElementById('aiSpinner');
+            const statusText = document.getElementById('aiStatusText');
+            const description = document.getElementById('ai_description').value.trim();
+
+            const setStatus = (text, colorClass) => {
+                statusText.textContent = text;
+                statusText.className = colorClass;
+            };
+
+            const setLoading = (isLoading) => {
+                button.disabled = isLoading;
+                spinner.classList.toggle('hidden', !isLoading);
+                shimmer.classList.toggle('hidden', !isLoading);
+                card.classList.toggle('border-blue-400/60', isLoading);
+                card.classList.toggle('shadow-blue-500/20', isLoading);
+                card.classList.toggle('shadow-2xl', isLoading);
+            };
+
+            if (!description) {
+                setStatus('Prvo opišite takmičenje u polju iznad.', 'text-yellow-400');
+                return;
+            }
+
+            setLoading(true);
+            setStatus('AI razmišlja...', 'text-blue-300');
+
+            try {
+                const response = await fetch('{{ route("organizations.competitions.ai-suggest", $organization) }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'Accept': 'application/json',
+                    },
+                    body: JSON.stringify({ description }),
+                });
+
+                const payload = await response.json();
+
+                if (!response.ok) {
+                    setStatus(payload.error || 'AI trenutno nije dostupan, popunite ručno.', 'text-red-400');
+                    return;
+                }
+
+                applyAiSuggestion(payload.data || {});
+
+                const warnings = payload.warnings || [];
+                setStatus(
+                    warnings.length ? 'Forma popunjena. ' + warnings.join(' ') : 'Forma popunjena — provjerite prije slanja.',
+                    warnings.length ? 'text-yellow-400' : 'text-green-400'
+                );
+            } catch (e) {
+                setStatus('AI trenutno nije dostupan, popunite ručno.', 'text-red-400');
+            } finally {
+                setLoading(false);
+            }
+        });
+
+        function applyAiSuggestion(data) {
+            const setValue = (id, value) => {
+                if (value === undefined || value === null) return;
+                const el = document.getElementById(id);
+                if (el) el.value = value;
+            };
+            const setChecked = (id, checked) => {
+                const el = document.getElementById(id);
+                if (el) el.checked = !!checked;
+            };
+
+            setValue('name', data.name);
+            setValue('description', data.description);
+            setValue('location', data.location);
+            setValue('organizer_contact', data.organizer_contact);
+            setValue('entry_fee', data.entry_fee);
+            setValue('start_date', data.start_date);
+            setValue('end_date', data.end_date);
+            setValue('players_advancing_per_group', data.players_advancing_per_group);
+
+            if (data.city_id) setValue('city_id', String(data.city_id));
+
+            if (data.type === 'league') {
+                document.getElementById('league').checked = true;
+            } else if (data.type === 'tournament') {
+                document.getElementById('tournament').checked = true;
+            }
+
+            if (typeof data.is_team_based === 'boolean') {
+                setChecked('team_based', data.is_team_based);
+                setChecked('individual_based', !data.is_team_based);
+            }
+
+            setChecked('is_double_round', data.is_double_round);
+            setChecked('is_recreational', data.is_recreational);
+            setChecked('allow_rematches', data.allow_rematches);
+
+            toggleCompetitionType();
+        }
     </script>
 </x-app-layout>

@@ -222,6 +222,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Competition routes (nested under organizations)
     Route::get('organizations/{organization}/competitions/create', [CompetitionController::class, 'create'])->name('organizations.competitions.create');
+    Route::post('organizations/{organization}/competitions/ai-suggest', [CompetitionController::class, 'aiSuggestCompetition'])
+        ->middleware('throttle:ai-league-suggest')
+        ->name('organizations.competitions.ai-suggest');
     Route::post('organizations/{organization}/competitions', [CompetitionController::class, 'store'])->name('organizations.competitions.store');
     Route::get('organizations/{organization}/competitions/{competition}', [CompetitionController::class, 'show'])->name('organizations.competitions.show');
     Route::patch('organizations/{organization}/competitions/{competition}', [CompetitionController::class, 'update'])->name('organizations.competitions.update');

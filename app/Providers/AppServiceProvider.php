@@ -5,8 +5,10 @@ namespace App\Providers;
 use App\Models\Setting;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
+use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
@@ -42,6 +44,12 @@ class AppServiceProvider extends ServiceProvider
         });
 
         $this->applyMailSettingsOverride();
+
+        // Guards the free-tier Gemini quota against accidental/abusive spam
+        // clicks on the "AI popuni ligu" button.
+        RateLimiter::for('ai-league-suggest', function ($request) {
+            return Limit::perMinute(10)->by($request->user()?->id ?: $request->ip());
+        });
     }
 
     /**

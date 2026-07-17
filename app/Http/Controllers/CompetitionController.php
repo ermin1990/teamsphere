@@ -12,9 +12,11 @@ use App\Models\Standing;
 use App\Models\Team;
 use App\Models\TournamentGroup;
 use App\Http\Controllers\TeamMatchController;
+use App\Services\GeminiLeagueAssistantService;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -30,11 +32,36 @@ class CompetitionController extends Controller
 
         Gate::authorize('update', $organization);
 
-        $categories = $organization->categories()->active()->get();
         $cities = \App\Models\City::orderBy('name')->get();
         $seasons = $organization->seasons()->orderByDesc('starts_at')->get();
 
-        return view('organizations.competitions.create', compact('organization', 'categories', 'cities', 'seasons'));
+        return view('organizations.competitions.create', compact('organization', 'cities', 'seasons'));
+    }
+
+    /**
+     * Turn a plain-language description into suggested values for the
+     * competition-create form. Never creates a Competition - only returns
+     * a suggestion for the organizer to review before submitting the form.
+     */
+    public function aiSuggestCompetition(Request $request, Organization $organization, GeminiLeagueAssistantService $assistant)
+    {
+        Gate::authorize('update', $organization);
+
+        $validated = $request->validate([
+            'description' => ['required', 'string', 'max:500'],
+        ]);
+
+        try {
+            $result = $assistant->suggest($validated['description']);
+        } catch (\Throwable $e) {
+            Log::warning('AI league suggestion failed', ['error' => $e->getMessage()]);
+
+            return response()->json([
+                'error' => 'AI trenutno nije dostupan, popunite formu ručno.',
+            ], 502);
+        }
+
+        return response()->json($result);
     }
 
     /**
