@@ -262,6 +262,7 @@
         <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
             <div class="flex bg-surface-container-low p-1 rounded-lg border border-outline-variant">
                 <a href="{{ $filterUrl(['status' => 'active']) }}" class="px-4 py-1.5 rounded-md text-sm font-label-bold transition-all {{ $statusFilter === 'active' ? 'bg-primary text-on-primary' : 'text-on-surface-variant hover:text-on-surface' }}">Aktivne</a>
+                <a href="{{ $filterUrl(['status' => 'uskoro']) }}" class="px-4 py-1.5 rounded-md text-sm font-label-bold transition-all {{ $statusFilter === 'uskoro' ? 'bg-primary text-on-primary' : 'text-on-surface-variant hover:text-on-surface' }}">Uskoro</a>
                 <a href="{{ $filterUrl(['status' => 'zavrsene']) }}" class="px-4 py-1.5 rounded-md text-sm font-label-bold transition-all {{ $statusFilter === 'zavrsene' ? 'bg-primary text-on-primary' : 'text-on-surface-variant hover:text-on-surface' }}">Završene</a>
                 <a href="{{ $filterUrl(['status' => 'sve']) }}" class="px-4 py-1.5 rounded-md text-sm font-label-bold transition-all {{ $statusFilter === 'sve' ? 'bg-primary text-on-primary' : 'text-on-surface-variant hover:text-on-surface' }}">Sve</a>
             </div>
@@ -288,20 +289,39 @@
                             @php
                                 $cLive = $competition->status === 'in_progress';
                                 $cCompleted = $competition->status === 'completed';
+                                $cUpcomingOpen = !$cCompleted && !$cLive && $competition->registration_open
+                                    && (!$competition->start_date || $competition->start_date->isFuture());
+                                $badge = $cCompleted ? 'Završeno' : ($cLive ? 'U toku' : ($cUpcomingOpen ? 'Prijave otvorene' : 'Aktivno'));
                             @endphp
-                            <a href="{{ route('competitions.show', $competition) }}" class="flex items-center justify-between gap-3 px-4 py-3 hover:bg-surface-variant/30 transition-colors group">
-                                <div class="flex items-center gap-3 sm:gap-4 min-w-0">
-                                    <span class="material-symbols-outlined text-on-surface-variant text-lg shrink-0">{{ $sportIcon($competition->sport) }}</span>
-                                    <span class="font-body-md text-on-surface truncate">{{ $competition->name }}</span>
-                                    <span class="hidden md:inline text-xs text-on-surface-variant truncate shrink-0">{{ $competition->city->name ?? '' }}</span>
-                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase shrink-0 {{ $cCompleted ? 'bg-outline-variant/20 text-on-surface-variant' : ($cLive ? 'bg-primary/10 text-primary animate-pulse' : 'bg-secondary/10 text-secondary') }}">
-                                        {{ $cCompleted ? 'Završeno' : ($cLive ? 'U toku' : 'Aktivno') }}
-                                    </span>
+                            @if($statusFilter === 'uskoro')
+                                <div class="flex items-center justify-between gap-3 px-4 py-3 hover:bg-surface-variant/30 transition-colors">
+                                    <a href="{{ route('competitions.show', $competition) }}" class="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
+                                        <span class="material-symbols-outlined text-on-surface-variant text-lg shrink-0">{{ $sportIcon($competition->sport) }}</span>
+                                        <span class="font-body-md text-on-surface truncate">{{ $competition->name }}</span>
+                                        <span class="hidden md:inline text-xs text-on-surface-variant truncate shrink-0">{{ $competition->city->name ?? '' }}</span>
+                                        <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase shrink-0 bg-secondary/10 text-secondary">
+                                            {{ $badge }}
+                                        </span>
+                                    </a>
+                                    <a href="{{ route('player.leagues.index') }}" class="shrink-0 px-3 py-1.5 rounded-full bg-primary text-on-primary text-xs font-label-bold hover:bg-primary-container transition-colors">
+                                        Prijavi se
+                                    </a>
                                 </div>
-                                <span class="text-primary opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 text-xs font-label-bold shrink-0">
-                                    Pogledaj <span class="material-symbols-outlined text-xs">chevron_right</span>
-                                </span>
-                            </a>
+                            @else
+                                <a href="{{ route('competitions.show', $competition) }}" class="flex items-center justify-between gap-3 px-4 py-3 hover:bg-surface-variant/30 transition-colors group">
+                                    <div class="flex items-center gap-3 sm:gap-4 min-w-0">
+                                        <span class="material-symbols-outlined text-on-surface-variant text-lg shrink-0">{{ $sportIcon($competition->sport) }}</span>
+                                        <span class="font-body-md text-on-surface truncate">{{ $competition->name }}</span>
+                                        <span class="hidden md:inline text-xs text-on-surface-variant truncate shrink-0">{{ $competition->city->name ?? '' }}</span>
+                                        <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase shrink-0 {{ $cCompleted ? 'bg-outline-variant/20 text-on-surface-variant' : ($cLive ? 'bg-primary/10 text-primary animate-pulse' : 'bg-secondary/10 text-secondary') }}">
+                                        {{ $badge }}
+                                    </span>
+                                    </div>
+                                    <span class="text-primary opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 text-xs font-label-bold shrink-0">
+                                        Pogledaj <span class="material-symbols-outlined text-xs">chevron_right</span>
+                                    </span>
+                                </a>
+                            @endif
                         @endforeach
                     </div>
                 </div>

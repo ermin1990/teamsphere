@@ -15,6 +15,18 @@
     };
     $isTournament = $competition->type === 'tournament';
     $advancingPlayers = $competition->players_advancing_per_group ?? 0;
+
+    // Join/apply state - self-contained so this partial works whether it's
+    // included from the anonymous public page or the player's own view of a
+    // competition they already belong to (where $canApply is naturally false).
+    $viewerId = auth()->id();
+    $isMember = $viewerId && $competition->players()->where('players.user_id', $viewerId)->exists();
+    $isPending = $viewerId && \App\Models\CompetitionJoinRequest::where('competition_id', $competition->id)
+        ->where('user_id', $viewerId)->where('status', 'pending')->exists();
+    $canApply = $competition->registration_open
+        && !$competition->is_team_based
+        && !$isMember
+        && (!$competition->registration_deadline || $competition->registration_deadline->isFuture());
     $fmtDiff = fn ($n) => ($n > 0 ? '+' : '') . $n;
 
     if (!$isTournament) {
@@ -95,6 +107,42 @@
         @if($competition->entry_fee)<span>💳 {{ $competition->entry_fee }}</span>@endif
         @if($competition->organizer_contact)<span>☎️ {{ $competition->organizer_contact }}</span>@endif
     </div>
+</section>
+@endif
+
+@if($canApply)
+<section class="-mx-margin-mobile lg:mx-0 mb-6 lg:mb-8 bg-primary/10 border-y lg:border border-primary/30 lg:rounded-xl px-margin-mobile py-4 lg:p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+    <div>
+        <p class="font-headline-md text-on-surface">Prijave su otvorene</p>
+        <p class="text-sm text-on-surface-variant">Prijavi se da učestvuješ u ovom {{ $isTournament ? 'turniru' : 'takmičenju' }}.</p>
+    </div>
+    @if($isPending)
+        <span class="shrink-0 px-4 py-2 rounded-full text-sm font-label-bold bg-secondary/15 text-secondary text-center">Zahtjev poslan</span>
+    @else
+        <form method="POST" action="{{ route('player.leagues.apply', $competition) }}" class="competition-apply-form shrink-0">
+            @csrf
+            <button type="submit" class="apply-button w-full sm:w-auto px-5 py-2.5 text-sm font-semibold rounded-full transition-all active:scale-95 whitespace-nowrap bg-primary text-on-primary inline-flex items-center justify-center gap-2 disabled:opacity-70">
+                <span class="apply-button-text">Prijavi se</span>
+                <svg class="apply-button-spinner hidden animate-spin w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                </svg>
+            </button>
+        </form>
+    @endif
+</section>
+<script>
+    document.querySelectorAll('.competition-apply-form').forEach(function (form) {
+        form.addEventListener('submit', function () {
+            const button = form.querySelector('.apply-button');
+            button.disabled = true;
+            button.querySelector('.apply-button-text').textContent = 'Šaljem zahtjev...';
+            button.querySelector('.apply-button-spinner').classList.remove('hidden');
+        });
+    });
+</script>
+@elseif($competition->registration_open && $competition->is_team_based && !$isMember)
+<section class="-mx-margin-mobile lg:mx-0 mb-6 lg:mb-8 bg-surface-container-low border-y lg:border border-outline-variant lg:rounded-xl px-margin-mobile py-4 lg:p-5">
+    <p class="text-sm text-on-surface-variant">📋 Prijave su otvorene, ali je ovo timsko takmičenje — kontaktiraj organizatora direktno da prijaviš svoj tim{{ $competition->organizer_contact ? ' (' . $competition->organizer_contact . ')' : '' }}.</p>
 </section>
 @endif
 

@@ -43,6 +43,14 @@ class PublicMatchController extends Controller
             $competitionsQuery->whereIn('status', ['active', 'in_progress']);
         } elseif ($statusFilter === 'zavrsene') {
             $competitionsQuery->where('status', 'completed');
+        } elseif ($statusFilter === 'uskoro') {
+            // Otvoreno za prijave, još nije počelo - isti obrazac kao
+            // PlayerLeagueController::index(), samo javno i uz start_date
+            // provjeru (tamošnja verzija ne razlikuje "još nije počelo").
+            $competitionsQuery->where('registration_open', true)
+                ->whereIn('status', ['draft', 'active'])
+                ->where(fn ($q) => $q->whereNull('registration_deadline')->orWhere('registration_deadline', '>=', now()))
+                ->where(fn ($q) => $q->whereNull('start_date')->orWhere('start_date', '>', now()));
         }
 
         // Grouped by organization (sorted alphabetically) so visitors can

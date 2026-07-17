@@ -263,6 +263,8 @@
                             @php
                                 $cLive = $competition->status === 'in_progress';
                                 $cCompleted = $competition->status === 'completed';
+                                $cUpcomingOpen = !$cCompleted && !$cLive && $competition->registration_open
+                                    && (!$competition->start_date || $competition->start_date->isFuture());
                             @endphp
                             <a href="{{ route('competitions.show', $competition) }}" class="flex items-center justify-between gap-3 px-margin-mobile lg:px-4 py-3 hover:bg-surface-variant/30 transition-colors group">
                                 <div class="flex items-center gap-3 min-w-0">
@@ -279,7 +281,7 @@
                                         @endif
                                     </div>
                                     <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase shrink-0 {{ $cCompleted ? 'bg-outline-variant/20 text-on-surface-variant' : ($cLive ? 'bg-primary/10 text-primary animate-pulse' : 'bg-secondary/10 text-secondary') }}">
-                                        {{ $cCompleted ? 'Završeno' : ($cLive ? 'U toku' : 'Aktivno') }}
+                                        {{ $cCompleted ? 'Završeno' : ($cLive ? 'U toku' : ($cUpcomingOpen ? 'Prijave otvorene' : 'Aktivno')) }}
                                     </span>
                                 </div>
                                 <span class="text-primary opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 text-xs font-label-bold shrink-0">
