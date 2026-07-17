@@ -55,7 +55,7 @@
                                            name="sport_id"
                                            value="{{ $sport->id }}"
                                            class="peer sr-only"
-                                           {{ old('sport_id') == $sport->id ? 'checked' : '' }}
+                                           {{ old('sport_id', $sports->first()?->id) == $sport->id ? 'checked' : '' }}
                                            required>
                                     <div class="flex flex-col items-center justify-center gap-2 px-4 py-4 bg-gray-700/50 border-2 border-gray-600 rounded-xl text-center transition-all duration-200 peer-checked:border-blue-500 peer-checked:bg-blue-500/10 hover:border-gray-500">
                                         <span class="text-2xl">{{ $sport->icon }}</span>
