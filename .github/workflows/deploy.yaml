@@ -118,6 +118,27 @@ jobs:
               sed -i "s|^APP_URL=.*|APP_URL=$APP_URL|" .env
             fi
 
+            # Firebase (Google prijava) - sve javne, client-side vrijednosti
+            # (nema service account/private key-a), pa je bezbjedno da stoje
+            # ovdje umjesto kao GitHub Secrets. Upisuje se pri svakom deploy-u
+            # da postojeći .env na VPS-u (koji se inače ne dira) dobije ove
+            # ključeve i kad su naknadno dodani.
+            echo "🔥 Upisujem Firebase konfiguraciju u .env..."
+            sed -i "s|^FIREBASE_API_KEY=.*|FIREBASE_API_KEY=AIzaSyAjV1IJu9LeBV8L5WBkJOyAq665IuMvLtI|" .env || echo "FIREBASE_API_KEY=AIzaSyAjV1IJu9LeBV8L5WBkJOyAq665IuMvLtI" >> .env
+            grep -q "^FIREBASE_API_KEY=" .env || echo "FIREBASE_API_KEY=AIzaSyAjV1IJu9LeBV8L5WBkJOyAq665IuMvLtI" >> .env
+            sed -i "s|^FIREBASE_AUTH_DOMAIN=.*|FIREBASE_AUTH_DOMAIN=mojturnironline.firebaseapp.com|" .env || true
+            grep -q "^FIREBASE_AUTH_DOMAIN=" .env || echo "FIREBASE_AUTH_DOMAIN=mojturnironline.firebaseapp.com" >> .env
+            sed -i "s|^FIREBASE_PROJECT_ID=.*|FIREBASE_PROJECT_ID=mojturnironline|" .env || true
+            grep -q "^FIREBASE_PROJECT_ID=" .env || echo "FIREBASE_PROJECT_ID=mojturnironline" >> .env
+            sed -i "s|^FIREBASE_STORAGE_BUCKET=.*|FIREBASE_STORAGE_BUCKET=mojturnironline.firebasestorage.app|" .env || true
+            grep -q "^FIREBASE_STORAGE_BUCKET=" .env || echo "FIREBASE_STORAGE_BUCKET=mojturnironline.firebasestorage.app" >> .env
+            sed -i "s|^FIREBASE_MESSAGING_SENDER_ID=.*|FIREBASE_MESSAGING_SENDER_ID=183976155486|" .env || true
+            grep -q "^FIREBASE_MESSAGING_SENDER_ID=" .env || echo "FIREBASE_MESSAGING_SENDER_ID=183976155486" >> .env
+            sed -i "s|^FIREBASE_APP_ID=.*|FIREBASE_APP_ID=1:183976155486:web:ca8e8ec1624616cdb817cf|" .env || true
+            grep -q "^FIREBASE_APP_ID=" .env || echo "FIREBASE_APP_ID=1:183976155486:web:ca8e8ec1624616cdb817cf" >> .env
+            sed -i "s|^FIREBASE_MEASUREMENT_ID=.*|FIREBASE_MEASUREMENT_ID=G-SC67SYRN2X|" .env || true
+            grep -q "^FIREBASE_MEASUREMENT_ID=" .env || echo "FIREBASE_MEASUREMENT_ID=G-SC67SYRN2X" >> .env
+
             echo "🐳 Gradim docker image..."
             docker compose build
 
