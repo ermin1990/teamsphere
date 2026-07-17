@@ -143,20 +143,10 @@
     <section class="hero-pattern relative overflow-hidden py-24 md:py-36 px-margin-mobile lg:px-gutter border-b border-outline-variant">
         <div class="absolute inset-0 grid-mesh z-0"></div>
         <div class="max-w-container-max mx-auto relative z-10 flex flex-col items-center text-center">
-            @if($liveMatchesCount > 0)
-                <a href="{{ route('competitions.index') }}" class="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-on-surface-variant border border-outline-variant rounded-full px-4 py-2 mb-8 hover:border-primary transition-colors">
-                    <span class="relative flex h-2 w-2">
-                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                        <span class="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
-                    </span>
-                    {{ $liveMatchesCount }} {{ $liveMatchesCount === 1 ? 'meč se igra uživo' : 'meča se igraju uživo' }} upravo sada
-                </a>
-            @else
-                <div class="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-on-surface-variant border border-outline-variant rounded-full px-4 py-2 mb-8">
-                    <span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
-                    Stoni tenis · Tenis · Padel
-                </div>
-            @endif
+            <div class="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-on-surface-variant border border-outline-variant rounded-full px-4 py-2 mb-8">
+                <span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+                Stoni tenis · Tenis · Padel
+            </div>
 
             <h1 class="font-display text-4xl sm:text-5xl md:text-display leading-[1.05] mb-8 tracking-tighter text-on-surface">
                 TVOJA LIGA.<br>

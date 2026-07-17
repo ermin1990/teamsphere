@@ -22,7 +22,6 @@ Route::get('/locale/{locale}', function ($locale) {
 })->name('locale');
 
 Route::get('/', function () {
-    $liveMatchesCount = \App\Models\LeagueMatch::where('status', 'in_progress')->count();
     $organizationsCount = \App\Models\Organization::count();
     $activeCompetitionsCount = \App\Models\Competition::where('is_public', true)
         ->whereIn('status', ['active', 'in_progress'])
@@ -31,7 +30,6 @@ Route::get('/', function () {
     $matchesPlayedCount = \App\Models\LeagueMatch::where('status', 'completed')->count();
 
     return view('welcome', compact(
-        'liveMatchesCount',
         'organizationsCount',
         'activeCompetitionsCount',
         'playersCount',
