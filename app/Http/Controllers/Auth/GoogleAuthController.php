@@ -69,9 +69,11 @@ class GoogleAuthController extends Controller
             Auth::login($user, remember: true);
             $request->session()->regenerate();
 
-            $home = $user->isOrganizerOrStaff()
-                ? route('dashboard', absolute: false)
-                : route('player.dashboard', absolute: false);
+            $home = $user->needsOrganizationOnboarding()
+                ? route('organizations.create', absolute: false)
+                : ($user->isOrganizerOrStaff()
+                    ? route('dashboard', absolute: false)
+                    : route('player.dashboard', absolute: false));
 
             return redirect()->intended($home);
         }
@@ -161,7 +163,7 @@ class GoogleAuthController extends Controller
         $request->session()->regenerate();
 
         $home = $request->input('role') === 'organizer'
-            ? route('dashboard', absolute: false)
+            ? route('organizations.create', absolute: false)
             : route('player.dashboard', absolute: false);
 
         return redirect($home);

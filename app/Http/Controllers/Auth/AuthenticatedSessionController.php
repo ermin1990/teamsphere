@@ -28,9 +28,12 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        $home = Auth::user()->isOrganizerOrStaff()
-            ? route('dashboard', absolute: false)
-            : route('player.dashboard', absolute: false);
+        $user = Auth::user();
+        $home = $user->needsOrganizationOnboarding()
+            ? route('organizations.create', absolute: false)
+            : ($user->isOrganizerOrStaff()
+                ? route('dashboard', absolute: false)
+                : route('player.dashboard', absolute: false));
 
         return redirect()->intended($home);
     }

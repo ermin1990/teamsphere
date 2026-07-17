@@ -102,6 +102,18 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * A freshly registered organizer has no organization yet (registration
+     * never creates one automatically) and no Player row either - without
+     * this check they'd fail isOrganizerOrStaff() and get bounced to the
+     * player dashboard on every login until they create their first
+     * organization, even though they explicitly chose "organizer" at signup.
+     */
+    public function needsOrganizationOnboarding(): bool
+    {
+        return !$this->isOrganizerOrStaff() && !$this->playerProfile()->exists();
+    }
+
+    /**
      * Get the current active plan for this user.
      */
     public function currentPlan()

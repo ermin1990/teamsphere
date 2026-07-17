@@ -31,6 +31,11 @@ class DashboardController extends Controller
         // owned organization, no staff role) is sent to their own area
         // instead, even if they've joined leagues owned by someone else
         // (which would otherwise still populate $allOrganizationIds above).
+        // A freshly registered organizer who hasn't created their first
+        // organization yet is sent there instead of being misread as a player.
+        if ($user->needsOrganizationOnboarding()) {
+            return redirect()->route('organizations.create');
+        }
         if (!$user->isOrganizerOrStaff()) {
             return redirect()->route('player.dashboard');
         }
