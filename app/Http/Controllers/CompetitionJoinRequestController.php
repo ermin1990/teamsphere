@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\CompetitionJoinRequestDecided;
 use App\Models\Competition;
 use App\Models\CompetitionJoinRequest;
 use App\Models\Organization;
 use App\Models\Player;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Mail;
 
 class CompetitionJoinRequestController extends Controller
 {
@@ -55,6 +57,8 @@ class CompetitionJoinRequestController extends Controller
             'decided_at' => now(),
         ]);
 
+        $this->notifyPlayerOfDecision($joinRequest);
+
         return back()->with('success', $user->name . ' je dodan/a na takmičenje.');
     }
 
@@ -74,6 +78,26 @@ class CompetitionJoinRequestController extends Controller
             'decided_at' => now(),
         ]);
 
+        $this->notifyPlayerOfDecision($joinRequest);
+
         return back()->with('success', 'Zahtjev je odbijen.');
+    }
+
+    /**
+     * Let the player know their join request was approved/rejected.
+     */
+    private function notifyPlayerOfDecision(CompetitionJoinRequest $joinRequest): void
+    {
+        $playerEmail = $joinRequest->user->email ?? null;
+        if (!$playerEmail) {
+            return;
+        }
+
+        try {
+            $joinRequest->load(['user', 'competition.organization']);
+            Mail::to($playerEmail)->send(new CompetitionJoinRequestDecided($joinRequest));
+        } catch (\Exception $e) {
+            \Log::error('Failed to send competition join request decision email', ['error' => $e->getMessage()]);
+        }
     }
 }

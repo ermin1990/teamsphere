@@ -14,9 +14,7 @@
         <title>{{ config('app.name', 'MojTurnir') }}</title>
 
         {{-- CSS custom properties shared with resources/views/layouts/public.blade.php
-             (dark values only - this shell has no light/dark toggle), so content
-             partials shared between the public and authenticated areas (see
-             public.leagues.partials.content) render with working colors here too. --}}
+             (dark values only - this shell has no light/dark toggle). --}}
         <style>
             [x-cloak] { display: none !important; }
             :root {

@@ -386,6 +386,18 @@ class CompetitionController extends Controller
         // Add player to competition
         $competition->players()->attach($player->id);
 
+        if ($competition->status !== 'draft') {
+            $group = null;
+            if ($request->filled('group_id')) {
+                $group = $competition->tournamentGroups()->find($request->input('group_id'));
+            }
+
+            $created = $competition->generateMatchesForNewPlayer($player, $group);
+            if ($created > 0) {
+                return back()->with('success', "Igrač je dodan i generisano je {$created} novih mečeva.");
+            }
+        }
+
         return back()->with('success', 'Player added successfully!');
     }
 
@@ -413,8 +425,9 @@ class CompetitionController extends Controller
             return back()->with('error', 'Player is not registered for this competition.');
         }
 
-        // Remove player from competition
-        $competition->players()->detach($player->id);
+        // Remove player from competition - also deletes their matches and
+        // standings row(s), and recalculates the remaining players' standings.
+        $competition->removePlayerCompletely($player);
 
         return back()->with('success', 'Player removed successfully!');
     }

@@ -28,3 +28,6 @@ Thumbs.db
 
 # Separate app cloned locally only as a design reference - not part of this repo
 /pingpong.ba
+
+# Local Claude Code permission settings - machine-specific, not shared
+.claude/settings.local.json

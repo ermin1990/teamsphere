@@ -15,6 +15,7 @@ class AddPlayerToCompetition extends Component
     public string $search = '';
     public array $selectedPlayers = [];
     public bool $showNewPlayerForm = false;
+    public ?int $targetGroupId = null;
 
     // New player form fields
     public string $newPlayerName = '';
@@ -26,6 +27,34 @@ class AddPlayerToCompetition extends Component
     {
         $this->organization = $organization;
         $this->competition = $competition;
+        $this->targetGroupId = $competition->tournamentGroups()->orderBy('group_number')->value('id');
+    }
+
+    public function getGroupsProperty()
+    {
+        if (!$this->competition->isTournament()) {
+            return collect();
+        }
+
+        return $this->competition->tournamentGroups()->orderBy('group_number')->get();
+    }
+
+    /**
+     * When the competition has already started, generate the matches the
+     * newly added player still needs - leaving already-played matches
+     * untouched. Returns the number of matches created.
+     */
+    private function generateMatchesIfStarted(Player $player): int
+    {
+        if ($this->competition->status === 'draft') {
+            return 0;
+        }
+
+        $group = $this->competition->isTournament()
+            ? $this->competition->tournamentGroups()->find($this->targetGroupId)
+            : null;
+
+        return $this->competition->generateMatchesForNewPlayer($player, $group);
     }
 
     public function updatedSearch()
@@ -64,6 +93,7 @@ class AddPlayerToCompetition extends Component
         }
 
         $addedCount = 0;
+        $matchesCreated = 0;
         $errors = [];
 
         // Get current players in competition (fresh query)
@@ -95,6 +125,7 @@ class AddPlayerToCompetition extends Component
                 }
 
                 $this->competition->players()->attach($player->id);
+                $matchesCreated += $this->generateMatchesIfStarted($player);
                 $addedCount++;
                 $currentPlayerIds[] = $player->id; // Add to current list to prevent duplicates in same batch
 
@@ -107,7 +138,11 @@ class AddPlayerToCompetition extends Component
         $this->search = '';
 
         if ($addedCount > 0) {
-            session()->flash('success', "Successfully added {$addedCount} player(s) to the competition.");
+            $message = "Successfully added {$addedCount} player(s) to the competition.";
+            if ($matchesCreated > 0) {
+                $message .= " Generisano je {$matchesCreated} novih mečeva.";
+            }
+            session()->flash('success', $message);
             $this->dispatch('players-added'); // Dispatch event to refresh parent components
         }
 
@@ -144,12 +179,17 @@ class AddPlayerToCompetition extends Component
             }
 
             $this->competition->players()->attach($player->id);
+            $matchesCreated = $this->generateMatchesIfStarted($player);
 
             $this->newPlayerName = '';
             $this->newPlayerEmail = '';
             $this->showNewPlayerForm = false;
 
-            session()->flash('success', "Player '{$player->name}' created and added to the competition.");
+            $message = "Player '{$player->name}' created and added to the competition.";
+            if ($matchesCreated > 0) {
+                $message .= " Generisano je {$matchesCreated} novih mečeva.";
+            }
+            session()->flash('success', $message);
             $this->dispatch('players-added'); // Dispatch event to refresh parent components
             $this->dispatch('refreshComponent');
 

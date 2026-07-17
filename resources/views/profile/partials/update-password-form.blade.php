@@ -41,7 +41,7 @@
                     x-transition
                     x-init="setTimeout(() => show = false, 2000)"
                     class="text-sm"
-                    style="color: #4ade80;"
+                    style="color: #57f1db;"
                 >Spremljeno.</p>
             @endif
         </div>

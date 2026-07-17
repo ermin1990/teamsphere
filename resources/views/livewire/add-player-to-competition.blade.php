@@ -26,6 +26,21 @@
             </div>
         </div>
 
+        @if($competition->isTournament() && $this->groups->isNotEmpty())
+            <div class="mb-4">
+                <label for="targetGroupId" class="block text-sm font-medium text-white mb-2">Grupa za novog igrača</label>
+                <select wire:model="targetGroupId" id="targetGroupId"
+                        class="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    @foreach($this->groups as $g)
+                        <option value="{{ $g->id }}">{{ $g->name }}</option>
+                    @endforeach
+                </select>
+                @if($competition->status !== 'draft')
+                    <p class="text-gray-400 text-xs mt-1">Ako je takmičenje već počelo, novom igraču će biti generisani mečevi protiv ostalih igrača u ovoj grupi.</p>
+                @endif
+            </div>
+        @endif
+
         <!-- Search Input -->
         <div class="mb-4">
             <div class="relative">

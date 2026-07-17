@@ -39,7 +39,7 @@
                     </p>
 
                     @if (session('status') === 'verification-link-sent')
-                        <p class="mt-2 font-medium text-sm" style="color: #4ade80;">
+                        <p class="mt-2 font-medium text-sm" style="color: #57f1db;">
                             Novi link za verifikaciju je poslan na vašu email adresu.
                         </p>
                     @endif
@@ -57,7 +57,7 @@
                     x-transition
                     x-init="setTimeout(() => show = false, 2000)"
                     class="text-sm"
-                    style="color: #4ade80;"
+                    style="color: #57f1db;"
                 >Spremljeno.</p>
             @endif
         </div>

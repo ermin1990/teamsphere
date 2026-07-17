@@ -178,7 +178,21 @@
                         $hasEnoughPlayers = $competition->players->count() >= ($competition->type === 'tournament' ? 4 : 2);
                     @endphp
 
-                    @if($hasEnoughPlayers)
+                    @if($competition->status !== 'draft')
+                        <div class="bg-blue-600/20 backdrop-blur-xl rounded-xl p-5 border border-blue-500/30 shadow-xl">
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0">
+                                    <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                </div>
+                                <div class="ml-3">
+                                    <h3 class="text-base font-bold text-white">Takmičenje je već u toku</h3>
+                                    <p class="text-gray-300 text-sm mt-1">Novi igrači koje dodate ovdje automatski dobijaju mečeve protiv postojećih učesnika - odigrani mečevi ostaju netaknuti.</p>
+                                </div>
+                            </div>
+                        </div>
+                    @elseif($hasEnoughPlayers)
                         <div class="bg-gradient-to-r from-green-600/20 to-emerald-600/20 backdrop-blur-xl rounded-xl p-5 border border-green-500/30 shadow-xl">
                             <div class="flex items-start mb-3">
                                 <div class="flex-shrink-0">

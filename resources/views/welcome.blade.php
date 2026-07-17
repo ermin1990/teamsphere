@@ -126,7 +126,7 @@
                 </a>
             @else
                 @if (Route::has('login'))
-                    <a href="{{ route('login') }}" class="hidden sm:inline text-on-surface-variant font-semibold hover:text-primary transition-colors">Prijava</a>
+                    <a href="{{ route('login') }}" class="text-on-surface-variant font-semibold hover:text-primary transition-colors text-sm sm:text-base">Prijava</a>
                 @endif
                 @if (Route::has('register'))
                     <a href="{{ route('register') }}" class="bg-primary-container text-on-primary-container rounded px-5 py-2.5 font-label-bold hover:bg-primary transition-all">

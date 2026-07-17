@@ -46,10 +46,12 @@ class RemovePlayerFromCompetition extends Component
             return;
         }
 
-        // Remove player from competition
-        $this->competition->players()->detach($this->player->id);
+        // Remove player from competition - also deletes their matches
+        // (scheduled and completed) and standings row(s), and recalculates
+        // the remaining players' standings.
+        $this->competition->removePlayerCompletely($this->player);
 
-        session()->flash('success', "Igrač '{$this->player->name}' je uspješno uklonjen iz takmičenja.");
+        session()->flash('success', "Igrač '{$this->player->name}' je uspješno uklonjen iz takmičenja, zajedno sa svim njegovim mečevima.");
 
         // Dispatch event to refresh parent components
         $this->dispatch('player-removed');

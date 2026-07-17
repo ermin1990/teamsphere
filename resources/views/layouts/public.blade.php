@@ -92,6 +92,17 @@
                             🎬 Projektor
                         </a>
                     </div>
+                    <div>
+                        @auth
+                            <a href="{{ auth()->user()->isOrganizerOrStaff() ? route('dashboard') : route('player.dashboard') }}" class="transition-colors text-sm md:text-base font-medium hover:text-blue-400" style="color: var(--text-secondary);">
+                                👤 Moj nalog
+                            </a>
+                        @else
+                            <a href="{{ route('login') }}" class="transition-colors text-sm md:text-base font-medium hover:text-blue-400" style="color: var(--text-secondary);">
+                                🔑 Prijava
+                            </a>
+                        @endauth
+                    </div>
                 </div>
             </nav>
 
@@ -115,6 +126,17 @@
                 <span class="text-lg">🎬</span>
                 <span class="mt-1">Projektor</span>
             </a>
+            @auth
+                <a href="{{ auth()->user()->isOrganizerOrStaff() ? route('dashboard') : route('player.dashboard') }}" class="flex flex-col items-center transition-colors text-xs flex-1 hover:text-blue-400" style="color: var(--text-secondary);">
+                    <span class="text-lg">👤</span>
+                    <span class="mt-1">Nalog</span>
+                </a>
+            @else
+                <a href="{{ route('login') }}" class="flex flex-col items-center transition-colors text-xs flex-1 hover:text-blue-400" style="color: var(--text-secondary);">
+                    <span class="text-lg">🔑</span>
+                    <span class="mt-1">Prijava</span>
+                </a>
+            @endauth
         </div>
     </nav>
 

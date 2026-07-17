@@ -20,8 +20,8 @@
         <link href="https://fonts.bunny.net/css?family=unbounded:600,700&display=swap" rel="stylesheet" />
 
         {{-- Shared "kampanja" palette (periwinkle akcent + ljubičasti sjaj), same tokens
-             as layouts/public.blade.php so partials shared with the public area
-             (npr. public.leagues.partials.content) render s ispravnim bojama ovdje. --}}
+             as layouts/public.blade.php so views/partials rendered through this layout
+             (npr. live-score-page.blade.php) keep working colors. --}}
         <style>
             :root {
                 --bg-primary: #0B0B12;
@@ -60,6 +60,8 @@
 
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+        @stack('styles')
     </head>
     <body class="font-sans antialiased bg-gray-900 text-white min-h-screen">
         <div class="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900/95 to-gray-800">

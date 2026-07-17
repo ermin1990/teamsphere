@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\CompetitionJoinRequested;
 use App\Models\City;
 use App\Models\Competition;
 use App\Models\CompetitionJoinRequest;
 use App\Models\Sport;
 use App\Services\CompetitionShowData;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 
 class PlayerLeagueController extends Controller
 {
@@ -100,12 +102,22 @@ class PlayerLeagueController extends Controller
             return back()->with('error', 'Već imaš zahtjev na čekanju za ovo takmičenje.');
         }
 
-        CompetitionJoinRequest::create([
+        $joinRequest = CompetitionJoinRequest::create([
             'competition_id' => $competition->id,
             'user_id' => $userId,
             'status' => 'pending',
             'message' => $request->input('message'),
         ]);
+
+        $organizerEmail = $competition->organization->user->email ?? null;
+        if ($organizerEmail) {
+            try {
+                $joinRequest->load(['user', 'competition.organization']);
+                Mail::to($organizerEmail)->send(new CompetitionJoinRequested($joinRequest));
+            } catch (\Exception $e) {
+                \Log::error('Failed to send competition join request notification email', ['error' => $e->getMessage()]);
+            }
+        }
 
         return back()->with('success', 'Zahtjev za pridruživanje je poslan organizatoru.');
     }

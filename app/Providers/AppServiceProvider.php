@@ -3,6 +3,9 @@
 namespace App\Providers;
 
 use App\Models\Setting;
+use Illuminate\Auth\Events\Registered;
+use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\URL;
@@ -26,6 +29,8 @@ class AppServiceProvider extends ServiceProvider
         if ($this->app->environment('production')) {
             URL::forceScheme('https');
         }
+
+        Event::listen(Registered::class, SendEmailVerificationNotification::class);
 
         // Admins bypass every policy check (view/update/delete organizations,
         // competitions, etc.) so the admin panel can inspect any user's data

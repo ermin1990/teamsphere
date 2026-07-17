@@ -887,6 +887,215 @@ class Competition extends Model
     }
 
     /**
+     * Generate only the matches a newly added player still needs against
+     * existing participants - used when a player joins after the
+     * schedule was already generated, so matches already played are
+     * left untouched. Returns the number of matches created.
+     */
+    public function generateMatchesForNewPlayer(Player $player, ?TournamentGroup $group = null): int
+    {
+        if ($this->isTournament()) {
+            return $group ? $this->generateGroupMatchesForNewPlayer($player, $group) : 0;
+        }
+
+        return $this->generateLeagueMatchesForNewPlayer($player);
+    }
+
+    private function generateLeagueMatchesForNewPlayer(Player $player): int
+    {
+        if (!$this->isLeague() || $this->is_team_based) {
+            return 0;
+        }
+
+        $alreadyPaired = $this->matches()
+            ->where(function ($q) use ($player) {
+                $q->where('home_player_id', $player->id)->orWhere('away_player_id', $player->id);
+            })
+            ->get()
+            ->map(fn ($m) => $m->home_player_id === $player->id ? $m->away_player_id : $m->home_player_id);
+
+        $remaining = $this->players()
+            ->where('players.id', '!=', $player->id)
+            ->pluck('players.id')
+            ->reject(fn ($id) => $alreadyPaired->contains($id))
+            ->values();
+
+        $created = 0;
+
+        // Existing rounds each have a "bye" player when the old participant
+        // count is odd - slot the new player against that round's bye
+        // opponent first, so an existing round gains a second, parallel
+        // match instead of every opponent needing a brand-new round.
+        $existingByRound = $this->matches()->get()->groupBy('round')->map(function ($matches) {
+            return $matches->flatMap(fn ($m) => [$m->home_player_id, $m->away_player_id])->filter()->values();
+        });
+
+        foreach ($existingByRound as $round => $playingIds) {
+            if ($remaining->isEmpty()) {
+                break;
+            }
+
+            $byeOpponent = $remaining->first(fn ($id) => !$playingIds->contains($id));
+            if ($byeOpponent === null) {
+                continue;
+            }
+
+            $this->matches()->create([
+                'home_player_id' => $player->id,
+                'away_player_id' => $byeOpponent,
+                'round' => $round,
+                'round_number' => $round,
+                'status' => 'scheduled',
+                'phase' => 'groups',
+                'scheduled_at' => $this->start_date?->addDays(((int) $round) - 1),
+            ]);
+
+            $remaining = $remaining->reject(fn ($id) => $id === $byeOpponent)->values();
+            $created++;
+        }
+
+        // Anyone left over (e.g. every existing round was already full)
+        // gets a brand-new round appended after the current last one.
+        $round = (int) $this->matches()->max('round');
+        foreach ($remaining as $opponentId) {
+            $round++;
+            $this->matches()->create([
+                'home_player_id' => $player->id,
+                'away_player_id' => $opponentId,
+                'round' => $round,
+                'round_number' => $round,
+                'status' => 'scheduled',
+                'phase' => 'groups',
+                'scheduled_at' => $this->start_date?->addDays($round - 1),
+            ]);
+            $created++;
+        }
+
+        $this->createLeagueStandingIfMissing($player);
+
+        return $created;
+    }
+
+    private function createLeagueStandingIfMissing(Player $player): void
+    {
+        if (\App\Models\Standing::where('competition_id', $this->id)->where('player_id', $player->id)->exists()) {
+            return;
+        }
+
+        $nextPosition = (int) \App\Models\Standing::where('competition_id', $this->id)->max('position') + 1;
+
+        \App\Models\Standing::create([
+            'competition_id' => $this->id,
+            'player_id' => $player->id,
+            'position' => $nextPosition ?: 1,
+            'played' => 0,
+            'won' => 0,
+            'drawn' => 0,
+            'lost' => 0,
+            'points' => 0,
+            'goals_for' => 0,
+            'goals_against' => 0,
+            'goal_difference' => 0,
+        ]);
+    }
+
+    /**
+     * Fully remove a player from this competition - unlike a plain
+     * players()->detach(), this also deletes every match involving them
+     * (scheduled or completed) and their standings row(s), then
+     * recalculates the remaining participants' standings so opponents'
+     * stats no longer reflect matches against a player who's gone.
+     */
+    public function removePlayerCompletely(Player $player): void
+    {
+        $this->matches()
+            ->where(function ($q) use ($player) {
+                $q->where('home_player_id', $player->id)->orWhere('away_player_id', $player->id);
+            })
+            ->delete();
+
+        foreach ($this->tournamentGroups as $group) {
+            if (in_array($player->id, $group->player_ids ?? [])) {
+                $group->update([
+                    'player_ids' => array_values(array_diff($group->player_ids, [$player->id])),
+                ]);
+            }
+        }
+
+        \App\Models\Standing::where('competition_id', $this->id)->where('player_id', $player->id)->delete();
+
+        $this->players()->detach($player->id);
+
+        if ($this->isLeague()) {
+            app(\App\Services\LeagueStandingsService::class)->rebuildForCompetition($this);
+        } else {
+            foreach ($this->tournamentGroups as $group) {
+                $group->recalculateStandings();
+            }
+        }
+    }
+
+    private function generateGroupMatchesForNewPlayer(Player $player, TournamentGroup $group): int
+    {
+        $playerIds = $group->player_ids ?? [];
+        if (!in_array($player->id, $playerIds)) {
+            $playerIds[] = $player->id;
+            $group->update(['player_ids' => $playerIds]);
+        }
+
+        \App\Models\Standing::firstOrCreate(
+            [
+                'competition_id' => $this->id,
+                'tournament_group_id' => $group->id,
+                'player_id' => $player->id,
+            ],
+            [
+                'played' => 0, 'won' => 0, 'drawn' => 0, 'lost' => 0, 'points' => 0,
+                'sets_won' => 0, 'sets_lost' => 0, 'points_won' => 0, 'points_lost' => 0,
+            ]
+        );
+
+        $opponentIds = array_diff($playerIds, [$player->id]);
+        $rounds = max((int) ($this->group_rounds ?? 1), 1);
+        $round = (int) \App\Models\CompetitionMatch::where('competition_id', $this->id)
+            ->where('tournament_group_id', $group->id)
+            ->max('round_number');
+        $created = 0;
+
+        foreach ($opponentIds as $opponentId) {
+            for ($leg = 0; $leg < $rounds; $leg++) {
+                [$homeId, $awayId] = $leg % 2 === 0 ? [$player->id, $opponentId] : [$opponentId, $player->id];
+
+                $exists = \App\Models\CompetitionMatch::where('competition_id', $this->id)
+                    ->where('tournament_group_id', $group->id)
+                    ->where('home_player_id', $homeId)
+                    ->where('away_player_id', $awayId)
+                    ->exists();
+
+                if ($exists) {
+                    continue;
+                }
+
+                $round++;
+                \App\Models\CompetitionMatch::create([
+                    'competition_id' => $this->id,
+                    'tournament_group_id' => $group->id,
+                    'home_player_id' => $homeId,
+                    'away_player_id' => $awayId,
+                    'round' => $round,
+                    'round_number' => $round,
+                    'status' => 'scheduled',
+                    'phase' => 'group',
+                    'scheduled_at' => now(),
+                ]);
+                $created++;
+            }
+        }
+
+        return $created;
+    }
+
+    /**
      * Generate standings table for league competitions.
      */
     public function generateLeagueStandings()
