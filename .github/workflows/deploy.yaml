@@ -53,6 +53,8 @@ jobs:
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
           APP_KEY: ${{ secrets.APP_KEY }}
           APP_URL: ${{ secrets.APP_URL }}
+          MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
+          MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USERNAME }}
@@ -60,7 +62,7 @@ jobs:
           port: ${{ secrets.VPS_PORT || 22 }}
           script_stop: true
           command_timeout: 30m
-          envs: DB_DATABASE,DB_USERNAME,DB_PASSWORD,APP_KEY,APP_URL
+          envs: DB_DATABASE,DB_USERNAME,DB_PASSWORD,APP_KEY,APP_URL,MAIL_USERNAME,MAIL_PASSWORD
           script: |
             set -e
 
@@ -117,6 +119,27 @@ jobs:
             if [ -n "$APP_URL" ]; then
               sed -i "s|^APP_URL=.*|APP_URL=$APP_URL|" .env
             fi
+
+            # Realni SMTP kredencijali (Gmail) - .env.example ima namjerno
+            # MAIL_MAILER=log (bezbjedan default za novu instalaciju), pa ovo
+            # inače nikad ne bi stiglo na VPS jer se .env tamo generiše samo
+            # jednom i inače se ne dira. Bez ovoga se svi mailovi (verifikacija,
+            # prijave na takmičenja, reset lozinke...) samo loguju, nikad ne šalju.
+            echo "📧 Upisujem SMTP kredencijale u .env..."
+            sed -i "s|^MAIL_MAILER=.*|MAIL_MAILER=smtp|" .env || true
+            grep -q "^MAIL_MAILER=" .env || echo "MAIL_MAILER=smtp" >> .env
+            sed -i "s|^MAIL_HOST=.*|MAIL_HOST=smtp.gmail.com|" .env || true
+            grep -q "^MAIL_HOST=" .env || echo "MAIL_HOST=smtp.gmail.com" >> .env
+            sed -i "s|^MAIL_PORT=.*|MAIL_PORT=587|" .env || true
+            grep -q "^MAIL_PORT=" .env || echo "MAIL_PORT=587" >> .env
+            sed -i "s|^MAIL_ENCRYPTION=.*|MAIL_ENCRYPTION=tls|" .env || true
+            grep -q "^MAIL_ENCRYPTION=" .env || echo "MAIL_ENCRYPTION=tls" >> .env
+            sed -i "s|^MAIL_USERNAME=.*|MAIL_USERNAME=$MAIL_USERNAME|" .env || true
+            grep -q "^MAIL_USERNAME=" .env || echo "MAIL_USERNAME=$MAIL_USERNAME" >> .env
+            sed -i "s|^MAIL_PASSWORD=.*|MAIL_PASSWORD=$MAIL_PASSWORD|" .env || true
+            grep -q "^MAIL_PASSWORD=" .env || echo "MAIL_PASSWORD=$MAIL_PASSWORD" >> .env
+            sed -i "s|^MAIL_FROM_ADDRESS=.*|MAIL_FROM_ADDRESS=\"$MAIL_USERNAME\"|" .env || true
+            grep -q "^MAIL_FROM_ADDRESS=" .env || echo "MAIL_FROM_ADDRESS=\"$MAIL_USERNAME\"" >> .env
 
             # Firebase (Google prijava) - sve javne, client-side vrijednosti
             # (nema service account/private key-a), pa je bezbjedno da stoje
