@@ -9,7 +9,7 @@
 
         <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
         <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
-        <link rel="apple-touch-icon" href="/icons/icon-192.svg">
+        <link rel="apple-touch-icon" href="/icons/icon-192.png">
 
         <title>{{ config('app.name', 'MojTurnir') }}</title>
 

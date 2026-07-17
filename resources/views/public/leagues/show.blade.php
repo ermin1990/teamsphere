@@ -8,7 +8,7 @@
 
 <link rel="manifest" href="{{ asset('manifest.webmanifest') }}">
 <meta name="theme-color" content="#0b0e14">
-<link rel="apple-touch-icon" href="/icons/icon-192.svg">
+<link rel="apple-touch-icon" href="/icons/icon-192.png">
 <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
 
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>

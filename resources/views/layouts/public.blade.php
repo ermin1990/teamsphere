@@ -8,7 +8,7 @@
     <!-- PWA Configuration -->
     <link rel="manifest" href="/manifest.webmanifest">
     <meta name="theme-color" content="#121309">
-    <link rel="apple-touch-icon" href="/icons/icon-192.svg">
+    <link rel="apple-touch-icon" href="/icons/icon-192.png">
 
     <title>@yield('title', 'MojTurnir')</title>
 
