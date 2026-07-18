@@ -102,5 +102,6 @@
         </div>
     </footer>
 </main>
+<x-pwa-install-prompt />
 </body>
 </html>

@@ -169,5 +169,6 @@
         });
     });
 </script>
+<x-pwa-install-prompt />
 </body>
 </html>

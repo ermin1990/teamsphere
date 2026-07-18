@@ -185,5 +185,6 @@
         wireToggle('toggle-password-confirmation', 'toggle-password-confirmation-icon', 'password_confirmation');
     });
 </script>
+<x-pwa-install-prompt />
 </body>
 </html>

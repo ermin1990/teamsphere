@@ -1,8 +1,8 @@
 <!-- PWA Install Prompt -->
 <div id="pwa-install-prompt" class="fixed bottom-0 left-0 right-0 z-50 transform translate-y-full transition-transform duration-500 ease-out md:bottom-4 md:left-auto md:right-4 md:max-w-sm" style="display: none;">
     <div class="bg-gradient-to-br from-blue-600 via-blue-700 to-purple-700 text-white shadow-2xl rounded-t-2xl md:rounded-2xl border-2 border-blue-400/30 overflow-hidden">
-        <!-- Body -->
-        <div class="px-6 py-5">
+        <!-- Body: Android/Chrome (native install prompt available) -->
+        <div id="pwa-prompt-default" class="px-6 py-5">
             <p class="text-sm text-blue-50 mb-4 leading-relaxed">
                 Dodajte MojTurnir na vaš početni ekran za brži pristup i bolje iskustvo korištenja aplikacije.
             </p>
@@ -41,6 +41,34 @@
                     Možda kasnije
                 </button>
             </div>
+        </div>
+
+        <!-- Body: iOS Safari (no native install prompt API - show manual steps) -->
+        <div id="pwa-prompt-ios" class="px-6 py-5 hidden">
+            <p class="text-sm text-blue-50 mb-4 leading-relaxed">
+                Dodajte MojTurnir na vaš početni ekran za brži pristup i bolje iskustvo korištenja aplikacije:
+            </p>
+
+            <div class="space-y-3 mb-5">
+                <div class="flex items-center space-x-3 text-sm bg-white/10 rounded-xl px-4 py-3">
+                    <span class="flex items-center justify-center w-6 h-6 rounded-full bg-white text-blue-700 font-bold text-xs flex-shrink-0">1</span>
+                    <span class="text-blue-50">Dodirnite ikonicu <strong>Podijeli</strong></span>
+                    <svg class="w-5 h-5 text-blue-50 flex-shrink-0 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342a3 3 0 100-2.684m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path>
+                    </svg>
+                </div>
+                <div class="flex items-center space-x-3 text-sm bg-white/10 rounded-xl px-4 py-3">
+                    <span class="flex items-center justify-center w-6 h-6 rounded-full bg-white text-blue-700 font-bold text-xs flex-shrink-0">2</span>
+                    <span class="text-blue-50">Odaberite <strong>Dodaj na Home Screen</strong></span>
+                    <svg class="w-5 h-5 text-blue-50 flex-shrink-0 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+            </div>
+
+            <button onclick="dismissPWAPrompt()" class="w-full bg-white text-blue-700 font-bold py-3 px-6 rounded-xl hover:bg-blue-50 transition-all duration-200 shadow-lg">
+                Razumijem
+            </button>
         </div>
     </div>
 </div>
@@ -85,35 +113,63 @@ if ('serviceWorker' in navigator && 'BeforeInstallPromptEvent' in window) {
 } else {
     console.log('PWA: Browser does not fully support PWA');
 }
+function isIosDevice() {
+    return /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
+}
+
+function isRunningStandalone() {
+    return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+}
+
+function promptWasRecentlyDismissed() {
+    const dismissed = localStorage.getItem('pwa-prompt-dismissed');
+    const dismissedTime = localStorage.getItem('pwa-prompt-dismissed-time');
+    return dismissed && dismissedTime && Date.now() - parseInt(dismissedTime) < 7 * 24 * 60 * 60 * 1000;
+}
+
 window.addEventListener('beforeinstallprompt', (e) => {
     console.log('PWA: beforeinstallprompt event fired');
     e.preventDefault();
     deferredPrompt = e;
-    
-    // Check if user has dismissed the prompt before
-    const dismissed = localStorage.getItem('pwa-prompt-dismissed');
-    const dismissedTime = localStorage.getItem('pwa-prompt-dismissed-time');
-    
-    // Show prompt if not dismissed or if dismissed more than 7 days ago
-    if (!dismissed || (dismissedTime && Date.now() - parseInt(dismissedTime) > 7 * 24 * 60 * 60 * 1000)) {
-        console.log('PWA: Showing install prompt');
-        showPWAPrompt();
+
+    if (!promptWasRecentlyDismissed()) {
+        console.log('PWA: Showing install prompt (Android/Chrome)');
+        showPWAPrompt('default');
     } else {
         console.log('PWA: Prompt dismissed recently, not showing');
     }
 });
 
-function showPWAPrompt() {
+// iOS Safari never fires beforeinstallprompt - there's no programmatic
+// install API, so detect iOS + not-already-installed and show manual
+// "Share > Add to Home Screen" instructions instead.
+if (isIosDevice() && !isRunningStandalone() && !promptWasRecentlyDismissed()) {
+    console.log('PWA: Showing install prompt (iOS manual instructions)');
+    showPWAPrompt('ios');
+}
+
+function showPWAPrompt(variant) {
     if (promptShown) return;
-    
+
     const prompt = document.getElementById('pwa-install-prompt');
-    if (prompt) {
-        // Wait a bit before showing to not overwhelm the user
-        setTimeout(() => {
-            prompt.classList.add('show');
-            promptShown = true;
-        }, 2000); // Show after 2 seconds
+    const defaultBody = document.getElementById('pwa-prompt-default');
+    const iosBody = document.getElementById('pwa-prompt-ios');
+    if (!prompt || !defaultBody || !iosBody) return;
+
+    if (variant === 'ios') {
+        defaultBody.classList.add('hidden');
+        iosBody.classList.remove('hidden');
+    } else {
+        defaultBody.classList.remove('hidden');
+        iosBody.classList.add('hidden');
     }
+
+    // Wait a bit before showing to not overwhelm the user
+    setTimeout(() => {
+        prompt.style.display = 'block';
+        prompt.classList.add('show');
+        promptShown = true;
+    }, 2000); // Show after 2 seconds
 }
 
 function installPWA() {

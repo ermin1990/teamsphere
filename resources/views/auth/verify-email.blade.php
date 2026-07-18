@@ -90,5 +90,6 @@
         </form>
     </section>
 </main>
+<x-pwa-install-prompt />
 </body>
 </html>

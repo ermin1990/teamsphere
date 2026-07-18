@@ -1,7 +1,7 @@
 {
-  "name": "Team Sphere",
-  "short_name": "TeamSphere",
-  "description": "Organizacija stonoteniskih turnira i liga — raspored, rezultati uživo i upravljanje takmičenjima",
+  "name": "MojTurnir",
+  "short_name": "MojTurnir",
+  "description": "Organizacija sportskih turnira i liga — raspored, rezultati uživo i upravljanje takmičenjima",
   "start_url": "/",
   "display": "standalone",
   "orientation": "portrait-primary",

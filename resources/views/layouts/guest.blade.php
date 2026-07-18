@@ -50,5 +50,7 @@
                 </div>
             </div>
         </div>
+
+        <x-pwa-install-prompt />
     </body>
 </html>
