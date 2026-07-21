@@ -2,313 +2,283 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Http\Controllers\Api\V1\Concerns\ApiResponses;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Api\V1\CompetitionResource;
 use App\Models\Competition;
 use App\Models\Organization;
-use App\Models\Player;
-use Illuminate\Http\Request;
+use App\Models\Standing;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class CompetitionController extends Controller
 {
-    /**
-     * Display a listing of competitions for an organization (public access).
-     */
-    public function publicIndex($organizationId): JsonResponse
-    {
-        $organization = Organization::findOrFail($organizationId);
-
-        // For now, allow access to all organizations (since is_public column doesn't exist)
-        // TODO: Add is_public column to organizations table
-
-        $competitions = Competition::where('organization_id', $organization->id)
-            ->orderBy('created_at', 'desc')
-            ->get();
-
-        return response()->json([
-            'success' => true,
-            'data' => CompetitionResource::collection($competitions),
-            'message' => 'Organization competitions retrieved successfully'
-        ]);
-    }
+    use ApiResponses;
 
     /**
-     * Display a listing of competitions for an organization.
+     * List competitions for an organization.
      */
     public function index(Organization $organization): JsonResponse
     {
-        // Check if user can access organization
-        if (!auth()->user()->canAccessOrganization($organization)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Access denied'
-            ], 403);
-        }
+        $this->authorize('view', $organization);
 
         $competitions = $organization->competitions()
-            ->with(['sport'])
-            ->withCount(['groups', 'players', 'matches'])
-            ->orderBy('created_at', 'desc')
+            ->withCount(['players', 'matches', 'tournamentGroups'])
+            ->orderByDesc('created_at')
             ->get();
 
-        return response()->json([
-            'success' => true,
-            'data' => CompetitionResource::collection($competitions),
-            'message' => 'Competitions retrieved successfully'
-        ]);
+        return $this->ok(CompetitionResource::collection($competitions));
     }
 
     /**
-     * Display the specified competition.
-     */
-    public function show(Competition $competition): JsonResponse
-    {
-        // Check if user can access competition's organization
-        if (!auth()->user()->canAccessOrganization($competition->organization)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Access denied'
-            ], 403);
-        }
-
-        $competition->load([
-            'organization',
-            'sport',
-            'groups.players',
-            'knockoutMatches.homeTeam',
-            'knockoutMatches.awayTeam',
-            'knockoutMatches.homePlayer',
-            'knockoutMatches.awayPlayer'
-        ]);
-
-        $competition->loadCount(['groups', 'players', 'matches']);
-
-        return response()->json([
-            'success' => true,
-            'data' => new CompetitionResource($competition),
-            'message' => 'Competition retrieved successfully'
-        ]);
-    }
-
-    /**
-     * Store a newly created competition.
+     * Create a new competition for an organization.
      */
     public function store(Request $request, Organization $organization): JsonResponse
     {
-        // Check if user can access organization
-        if (!auth()->user()->canAccessOrganization($organization)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Access denied'
-            ], 403);
-        }
+        $this->authorize('update', $organization);
 
-        // Check if user can create more competitions
-        if (!auth()->user()->canCreateMoreCompetitions($organization->id)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'You have reached the maximum number of competitions allowed for this organization.'
-            ], 403);
+        if (!$request->user()->canCreateMoreCompetitions($organization->id)) {
+            return $this->fail('You have reached the maximum number of competitions allowed for this organization.');
         }
 
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'sport_id' => 'required|exists:sports,id',
-            'description' => 'nullable|string',
-            'is_team_based' => 'boolean',
-            'max_teams' => 'nullable|integer|min:2|max:64',
-            'max_players_per_team' => 'nullable|integer|min:1|max:20',
-            'start_date' => 'nullable|date',
-            'end_date' => 'nullable|date|after:start_date',
+            'name' => ['required', 'string', 'max:255'],
+            'description' => ['nullable', 'string'],
+            'location' => ['nullable', 'string', 'max:255'],
+            'organizer_contact' => ['nullable', 'string', 'max:255'],
+            'entry_fee' => ['nullable', 'string', 'max:255'],
+            'category_id' => ['nullable', 'exists:categories,id'],
+            'city_id' => ['nullable', 'exists:cities,id'],
+            'season_id' => ['nullable', 'exists:seasons,id'],
+            'registration_deadline' => ['nullable', 'date'],
+            'type' => ['required', 'in:tournament,league'],
+            'is_team_based' => ['required_if:type,league', 'boolean'],
+            'is_double_round' => ['nullable', 'boolean'],
+            'is_recreational' => ['nullable', 'boolean'],
+            'allow_rematches' => ['nullable', 'boolean'],
+            'start_date' => ['required', 'date'],
+            'end_date' => ['nullable', 'date', 'after:start_date'],
+            'max_teams' => ['nullable', 'integer', 'min:2', 'max:64'],
+            'max_participants' => ['nullable', 'integer', 'min:2'],
+            'group_count' => ['nullable', 'integer', 'min:1'],
+            'players_per_group' => ['nullable', 'integer', 'min:1'],
+            // Tournament specific validation
+            'players_advancing_per_group' => ['required_if:type,tournament', 'integer', 'min:1', 'max:4'],
+            'advancement_method' => ['required_if:type,tournament', 'in:automatic,manual'],
         ]);
 
-        $competition = $organization->competitions()->create($validated);
+        $competition = Competition::create([
+            'name' => $validated['name'],
+            'slug' => Str::slug($validated['name'] . '-' . time()),
+            'description' => $validated['description'] ?? null,
+            'location' => $validated['location'] ?? null,
+            'organizer_contact' => $validated['organizer_contact'] ?? null,
+            'entry_fee' => $validated['entry_fee'] ?? null,
+            'organization_id' => $organization->id,
+            'sport_id' => $organization->sport_id,
+            'category_id' => $validated['category_id'] ?? null,
+            'city_id' => $validated['city_id'] ?? null,
+            'season_id' => $organization->seasons()->where('id', $validated['season_id'] ?? null)->exists() ? $validated['season_id'] : null,
+            'registration_deadline' => $validated['registration_deadline'] ?? null,
+            'type' => $validated['type'],
+            'start_date' => $validated['start_date'],
+            'end_date' => $validated['end_date'] ?? null,
+            'max_teams' => $validated['max_teams'] ?? 8,
+            'is_team_based' => (bool) ($validated['is_team_based'] ?? false),
+            'is_double_round' => (bool) ($validated['is_double_round'] ?? false),
+            'is_recreational' => (bool) ($validated['is_recreational'] ?? false),
+            'allow_rematches' => (bool) ($validated['allow_rematches'] ?? false),
+            'status' => 'draft',
+            'is_active' => true,
+            'max_participants' => $validated['max_participants'] ?? null,
+            'group_count' => $validated['group_count'] ?? 4,
+            'players_per_group' => $validated['players_per_group'] ?? 4,
+            'players_advancing_per_group' => $validated['players_advancing_per_group'] ?? 2,
+            'advancement_method' => $validated['advancement_method'] ?? 'automatic',
+            'current_phase' => 'groups',
+            'sets_to_win' => 3,
+            'points_per_set' => 11,
+            'deuce_at' => 10,
+            'must_win_by_two' => true,
+            'points_for_win' => 2,
+            'points_for_draw' => 1,
+            'points_for_loss' => 0,
+            'has_tiebreak' => false,
+            'tiebreak_points' => 7,
+            'manual_knockout_selection' => true,
+        ]);
 
-        return response()->json([
-            'success' => true,
-            'data' => new CompetitionResource($competition->load(['organization', 'sport'])),
-            'message' => 'Competition created successfully'
-        ], 201);
+        Organization::clearOrganizationCache();
+
+        return $this->created(new CompetitionResource($competition->load('organization')), 'Competition created successfully');
     }
 
     /**
-     * Update the specified competition.
+     * Show a single competition.
+     */
+    public function show(Competition $competition): JsonResponse
+    {
+        $this->authorize('view', $competition->organization);
+
+        $competition->load(['organization', 'sport', 'tournamentGroups'])
+            ->loadCount(['players', 'matches', 'tournamentGroups']);
+
+        return $this->ok(new CompetitionResource($competition));
+    }
+
+    /**
+     * Update a competition's settings.
      */
     public function update(Request $request, Competition $competition): JsonResponse
     {
-        // Check if user can access competition's organization
-        if (!auth()->user()->canAccessOrganization($competition->organization)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Access denied'
-            ], 403);
-        }
+        $this->authorize('update', $competition->organization);
 
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'sport_id' => 'required|exists:sports,id',
-            'description' => 'nullable|string',
-            'is_team_based' => 'boolean',
-            'max_teams' => 'nullable|integer|min:2|max:64',
-            'max_players_per_team' => 'nullable|integer|min:1|max:20',
-            'start_date' => 'nullable|date',
-            'end_date' => 'nullable|date|after:start_date',
+            'name' => ['sometimes', 'required', 'string', 'max:255'],
+            'description' => ['nullable', 'string'],
+            'location' => ['nullable', 'string', 'max:255'],
+            'organizer_contact' => ['nullable', 'string', 'max:255'],
+            'entry_fee' => ['nullable', 'string', 'max:255'],
+            'category_id' => ['nullable', 'exists:categories,id'],
+            'city_id' => ['nullable', 'exists:cities,id'],
+            'season_id' => ['nullable', 'exists:seasons,id'],
+            'registration_deadline' => ['nullable', 'date'],
+            'start_date' => ['sometimes', 'required', 'date'],
+            'end_date' => ['nullable', 'date', 'after:start_date'],
+            'max_teams' => ['nullable', 'integer', 'min:2', 'max:64'],
+            'max_participants' => ['nullable', 'integer', 'min:2'],
+            'is_public' => ['sometimes', 'boolean'],
+            'registration_open' => ['sometimes', 'boolean'],
+            'is_double_round' => ['sometimes', 'boolean'],
+            'is_recreational' => ['sometimes', 'boolean'],
+            'allow_rematches' => ['sometimes', 'boolean'],
+            'sets_to_win' => ['sometimes', 'integer', 'min:1', 'max:7'],
+            'points_per_set' => ['nullable', 'integer', 'min:7', 'max:21'],
+            'deuce_at' => ['nullable', 'integer', 'min:5'],
+            'must_win_by_two' => ['sometimes', 'boolean'],
+            'points_for_win' => ['sometimes', 'integer', 'min:0', 'max:10'],
+            'points_for_draw' => ['sometimes', 'integer', 'min:0', 'max:10'],
+            'points_for_loss' => ['sometimes', 'integer', 'min:0', 'max:10'],
+            'has_tiebreak' => ['sometimes', 'boolean'],
+            'tiebreak_points' => ['nullable', 'integer', 'min:5', 'max:15'],
+            'players_advancing_per_group' => ['nullable', 'integer', 'min:1', 'max:4'],
+            'group_rounds' => ['nullable', 'integer', 'min:1', 'max:2'],
         ]);
+
+        if (array_key_exists('season_id', $validated)) {
+            $validated['season_id'] = $competition->organization->seasons()->where('id', $validated['season_id'])->exists()
+                ? $validated['season_id']
+                : null;
+        }
 
         $competition->update($validated);
 
-        return response()->json([
-            'success' => true,
-            'data' => new CompetitionResource($competition->load(['organization', 'sport'])),
-            'message' => 'Competition updated successfully'
-        ]);
+        return $this->ok(new CompetitionResource($competition->fresh(['organization', 'sport'])), 'Competition updated successfully');
     }
 
     /**
-     * Remove the specified competition.
+     * Delete a competition.
      */
     public function destroy(Competition $competition): JsonResponse
     {
-        // Check if user can access competition's organization
-        if (!auth()->user()->canAccessOrganization($competition->organization)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Access denied'
-            ], 403);
-        }
+        $this->authorize('update', $competition->organization);
 
         $competition->delete();
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Competition deleted successfully'
-        ]);
+        return $this->ok(null, 'Competition deleted successfully');
     }
 
     /**
-     * Add player to competition.
+     * Start a draft competition - generates matches/standings depending on
+     * competition type, mirroring CompetitionController::startCompetition.
      */
-    public function addPlayer(Request $request, Competition $competition): JsonResponse
+    public function start(Request $request, Competition $competition): JsonResponse
     {
-        // Check if user can access competition's organization
-        if (!auth()->user()->canAccessOrganization($competition->organization)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Access denied'
-            ], 403);
+        $this->authorize('update', $competition->organization);
+
+        if ($competition->status !== 'draft') {
+            return $this->fail('Competition has already started.', 422);
         }
 
-        $validated = $request->validate([
-            'player_id' => 'required|exists:players,id',
+        if ($competition->isTournament() && $competition->tournamentGroups()->count() === 0) {
+            return $this->fail('Please setup groups before starting the tournament.', 422);
+        }
+
+        $currentPhase = $competition->isTournament() ? 'groups' : 'league';
+
+        $competition->update([
+            'status' => 'active',
+            'current_phase' => $currentPhase,
         ]);
 
-        $competition->players()->attach($validated['player_id']);
+        $manualMatches = $request->boolean('manual_matches');
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Player added to competition successfully'
-        ]);
+        if ($competition->isTournament()) {
+            $competition->generateGroupMatches();
+        } elseif ($competition->isLeague()) {
+            if ($competition->is_team_based) {
+                if (!$manualMatches) {
+                    $competition->generateTeamMatches();
+                } else {
+                    foreach ($competition->teams as $team) {
+                        Standing::firstOrCreate([
+                            'competition_id' => $competition->id,
+                            'team_id' => $team->id,
+                        ], [
+                            'played' => 0,
+                            'won' => 0,
+                            'drawn' => 0,
+                            'lost' => 0,
+                            'points' => 0,
+                        ]);
+                    }
+                }
+            } else {
+                if (!$manualMatches) {
+                    $competition->generateLeagueMatches();
+                    $competition->generateLeagueStandings();
+                }
+            }
+        }
+
+        return $this->ok(new CompetitionResource($competition->fresh()), 'Competition started successfully');
     }
 
     /**
-     * Remove player from competition.
-     */
-    public function removePlayer(Competition $competition, Player $player): JsonResponse
-    {
-        // Check if user can access competition's organization
-        if (!auth()->user()->canAccessOrganization($competition->organization)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Access denied'
-            ], 403);
-        }
-
-        $competition->players()->detach($player->id);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Player removed from competition successfully'
-        ]);
-    }
-
-    /**
-     * Start competition.
-     */
-    public function start(Competition $competition): JsonResponse
-    {
-        // Check if user can access competition's organization
-        if (!auth()->user()->canAccessOrganization($competition->organization)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Access denied'
-            ], 403);
-        }
-
-        if ($competition->status !== 'setup') {
-            return response()->json([
-                'success' => false,
-                'message' => 'Competition is not in setup status'
-            ], 400);
-        }
-
-        $competition->update(['status' => 'active']);
-
-        return response()->json([
-            'success' => true,
-            'data' => $competition,
-            'message' => 'Competition started successfully'
-        ]);
-    }
-
-    /**
-     * Complete competition.
+     * Complete a tournament competition.
      */
     public function complete(Competition $competition): JsonResponse
     {
-        // Check if user can access competition's organization
-        if (!auth()->user()->canAccessOrganization($competition->organization)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Access denied'
-            ], 403);
+        $this->authorize('update', $competition->organization);
+
+        if (!$competition->isTournament()) {
+            return $this->fail('This is not a tournament.', 422);
         }
 
-        if ($competition->status !== 'active') {
-            return response()->json([
-                'success' => false,
-                'message' => 'Competition is not active'
-            ], 400);
-        }
+        $competition->completeTournament();
 
-        $competition->update(['status' => 'completed']);
-
-        return response()->json([
-            'success' => true,
-            'data' => $competition,
-            'message' => 'Competition completed successfully'
-        ]);
+        return $this->ok(new CompetitionResource($competition->fresh()), 'Competition completed successfully');
     }
 
     /**
-     * Reset competition.
+     * Reset a competition back to draft status - deletes all matches,
+     * groups and standings, mirroring CompetitionController::reset.
      */
     public function reset(Competition $competition): JsonResponse
     {
-        // Check if user can access competition's organization
-        if (!auth()->user()->canAccessOrganization($competition->organization)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Access denied'
-            ], 403);
-        }
+        $this->authorize('update', $competition->organization);
 
-        $competition->reset();
+        $competition->matches()->delete();
+        $competition->tournamentGroups()->delete();
+        $competition->standings()->delete();
 
-        return response()->json([
-            'success' => true,
-            'data' => $competition,
-            'message' => 'Competition reset successfully'
+        $competition->update([
+            'status' => 'draft',
+            'current_phase' => 'groups',
+            'groups_completed_at' => null,
         ]);
+
+        return $this->ok(new CompetitionResource($competition->fresh()), 'Competition has been reset to draft status');
     }
 }

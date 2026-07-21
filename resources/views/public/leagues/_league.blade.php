@@ -82,7 +82,7 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach($competition->standings->sortByDesc('points') as $index => $standing)
+                @foreach($competition->standings->sortBy('position') as $index => $standing)
                 <tr class="border-b border-gray-700/30 hover:bg-gray-700/10">
                     <td class="py-1.5 px-2 text-white font-medium">{{ $index + 1 }}</td>
                     <td class="py-1.5 px-2 text-white text-sm">{{ $standing->player->name }}</td>

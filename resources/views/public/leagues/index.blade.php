@@ -245,6 +245,21 @@
         </section>
     @endif
 
+    @if(isset($organization) && isset($seasons) && $seasons->count() > 0)
+        <form method="GET" class="mb-4 flex items-center gap-3">
+            <label for="season_id" class="text-sm text-on-surface-variant font-label-bold">Sezona:</label>
+            <select name="season_id" id="season_id" onchange="this.form.submit()"
+                    class="bg-surface-container-high border border-outline-variant text-on-surface text-sm rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary">
+                <option value="" {{ empty($selectedSeasonId) ? 'selected' : '' }}>Sve sezone</option>
+                @foreach($seasons as $season)
+                    <option value="{{ $season->id }}" {{ (string) $selectedSeasonId === (string) $season->id ? 'selected' : '' }}>
+                        {{ $season->name }}{{ $season->is_active ? ' (aktivna)' : '' }}
+                    </option>
+                @endforeach
+            </select>
+        </form>
+    @endif
+
     @if($competitions->count() > 0)
         @php
             $competitionsBySport = $competitions->groupBy(fn ($c) => $c->sport->name);

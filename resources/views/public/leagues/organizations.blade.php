@@ -189,7 +189,7 @@
         @if(request('sport_id'))<input type="hidden" name="sport_id" value="{{ request('sport_id') }}">@endif
         <div class="relative hidden lg:block">
             <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-lg">search</span>
-            <input name="q" value="{{ request('q') }}" class="bg-surface-container-lowest border border-outline-variant rounded-full pl-10 pr-4 py-1.5 text-sm w-64 focus:border-primary focus:ring-0 focus:outline-none transition-all" placeholder="Pretraži takmičenja..." type="text">
+            <input name="q" value="{{ request('q') }}" class="bg-surface-container-lowest border border-outline-variant rounded-full pl-10 pr-4 py-1.5 text-sm w-64 focus:border-primary focus:ring-0 focus:outline-none transition-all" placeholder="Pretraži igrače, timove, lige, organizacije..." type="text">
         </div>
     </form>
 </header>
@@ -214,7 +214,7 @@
                 @if(request('city_id'))<input type="hidden" name="city_id" value="{{ request('city_id') }}">@endif
                 @if(request('sport_id'))<input type="hidden" name="sport_id" value="{{ request('sport_id') }}">@endif
                 <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-lg">search</span>
-                <input name="q" value="{{ request('q') }}" class="w-full bg-surface-container-lowest border border-outline-variant rounded-full pl-10 pr-4 py-2.5 text-sm focus:border-primary focus:ring-0 focus:outline-none transition-all" placeholder="Pretraži takmičenja..." type="text">
+                <input name="q" value="{{ request('q') }}" class="w-full bg-surface-container-lowest border border-outline-variant rounded-full pl-10 pr-4 py-2.5 text-sm focus:border-primary focus:ring-0 focus:outline-none transition-all" placeholder="Pretraži igrače, timove, lige, organizacije..." type="text">
             </form>
         </div>
         @if($sports->isNotEmpty())
@@ -256,6 +256,37 @@
             @endforeach
         </div>
     </div>
+
+    <!-- Direct player match(es) - jump straight to their profile -->
+    @if($matchedPlayers->isNotEmpty())
+        <section class="mb-8 lg:mb-10">
+            <h2 class="font-headline-md mb-4 flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary">person</span> Igrači
+            </h2>
+            <div class="space-y-3">
+                @foreach($matchedPlayers as $matchedPlayer)
+                    <a href="{{ route('competitions.player.show', $matchedPlayer) }}" class="flex items-center gap-4 bg-surface-container-low border border-primary/30 rounded-xl p-4 card-glow transition-all group">
+                        <div class="w-12 h-12 rounded-full bg-primary/15 border border-primary/40 flex items-center justify-center shrink-0">
+                            <span class="font-display text-primary text-sm uppercase">{{ collect(explode(' ', $matchedPlayer->name))->map(fn ($p) => mb_substr($p, 0, 1))->take(2)->implode('') }}</span>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="font-semibold truncate group-hover:text-primary transition-colors">{{ $matchedPlayer->name }}</p>
+                            <p class="text-xs text-on-surface-variant truncate">
+                                @if($matchedPlayer->organization)
+                                    {{ $matchedPlayer->organization->name }}
+                                    @if($matchedPlayer->leagues->isNotEmpty()) · @endif
+                                @endif
+                                {{ $matchedPlayer->leagues->pluck('name')->implode(', ') }}
+                            </p>
+                        </div>
+                        <span class="text-primary flex items-center gap-1 text-xs font-label-bold shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                            Profil <span class="material-symbols-outlined text-xs">chevron_right</span>
+                        </span>
+                    </a>
+                @endforeach
+            </div>
+        </section>
+    @endif
 
     <!-- Takmičenja - compact list -->
     <section class="mb-10 lg:mb-12">

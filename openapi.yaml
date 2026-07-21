@@ -1,0 +1,1682 @@
+openapi: 3.0.3
+info:
+  title: MojTurnir API
+  version: "1.0"
+  description: |
+    REST API za MojTurnir (Laravel 12 / Sanctum token auth). Pokriva organizatorsku i igračku
+    stranu aplikacije: organizacije, takmičenja, lige, timove, igrače, mečeve i tabele.
+    Ne pokriva admin/naplatni dio (planovi, podešavanja, bug reportovi) - to ostaje web-only.
+
+    Svi odgovori su omotani u istu envelopu:
+      { "success": true|false, "data": ..., "message": "..." }
+
+    Autentifikacija: Bearer token (Laravel Sanctum personal access token), dobijen iz
+    POST /api/v1/register ili POST /api/v1/login. Šalje se kao header:
+      Authorization: Bearer {token}
+
+    Svi resursi vezani za organizaciju provjeravaju da je korisnik vlasnik ili član te
+    organizacije (403 ako nije). Javni (bez auth) su samo GET /sports, /cities, /venues.
+  contact:
+    name: MojTurnir backend
+servers:
+  - url: https://mojturnir.example.com/api/v1
+    description: Produkcija (zamijeniti stvarnim domenom)
+  - url: http://localhost:8000/api/v1
+    description: Lokalni dev server
+
+security:
+  - bearerAuth: []
+
+tags:
+  - name: Auth
+  - name: Organizations
+  - name: OrganizationUsers
+  - name: OrganizationLinks
+  - name: Categories
+  - name: Seasons
+  - name: Tables
+  - name: Players
+  - name: PlayerInvitations
+  - name: FriendlyMatches
+  - name: Teams
+  - name: TeamCoaches
+  - name: TeamMatches
+  - name: Leagues
+  - name: LeagueMatches
+  - name: Competitions
+  - name: CompetitionJoinRequests
+  - name: TournamentGroups
+  - name: CompetitionMatches
+  - name: Standings
+  - name: Sports
+  - name: Cities
+  - name: Venues
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: "Sanctum personal access token"
+
+  schemas:
+    Envelope:
+      type: object
+      properties:
+        success: { type: boolean }
+        data: {}
+        message: { type: string }
+
+    ErrorEnvelope:
+      type: object
+      properties:
+        message: { type: string }
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items: { type: string }
+
+    User:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        email: { type: string }
+        email_verified_at: { type: string, nullable: true }
+        google_id: { type: string, nullable: true }
+        avatar: { type: string, nullable: true }
+        is_admin: { type: boolean }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+
+    Organization:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        slug: { type: string }
+        description: { type: string, nullable: true }
+        logo: { type: string, nullable: true }
+        sport_id: { type: integer }
+        is_active: { type: boolean }
+        user_id: { type: integer }
+        is_owner: { type: boolean, description: "true ako je autentifikovani korisnik vlasnik" }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+
+    OrganizationUser:
+      type: object
+      properties:
+        id: { type: integer }
+        organization_id: { type: integer }
+        user_id: { type: integer }
+        role: { type: string, enum: [owner, referee] }
+        joined_at: { type: string, format: date-time, nullable: true }
+        user:
+          type: object
+          properties:
+            id: { type: integer }
+            name: { type: string }
+            email: { type: string }
+
+    OrganizationLink:
+      type: object
+      properties:
+        id: { type: integer }
+        organization_id: { type: integer }
+        title: { type: string }
+        url: { type: string }
+        type: { type: string, enum: [youtube, facebook, instagram, other] }
+        sort_order: { type: integer }
+
+    Category:
+      type: object
+      properties:
+        id: { type: integer }
+        organization_id: { type: integer }
+        name: { type: string }
+        slug: { type: string }
+        description: { type: string, nullable: true }
+        is_active: { type: boolean }
+
+    Season:
+      type: object
+      properties:
+        id: { type: integer }
+        organization_id: { type: integer }
+        name: { type: string }
+        starts_at: { type: string, format: date, nullable: true }
+        ends_at: { type: string, format: date, nullable: true }
+        is_active: { type: boolean }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+
+    Table:
+      type: object
+      properties:
+        id: { type: integer }
+        organization_id: { type: integer }
+        name: { type: string }
+        description: { type: string, nullable: true }
+        is_active: { type: boolean }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+
+    Player:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        display_name: { type: string }
+        email: { type: string, nullable: true }
+        user_id: { type: integer, nullable: true }
+        is_registered: { type: boolean }
+        organization_id: { type: integer }
+        date_of_birth: { type: string, format: date, nullable: true }
+        age: { type: integer, nullable: true }
+        position: { type: string, nullable: true }
+        jersey_number: { type: integer, nullable: true }
+        is_active: { type: boolean }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+
+    PlayerInvitation:
+      type: object
+      properties:
+        id: { type: integer }
+        competition_id: { type: integer }
+        organization_id: { type: integer }
+        player_id: { type: integer }
+        email: { type: string }
+        token: { type: string }
+        invited_by: { type: integer }
+        status: { type: string, enum: [pending, accepted, expired] }
+        is_expired: { type: boolean }
+        expires_at: { type: string, format: date-time }
+        accepted_at: { type: string, format: date-time, nullable: true }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+
+    FriendlyMatch:
+      type: object
+      properties:
+        id: { type: integer }
+        organization_id: { type: integer }
+        home_player_id: { type: integer }
+        away_player_id: { type: integer }
+        home_player_name: { type: string }
+        away_player_name: { type: string }
+        sets: { type: array, items: { type: array, items: { type: integer } } }
+        set_durations: { type: array, items: { type: integer } }
+        winner_name: { type: string }
+        completed_at: { type: string, format: date-time }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+
+    TeamPlayer:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        email: { type: string, nullable: true }
+        position: { type: string, nullable: true }
+        jersey_number: { type: integer, nullable: true }
+        is_active: { type: boolean }
+        role: { type: string, nullable: true }
+
+    Team:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        description: { type: string, nullable: true }
+        organization_id: { type: integer }
+        competition_id: { type: integer, nullable: true }
+        captain_id: { type: integer, nullable: true }
+        coach: { type: string, nullable: true }
+        status: { type: string, nullable: true }
+        players_count: { type: integer, nullable: true }
+        players:
+          type: array
+          items: { $ref: "#/components/schemas/TeamPlayer" }
+        coaches:
+          type: array
+          items: { $ref: "#/components/schemas/TeamCoach" }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+
+    TeamCoach:
+      type: object
+      properties:
+        id: { type: integer }
+        team_id: { type: integer }
+        name: { type: string }
+        is_active: { type: boolean }
+        start_date: { type: string, format: date, nullable: true }
+        end_date: { type: string, format: date, nullable: true }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+
+    TeamMatch:
+      type: object
+      properties:
+        id: { type: integer }
+        competition_id: { type: integer }
+        home_team_id: { type: integer }
+        away_team_id: { type: integer }
+        home_team: { $ref: "#/components/schemas/Team" }
+        away_team: { $ref: "#/components/schemas/Team" }
+        home_score: { type: integer, nullable: true }
+        away_score: { type: integer, nullable: true }
+        status: { type: string, enum: [scheduled, in_progress, completed, forfeited] }
+        scheduled_at: { type: string, format: date-time, nullable: true }
+        played_at: { type: string, format: date-time, nullable: true }
+        round: { type: integer, nullable: true }
+        lineup: { type: array, items: {}, nullable: true }
+        home_captain_id: { type: integer, nullable: true }
+        away_captain_id: { type: integer, nullable: true }
+        referee_name: { type: string, nullable: true }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+
+    League:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        slug: { type: string }
+        description: { type: string, nullable: true }
+        organization_id: { type: integer }
+        sport_id: { type: integer }
+        status: { type: string, enum: [draft, active, completed, cancelled] }
+        start_date: { type: string, format: date, nullable: true }
+        end_date: { type: string, format: date, nullable: true }
+        max_teams: { type: integer, nullable: true }
+        is_team_based: { type: boolean }
+        settings: { type: object, nullable: true }
+        is_active: { type: boolean }
+        is_public: { type: boolean }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+
+    LeagueMatch:
+      type: object
+      properties:
+        id: { type: integer }
+        competition_id: { type: integer }
+        home_team_id: { type: integer, nullable: true }
+        away_team_id: { type: integer, nullable: true }
+        home_player_id: { type: integer, nullable: true }
+        away_player_id: { type: integer, nullable: true }
+        home_captain_id: { type: integer, nullable: true }
+        away_captain_id: { type: integer, nullable: true }
+        home_score: { type: integer, nullable: true }
+        away_score: { type: integer, nullable: true }
+        scheduled_at: { type: string, format: date-time, nullable: true }
+        played_at: { type: string, format: date-time, nullable: true }
+        status: { type: string, enum: [scheduled, in_progress, completed, forfeited] }
+        round: { type: integer, nullable: true }
+        sets: { type: array, items: {}, nullable: true }
+        forfeited_by: { type: string, nullable: true, enum: [home, away, null] }
+        table_id: { type: integer, nullable: true }
+        venue_id: { type: integer, nullable: true }
+        referee_user_id: { type: integer, nullable: true }
+        referee_name: { type: string, nullable: true }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+
+    Competition:
+      type: object
+      description: >
+        Ista tabela kao League (`type` razlikuje 'league' vs 'tournament').
+        Ovaj resurs pokriva turnire i sve tip-vrijednosti, uključujući grupnu i knock-out fazu.
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        slug: { type: string }
+        description: { type: string, nullable: true }
+        location: { type: string, nullable: true }
+        organizer_contact: { type: string, nullable: true }
+        entry_fee: { type: number, nullable: true }
+        organization_id: { type: integer }
+        sport_id: { type: integer }
+        category_id: { type: integer, nullable: true }
+        season_id: { type: integer, nullable: true }
+        city_id: { type: integer, nullable: true }
+        registration_deadline: { type: string, format: date-time, nullable: true }
+        status: { type: string, enum: [draft, active, completed, cancelled] }
+        start_date: { type: string, format: date, nullable: true }
+        end_date: { type: string, format: date, nullable: true }
+        max_teams: { type: integer }
+        is_team_based: { type: boolean }
+        is_double_round: { type: boolean }
+        settings: { type: object, nullable: true }
+        is_active: { type: boolean }
+        is_public: { type: boolean, nullable: true }
+        registration_open: { type: boolean, nullable: true }
+        is_recreational: { type: boolean }
+        allow_rematches: { type: boolean }
+        type: { type: string, enum: [league, tournament] }
+        max_participants: { type: integer, nullable: true }
+        group_count: { type: integer, nullable: true }
+        players_per_group: { type: integer, nullable: true }
+        players_advancing_per_group: { type: integer, nullable: true }
+        group_rounds: { type: integer, nullable: true }
+        advancement_method: { type: string, nullable: true, enum: [automatic, manual] }
+        current_phase: { type: string, nullable: true, enum: [groups, knockout] }
+        knockout_bracket: { type: object, nullable: true }
+        groups_completed_at: { type: string, format: date-time, nullable: true }
+        knockout_completed_at: { type: string, format: date-time, nullable: true }
+        sets_to_win: { type: integer, nullable: true }
+        points_per_set: { type: integer, nullable: true }
+        deuce_at: { type: integer, nullable: true }
+        must_win_by_two: { type: boolean }
+        points_for_win: { type: integer }
+        points_for_draw: { type: integer }
+        points_for_loss: { type: integer }
+        has_tiebreak: { type: boolean }
+        tiebreak_points: { type: integer, nullable: true }
+        manual_knockout_selection: { type: boolean }
+        organization: { $ref: "#/components/schemas/Organization" }
+        players_count: { type: integer, nullable: true }
+        matches_count: { type: integer, nullable: true }
+        groups_count: { type: integer, nullable: true }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+
+    CompetitionJoinRequest:
+      type: object
+      properties:
+        id: { type: integer }
+        competition_id: { type: integer }
+        user_id: { type: integer }
+        user_name: { type: string, nullable: true }
+        user_email: { type: string, nullable: true }
+        status: { type: string, enum: [pending, approved, rejected] }
+        message: { type: string, nullable: true }
+        decided_by: { type: integer, nullable: true }
+        decided_at: { type: string, format: date-time, nullable: true }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+
+    TournamentGroup:
+      type: object
+      properties:
+        id: { type: integer }
+        competition_id: { type: integer }
+        name: { type: string }
+        group_number: { type: integer }
+        player_ids: { type: array, items: { type: integer } }
+        is_completed: { type: boolean }
+        completed_at: { type: string, format: date-time, nullable: true }
+        standings:
+          type: array
+          items: { $ref: "#/components/schemas/Standing" }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+
+    CompetitionMatch:
+      type: object
+      properties:
+        id: { type: integer }
+        competition_id: { type: integer }
+        team_match_id: { type: integer, nullable: true }
+        position_code: { type: string, nullable: true }
+        match_order: { type: integer, nullable: true }
+        home_team_id: { type: integer, nullable: true }
+        away_team_id: { type: integer, nullable: true }
+        home_player_id: { type: integer, nullable: true }
+        away_player_id: { type: integer, nullable: true }
+        home_score: { type: integer, nullable: true }
+        away_score: { type: integer, nullable: true }
+        scheduled_at: { type: string, format: date-time, nullable: true }
+        played_at: { type: string, format: date-time, nullable: true }
+        status: { type: string, enum: [scheduled, in_progress, completed, forfeited] }
+        round: { type: integer, nullable: true }
+        sets: { type: array, items: {}, nullable: true }
+        forfeited_by: { type: string, nullable: true }
+        table_id: { type: integer, nullable: true }
+        venue_id: { type: integer, nullable: true }
+        referee_user_id: { type: integer, nullable: true }
+        referee_name: { type: string, nullable: true }
+        phase: { type: string, enum: [group, round_of_16, quarter_final, semi_final, final, third_place] }
+        tournament_group_id: { type: integer, nullable: true }
+        round_number: { type: integer, nullable: true }
+        bracket_position: { type: integer, nullable: true }
+        is_bye: { type: boolean }
+        home_player_group: { type: integer, nullable: true }
+        home_player_position: { type: integer, nullable: true }
+        away_player_group: { type: integer, nullable: true }
+        away_player_position: { type: integer, nullable: true }
+        home_captain_id: { type: integer, nullable: true }
+        away_captain_id: { type: integer, nullable: true }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+
+    Standing:
+      type: object
+      properties:
+        id: { type: integer }
+        competition_id: { type: integer }
+        tournament_group_id: { type: integer, nullable: true }
+        team_id: { type: integer, nullable: true }
+        player_id: { type: integer, nullable: true }
+        participant_name: { type: string }
+        played: { type: integer }
+        won: { type: integer }
+        drawn: { type: integer }
+        lost: { type: integer }
+        points: { type: integer }
+        sets_won: { type: integer }
+        sets_lost: { type: integer }
+        points_won: { type: integer }
+        points_lost: { type: integer }
+        goals_for: { type: integer }
+        goals_against: { type: integer }
+        goal_difference: { type: integer }
+        position: { type: integer, nullable: true }
+        manual_order: { type: integer, nullable: true }
+
+    Sport:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        slug: { type: string }
+        description: { type: string, nullable: true }
+        icon: { type: string, nullable: true }
+        rules: { type: object, nullable: true }
+        active: { type: boolean }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+
+    City:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        slug: { type: string }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+
+    Venue:
+      type: object
+      properties:
+        id: { type: integer }
+        city_id: { type: integer, nullable: true }
+        name: { type: string }
+        address: { type: string, nullable: true }
+        city: { $ref: "#/components/schemas/City" }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+
+  parameters:
+    OrganizationSlug:
+      name: organization
+      in: path
+      required: true
+      schema: { type: string }
+      description: Slug organizacije (npr. "fk-primjer-x9d2")
+    CompetitionSlug:
+      name: competition
+      in: path
+      required: true
+      schema: { type: string }
+      description: Slug takmičenja/lige (npr. "kup-2026-abc123")
+    LeagueSlug:
+      name: league
+      in: path
+      required: true
+      schema: { type: string }
+    SportSlug:
+      name: sport
+      in: path
+      required: true
+      schema: { type: string }
+    CitySlug:
+      name: city
+      in: path
+      required: true
+      schema: { type: string }
+    Id:
+      name: id
+      in: path
+      required: true
+      schema: { type: integer }
+
+  responses:
+    Unauthorized:
+      description: Nema ili je nevažeći Bearer token
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ErrorEnvelope" }
+    Forbidden:
+      description: Autentifikovan, ali nema pravo pristupa ovom resursu
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Envelope" }
+    NotFound:
+      description: Resurs ne postoji
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ErrorEnvelope" }
+    ValidationError:
+      description: Neispravan payload
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ErrorEnvelope" }
+
+paths:
+  /register:
+    post:
+      tags: [Auth]
+      summary: Registracija novog korisnika
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, email, password, password_confirmation]
+              properties:
+                name: { type: string }
+                email: { type: string, format: email }
+                password: { type: string, minLength: 8 }
+                password_confirmation: { type: string }
+      responses:
+        "201":
+          description: Uspješna registracija, vraća token
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          user: { $ref: "#/components/schemas/User" }
+                          token: { type: string }
+        "422": { $ref: "#/components/responses/ValidationError" }
+
+  /login:
+    post:
+      tags: [Auth]
+      summary: Prijava, vraća novi token
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string, format: email }
+                password: { type: string }
+      responses:
+        "200":
+          description: Uspješna prijava
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          user: { $ref: "#/components/schemas/User" }
+                          token: { type: string }
+        "422": { description: "Neispravni kredencijali" }
+
+  /logout:
+    post:
+      tags: [Auth]
+      summary: Odjava (briše trenutni token)
+      responses:
+        "200": { description: OK }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+
+  /me:
+    get:
+      tags: [Auth]
+      summary: Podaci o prijavljenom korisniku
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data: { $ref: "#/components/schemas/User" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+
+  /sports:
+    get:
+      tags: [Sports]
+      summary: Lista sportova (javno)
+      security: []
+      parameters:
+        - name: active
+          in: query
+          schema: { type: boolean }
+      responses:
+        "200": { description: OK }
+    post:
+      tags: [Sports]
+      summary: Kreiranje sporta (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name: { type: string }
+                description: { type: string }
+                icon: { type: string }
+                rules: { type: object }
+                active: { type: boolean }
+      responses:
+        "201": { description: Created }
+        "403": { $ref: "#/components/responses/Forbidden" }
+
+  /sports/{sport}:
+    get:
+      tags: [Sports]
+      summary: Detalji sporta (javno)
+      security: []
+      parameters: [{ $ref: "#/components/parameters/SportSlug" }]
+      responses:
+        "200": { description: OK }
+    put:
+      tags: [Sports]
+      summary: Ažuriranje sporta (admin)
+      parameters: [{ $ref: "#/components/parameters/SportSlug" }]
+      responses:
+        "200": { description: OK }
+        "403": { $ref: "#/components/responses/Forbidden" }
+    delete:
+      tags: [Sports]
+      summary: Brisanje sporta (admin)
+      parameters: [{ $ref: "#/components/parameters/SportSlug" }]
+      responses:
+        "200": { description: OK }
+        "403": { $ref: "#/components/responses/Forbidden" }
+
+  /cities:
+    get:
+      tags: [Cities]
+      summary: Lista gradova (javno)
+      security: []
+      responses:
+        "200": { description: OK }
+    post:
+      tags: [Cities]
+      summary: Kreiranje grada (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties: { name: { type: string } }
+      responses:
+        "201": { description: Created }
+
+  /cities/{city}:
+    get:
+      tags: [Cities]
+      summary: Detalji grada (javno)
+      security: []
+      parameters: [{ $ref: "#/components/parameters/CitySlug" }]
+      responses:
+        "200": { description: OK }
+    put:
+      tags: [Cities]
+      summary: Ažuriranje grada (admin)
+      parameters: [{ $ref: "#/components/parameters/CitySlug" }]
+      responses:
+        "200": { description: OK }
+    delete:
+      tags: [Cities]
+      summary: Brisanje grada (admin)
+      parameters: [{ $ref: "#/components/parameters/CitySlug" }]
+      responses:
+        "200": { description: OK }
+
+  /venues:
+    get:
+      tags: [Venues]
+      summary: Lista objekata/sala (javno)
+      security: []
+      parameters:
+        - name: city_id
+          in: query
+          schema: { type: integer }
+      responses:
+        "200": { description: OK }
+    post:
+      tags: [Venues]
+      summary: Kreiranje objekta (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                city_id: { type: integer }
+                name: { type: string }
+                address: { type: string }
+      responses:
+        "201": { description: Created }
+
+  /venues/{id}:
+    get:
+      tags: [Venues]
+      summary: Detalji objekta (javno)
+      security: []
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      responses:
+        "200": { description: OK }
+    put:
+      tags: [Venues]
+      summary: Ažuriranje objekta (admin)
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      responses:
+        "200": { description: OK }
+    delete:
+      tags: [Venues]
+      summary: Brisanje objekta (admin)
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      responses:
+        "200": { description: OK }
+
+  /organizations:
+    get:
+      tags: [Organizations]
+      summary: Lista organizacija koje korisnik vidi (vlasnik ili član)
+      responses:
+        "200": { description: OK }
+    post:
+      tags: [Organizations]
+      summary: Kreiranje organizacije
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, sport_id]
+              properties:
+                name: { type: string }
+                sport_id: { type: integer }
+                description: { type: string }
+      responses:
+        "201": { description: Created }
+        "403": { description: "Prekoračen limit plana" }
+
+  /organizations/{organization}:
+    get:
+      tags: [Organizations]
+      summary: Detalji organizacije
+      parameters: [{ $ref: "#/components/parameters/OrganizationSlug" }]
+      responses:
+        "200": { description: OK }
+    put:
+      tags: [Organizations]
+      summary: Ažuriranje organizacije (vlasnik)
+      parameters: [{ $ref: "#/components/parameters/OrganizationSlug" }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string }
+                description: { type: string }
+                is_active: { type: boolean }
+      responses:
+        "200": { description: OK }
+    delete:
+      tags: [Organizations]
+      summary: Brisanje organizacije (vlasnik)
+      parameters: [{ $ref: "#/components/parameters/OrganizationSlug" }]
+      responses:
+        "200": { description: OK }
+
+  /organizations/{organization}/users:
+    get:
+      tags: [OrganizationUsers]
+      summary: Lista članova organizacije (referee itd.)
+      parameters: [{ $ref: "#/components/parameters/OrganizationSlug" }]
+      responses:
+        "200": { description: OK }
+    post:
+      tags: [OrganizationUsers]
+      summary: Dodavanje člana (npr. sudije) po e-mailu
+      parameters: [{ $ref: "#/components/parameters/OrganizationSlug" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, role]
+              properties:
+                email: { type: string, format: email }
+                role: { type: string, enum: [referee] }
+      responses:
+        "201": { description: Created }
+        "422": { description: "Korisnik već član" }
+
+  /organizations/{organization}/users/{organizationUser}:
+    delete:
+      tags: [OrganizationUsers]
+      summary: Uklanjanje člana (vlasnik se ne može ukloniti)
+      parameters:
+        - { $ref: "#/components/parameters/OrganizationSlug" }
+        - { $ref: "#/components/parameters/Id" }
+      responses:
+        "200": { description: OK }
+
+  /organizations/{organization}/links:
+    get:
+      tags: [OrganizationLinks]
+      summary: Lista društvenih/eksternih linkova organizacije
+      parameters: [{ $ref: "#/components/parameters/OrganizationSlug" }]
+      responses:
+        "200": { description: OK }
+    post:
+      tags: [OrganizationLinks]
+      summary: Dodavanje linka (tip se auto-detektuje iz URL-a)
+      parameters: [{ $ref: "#/components/parameters/OrganizationSlug" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title, url]
+              properties:
+                title: { type: string }
+                url: { type: string, format: uri }
+      responses:
+        "201": { description: Created }
+
+  /organizations/{organization}/links/{link}:
+    delete:
+      tags: [OrganizationLinks]
+      summary: Brisanje linka
+      parameters:
+        - { $ref: "#/components/parameters/OrganizationSlug" }
+        - { $ref: "#/components/parameters/Id" }
+      responses:
+        "200": { description: OK }
+
+  /organizations/{organization}/categories:
+    get:
+      tags: [Categories]
+      summary: Lista kategorija (npr. dobne grupe)
+      parameters: [{ $ref: "#/components/parameters/OrganizationSlug" }]
+      responses:
+        "200": { description: OK }
+    post:
+      tags: [Categories]
+      summary: Kreiranje kategorije
+      parameters: [{ $ref: "#/components/parameters/OrganizationSlug" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name: { type: string }
+                description: { type: string }
+      responses:
+        "201": { description: Created }
+
+  /categories/{category}:
+    put:
+      tags: [Categories]
+      summary: Ažuriranje kategorije
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name: { type: string }
+                description: { type: string }
+                is_active: { type: boolean }
+      responses:
+        "200": { description: OK }
+    delete:
+      tags: [Categories]
+      summary: Brisanje kategorije
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      responses:
+        "200": { description: OK }
+
+  /organizations/{organization}/seasons:
+    get:
+      tags: [Seasons]
+      summary: Lista sezona
+      parameters: [{ $ref: "#/components/parameters/OrganizationSlug" }]
+      responses:
+        "200": { description: OK }
+    post:
+      tags: [Seasons]
+      summary: Kreiranje sezone
+      parameters: [{ $ref: "#/components/parameters/OrganizationSlug" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name: { type: string }
+                starts_at: { type: string, format: date }
+                ends_at: { type: string, format: date }
+                is_active: { type: boolean }
+      responses:
+        "201": { description: Created }
+
+  /organizations/{organization}/seasons/{season}:
+    get:
+      tags: [Seasons]
+      summary: Detalji sezone
+      parameters:
+        - { $ref: "#/components/parameters/OrganizationSlug" }
+        - { $ref: "#/components/parameters/Id" }
+      responses:
+        "200": { description: OK }
+    put:
+      tags: [Seasons]
+      summary: Ažuriranje sezone
+      parameters:
+        - { $ref: "#/components/parameters/OrganizationSlug" }
+        - { $ref: "#/components/parameters/Id" }
+      responses:
+        "200": { description: OK }
+    delete:
+      tags: [Seasons]
+      summary: Brisanje sezone
+      parameters:
+        - { $ref: "#/components/parameters/OrganizationSlug" }
+        - { $ref: "#/components/parameters/Id" }
+      responses:
+        "200": { description: OK }
+
+  /organizations/{organization}/tables:
+    get:
+      tags: [Tables]
+      summary: Lista fizičkih stolova/terena organizacije
+      parameters: [{ $ref: "#/components/parameters/OrganizationSlug" }]
+      responses:
+        "200": { description: OK }
+    post:
+      tags: [Tables]
+      summary: Kreiranje stola/terena
+      parameters: [{ $ref: "#/components/parameters/OrganizationSlug" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name: { type: string }
+                description: { type: string }
+      responses:
+        "201": { description: Created }
+
+  /organizations/{organization}/tables/{table}:
+    get:
+      tags: [Tables]
+      summary: Detalji stola
+      parameters:
+        - { $ref: "#/components/parameters/OrganizationSlug" }
+        - { $ref: "#/components/parameters/Id" }
+      responses:
+        "200": { description: OK }
+    put:
+      tags: [Tables]
+      summary: Ažuriranje stola
+      parameters:
+        - { $ref: "#/components/parameters/OrganizationSlug" }
+        - { $ref: "#/components/parameters/Id" }
+      responses:
+        "200": { description: OK }
+    delete:
+      tags: [Tables]
+      summary: Brisanje stola
+      parameters:
+        - { $ref: "#/components/parameters/OrganizationSlug" }
+        - { $ref: "#/components/parameters/Id" }
+      responses:
+        "200": { description: OK }
+
+  /organizations/{organization}/players:
+    get:
+      tags: [Players]
+      summary: Lista igrača organizacije
+      parameters: [{ $ref: "#/components/parameters/OrganizationSlug" }]
+      responses:
+        "200": { description: OK }
+    post:
+      tags: [Players]
+      summary: Kreiranje igrača (opciono povezanog s postojećim korisnikom preko emaila)
+      parameters: [{ $ref: "#/components/parameters/OrganizationSlug" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name: { type: string }
+                email: { type: string, format: email }
+                date_of_birth: { type: string, format: date }
+                position: { type: string }
+                jersey_number: { type: integer }
+      responses:
+        "201": { description: Created }
+
+  /organizations/{organization}/players/{player}:
+    get:
+      tags: [Players]
+      summary: Detalji igrača
+      parameters:
+        - { $ref: "#/components/parameters/OrganizationSlug" }
+        - { $ref: "#/components/parameters/Id" }
+      responses:
+        "200": { description: OK }
+    put:
+      tags: [Players]
+      summary: Ažuriranje igrača
+      parameters:
+        - { $ref: "#/components/parameters/OrganizationSlug" }
+        - { $ref: "#/components/parameters/Id" }
+      responses:
+        "200": { description: OK }
+    delete:
+      tags: [Players]
+      summary: Brisanje igrača
+      parameters:
+        - { $ref: "#/components/parameters/OrganizationSlug" }
+        - { $ref: "#/components/parameters/Id" }
+      responses:
+        "200": { description: OK }
+
+  /organizations/{organization}/players/{player}/matches:
+    get:
+      tags: [Players]
+      summary: Historija mečeva igrača (liga + prijateljski) u organizaciji
+      parameters:
+        - { $ref: "#/components/parameters/OrganizationSlug" }
+        - { $ref: "#/components/parameters/Id" }
+      responses:
+        "200": { description: OK }
+
+  /organizations/{organization}/player-invitations:
+    get:
+      tags: [PlayerInvitations]
+      summary: Lista pozivnica (opciono filter po competition_id)
+      parameters:
+        - { $ref: "#/components/parameters/OrganizationSlug" }
+        - name: competition_id
+          in: query
+          schema: { type: integer }
+      responses:
+        "200": { description: OK }
+    post:
+      tags: [PlayerInvitations]
+      summary: Slanje pozivnice igraču na takmičenje (mailom)
+      parameters: [{ $ref: "#/components/parameters/OrganizationSlug" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [competition_id, email]
+              properties:
+                competition_id: { type: integer }
+                player_id: { type: integer, description: "ako je poznat postojeći igrač" }
+                name: { type: string, description: "obavezno ako player_id nije poslan" }
+                email: { type: string, format: email }
+      responses:
+        "201": { description: Created }
+
+  /organizations/{organization}/player-invitations/{playerInvitation}:
+    delete:
+      tags: [PlayerInvitations]
+      summary: Otkazivanje pozivnice (samo dok je 'pending')
+      parameters:
+        - { $ref: "#/components/parameters/OrganizationSlug" }
+        - { $ref: "#/components/parameters/Id" }
+      responses:
+        "200": { description: OK }
+        "422": { description: "Pozivnica nije više pending" }
+
+  /organizations/{organization}/friendly-matches:
+    get:
+      tags: [FriendlyMatches]
+      summary: Lista prijateljskih mečeva
+      parameters: [{ $ref: "#/components/parameters/OrganizationSlug" }]
+      responses:
+        "200": { description: OK }
+    post:
+      tags: [FriendlyMatches]
+      summary: Bilježenje odigranog prijateljskog meča (kreira se već završen)
+      parameters: [{ $ref: "#/components/parameters/OrganizationSlug" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [home_player_id, away_player_id, home_player_name, away_player_name, sets, set_durations, winner_name, completed_at]
+              properties:
+                home_player_id: { type: integer }
+                away_player_id: { type: integer }
+                home_player_name: { type: string }
+                away_player_name: { type: string }
+                sets: { type: array, items: { type: array, items: { type: integer } } }
+                set_durations: { type: array, items: { type: integer } }
+                winner_name: { type: string }
+                completed_at: { type: string, format: date-time }
+      responses:
+        "201": { description: Created }
+
+  /organizations/{organization}/friendly-matches/{friendlyMatch}:
+    get:
+      tags: [FriendlyMatches]
+      summary: Detalji prijateljskog meča
+      parameters:
+        - { $ref: "#/components/parameters/OrganizationSlug" }
+        - { $ref: "#/components/parameters/Id" }
+      responses:
+        "200": { description: OK }
+    put:
+      tags: [FriendlyMatches]
+      summary: Ažuriranje prijateljskog meča
+      parameters:
+        - { $ref: "#/components/parameters/OrganizationSlug" }
+        - { $ref: "#/components/parameters/Id" }
+      responses:
+        "200": { description: OK }
+    delete:
+      tags: [FriendlyMatches]
+      summary: Brisanje prijateljskog meča
+      parameters:
+        - { $ref: "#/components/parameters/OrganizationSlug" }
+        - { $ref: "#/components/parameters/Id" }
+      responses:
+        "200": { description: OK }
+
+  /organizations/{organization}/teams:
+    get:
+      tags: [Teams]
+      summary: Lista timova (opciono filter po competition_id)
+      parameters:
+        - { $ref: "#/components/parameters/OrganizationSlug" }
+        - name: competition_id
+          in: query
+          schema: { type: integer }
+      responses:
+        "200": { description: OK }
+    post:
+      tags: [Teams]
+      summary: Kreiranje tima
+      parameters: [{ $ref: "#/components/parameters/OrganizationSlug" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name: { type: string }
+                description: { type: string }
+                competition_id: { type: integer }
+                captain_id: { type: integer }
+                coach: { type: string }
+      responses:
+        "201": { description: Created }
+
+  /teams/{team}:
+    get:
+      tags: [Teams]
+      summary: Detalji tima (uz igrače i trenere)
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      responses:
+        "200": { description: OK }
+    put:
+      tags: [Teams]
+      summary: Ažuriranje tima
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      responses:
+        "200": { description: OK }
+    delete:
+      tags: [Teams]
+      summary: Brisanje tima
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      responses:
+        "200": { description: OK }
+
+  /teams/{team}/players:
+    post:
+      tags: [Teams]
+      summary: Dodavanje igrača u roster tima
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [player_id]
+              properties:
+                player_id: { type: integer }
+                role: { type: string }
+      responses:
+        "200": { description: OK }
+
+  /teams/{team}/players/{player}:
+    delete:
+      tags: [Teams]
+      summary: Uklanjanje igrača iz rostera tima
+      parameters:
+        - { $ref: "#/components/parameters/Id" }
+        - name: player
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200": { description: OK }
+
+  /teams/{team}/coaches:
+    get:
+      tags: [TeamCoaches]
+      summary: Lista trenera tima
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      responses:
+        "200": { description: OK }
+    post:
+      tags: [TeamCoaches]
+      summary: Dodavanje trenera
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name: { type: string }
+                is_active: { type: boolean }
+                start_date: { type: string, format: date }
+                end_date: { type: string, format: date }
+      responses:
+        "201": { description: Created }
+
+  /teams/{team}/coaches/{coach}:
+    get:
+      tags: [TeamCoaches]
+      summary: Detalji trenera
+      parameters:
+        - { $ref: "#/components/parameters/Id" }
+        - name: coach
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200": { description: OK }
+    put:
+      tags: [TeamCoaches]
+      summary: Ažuriranje trenera
+      parameters:
+        - { $ref: "#/components/parameters/Id" }
+        - name: coach
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200": { description: OK }
+    delete:
+      tags: [TeamCoaches]
+      summary: Brisanje trenera
+      parameters:
+        - { $ref: "#/components/parameters/Id" }
+        - name: coach
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200": { description: OK }
+
+  /organizations/{organization}/leagues:
+    get:
+      tags: [Leagues]
+      summary: Lista liga organizacije
+      parameters: [{ $ref: "#/components/parameters/OrganizationSlug" }]
+      responses:
+        "200": { description: OK }
+    post:
+      tags: [Leagues]
+      summary: Kreiranje lige
+      parameters: [{ $ref: "#/components/parameters/OrganizationSlug" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, sport_id, is_team_based]
+              properties:
+                name: { type: string }
+                sport_id: { type: integer }
+                is_team_based: { type: boolean }
+                description: { type: string }
+                start_date: { type: string, format: date }
+                end_date: { type: string, format: date }
+                max_teams: { type: integer, default: 8 }
+      responses:
+        "201": { description: Created }
+        "403": { description: "Prekoračen limit lige po planu" }
+
+  /leagues/{league}:
+    get:
+      tags: [Leagues]
+      summary: Detalji lige
+      parameters: [{ $ref: "#/components/parameters/LeagueSlug" }]
+      responses:
+        "200": { description: OK }
+    put:
+      tags: [Leagues]
+      summary: Ažuriranje lige
+      parameters: [{ $ref: "#/components/parameters/LeagueSlug" }]
+      responses:
+        "200": { description: OK }
+    delete:
+      tags: [Leagues]
+      summary: Brisanje lige
+      parameters: [{ $ref: "#/components/parameters/LeagueSlug" }]
+      responses:
+        "200": { description: OK }
+
+  /leagues/{league}/matches:
+    get:
+      tags: [LeagueMatches]
+      summary: Raspored/rezultati lige
+      parameters: [{ $ref: "#/components/parameters/LeagueSlug" }]
+      responses:
+        "200": { description: OK }
+
+  /leagues/{league}/matches/{match}:
+    get:
+      tags: [LeagueMatches]
+      summary: Detalji meča
+      parameters:
+        - { $ref: "#/components/parameters/LeagueSlug" }
+        - { $ref: "#/components/parameters/Id" }
+      responses:
+        "200": { description: OK }
+    put:
+      tags: [LeagueMatches]
+      summary: Unos rezultata (status/score/sets/table/referee) - rekalkulira tabelu
+      parameters:
+        - { $ref: "#/components/parameters/LeagueSlug" }
+        - { $ref: "#/components/parameters/Id" }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                home_score: { type: integer }
+                away_score: { type: integer }
+                status: { type: string, enum: [scheduled, in_progress, completed, forfeited] }
+                sets: { type: array, items: {} }
+                scheduled_at: { type: string, format: date-time }
+                played_at: { type: string, format: date-time }
+                table_id: { type: integer }
+                referee_user_id: { type: integer }
+                forfeited_by: { type: string, enum: [home, away] }
+      responses:
+        "200": { description: OK }
+
+  /organizations/{organization}/competitions:
+    get:
+      tags: [Competitions]
+      summary: Lista takmičenja organizacije (uključuje i type=league zapise)
+      parameters: [{ $ref: "#/components/parameters/OrganizationSlug" }]
+      responses:
+        "200": { description: OK }
+    post:
+      tags: [Competitions]
+      summary: Kreiranje takmičenja (liga ili turnir)
+      description: >
+        Kad je type=tournament, players_advancing_per_group i advancement_method su obavezni.
+      parameters: [{ $ref: "#/components/parameters/OrganizationSlug" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, sport_id, type, start_date]
+              properties:
+                name: { type: string }
+                sport_id: { type: integer }
+                type: { type: string, enum: [league, tournament] }
+                start_date: { type: string, format: date }
+                players_advancing_per_group: { type: integer, description: "obavezno za type=tournament" }
+                advancement_method: { type: string, enum: [automatic, manual], description: "obavezno za type=tournament" }
+      responses:
+        "201": { description: Created }
+        "422": { $ref: "#/components/responses/ValidationError" }
+
+  /competitions/{competition}:
+    get:
+      tags: [Competitions]
+      summary: Detalji takmičenja
+      parameters: [{ $ref: "#/components/parameters/CompetitionSlug" }]
+      responses:
+        "200": { description: OK }
+    put:
+      tags: [Competitions]
+      summary: Ažuriranje takmičenja
+      parameters: [{ $ref: "#/components/parameters/CompetitionSlug" }]
+      responses:
+        "200": { description: OK }
+    delete:
+      tags: [Competitions]
+      summary: Brisanje takmičenja
+      parameters: [{ $ref: "#/components/parameters/CompetitionSlug" }]
+      responses:
+        "200": { description: OK }
+
+  /competitions/{competition}/start:
+    post:
+      tags: [Competitions]
+      summary: Pokretanje takmičenja (generiše grupe/raspored)
+      parameters: [{ $ref: "#/components/parameters/CompetitionSlug" }]
+      responses:
+        "200": { description: OK }
+        "400": { description: "Takmičenje nije u statusu 'draft'" }
+
+  /competitions/{competition}/complete:
+    post:
+      tags: [Competitions]
+      summary: Završavanje takmičenja
+      parameters: [{ $ref: "#/components/parameters/CompetitionSlug" }]
+      responses:
+        "200": { description: OK }
+
+  /competitions/{competition}/reset:
+    post:
+      tags: [Competitions]
+      summary: Resetovanje takmičenja u status 'draft' (briše mečeve/grupe)
+      parameters: [{ $ref: "#/components/parameters/CompetitionSlug" }]
+      responses:
+        "200": { description: OK }
+
+  /competitions/{competition}/join-requests:
+    get:
+      tags: [CompetitionJoinRequests]
+      summary: Lista zahtjeva za pristup (organizator)
+      parameters: [{ $ref: "#/components/parameters/CompetitionSlug" }]
+      responses:
+        "200": { description: OK }
+    post:
+      tags: [CompetitionJoinRequests]
+      summary: Slanje zahtjeva za pristup takmičenju (self-serve, bilo koji prijavljeni korisnik)
+      parameters: [{ $ref: "#/components/parameters/CompetitionSlug" }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message: { type: string }
+      responses:
+        "201": { description: Created }
+        "422": { description: "Takmičenje nije otvoreno za prijave / već postoji zahtjev" }
+
+  /competitions/{competition}/join-requests/{joinRequest}:
+    put:
+      tags: [CompetitionJoinRequests]
+      summary: Prihvatanje/odbijanje zahtjeva (organizator)
+      parameters:
+        - { $ref: "#/components/parameters/CompetitionSlug" }
+        - { $ref: "#/components/parameters/Id" }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status: { type: string, enum: [approved, rejected] }
+      responses:
+        "200": { description: OK }
+
+  /competitions/{competition}/groups:
+    get:
+      tags: [TournamentGroups]
+      summary: Lista grupa turnira (read-only, generišu se prilikom pokretanja)
+      parameters: [{ $ref: "#/components/parameters/CompetitionSlug" }]
+      responses:
+        "200": { description: OK }
+
+  /competitions/{competition}/groups/{group}:
+    get:
+      tags: [TournamentGroups]
+      summary: Detalji grupe (uz tabelu)
+      parameters:
+        - { $ref: "#/components/parameters/CompetitionSlug" }
+        - { $ref: "#/components/parameters/Id" }
+      responses:
+        "200": { description: OK }
+
+  /competitions/{competition}/matches:
+    get:
+      tags: [CompetitionMatches]
+      summary: Mečevi takmičenja (grupna + knockout faza)
+      parameters:
+        - { $ref: "#/components/parameters/CompetitionSlug" }
+        - name: phase
+          in: query
+          schema: { type: string, enum: [group, round_of_16, quarter_final, semi_final, final, third_place] }
+      responses:
+        "200": { description: OK }
+
+  /competitions/{competition}/matches/{match}:
+    get:
+      tags: [CompetitionMatches]
+      summary: Detalji meča
+      parameters:
+        - { $ref: "#/components/parameters/CompetitionSlug" }
+        - { $ref: "#/components/parameters/Id" }
+      responses:
+        "200": { description: OK }
+    put:
+      tags: [CompetitionMatches]
+      summary: Unos rezultata - rekalkulira grupnu tabelu / provlači pobjednika u knockout
+      parameters:
+        - { $ref: "#/components/parameters/CompetitionSlug" }
+        - { $ref: "#/components/parameters/Id" }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                home_score: { type: integer }
+                away_score: { type: integer }
+                status: { type: string, enum: [scheduled, in_progress, completed, forfeited] }
+                sets: { type: array, items: {} }
+                played_at: { type: string, format: date-time }
+      responses:
+        "200": { description: OK }
+
+  /competitions/{competition}/team-matches:
+    get:
+      tags: [TeamMatches]
+      summary: Timski mečevi takmičenja (BiH pravilo - prvi do 4 pobjede)
+      parameters: [{ $ref: "#/components/parameters/CompetitionSlug" }]
+      responses:
+        "200": { description: OK }
+
+  /competitions/{competition}/team-matches/{teamMatch}:
+    get:
+      tags: [TeamMatches]
+      summary: Detalji timskog meča
+      parameters:
+        - { $ref: "#/components/parameters/CompetitionSlug" }
+        - { $ref: "#/components/parameters/Id" }
+      responses:
+        "200": { description: OK }
+    put:
+      tags: [TeamMatches]
+      summary: Unos rezultata pojedinačnog susreta - automatski provjerava kompletnost timskog meča
+      parameters:
+        - { $ref: "#/components/parameters/CompetitionSlug" }
+        - { $ref: "#/components/parameters/Id" }
+      responses:
+        "200": { description: OK }
+
+  /competitions/{competition}/standings:
+    get:
+      tags: [Standings]
+      summary: Tabela takmičenja (read-only, sortirana po poziciji)
+      parameters: [{ $ref: "#/components/parameters/CompetitionSlug" }]
+      responses:
+        "200": { description: OK }

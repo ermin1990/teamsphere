@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Cache;
+use App\Models\Season;
 
 class League extends Model
 {
@@ -71,6 +72,14 @@ class League extends Model
     public function organization(): BelongsTo
     {
         return $this->belongsTo(Organization::class);
+    }
+
+    /**
+     * Get the season this league belongs to.
+     */
+    public function season(): BelongsTo
+    {
+        return $this->belongsTo(Season::class);
     }
 
     /**

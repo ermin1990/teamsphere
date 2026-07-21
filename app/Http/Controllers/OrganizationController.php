@@ -39,12 +39,18 @@ class OrganizationController extends Controller
     /**
      * Display the specified organization.
      */
-    public function show(Organization $organization)
+    public function show(Organization $organization, Request $request)
     {
         // Use the policy instead of manual authorization
         Gate::authorize('view', $organization);
 
         $organization->load(['leagues', 'competitions.sport', 'players', 'user']);
+
+        $seasons = $organization->seasons()->orderByDesc('starts_at')->get();
+        $selectedSeasonId = $request->query('season_id');
+        if ($selectedSeasonId === null && $seasons->isNotEmpty()) {
+            $selectedSeasonId = (string) ($seasons->firstWhere('is_active', true)?->id ?? '');
+        }
 
         // Set variables for the view
         $isOwner = $organization->user_id === auth()->id();
@@ -54,7 +60,7 @@ class OrganizationController extends Controller
             ->where('organization_user.role', 'referee')
             ->exists();
 
-        return view('organizations.show', compact('organization', 'isOwner', 'isPlayer', 'isReferee'));
+        return view('organizations.show', compact('organization', 'isOwner', 'isPlayer', 'isReferee', 'seasons', 'selectedSeasonId'));
     }
 
     /**

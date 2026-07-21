@@ -31,8 +31,28 @@ class PublicMatchController extends Controller
         if ($request->filled('sport_id')) {
             $competitionsQuery->where('competitions.sport_id', $request->sport_id);
         }
+        $matchedPlayers = collect();
         if ($request->filled('q')) {
-            $competitionsQuery->where('competitions.name', 'like', '%' . $request->q . '%');
+            $q = $request->q;
+            $competitionsQuery->where(function ($query) use ($q) {
+                $query->where('competitions.name', 'like', "%{$q}%")
+                    ->orWhereHas('organization', fn ($oq) => $oq->where('name', 'like', "%{$q}%"))
+                    ->orWhereHas('players', fn ($pq) => $pq->where('name', 'like', "%{$q}%"))
+                    ->orWhereHas('teams', fn ($tq) => $tq->where('name', 'like', "%{$q}%"));
+            });
+
+            // Direct player match, shown as a "jump straight to their profile"
+            // shortcut above the competition list - only players with at
+            // least one public league are eligible, same visibility rule as
+            // the competitions search above.
+            $matchedPlayers = Player::where('name', 'like', "%{$q}%")
+                ->whereHas('leagues', fn ($lq) => $lq->where('is_public', true))
+                ->with([
+                    'organization',
+                    'leagues' => fn ($lq) => $lq->where('is_public', true)->with('season'),
+                ])
+                ->limit(5)
+                ->get();
         }
 
         // Active/finished toggle - defaults to "active" so the browse page
@@ -77,7 +97,7 @@ class PublicMatchController extends Controller
         $sports = Sport::whereIn('id', $sportIds)->orderBy('name')->get();
 
         return view('public.leagues.organizations', compact(
-            'competitions', 'competitionsCount', 'cities', 'sports', 'statusFilter'
+            'competitions', 'competitionsCount', 'cities', 'sports', 'statusFilter', 'matchedPlayers'
         ));
     }
 
@@ -97,18 +117,25 @@ class PublicMatchController extends Controller
     /**
      * Display all public competitions for a specific organization.
      */
-    public function indexLeaguesByOrganization(Organization $organization)
+    public function indexLeaguesByOrganization(Organization $organization, Request $request)
     {
         // Load organization links/banners
         $organization->load('links');
 
+        $seasons = $organization->seasons()->orderByDesc('starts_at')->get();
+        $selectedSeasonId = $request->query('season_id');
+        if ($selectedSeasonId === null && $seasons->isNotEmpty()) {
+            $selectedSeasonId = (string) ($seasons->firstWhere('is_active', true)?->id ?? '');
+        }
+
         // Get all public competitions for this organization
         $competitions = Competition::where('organization_id', $organization->id)
             ->where('is_public', true)
+            ->when($selectedSeasonId, fn ($q) => $q->where('season_id', $selectedSeasonId))
             ->with(['organization', 'sport'])
             ->get();
 
-        return view('public.leagues.index', compact('competitions', 'organization'));
+        return view('public.leagues.index', compact('competitions', 'organization', 'seasons', 'selectedSeasonId'));
     }
 
     /**

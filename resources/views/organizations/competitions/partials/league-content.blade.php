@@ -2,7 +2,15 @@
     <div class="space-y-6">
         <!-- Team Standings -->
         <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50">
-            <h3 class="text-xl font-bold text-white mb-4">Tabela Ekipa</h3>
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xl font-bold text-white">Tabela Ekipa</h3>
+                @if($isOwner)
+                    <a href="{{ route('organizations.competitions.manual-standings', [$organization, $competition]) }}"
+                       class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-xl text-sm font-bold transition flex items-center gap-2" title="Ručno pomjeri poziciju ekipe u tabeli">
+                        ⇅ Ručno poređaj
+                    </a>
+                @endif
+            </div>
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-700">
                     <thead>
@@ -16,7 +24,7 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-700">
-                        @foreach($competition->standings->sortByDesc('points') as $standing)
+                        @foreach($competition->standings->sortBy('position') as $standing)
                         <tr>
                             <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-300">{{ $loop->iteration }}.</td>
                             <td class="px-4 py-4 whitespace-nowrap text-sm font-medium text-white">{{ $standing->team->name ?? 'Nepoznato' }}</td>
@@ -149,10 +157,16 @@
                         @endif
                     </div>
                     @if($isOwner)
-                        <button type="button" onclick="document.getElementById('invitePlayerModal').classList.remove('hidden')"
-                                class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-xl text-sm font-bold transition flex items-center gap-2">
-                            ✉️ Pozovi igrača
-                        </button>
+                        <div class="flex items-center gap-2">
+                            <a href="{{ route('organizations.competitions.manual-standings', [$organization, $competition]) }}"
+                               class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-xl text-sm font-bold transition flex items-center gap-2" title="Ručno pomjeri poziciju igrača u tabeli">
+                                ⇅ Ručno poređaj
+                            </a>
+                            <button type="button" onclick="document.getElementById('invitePlayerModal').classList.remove('hidden')"
+                                    class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-xl text-sm font-bold transition flex items-center gap-2">
+                                ✉️ Pozovi igrača
+                            </button>
+                        </div>
                     @endif
                 </div>
                 <div class="overflow-x-auto">
@@ -164,22 +178,40 @@
                                 <th class="px-4 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider">OU</th>
                                 <th class="px-4 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider">P</th>
                                 <th class="px-4 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider">I</th>
+                                <th class="px-4 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider" title="Setovi (osvojeni:izgubljeni)">Set</th>
+                                <th class="px-4 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider" title="Gemovi (osvojeni:izgubljeni)">Gem</th>
                                 <th class="px-4 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider">Bod</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-700">
-                            @foreach($competition->standings->sortByDesc('points') as $standing)
+                            @foreach($competition->standings->sortBy('position') as $standing)
                             <tr>
                                 <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-300">{{ $loop->iteration }}.</td>
                                 <td class="px-4 py-4 whitespace-nowrap text-sm font-medium text-white">{{ $standing->player->name ?? 'Nepoznato' }}</td>
                                 <td class="px-4 py-4 whitespace-nowrap text-center text-sm text-gray-300">{{ $standing->played }}</td>
                                 <td class="px-4 py-4 whitespace-nowrap text-center text-sm text-gray-300">{{ $standing->won }}</td>
                                 <td class="px-4 py-4 whitespace-nowrap text-center text-sm text-gray-300">{{ $standing->lost }}</td>
+                                <td class="px-4 py-4 whitespace-nowrap text-center text-sm text-gray-300 tabular-nums">{{ $standing->sets_won }}:{{ $standing->sets_lost }}</td>
+                                <td class="px-4 py-4 whitespace-nowrap text-center text-sm text-gray-300 tabular-nums">{{ $standing->points_won }}:{{ $standing->points_lost }}</td>
                                 <td class="px-4 py-4 whitespace-nowrap text-center text-sm font-bold text-blue-400">{{ $standing->points }}</td>
                             </tr>
                             @endforeach
                         </tbody>
                     </table>
+                </div>
+
+                <!-- Legenda -->
+                <div class="mt-4 pt-4 border-t border-gray-700/50 space-y-1.5">
+                    <div class="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-gray-400">
+                        <span><span class="font-bold text-gray-300">OU</span> – Odigrano utakmica</span>
+                        <span><span class="font-bold text-gray-300">P</span> – Pobjede</span>
+                        <span><span class="font-bold text-gray-300">I</span> – Izgubljeno</span>
+                        <span><span class="font-bold text-gray-300">Bod</span> – Bodovi</span>
+                    </div>
+                    <div class="flex items-center gap-2 text-[11px] text-gray-400 pt-1">
+                        <span class="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wide bg-orange-500/20 text-orange-400 border border-orange-500/30">WO</span>
+                        <span>WalkOver – meč predat bez igre (protivnik se nije pojavio ili je diskvalifikovan; pobjeda se dodjeljuje prisutnom igraču)</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -198,9 +230,27 @@
                     </button>
                 @endif
             </div>
-            <div class="space-y-8">
+            <div x-data="{ search: '' }" class="space-y-6">
+                <div class="relative">
+                    <svg class="w-4 h-4 text-gray-500 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 10a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                    <input type="text" x-model="search" placeholder="Pretraži igrača da brzo pronađeš njegove mečeve..."
+                           class="w-full bg-gray-900/50 border border-gray-700/50 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50">
+                    <button type="button" x-show="search.length > 0" x-cloak @click="search = ''"
+                            class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="space-y-8">
                 @foreach($competition->matches->sortBy($roundOf)->groupBy($roundOf) as $round => $matches)
-                    <div x-data="{ open: false }" class="space-y-4">
+                    @php
+                        $roundSearchable = mb_strtolower($matches->map(fn ($m) => ($m->homePlayer->name ?? '') . ' ' . ($m->awayPlayer->name ?? ''))->implode(' | '));
+                    @endphp
+                    <div x-data="{ open: false }" x-show="search.trim() === '' || {{ \Illuminate\Support\Js::from($roundSearchable) }}.includes(search.trim().toLowerCase())" class="space-y-4">
                         <div @click="open = !open" class="flex items-center space-x-4 cursor-pointer group">
                             <div class="h-px flex-1 bg-gray-700 group-hover:bg-purple-500/50 transition-colors"></div>
                             <div class="flex items-center gap-2">
@@ -213,9 +263,13 @@
                             <div class="h-px flex-1 bg-gray-700 group-hover:bg-purple-500/50 transition-colors"></div>
                         </div>
 
-                        <div x-show="open" x-cloak class="grid grid-cols-1 gap-4">
+                        <div x-show="open || search.trim() !== ''" x-cloak class="grid grid-cols-1 gap-4">
                             @foreach($matches as $match)
-                                <div class="bg-gray-900/50 rounded-xl p-3 sm:p-4 border border-gray-700/30 flex flex-wrap sm:flex-nowrap sm:items-center">
+                                @php
+                                    $matchSearchable = mb_strtolower(($match->homePlayer->name ?? '') . ' ' . ($match->awayPlayer->name ?? ''));
+                                @endphp
+                                <div x-show="search.trim() === '' || {{ \Illuminate\Support\Js::from($matchSearchable) }}.includes(search.trim().toLowerCase())"
+                                     class="bg-gray-900/50 rounded-xl p-3 sm:p-4 border border-gray-700/30 flex flex-wrap sm:flex-nowrap sm:items-center">
                                     <div class="w-1/2 sm:w-auto sm:flex-1 text-left sm:text-right pr-2 sm:pr-4 min-w-0 order-1">
                                         <span class="text-white font-medium text-sm sm:text-base break-words">{{ $match->homePlayer->name ?? 'TBD' }}</span>
                                     </div>
@@ -226,7 +280,10 @@
                                         <span class="text-lg sm:text-xl font-black text-white">
                                             {{ $match->status === 'scheduled' ? '-' : $match->home_score }} : {{ $match->status === 'scheduled' ? '-' : $match->away_score }}
                                         </span>
-                                        @if($match->status === 'completed' && !empty($match->sets))
+                                        @if($match->status === 'completed' && $match->forfeited_by)
+                                            <span class="mt-1 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wide bg-orange-500/20 text-orange-400 border border-orange-500/30" title="Meč predat bez igre (WalkOver)">WO</span>
+                                        @endif
+                                        @if($match->status === 'completed' && !$match->forfeited_by && !empty($match->sets))
                                             <div class="flex flex-wrap items-center justify-center gap-1 mt-1.5">
                                                 @foreach($match->sets as $set)
                                                     @php
@@ -282,6 +339,7 @@
                         </div>
                     </div>
                 @endforeach
+                </div>
             </div>
         </div>
 

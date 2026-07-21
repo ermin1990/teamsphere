@@ -136,9 +136,27 @@
                     @endif
                 </div>
 
+                @if($seasons->count() > 0)
+                    <form method="GET" class="mb-6 flex items-center gap-3">
+                        <label for="season_id" class="text-sm text-gray-400 font-medium">Sezona:</label>
+                        <select name="season_id" id="season_id" onchange="this.form.submit()"
+                                class="bg-gray-700 border border-gray-600 text-white text-sm rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="" {{ empty($selectedSeasonId) ? 'selected' : '' }}>Sve sezone</option>
+                            @foreach($seasons as $season)
+                                <option value="{{ $season->id }}" {{ (string) $selectedSeasonId === (string) $season->id ? 'selected' : '' }}>
+                                    {{ $season->name }}{{ $season->is_active ? ' (aktivna)' : '' }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </form>
+                @endif
+
                 @php
-                    $activeLeagues = $organization->competitions->where('type', 'league')->whereIn('status', ['active', 'draft', 'in_progress']);
-                    $completedLeagues = $organization->competitions->where('type', 'league')->where('status', 'completed');
+                    $seasonFilteredCompetitions = $selectedSeasonId
+                        ? $organization->competitions->where('season_id', (int) $selectedSeasonId)
+                        : $organization->competitions;
+                    $activeLeagues = $seasonFilteredCompetitions->where('type', 'league')->whereIn('status', ['active', 'draft', 'in_progress']);
+                    $completedLeagues = $seasonFilteredCompetitions->where('type', 'league')->where('status', 'completed');
                 @endphp
 
                 @if($activeLeagues->count() > 0)
@@ -239,10 +257,10 @@
                     @endif
                 </div>
 
-                @if($organization->competitions->count() > 0)
+                @if($seasonFilteredCompetitions->count() > 0)
                     @php
-                        $activeTournaments = $organization->competitions->where('type', 'tournament')->whereIn('status', ['active', 'draft']);
-                        $completedTournaments = $organization->competitions->where('type', 'tournament')->where('status', 'completed');
+                        $activeTournaments = $seasonFilteredCompetitions->where('type', 'tournament')->whereIn('status', ['active', 'draft']);
+                        $completedTournaments = $seasonFilteredCompetitions->where('type', 'tournament')->where('status', 'completed');
                     @endphp
 
                     @if($activeTournaments->count() > 0)

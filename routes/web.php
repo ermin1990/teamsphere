@@ -257,6 +257,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('organizations/{organization}/competitions/{competition}/groups/{group}/manual-standings', function(\App\Models\Organization $organization, \App\Models\Competition $competition, \App\Models\TournamentGroup $group) {
         return view('organizations.competitions.manual-standings', compact('organization', 'competition', 'group'));
     })->name('organizations.competitions.groups.manual-standings');
+    Route::get('organizations/{organization}/competitions/{competition}/manual-standings', function(\App\Models\Organization $organization, \App\Models\Competition $competition) {
+        return view('organizations.competitions.league-manual-standings', compact('organization', 'competition'));
+    })->name('organizations.competitions.manual-standings');
     Route::get('leagues/create/{organization}', [LeagueController::class, 'create'])->name('leagues.create');
     Route::get('leagues/{league}', [LeagueController::class, 'show'])->name('leagues.show');
     Route::get('leagues/{league}/team-management', [LeagueController::class, 'teamManagement'])->name('leagues.team-management');
@@ -354,6 +357,7 @@ Route::name('competitions.')->group(function () {
     Route::get('/grad/{city}', [App\Http\Controllers\PublicMatchController::class, 'indexLeaguesByCity'])->name('by-city');
     Route::get('/takmicenja/{competition}', [App\Http\Controllers\PublicMatchController::class, 'showLeague'])->name('show');
     Route::get('/takmicenja/{competition}/semafor', [App\Http\Controllers\PublicMatchController::class, 'competitionSemafor'])->name('semafor');
+    Route::get('/igrac/{player}', [App\Http\Controllers\PublicPlayerController::class, 'show'])->name('player.show');
 
     Route::get('/takmicenja/{competition}/mecevi/{match}', [App\Http\Controllers\PublicMatchController::class, 'showMatch'])->name('matches.show');
     Route::get('/takmicenja/{competition}/ekipni-mecevi/{teamMatch}', [App\Http\Controllers\PublicMatchController::class, 'showTeamMatch'])->name('team-matches.show');
