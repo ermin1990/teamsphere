@@ -15,6 +15,9 @@ class League4CLigaSeason202602Seeder extends Seeder
 {
     public function run(): void
     {
+        $owner = \App\Models\User::where('email', 'ermin1990@gmail.com')->firstOrFail();
+        $sport = \App\Models\Sport::where('slug', 'tenis')->firstOrFail();
+
         // 1. Ista organizacija kao ostale lige (Tuzlanska liga)
         $organization = Organization::firstOrCreate(
             ['name' => 'Tuzlanska liga'],
