@@ -17,13 +17,14 @@ class LeagueSeason202602Seeder extends Seeder
     {
         // 1. Kreiraj/pronađi organizaciju
         $owner = \App\Models\User::where('email', 'ermin1990@gmail.com')->firstOrFail();
+        $sport = \App\Models\Sport::where('slug', 'tenis')->firstOrFail();
 
         $organization = Organization::firstOrCreate(
             ['name' => 'Tuzlanska liga'],
             [
                 'name' => 'Tuzlanska liga',
                 'slug' => 'tuzlanska-liga-' . Str::random(6),
-                'sport_id' => 3, // Tenis
+                'sport_id' => $sport->id,
                 'user_id' => $owner->id,
                 'is_active' => true,
             ]
@@ -48,7 +49,7 @@ class LeagueSeason202602Seeder extends Seeder
                 'organization_id' => $organization->id,
                 'name' => '1. Liga - Saša Vilušić',
                 'slug' => '1-liga-sasa-vilusic-' . Str::random(6),
-                'sport_id' => 3, // Tenis
+                'sport_id' => $sport->id,
                 'type' => 'league',
                 'season_id' => $season->id,
                 'is_team_based' => false,

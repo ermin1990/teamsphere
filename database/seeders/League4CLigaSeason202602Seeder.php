@@ -21,7 +21,7 @@ class League4CLigaSeason202602Seeder extends Seeder
             [
                 'name' => 'Tuzlanska liga',
                 'slug' => 'tuzlanska-liga-' . Str::random(6),
-                'sport_id' => 3, // Tenis
+                'sport_id' => $sport->id,
                 'user_id' => $owner->id,
                 'is_active' => true,
             ]
@@ -46,7 +46,7 @@ class League4CLigaSeason202602Seeder extends Seeder
                 'organization_id' => $organization->id,
                 'name' => '4C. Liga',
                 'slug' => '4c-liga-' . Str::random(6),
-                'sport_id' => 3, // Tenis
+                'sport_id' => $sport->id,
                 'type' => 'league',
                 'season_id' => $season->id,
                 'is_team_based' => false,
