@@ -349,6 +349,11 @@ Route::prefix('projector')->name('projector.')->group(function () {
     Route::get('/competition/{competition}', [App\Http\Controllers\ProjectorController::class, 'getCompetitionView'])->name('competition.view');
 });
 
+// One-off, token-protected seed trigger (see app/Http/Controllers/SeedController.php)
+// - not for regular use, just a way to (re)run the initial league setup on
+// the VPS without SSH access. Remove once no longer needed.
+Route::get('/internal/seed-tuzlanska-liga', [App\Http\Controllers\SeedController::class, 'tuzlanskaLiga'])->name('internal.seed.tuzlanska-liga');
+
 // Public routes (no authentication required)
 // URIs are Bosnian/user-facing; route names stay English per Laravel convention.
 Route::name('competitions.')->group(function () {
