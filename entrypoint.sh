@@ -13,9 +13,6 @@ echo "Baza je spremna."
 # ne treba nikakva Laravel komanda za to.
 php artisan migrate --force
 
-echo "🎾 Provjeravam inicijalno postavljanje lige (Tuzlanska liga)..."
-php artisan db:seed --class=TuzlanskaLigaSeeder --force
-
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache

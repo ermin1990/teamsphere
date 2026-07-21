@@ -18,14 +18,6 @@ return [
         'token' => env('POSTMARK_TOKEN'),
     ],
 
-    /*
-    | One-off token protecting the /internal/seed-tuzlanska-liga route (see
-    | routes/web.php + Api/V1/... no - SeedController). Never hardcode a
-    | fallback here - the repo is public, so the only place this secret can
-    | live is the VPS .env, set via the SEED_TOKEN GitHub Actions secret.
-    */
-    'seed_token' => env('SEED_TOKEN'),
-
     'resend' => [
         'key' => env('RESEND_KEY'),
     ],

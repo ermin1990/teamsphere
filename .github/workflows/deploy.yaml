@@ -55,7 +55,6 @@ jobs:
           APP_URL: ${{ secrets.APP_URL }}
           MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
           MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
-          SEED_TOKEN: ${{ secrets.SEED_TOKEN }}
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USERNAME }}
@@ -63,7 +62,7 @@ jobs:
           port: ${{ secrets.VPS_PORT || 22 }}
           script_stop: true
           command_timeout: 30m
-          envs: DB_DATABASE,DB_USERNAME,DB_PASSWORD,APP_KEY,APP_URL,MAIL_USERNAME,MAIL_PASSWORD,SEED_TOKEN
+          envs: DB_DATABASE,DB_USERNAME,DB_PASSWORD,APP_KEY,APP_URL,MAIL_USERNAME,MAIL_PASSWORD
           script: |
             set -e
 
@@ -141,13 +140,6 @@ jobs:
             grep -q "^MAIL_PASSWORD=" .env || echo "MAIL_PASSWORD=$MAIL_PASSWORD" >> .env
             sed -i "s|^MAIL_FROM_ADDRESS=.*|MAIL_FROM_ADDRESS=\"$MAIL_USERNAME\"|" .env || true
             grep -q "^MAIL_FROM_ADDRESS=" .env || echo "MAIL_FROM_ADDRESS=\"$MAIL_USERNAME\"" >> .env
-
-            # Token za /internal/seed-tuzlanska-liga (App\Http\Controllers\SeedController) -
-            # samo tako se ta ruta može pokrenuti bez SSH-a, bez da tajna ikad bude u repou.
-            if [ -n "$SEED_TOKEN" ]; then
-              sed -i "s|^SEED_TOKEN=.*|SEED_TOKEN=$SEED_TOKEN|" .env || true
-              grep -q "^SEED_TOKEN=" .env || echo "SEED_TOKEN=$SEED_TOKEN" >> .env
-            fi
 
             # Firebase (Google prijava) - sve javne, client-side vrijednosti
             # (nema service account/private key-a), pa je bezbjedno da stoje
