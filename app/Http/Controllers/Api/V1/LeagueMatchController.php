@@ -84,6 +84,15 @@ class LeagueMatchController extends Controller
             }
         }
 
+        if (($validated['status'] ?? null) === 'completed' && !empty($validated['sets'])) {
+            $homeSetsWon = collect($validated['sets'])->filter(fn ($set) => $set['home'] > $set['away'])->count();
+            $awaySetsWon = collect($validated['sets'])->filter(fn ($set) => $set['away'] > $set['home'])->count();
+
+            if (($validated['home_score'] ?? $homeSetsWon) !== $homeSetsWon || ($validated['away_score'] ?? $awaySetsWon) !== $awaySetsWon) {
+                return $this->fail('home_score/away_score ne odgovaraju broju pobjeđenih setova.', 422);
+            }
+        }
+
         $match->update($validated);
 
         if (isset($validated['status']) && in_array($validated['status'], ['completed', 'forfeited'])) {

@@ -39,17 +39,22 @@ class OrganizationPolicy
     }
 
     /**
-     * Determine whether the user can update the model.
+     * Determine whether the user can update the model (manage players,
+     * competitions, teams, seasons, invitations, etc.). Owner and moderator
+     * only - a referee's access is limited to the specific match-scoped
+     * abilities checked elsewhere (e.g. LeagueMatchController's
+     * referee_user_id check), not full organization management.
      */
     public function update(User $user, Organization $organization): bool
     {
-        // Owner can update
         if ($user->id === $organization->user_id) {
             return true;
         }
-        
-        // Organization members can also update (manage players, competitions, etc.)
-        return $organization->users()->where('users.id', $user->id)->exists();
+
+        return $organization->organizationUsers()
+            ->where('user_id', $user->id)
+            ->where('role', 'moderator')
+            ->exists();
     }
 
     /**

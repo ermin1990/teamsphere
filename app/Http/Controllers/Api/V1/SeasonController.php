@@ -27,6 +27,8 @@ class SeasonController extends Controller
     {
         $this->authorize('view', $organization);
 
+        abort_unless($season->organization_id === $organization->id, 404);
+
         return $this->ok(new SeasonResource($season));
     }
 
@@ -55,6 +57,8 @@ class SeasonController extends Controller
     {
         $this->authorize('update', $organization);
 
+        abort_unless($season->organization_id === $organization->id, 404);
+
         $validated = $request->validate([
             'name' => ['sometimes', 'required', 'string', 'max:255'],
             'starts_at' => ['nullable', 'date'],
@@ -70,6 +74,8 @@ class SeasonController extends Controller
     public function destroy(Organization $organization, Season $season): JsonResponse
     {
         $this->authorize('update', $organization);
+
+        abort_unless($season->organization_id === $organization->id, 404);
 
         $season->delete();
 

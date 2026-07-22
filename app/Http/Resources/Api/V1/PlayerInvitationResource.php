@@ -15,7 +15,7 @@ class PlayerInvitationResource extends JsonResource
             'organization_id' => $this->organization_id,
             'player_id' => $this->player_id,
             'email' => $this->email,
-            'token' => $this->token,
+            'token' => $this->when($request->routeIs('api.v1.organizations.player-invitations.store'), $this->token),
             'invited_by' => $this->invited_by,
             'status' => $this->status,
             'is_expired' => $this->isExpired(),

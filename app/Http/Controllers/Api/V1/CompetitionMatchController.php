@@ -45,7 +45,7 @@ class CompetitionMatchController extends Controller
 
         abort_unless($match->competition_id === $competition->id, 404);
 
-        $match->load(['homePlayer', 'awayPlayer', 'homeTeam', 'awayTeam', 'tournamentGroup']);
+        $match->load(['homePlayer', 'awayPlayer', 'homeTeam', 'awayTeam']);
 
         return $this->ok(new CompetitionMatchResource($match));
     }
@@ -68,8 +68,18 @@ class CompetitionMatchController extends Controller
             'sets' => ['nullable', 'array'],
             'sets.*.home' => ['required_with:sets', 'integer', 'min:0'],
             'sets.*.away' => ['required_with:sets', 'integer', 'min:0'],
+            'forfeited_by' => ['required_if:status,forfeited', 'in:home,away'],
             'played_at' => ['nullable', 'date'],
         ]);
+
+        if (($validated['status'] ?? null) === 'completed' && !empty($validated['sets'])) {
+            $homeSetsWon = collect($validated['sets'])->filter(fn ($set) => $set['home'] > $set['away'])->count();
+            $awaySetsWon = collect($validated['sets'])->filter(fn ($set) => $set['away'] > $set['home'])->count();
+
+            if (($validated['home_score'] ?? $homeSetsWon) !== $homeSetsWon || ($validated['away_score'] ?? $awaySetsWon) !== $awaySetsWon) {
+                return $this->fail('home_score/away_score ne odgovaraju broju pobjeđenih setova.', 422);
+            }
+        }
 
         $match->update($validated);
 

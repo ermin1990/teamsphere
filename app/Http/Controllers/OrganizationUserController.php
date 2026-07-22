@@ -68,6 +68,8 @@ class OrganizationUserController extends Controller
     {
         Gate::authorize('manage-organization-users', $organization);
 
+        abort_unless($organizationUser->organization_id === $organization->id, 404);
+
         // Prevent removing the owner
         if ($organizationUser->isOwner()) {
             return back()->withErrors(['error' => 'Cannot remove the organization owner.']);

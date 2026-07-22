@@ -49,9 +49,7 @@ class TeamMatchController extends Controller
         }
 
         $validated = $request->validate([
-            'home_score' => ['nullable', 'integer', 'min:0'],
-            'away_score' => ['nullable', 'integer', 'min:0'],
-            'status' => ['sometimes', 'string'],
+            'status' => ['sometimes', 'in:scheduled,in_progress,completed,forfeited,cancelled'],
             'scheduled_at' => ['nullable', 'date'],
             'played_at' => ['nullable', 'date'],
             'round' => ['sometimes', 'integer', 'min:1'],
@@ -60,6 +58,29 @@ class TeamMatchController extends Controller
             'away_captain_id' => ['nullable', 'exists:players,id'],
             'referee_name' => ['nullable', 'string', 'max:255'],
         ]);
+
+        if (!empty($validated['home_captain_id']) && !$teamMatch->homeTeam->players()->where('players.id', $validated['home_captain_id'])->exists()) {
+            return $this->fail('Selected home captain does not play for the home team.', 422);
+        }
+
+        if (!empty($validated['away_captain_id']) && !$teamMatch->awayTeam->players()->where('players.id', $validated['away_captain_id'])->exists()) {
+            return $this->fail('Selected away captain does not play for the away team.', 422);
+        }
+
+        if (!empty($validated['round']) && $validated['round'] !== $teamMatch->round) {
+            $collides = $competition->teamMatches()
+                ->where('id', '!=', $teamMatch->id)
+                ->where('round', $validated['round'])
+                ->where(function ($query) use ($teamMatch) {
+                    $query->whereIn('home_team_id', [$teamMatch->home_team_id, $teamMatch->away_team_id])
+                          ->orWhereIn('away_team_id', [$teamMatch->home_team_id, $teamMatch->away_team_id]);
+                })
+                ->exists();
+
+            if ($collides) {
+                return $this->fail('One of the teams already has a match scheduled in this round.', 422);
+            }
+        }
 
         $teamMatch->update($validated);
         $teamMatch->checkCompletion();

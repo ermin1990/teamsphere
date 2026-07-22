@@ -11,6 +11,7 @@ use App\Models\Player;
 use App\Services\LeagueStandingsService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Self-service match endpoints for the authenticated user's own player
@@ -77,12 +78,19 @@ class PlayerMatchController extends Controller
     }
 
     /**
-     * Match details - any authenticated user can view (match results are
-     * public on the web too), not restricted to the two participants.
+     * Match details - visible to anyone if the competition is public,
+     * otherwise only to members/the organization owner - mirrors the
+     * visibility check in PlayerLeagueController::show.
      */
-    public function show(CompetitionMatch $match): JsonResponse
+    public function show(Request $request, CompetitionMatch $match): JsonResponse
     {
         $match->load(['competition.organization', 'homePlayer', 'awayPlayer', 'homeTeam', 'awayTeam', 'venue']);
+
+        $competition = $match->competition;
+        $isMember = $competition->players()->where('players.user_id', $request->user()->id)->exists();
+        $isOwner = $request->user()->id === $competition->organization->user_id;
+
+        abort_unless($competition->is_public || $isMember || $isOwner, 404);
 
         return $this->ok(new CompetitionMatchResource($match));
     }
@@ -153,26 +161,57 @@ class PlayerMatchController extends Controller
         $theirSets = $sets->filter(fn ($set) => $set['theirs'] > $set['mine'])->count();
         $normalizedSets = $sets->map(fn ($set) => ['home' => $set['mine'], 'away' => $set['theirs']])->all();
 
-        $nextRound = (int) ($competition->matches()->max('round_number') ?? 0) + 1;
+        if ($error = $this->validateSetsAgainstConfig($competition, $mySets, $theirSets)) {
+            return $this->fail($error, 422);
+        }
 
-        $match = CompetitionMatch::create([
-            'competition_id' => $competition->id,
-            'home_player_id' => $player->id,
-            'away_player_id' => $opponentId,
-            'home_score' => $mySets,
-            'away_score' => $theirSets,
-            'sets' => $normalizedSets,
-            'round' => $nextRound,
-            'round_number' => $nextRound,
-            'status' => 'completed',
-            'played_at' => $request->played_at ?? now(),
-        ]);
+        $match = DB::transaction(function () use ($competition, $player, $opponentId, $mySets, $theirSets, $normalizedSets, $request) {
+            $nextRound = (int) ($competition->matches()->lockForUpdate()->max('round_number') ?? 0) + 1;
+
+            return CompetitionMatch::create([
+                'competition_id' => $competition->id,
+                'home_player_id' => $player->id,
+                'away_player_id' => $opponentId,
+                'home_score' => $mySets,
+                'away_score' => $theirSets,
+                'sets' => $normalizedSets,
+                'round' => $nextRound,
+                'round_number' => $nextRound,
+                'status' => 'completed',
+                'played_at' => $request->played_at ?? now(),
+            ]);
+        });
 
         if ($competition->isLeague()) {
             $standingsService->rebuildForCompetition($competition);
         }
 
         return $this->created(new CompetitionMatchResource($match->load(['homePlayer', 'awayPlayer'])), 'Meč je zabilježen!');
+    }
+
+    /**
+     * Check the submitted set score against the competition's configured
+     * sets_to_win - neither side should exceed it, and the match must
+     * actually be decided (one side reaches it). Returns an error message,
+     * or null when valid.
+     */
+    private function validateSetsAgainstConfig(Competition $competition, int $mySets, int $theirSets): ?string
+    {
+        $setsToWin = $competition->sets_to_win;
+
+        if (!$setsToWin) {
+            return null;
+        }
+
+        if ($mySets > $setsToWin || $theirSets > $setsToWin) {
+            return "Broj osvojenih setova ne može biti veći od {$setsToWin}.";
+        }
+
+        if ($mySets !== $setsToWin && $theirSets !== $setsToWin) {
+            return "Meč nije završen - jedna strana mora osvojiti {$setsToWin} set(ova).";
+        }
+
+        return null;
     }
 
     /**
@@ -228,6 +267,10 @@ class PlayerMatchController extends Controller
 
         $mySets = $sets->filter(fn ($set) => $set['mine'] > $set['theirs'])->count();
         $theirSets = $sets->filter(fn ($set) => $set['theirs'] > $set['mine'])->count();
+
+        if ($error = $this->validateSetsAgainstConfig($competition, $mySets, $theirSets)) {
+            return $this->fail($error, 422);
+        }
 
         $normalizedSets = $sets->map(fn ($set) => $isHome
             ? ['home' => $set['mine'], 'away' => $set['theirs']]

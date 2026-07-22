@@ -155,7 +155,7 @@ class CompetitionController extends Controller
     {
         $this->authorize('view', $competition->organization);
 
-        $competition->load(['organization', 'sport', 'tournamentGroups'])
+        $competition->load('organization')
             ->loadCount(['players', 'matches', 'tournamentGroups']);
 
         return $this->ok(new CompetitionResource($competition));
@@ -225,7 +225,7 @@ class CompetitionController extends Controller
 
         $competition->update($validated);
 
-        return $this->ok(new CompetitionResource($competition->fresh(['organization', 'sport'])), 'Competition updated successfully');
+        return $this->ok(new CompetitionResource($competition->fresh('organization')), 'Competition updated successfully');
     }
 
     /**

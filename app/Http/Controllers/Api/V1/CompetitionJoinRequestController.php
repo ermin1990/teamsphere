@@ -5,11 +5,14 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Api\V1\Concerns\ApiResponses;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Api\V1\CompetitionJoinRequestResource;
+use App\Mail\CompetitionJoinRequested;
 use App\Models\Competition;
 use App\Models\CompetitionJoinRequest;
 use App\Models\Player;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class CompetitionJoinRequestController extends Controller
 {
@@ -65,6 +68,16 @@ class CompetitionJoinRequestController extends Controller
             'status' => 'pending',
             'message' => $validated['message'] ?? null,
         ]);
+
+        $organizerEmail = $competition->organization->user->email ?? null;
+        if ($organizerEmail) {
+            try {
+                $joinRequest->load(['user', 'competition.organization']);
+                Mail::to($organizerEmail)->send(new CompetitionJoinRequested($joinRequest));
+            } catch (\Exception $e) {
+                Log::error('Failed to send competition join request notification email', ['error' => $e->getMessage()]);
+            }
+        }
 
         return $this->created(new CompetitionJoinRequestResource($joinRequest), 'Zahtjev za pridruživanje je poslan organizatoru.');
     }

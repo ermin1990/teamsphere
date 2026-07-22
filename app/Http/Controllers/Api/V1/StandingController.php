@@ -22,7 +22,7 @@ class StandingController extends Controller
     {
         $this->authorize('view', $competition->organization);
 
-        $query = $competition->standings()->with(['player', 'team']);
+        $query = $competition->standings();
 
         if ($request->filled('group_id')) {
             $query->where('tournament_group_id', $request->input('group_id'));
