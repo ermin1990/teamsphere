@@ -60,6 +60,7 @@ class CompetitionResource extends JsonResource
             'manual_knockout_selection' => $this->manual_knockout_selection,
             // Relations / counts (only present when eager loaded)
             'organization' => new OrganizationResource($this->whenLoaded('organization')),
+            'players' => PlayerResource::collection($this->whenLoaded('players')),
             'players_count' => $this->whenCounted('players'),
             'matches_count' => $this->whenCounted('matches'),
             'groups_count' => $this->whenCounted('tournamentGroups'),
