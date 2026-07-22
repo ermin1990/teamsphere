@@ -162,6 +162,27 @@ class CompetitionController extends Controller
     }
 
     /**
+     * Get a specific competition for a player with the list of players.
+     */
+    public function myCompetition(Request $request, Competition $competition): JsonResponse
+    {
+        $player = $request->user()->playerProfile;
+
+        if (!$player) {
+            return $this->fail('No player profile linked to this account.', 403);
+        }
+
+        if (!$competition->players()->where('players.id', $player->id)->exists()) {
+            return $this->fail('You are not registered for this competition.', 403);
+        }
+
+        $competition->load(['organization', 'sport', 'players'])
+            ->loadCount(['players', 'matches']);
+
+        return $this->ok(new CompetitionResource($competition));
+    }
+
+    /**
      * Update a competition's settings.
      */
     public function update(Request $request, Competition $competition): JsonResponse
