@@ -5,6 +5,11 @@ namespace App\Http\Resources\Api\V1;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/**
+ * Serializes a row from the shared `matches` table - used for both
+ * LeagueMatch and CompetitionMatch model instances since they're the same
+ * table/columns under two Eloquent classes.
+ */
 class CompetitionMatchResource extends JsonResource
 {
     public function toArray(Request $request): array
@@ -49,6 +54,8 @@ class CompetitionMatchResource extends JsonResource
             'away_player' => $this->whenLoaded('awayPlayer'),
             'home_team' => $this->whenLoaded('homeTeam'),
             'away_team' => $this->whenLoaded('awayTeam'),
+            'venue' => $this->whenLoaded('venue'),
+            'competition' => new CompetitionResource($this->whenLoaded('competition')),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

@@ -60,6 +60,7 @@ tags:
   - name: CompetitionJoinRequests
   - name: TournamentGroups
   - name: CompetitionMatches
+  - name: PlayerMatches
   - name: Standings
   - name: Sports
   - name: Cities
@@ -707,6 +708,78 @@ paths:
                       data:
                         type: array
                         items: { $ref: "#/components/schemas/Competition" }
+                      meta: { $ref: "#/components/schemas/PaginationMeta" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+
+  /me/matches:
+    get:
+      tags: [PlayerMatches]
+      summary: Svi mečevi prijavljenog igrača (bilo kog statusa), najnoviji prvi
+      parameters:
+        - name: per_page
+          in: query
+          schema: { type: integer, default: 20, maximum: 100 }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items: { $ref: "#/components/schemas/CompetitionMatch" }
+                      meta: { $ref: "#/components/schemas/PaginationMeta" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+
+  /me/matches/upcoming:
+    get:
+      tags: [PlayerMatches]
+      summary: Naredni mečevi prijavljenog igrača (zakazani ili uživo), najskoriji prvi
+      parameters:
+        - name: per_page
+          in: query
+          schema: { type: integer, default: 20, maximum: 100 }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items: { $ref: "#/components/schemas/CompetitionMatch" }
+                      meta: { $ref: "#/components/schemas/PaginationMeta" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+
+  /me/matches/completed:
+    get:
+      tags: [PlayerMatches]
+      summary: Završeni mečevi prijavljenog igrača, najnovije odigrani prvi
+      parameters:
+        - name: per_page
+          in: query
+          schema: { type: integer, default: 20, maximum: 100 }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items: { $ref: "#/components/schemas/CompetitionMatch" }
                       meta: { $ref: "#/components/schemas/PaginationMeta" }
         "401": { $ref: "#/components/responses/Unauthorized" }
 
@@ -1789,6 +1862,43 @@ paths:
         "201": { description: Created }
         "422": { $ref: "#/components/responses/ValidationError" }
 
+  /competitions:
+    get:
+      tags: [Competitions]
+      summary: Pretraga javno otvorenih takmičenja (za "pridruži se ligi" ekran)
+      description: |
+        Sva takmičenja koja trenutno primaju prijave (registration_open=true, javna,
+        rok za prijavu nije prošao) - preko svih organizacija, ne samo jedne. Ovo NIJE
+        isto što i /me/competitions (to su takmičenja u kojima je igrač VEĆ učlanjen).
+      parameters:
+        - name: search
+          in: query
+          description: Pretraga po nazivu takmičenja
+          schema: { type: string }
+        - name: sport_id
+          in: query
+          schema: { type: integer }
+        - name: city_id
+          in: query
+          schema: { type: integer }
+        - name: per_page
+          in: query
+          schema: { type: integer, default: 20, maximum: 100 }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items: { $ref: "#/components/schemas/Competition" }
+                      meta: { $ref: "#/components/schemas/PaginationMeta" }
+
   /competitions/{competition}:
     get:
       tags: [Competitions]
@@ -1904,6 +2014,104 @@ paths:
           schema: { type: string, enum: [group, round_of_16, quarter_final, semi_final, final, third_place] }
       responses:
         "200": { description: OK }
+    post:
+      tags: [PlayerMatches]
+      summary: Igrač sam bilježi novi (već odigran) meč protiv izabranog protivnika
+      description: |
+        Samo za pojedinačne lige (ne timske, ne turnire), i samo dok je takmičenje
+        "active". Prijavljeni korisnik mora biti prijavljen kao igrač na tom
+        takmičenju. Revanš protiv istog protivnika je dozvoljen samo ako liga ima
+        allow_rematches=true ili is_recreational=true - u suprotnom 422.
+      parameters: [{ $ref: "#/components/parameters/CompetitionSlug" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [opponent_id, sets]
+              properties:
+                opponent_id: { type: integer, description: "ID protivničkog player profila (mora biti prijavljen na isto takmičenje)" }
+                played_at: { type: string, format: date-time, description: "podrazumijeva se 'sada' ako izostavljeno" }
+                sets:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      mine: { type: integer, minimum: 0 }
+                      theirs: { type: integer, minimum: 0 }
+      responses:
+        "201":
+          description: Meč zabilježen
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data: { $ref: "#/components/schemas/CompetitionMatch" }
+        "403": { description: "Nije igrač na ovom takmičenju / takmičenje je timsko ili nije aktivno" }
+        "422": { description: "Nevažeći protivnik, prazan rezultat, ili revanš nije dozvoljen" }
+
+  /matches/{match}:
+    get:
+      tags: [PlayerMatches]
+      summary: Detalji meča (bilo koji prijavljeni korisnik, ne samo učesnici)
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data: { $ref: "#/components/schemas/CompetitionMatch" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /matches/{match}/result:
+    put:
+      tags: [PlayerMatches]
+      summary: Igrač unosi/mijenja rezultat svog zakazanog (ili već odigranog) meča
+      description: |
+        Samo za pojedinačne lige (ne timske, ne turnire), i samo za mečeve gdje je
+        prijavljeni korisnik jedan od dva igrača. Protivnik je fiksan (za razliku od
+        POST /competitions/{competition}/matches koji bilježi sasvim nov meč).
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [played_at, sets]
+              properties:
+                played_at: { type: string, format: date-time }
+                venue_id: { type: integer, nullable: true }
+                sets:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      mine: { type: integer, minimum: 0 }
+                      theirs: { type: integer, minimum: 0 }
+      responses:
+        "200":
+          description: Rezultat sačuvan
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data: { $ref: "#/components/schemas/CompetitionMatch" }
+        "403": { description: "Nisi jedan od igrača u ovom meču / takmičenje nije pojedinačna liga u statusu 'active'" }
+        "422": { description: "Prazan rezultat" }
 
   /competitions/{competition}/matches/{match}:
     get:

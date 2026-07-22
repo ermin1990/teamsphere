@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\V1\OrganizationLinkController;
 use App\Http\Controllers\Api\V1\OrganizationUserController;
 use App\Http\Controllers\Api\V1\PlayerController;
 use App\Http\Controllers\Api\V1\PlayerInvitationController;
+use App\Http\Controllers\Api\V1\PlayerMatchController;
 use App\Http\Controllers\Api\V1\SeasonController;
 use App\Http\Controllers\Api\V1\SportController;
 use App\Http\Controllers\Api\V1\StandingController;
@@ -59,6 +60,9 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         Route::get('/me', [AuthController::class, 'me'])->name('auth.me');
         Route::post('/me/avatar', [AuthController::class, 'uploadAvatar'])->name('auth.avatar');
         Route::get('/me/competitions', [AuthController::class, 'myCompetitions'])->name('auth.competitions');
+        Route::get('/me/matches', [PlayerMatchController::class, 'index'])->name('me.matches.index');
+        Route::get('/me/matches/upcoming', [PlayerMatchController::class, 'upcoming'])->name('me.matches.upcoming');
+        Route::get('/me/matches/completed', [PlayerMatchController::class, 'completed'])->name('me.matches.completed');
         Route::post('/email/verification-notification', [AuthController::class, 'sendVerificationNotification'])
             ->middleware('throttle:6,1')->name('auth.verification.send');
 
@@ -152,6 +156,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
 
         Route::get('/organizations/{organization}/competitions', [CompetitionController::class, 'index'])->name('organizations.competitions.index');
         Route::post('/organizations/{organization}/competitions', [CompetitionController::class, 'store'])->name('organizations.competitions.store');
+        Route::get('/competitions', [CompetitionController::class, 'browse'])->name('competitions.browse');
         Route::get('/competitions/{competition}', [CompetitionController::class, 'show'])->name('competitions.show');
         Route::put('/competitions/{competition}', [CompetitionController::class, 'update'])->name('competitions.update');
         Route::delete('/competitions/{competition}', [CompetitionController::class, 'destroy'])->name('competitions.destroy');
@@ -169,6 +174,13 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         Route::get('/competitions/{competition}/matches', [CompetitionMatchController::class, 'index'])->name('competitions.matches.index');
         Route::get('/competitions/{competition}/matches/{match}', [CompetitionMatchController::class, 'show'])->name('competitions.matches.show');
         Route::put('/competitions/{competition}/matches/{match}', [CompetitionMatchController::class, 'update'])->name('competitions.matches.update');
+        Route::post('/competitions/{competition}/matches', [PlayerMatchController::class, 'store'])->name('competitions.matches.self-store');
+
+        // Flat match endpoints (a match doesn't need its parent competition
+        // in the URL to be looked up or acted on) - self-service, not
+        // organizer-only like the nested routes above.
+        Route::get('/matches/{match}', [PlayerMatchController::class, 'show'])->name('matches.show');
+        Route::put('/matches/{match}/result', [PlayerMatchController::class, 'updateResult'])->name('matches.result.update');
 
         Route::get('/competitions/{competition}/team-matches', [TeamMatchController::class, 'index'])->name('competitions.team-matches.index');
         Route::get('/competitions/{competition}/team-matches/{teamMatch}', [TeamMatchController::class, 'show'])->name('competitions.team-matches.show');

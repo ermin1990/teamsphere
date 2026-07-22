@@ -17,6 +17,40 @@ class CompetitionController extends Controller
     use ApiResponses;
 
     /**
+     * Browse publicly open competitions across every organization - the
+     * mobile "find a league to join" screen. Mirrors the filters on the web's
+     * PlayerLeagueController::index (search/sport_id/city_id), scoped to
+     * competitions currently accepting registrations.
+     */
+    public function browse(Request $request): JsonResponse
+    {
+        $query = Competition::where('registration_open', true)
+            ->where('is_public', true)
+            ->whereIn('status', ['draft', 'active'])
+            ->where(function ($q) {
+                $q->whereNull('registration_deadline')
+                  ->orWhere('registration_deadline', '>=', now());
+            })
+            ->with(['organization', 'sport', 'city', 'season']);
+
+        if ($search = $request->input('search')) {
+            $query->where('name', 'like', '%' . $search . '%');
+        }
+
+        if ($sportId = $request->input('sport_id')) {
+            $query->where('sport_id', $sportId);
+        }
+
+        if ($cityId = $request->input('city_id')) {
+            $query->where('city_id', $cityId);
+        }
+
+        $competitions = $query->orderBy('name')->paginate($this->perPage($request));
+
+        return $this->paginated($competitions, CompetitionResource::class);
+    }
+
+    /**
      * List competitions for an organization.
      */
     public function index(Request $request, Organization $organization): JsonResponse
