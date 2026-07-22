@@ -273,7 +273,7 @@
                                             $mVenue = !$isTeamMatch ? $match->venue : null;
                                             $mDate = $match->played_at ?? $match->scheduled_at;
                                             $mScheduled = !$mCompleted && !$mLive;
-                                            $mShowHeader = $mLive || $match->forfeited_by || ($mDate && !$mScheduled);
+                                            $mShowHeader = $mLive || ($mDate && !$mScheduled);
                                             $mHomeUrl = !$isTeamMatch && $match->homePlayer ? route('competitions.player.show', $match->homePlayer) : null;
                                             $mAwayUrl = !$isTeamMatch && $match->awayPlayer ? route('competitions.player.show', $match->awayPlayer) : null;
                                         @endphp
@@ -282,8 +282,6 @@
                                                 <div class="flex justify-between items-center mb-2 text-label-bold text-on-surface-variant uppercase">
                                                     @if($mLive)
                                                         <span class="text-secondary animate-pulse">Uživo</span>
-                                                    @elseif($match->forfeited_by)
-                                                        <span class="px-1.5 py-0.5 rounded bg-orange-500/20 text-orange-500 text-[10px] font-bold tracking-wide" title="Meč predat bez igre (WalkOver)">WO</span>
                                                     @else
                                                         <span></span>
                                                     @endif
@@ -346,18 +344,26 @@
                                                     </div>
                                                 </div>
                                             @else
-                                                <div class="space-y-3 border border-outline-variant rounded-lg p-3">
-                                                    <div class="flex justify-between items-center {{ $mAwayWin ? 'opacity-60' : '' }}">
-                                                        <span class="font-medium truncate">@if($mHomeUrl)<a href="{{ $mHomeUrl }}" class="hover:text-primary transition-colors">{{ $mHomeName }}</a>@else{{ $mHomeName }}@endif</span>
-                                                        <span class="font-bold {{ $mHomeWin ? 'text-primary' : 'text-on-surface-variant' }} text-body-lg shrink-0">
-                                                            {{ $match->home_score }}
-                                                        </span>
-                                                    </div>
-                                                    <div class="flex justify-between items-center {{ $mHomeWin ? 'opacity-60' : '' }}">
-                                                        <span class="font-medium truncate">@if($mAwayUrl)<a href="{{ $mAwayUrl }}" class="hover:text-primary transition-colors">{{ $mAwayName }}</a>@else{{ $mAwayName }}@endif</span>
-                                                        <span class="font-bold {{ $mAwayWin ? 'text-primary' : 'text-on-surface-variant' }} text-body-lg shrink-0">
-                                                            {{ $match->away_score }}
-                                                        </span>
+                                                <div class="border border-outline-variant rounded-lg overflow-hidden">
+                                                    <div class="overflow-x-auto">
+                                                    <table class="w-full border-collapse" style="min-width: 200px">
+                                                        <thead>
+                                                            <tr class="bg-surface-container-highest">
+                                                                <th class="text-left px-3 py-1.5 text-[10px] font-bold uppercase tracking-wide text-on-surface-variant sticky left-0 bg-surface-container-highest">Igrač</th>
+                                                                <th class="text-center px-3 py-1.5 text-[10px] font-bold uppercase tracking-wide {{ $match->forfeited_by ? 'text-orange-500' : 'text-primary' }} border-l border-outline-variant whitespace-nowrap">{{ $match->forfeited_by ? 'WO' : 'Rezultat' }}</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <tr class="{{ $mAwayWin ? 'opacity-60' : '' }}">
+                                                                <td class="px-3 py-2 font-medium text-sm truncate max-w-[8rem] sticky left-0 bg-surface-container-low">@if($mHomeUrl)<a href="{{ $mHomeUrl }}" class="hover:text-primary transition-colors">{{ $mHomeName }}</a>@else{{ $mHomeName }}@endif</td>
+                                                                <td class="text-center px-3 py-2 font-bold text-body-lg tabular-nums whitespace-nowrap border-l border-outline-variant {{ $mHomeWin ? 'text-primary' : 'text-on-surface-variant' }}">{{ $match->home_score }}</td>
+                                                            </tr>
+                                                            <tr class="border-t border-outline-variant {{ $mHomeWin ? 'opacity-60' : '' }}">
+                                                                <td class="px-3 py-2 font-medium text-sm truncate max-w-[8rem] sticky left-0 bg-surface-container-low">@if($mAwayUrl)<a href="{{ $mAwayUrl }}" class="hover:text-primary transition-colors">{{ $mAwayName }}</a>@else{{ $mAwayName }}@endif</td>
+                                                                <td class="text-center px-3 py-2 font-bold text-body-lg tabular-nums whitespace-nowrap border-l border-outline-variant {{ $mAwayWin ? 'text-primary' : 'text-on-surface-variant' }}">{{ $match->away_score }}</td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
                                                     </div>
                                                 </div>
                                             @endif
