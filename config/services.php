@@ -83,4 +83,8 @@ return [
         ],
     ],
 
+    'api_docs' => [
+        'password' => env('API_DOCS_PASSWORD'),
+    ],
+
 ];

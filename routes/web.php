@@ -40,6 +40,10 @@ Route::get('/', function () {
 Route::get('/dashboard', [DashboardController::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
 
 // Display routes (Live Matches Display Screen)
+Route::get('/api', [App\Http\Controllers\ApiDocsController::class, 'show'])
+    ->middleware('api-docs.password')
+    ->name('api-docs.show'); // Password-gated API reference for the mobile dev
+
 Route::get('/live', [DisplayController::class, 'selector'])->name('display.selector'); // Public league selector
 Route::get('/display', [DisplayController::class, 'show'])->name('display.show'); // Public display screen
 Route::middleware(['auth'])->group(function () {

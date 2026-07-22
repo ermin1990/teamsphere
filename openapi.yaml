@@ -9,18 +9,31 @@ info:
 
     Svi odgovori su omotani u istu envelopu:
       { "success": true|false, "data": ..., "message": "..." }
+    Izuzetak su validacijske greške (422), koje vraćaju Laravel-ov standardni oblik
+    { "message": "...", "errors": { "polje": ["poruka"] } } - bez "success" ključa.
 
     Autentifikacija: Bearer token (Laravel Sanctum personal access token), dobijen iz
-    POST /api/v1/register ili POST /api/v1/login. Šalje se kao header:
+    POST /api/v1/register, POST /api/v1/login ili POST /api/v1/auth/google. Šalje se
+    kao header:
       Authorization: Bearer {token}
+    Tokeni ističu nakon 90 dana (konfigurabilno); nema refresh-token flow-a - klijent
+    se samo ponovo prijavi kad dobije 401.
+
+    Listing (index) endpoint-i su paginirani - odgovor uz "data" ima i "meta":
+      { "current_page": 1, "per_page": 20, "total": 42, "last_page": 3 }
+    Podržan query param ?per_page= (max 100). Standings i TournamentGroups NISU
+    paginirani (namjerno - klijent treba cijelu tabelu/grupe odjednom).
+
+    Rate limiting: /register, /login, /auth/google, /forgot-password, /reset-password
+    su ograničeni na 6 pokušaja/minuti po IP adresi.
 
     Svi resursi vezani za organizaciju provjeravaju da je korisnik vlasnik ili član te
     organizacije (403 ako nije). Javni (bez auth) su samo GET /sports, /cities, /venues.
   contact:
     name: MojTurnir backend
 servers:
-  - url: https://mojturnir.example.com/api/v1
-    description: Produkcija (zamijeniti stvarnim domenom)
+  - url: https://mojturnir.online/api/v1
+    description: Produkcija
   - url: http://localhost:8000/api/v1
     description: Lokalni dev server
 
@@ -51,6 +64,7 @@ tags:
   - name: Sports
   - name: Cities
   - name: Venues
+  - name: DeviceTokens
 
 components:
   securitySchemes:
@@ -76,6 +90,14 @@ components:
           additionalProperties:
             type: array
             items: { type: string }
+
+    PaginationMeta:
+      type: object
+      properties:
+        current_page: { type: integer }
+        per_page: { type: integer }
+        total: { type: integer }
+        last_page: { type: integer }
 
     User:
       type: object
@@ -659,6 +681,224 @@ paths:
                       data: { $ref: "#/components/schemas/User" }
         "401": { $ref: "#/components/responses/Unauthorized" }
 
+  /auth/google:
+    post:
+      tags: [Auth]
+      summary: Prijava/registracija preko Google (Firebase ID token)
+      description: |
+        Mobilna app dobija Firebase ID token od "Sign in with Google" (Firebase Auth SDK) i
+        šalje ga ovdje na verifikaciju. Ako korisnik već postoji, vraća token odmah. Ako je
+        nov, a `role` nije poslan, vraća `data.needs_role = true` + `data.profile`
+        (name/email/avatar iz Google naloga) - app treba pitati korisnika ulogu
+        (organizer/player) i pozvati endpoint ponovo sa istim `id_token` i sad popunjenim
+        `role`, čime se nalog kreira.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [id_token]
+              properties:
+                id_token: { type: string }
+                role: { type: string, enum: [organizer, player] }
+      responses:
+        "200":
+          description: Prijava (postojeći nalog) ili "potrebna uloga" odgovor za nov nalog
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          user: { $ref: "#/components/schemas/User" }
+                          token: { type: string }
+                          needs_role: { type: boolean }
+                          profile:
+                            type: object
+                            properties:
+                              name: { type: string }
+                              email: { type: string }
+                              avatar: { type: string, nullable: true }
+        "201":
+          description: Nov nalog kreiran (kad je `role` poslan)
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          user: { $ref: "#/components/schemas/User" }
+                          token: { type: string }
+        "422": { description: "Nevažeći/neverifikovan Google token" }
+
+  /logout-all:
+    post:
+      tags: [Auth]
+      summary: Odjava sa svih uređaja (briše sve tokene korisnika)
+      responses:
+        "200": { description: OK }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+
+  /tokens:
+    get:
+      tags: [Auth]
+      summary: Lista aktivnih tokena/uređaja prijavljenog korisnika
+      description: Ne vraća vrijednost samog tokena, samo metapodatke - za "upravljaj uređajima" ekran.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id: { type: integer }
+                            name: { type: string, description: "Device name/user agent poslan pri loginu" }
+                            last_used_at: { type: string, format: date-time, nullable: true }
+                            created_at: { type: string, format: date-time }
+                            is_current: { type: boolean }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+
+  /tokens/{tokenId}:
+    delete:
+      tags: [Auth]
+      summary: Odjava jednog konkretnog uređaja (opoziva taj token)
+      parameters:
+        - name: tokenId
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200": { description: OK }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+
+  /me/avatar:
+    post:
+      tags: [Auth]
+      summary: Upload/zamjena avatara prijavljenog korisnika
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [avatar]
+              properties:
+                avatar: { type: string, format: binary, description: "Slika, max 4MB" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data: { $ref: "#/components/schemas/User" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+
+  /forgot-password:
+    post:
+      tags: [Auth]
+      summary: Zatraži link za resetovanje lozinke
+      description: Uvijek vraća isti odgovor bez obzira da li email postoji, da se ne otkrije koji emailovi su registrovani.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email: { type: string, format: email }
+      responses:
+        "200": { description: OK }
+
+  /reset-password:
+    post:
+      tags: [Auth]
+      summary: Postavi novu lozinku pomoću tokena iz emaila
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token, email, password, password_confirmation]
+              properties:
+                token: { type: string }
+                email: { type: string, format: email }
+                password: { type: string }
+                password_confirmation: { type: string }
+      responses:
+        "200": { description: "Lozinka promijenjena - svi postojeći tokeni se brišu, potrebna nova prijava" }
+        "422": { description: "Nevažeći/istekao token, ili validacijska greška" }
+
+  /email/verification-notification:
+    post:
+      tags: [Auth]
+      summary: Ponovo pošalji email za verifikaciju naloga
+      responses:
+        "200": { description: OK }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+
+  /device-tokens:
+    post:
+      tags: [DeviceTokens]
+      summary: Registruj push-notifikacioni token uređaja (FCM/APNs)
+      description: Pozvati pri loginu i kad god OS izda novi token. Isti `token` je jedinstven - ako je već registrovan pod drugim korisnikom, prebacuje se na trenutnog.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token, platform]
+              properties:
+                token: { type: string }
+                platform: { type: string, enum: [ios, android, web] }
+      responses:
+        "200": { description: OK }
+        "422": { $ref: "#/components/responses/ValidationError" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+    delete:
+      tags: [DeviceTokens]
+      summary: Ukloni registrovani device token (npr. pri logout-u)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token]
+              properties:
+                token: { type: string }
+      responses:
+        "200": { description: OK }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+
   /sports:
     get:
       tags: [Sports]
@@ -857,6 +1097,24 @@ paths:
       responses:
         "200": { description: OK }
 
+  /organizations/{organization}/logo:
+    post:
+      tags: [Organizations]
+      summary: Upload/zamjena logo-a organizacije
+      parameters: [{ $ref: "#/components/parameters/OrganizationSlug" }]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [logo]
+              properties:
+                logo: { type: string, format: binary, description: "Slika, max 4MB" }
+      responses:
+        "200": { description: OK }
+        "422": { $ref: "#/components/responses/ValidationError" }
+
   /organizations/{organization}/users:
     get:
       tags: [OrganizationUsers]
@@ -877,7 +1135,7 @@ paths:
               required: [email, role]
               properties:
                 email: { type: string, format: email }
-                role: { type: string, enum: [referee] }
+                role: { type: string, enum: [referee, moderator] }
       responses:
         "201": { description: Created }
         "422": { description: "Korisnik već član" }
