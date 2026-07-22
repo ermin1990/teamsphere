@@ -31,9 +31,9 @@ class PlayerInvitationController extends Controller
             $query->where('competition_id', $request->integer('competition_id'));
         }
 
-        $invitations = $query->orderByDesc('created_at')->get();
+        $invitations = $query->orderByDesc('created_at')->paginate($this->perPage($request));
 
-        return $this->ok(PlayerInvitationResource::collection($invitations));
+        return $this->paginated($invitations, PlayerInvitationResource::class);
     }
 
     public function store(Request $request, Organization $organization): JsonResponse

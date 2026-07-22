@@ -22,9 +22,9 @@ class FriendlyMatchController extends Controller
         $matches = FriendlyMatch::where('organization_id', $organization->id)
             ->orderByDesc('completed_at')
             ->orderByDesc('created_at')
-            ->get();
+            ->paginate($this->perPage($request));
 
-        return $this->ok(FriendlyMatchResource::collection($matches));
+        return $this->paginated($matches, FriendlyMatchResource::class);
     }
 
     public function show(Organization $organization, FriendlyMatch $friendlyMatch): JsonResponse

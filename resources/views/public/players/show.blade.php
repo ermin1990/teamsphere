@@ -255,22 +255,18 @@
                                 $opponentInitials = $opponent ? collect(explode(' ', $opponent->name))->map(fn ($p) => mb_substr($p, 0, 1))->take(2)->implode('') : '?';
                             @endphp
                             @unless($forfeitedByPlayer)
-                                <div class="bg-surface-container-low border border-outline-variant rounded-xl p-4 flex items-center gap-4 card-glow transition-all group">
+                                <a href="{{ route('competitions.matches.show', [$match->competition, $match]) }}" class="bg-surface-container-low border border-outline-variant rounded-xl p-4 flex items-center gap-4 card-glow transition-all group">
                                     <div class="w-10 h-10 rounded-full bg-surface-container-highest border border-outline-variant flex items-center justify-center shrink-0">
                                         <span class="font-label-bold text-on-surface-variant text-xs uppercase">{{ $opponentInitials }}</span>
                                     </div>
                                     <div class="flex-1 min-w-0">
-                                        <p class="font-semibold truncate">
-                                            @if($opponent)
-                                                <a href="{{ route('competitions.player.show', $opponent) }}" class="hover:text-primary transition-colors">{{ $opponent->name }}</a>
-                                            @else
-                                                Nepoznat igrač
-                                            @endif
+                                        <p class="font-semibold truncate group-hover:text-primary transition-colors">
+                                            {{ $opponent ? $opponent->name : 'Nepoznat igrač' }}
                                         </p>
                                         <p class="text-xs text-on-surface-variant truncate">{{ $match->competition->name ?? '' }}{{ $match->round ? ' · Kolo ' . $match->round : '' }}</p>
                                     </div>
-                                    <div class="text-center shrink-0 hidden sm:block">
-                                        <p class="font-display text-lg tabular-nums">{{ $playerScore }}:{{ $opponentScore }}</p>
+                                    <div class="text-center shrink-0">
+                                        <p class="font-display text-base sm:text-lg tabular-nums">{{ $playerScore }}:{{ $opponentScore }}</p>
                                     </div>
                                     <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider shrink-0 {{ $isWin ? 'bg-primary/15 text-primary' : 'bg-error/15 text-error' }}">
                                         {{ $isWin ? 'Pobjeda' : 'Poraz' }}
@@ -278,7 +274,7 @@
                                     @if($match->forfeited_by)
                                         <span class="px-1.5 py-0.5 rounded bg-secondary/20 text-secondary text-[10px] font-bold uppercase shrink-0">WO</span>
                                     @endif
-                                </div>
+                                </a>
                             @endunless
                         @endforeach
                     </div>
@@ -288,6 +284,8 @@
 
     </div>
 </main>
+
+@include('public.leagues._bottom-nav')
 
 </body>
 </html>

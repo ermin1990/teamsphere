@@ -14,16 +14,16 @@ class TeamCoachController extends Controller
 {
     use ApiResponses;
 
-    public function index(Team $team): JsonResponse
+    public function index(Request $request, Team $team): JsonResponse
     {
         $this->authorize('view', $team->organization);
 
         $coaches = $team->coaches()
             ->orderByDesc('is_active')
             ->orderByDesc('created_at')
-            ->get();
+            ->paginate($this->perPage($request));
 
-        return $this->ok(TeamCoachResource::collection($coaches));
+        return $this->paginated($coaches, TeamCoachResource::class);
     }
 
     public function show(Team $team, TeamCoach $coach): JsonResponse

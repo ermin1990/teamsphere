@@ -15,6 +15,8 @@ class OrganizationResource extends JsonResource
             'slug' => $this->slug,
             'description' => $this->description,
             'logo' => $this->logo,
+            'logo_url' => $this->logo_url,
+            'logo_src' => $this->logoSrc(),
             'sport_id' => $this->sport_id,
             'is_active' => $this->is_active,
             'user_id' => $this->user_id,

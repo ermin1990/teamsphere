@@ -93,6 +93,15 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Get the push-notification device tokens registered by this user
+     * (one per installed app instance/device).
+     */
+    public function deviceTokens(): HasMany
+    {
+        return $this->hasMany(DeviceToken::class);
+    }
+
+    /**
      * Whether this user owns an organization or is staff (e.g. referee) in
      * one - the generic /dashboard is for these users only; a plain player
      * lands on /moje-lige instead.

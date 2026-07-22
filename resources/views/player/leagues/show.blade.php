@@ -145,24 +145,7 @@
 </main>
 
 <!-- Bottom Navigation (Mobile Only) -->
-<nav class="lg:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-2 pb-[env(safe-area-inset-bottom)] bg-surface-container-high rounded-t-xl border-t border-outline-variant shadow-lg">
-    <a href="{{ route('player.dashboard') }}" class="flex flex-col items-center justify-center text-on-surface-variant active:scale-90 transition-transform">
-        <span class="material-symbols-outlined">dashboard</span>
-        <span class="font-label-bold text-[10px]">Dashboard</span>
-    </a>
-    <a href="{{ route('player.dashboard.matches') }}" class="flex flex-col items-center justify-center text-on-surface-variant active:scale-90 transition-transform">
-        <span class="material-symbols-outlined">sports_tennis</span>
-        <span class="font-label-bold text-[10px]">Mečevi</span>
-    </a>
-    <a href="{{ route('player.leagues.index') }}" class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-full px-4 py-1 active:scale-90 transition-transform">
-        <span class="material-symbols-outlined">emoji_events</span>
-        <span class="font-label-bold text-[10px]">Takmičenja</span>
-    </a>
-    <a href="{{ route('profile.edit') }}" class="flex flex-col items-center justify-center text-on-surface-variant active:scale-90 transition-transform">
-        <span class="material-symbols-outlined">person</span>
-        <span class="font-label-bold text-[10px]">Nalog</span>
-    </a>
-</nav>
+@include('player.partials.bottom-nav')
 
 <x-pwa-install-prompt />
 

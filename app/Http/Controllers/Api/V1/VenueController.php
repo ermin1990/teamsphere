@@ -21,9 +21,9 @@ class VenueController extends Controller
             $query->where('city_id', $request->input('city_id'));
         }
 
-        $venues = $query->orderBy('name')->get();
+        $venues = $query->orderBy('name')->paginate($this->perPage($request, default: 50));
 
-        return $this->ok(VenueResource::collection($venues));
+        return $this->paginated($venues, VenueResource::class);
     }
 
     public function show(Venue $venue): JsonResponse

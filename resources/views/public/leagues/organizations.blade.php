@@ -90,8 +90,9 @@
     };
     $activeCity = $cities->firstWhere('id', (int) request('city_id'));
     $activeSport = $sports->firstWhere('id', (int) request('sport_id'));
+    $activeType = request('type');
     $filterUrl = fn ($overrides) => route('competitions.index', array_filter(array_merge([
-        'city_id' => request('city_id'), 'sport_id' => request('sport_id'), 'q' => request('q'), 'status' => $statusFilter,
+        'city_id' => request('city_id'), 'sport_id' => request('sport_id'), 'type' => request('type'), 'q' => request('q'), 'status' => $statusFilter,
     ], $overrides)));
 @endphp
 
@@ -103,10 +104,10 @@
     </div>
     <div class="flex-1 px-4 space-y-6 overflow-y-auto custom-scrollbar">
         <div class="space-y-1">
-            <a class="flex items-center gap-3 px-4 py-3 text-primary border-l-4 border-primary bg-primary/5 font-label-bold" href="{{ route('home') }}">
+            <a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface font-body-md hover:bg-surface-variant/50 transition-colors duration-200" href="{{ route('home') }}">
                 <span class="material-symbols-outlined">dashboard</span><span>Početna</span>
             </a>
-            <a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface font-body-md hover:bg-surface-variant/50 transition-colors duration-200" href="{{ route('competitions.index') }}">
+            <a class="flex items-center gap-3 px-4 py-3 text-primary border-l-4 border-primary bg-primary/5 font-label-bold" href="{{ route('competitions.index') }}">
                 <span class="material-symbols-outlined">emoji_events</span><span>Takmičenja</span>
             </a>
         </div>
@@ -141,6 +142,21 @@
             </div>
         </div>
         @endif
+
+        <div class="pt-4 border-t border-outline-variant/30">
+            <span class="px-4 font-label-bold text-primary uppercase tracking-widest block mb-4">Tip</span>
+            <div class="space-y-1 px-2">
+                <a href="{{ $filterUrl(['type' => null]) }}" class="w-full text-left px-4 py-2 {{ !$activeType ? 'text-primary' : 'text-on-surface-variant' }} hover:text-primary transition-colors text-sm flex items-center justify-between rounded-lg">
+                    Sve @if(!$activeType)<span class="w-2 h-2 rounded-full bg-primary"></span>@endif
+                </a>
+                <a href="{{ $filterUrl(['type' => 'league']) }}" class="w-full text-left px-4 py-2 {{ $activeType === 'league' ? 'text-primary' : 'text-on-surface-variant' }} hover:text-primary transition-colors text-sm flex items-center justify-between rounded-lg">
+                    Lige @if($activeType === 'league')<span class="w-2 h-2 rounded-full bg-primary"></span>@endif
+                </a>
+                <a href="{{ $filterUrl(['type' => 'tournament']) }}" class="w-full text-left px-4 py-2 {{ $activeType === 'tournament' ? 'text-primary' : 'text-on-surface-variant' }} hover:text-primary transition-colors text-sm flex items-center justify-between rounded-lg">
+                    Turniri @if($activeType === 'tournament')<span class="w-2 h-2 rounded-full bg-primary"></span>@endif
+                </a>
+            </div>
+        </div>
     </div>
     <div class="p-4 space-y-1">
         @auth
@@ -206,6 +222,9 @@
             <p class="text-on-surface-variant font-body-md lg:font-body-lg max-w-lg text-sm lg:text-base">Pregledaj aktivne lige i turnire, prati rezultate uživo i pronađi takmičenje u svom gradu.</p>
         </div>
     </section>
+
+    <div class="grid grid-cols-1 xl:grid-cols-12 gap-6 lg:gap-8">
+    <div class="xl:col-span-9 min-w-0">
 
     <!-- Mobile: sport chips + search -->
     <section class="lg:hidden mb-6 space-y-4">
@@ -311,10 +330,10 @@
         <div class="space-y-4">
             @foreach($competitions as $organizationName => $orgCompetitions)
                 <div class="bg-surface-container-low rounded-xl border border-outline-variant overflow-hidden">
-                    <div class="bg-surface-container-high px-4 py-2 border-b border-outline-variant flex items-center gap-3">
+                    <a href="{{ route('competitions.organization', $orgCompetitions->first()->organization) }}" class="bg-surface-container-high px-4 py-2 border-b border-outline-variant flex items-center gap-3 hover:bg-surface-variant/50 transition-colors">
                         <span class="material-symbols-outlined text-primary text-lg">corporate_fare</span>
                         <h4 class="font-label-bold text-sm text-on-surface uppercase tracking-wider truncate">{{ $organizationName }}</h4>
-                    </div>
+                    </a>
                     <div class="divide-y divide-outline-variant/20">
                         @foreach($orgCompetitions as $competition)
                             @php
@@ -367,6 +386,13 @@
         @endif
     </section>
 
+    </div>
+
+    <aside class="xl:col-span-3 space-y-6">
+        @include('public.leagues._banners', ['placement' => \App\Models\Banner::PLACEMENT_TAKMICENJA])
+    </aside>
+    </div>
+
     <!-- Footer -->
     <div class="mt-10 text-center pb-6">
         <div class="inline-block px-4 py-2 rounded-full border text-xs border-outline-variant text-on-surface-variant">
@@ -375,24 +401,7 @@
     </div>
 </main>
 
-<!-- BottomNavBar for Mobile -->
-<nav class="fixed bottom-0 w-full h-16 bg-surface-container-highest/95 backdrop-blur-md border-t border-outline-variant z-50 flex lg:hidden items-center justify-around px-4 rounded-t-xl shadow-[0_-10px_20px_rgba(0,0,0,0.4)]">
-    <a href="{{ route('home') }}" class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-full px-4 py-1">
-        <span class="material-symbols-outlined">home</span><span class="text-[10px] font-label-bold">Home</span>
-    </a>
-    <button id="filter-trigger-2" class="flex flex-col items-center justify-center text-on-surface-variant">
-        <span class="material-symbols-outlined">tune</span><span class="text-[10px] font-label-bold">Filteri</span>
-    </button>
-    @auth
-        <a href="{{ auth()->user()->isOrganizerOrStaff() ? route('dashboard') : route('player.dashboard') }}" class="flex flex-col items-center justify-center text-on-surface-variant">
-            <span class="material-symbols-outlined">person</span><span class="text-[10px] font-label-bold">Nalog</span>
-        </a>
-    @else
-        <a href="{{ route('login') }}" class="flex flex-col items-center justify-center text-on-surface-variant">
-            <span class="material-symbols-outlined">login</span><span class="text-[10px] font-label-bold">Prijava</span>
-        </a>
-    @endauth
-</nav>
+@include('public.leagues._bottom-nav')
 
 <!-- Mobile Filter Drawer -->
 <div class="fixed inset-0 bg-black/60 z-[60] hidden backdrop-blur-sm transition-opacity opacity-0" id="drawer-overlay"></div>
@@ -423,6 +432,14 @@
                 @endforeach
             </select>
         </div>
+        <div class="space-y-3">
+            <h4 class="font-label-bold text-on-surface-variant uppercase">Tip</h4>
+            <select name="type" class="w-full bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface p-3 focus:ring-1 focus:ring-primary outline-none transition-all">
+                <option value="">Sve</option>
+                <option value="league" {{ $activeType === 'league' ? 'selected' : '' }}>Lige</option>
+                <option value="tournament" {{ $activeType === 'tournament' ? 'selected' : '' }}>Turniri</option>
+            </select>
+        </div>
         <button type="submit" class="w-full py-4 bg-primary text-surface-container-lowest font-headline-md rounded-xl mt-auto shadow-lg active:scale-95 transition-transform">
             Primijeni Filter
         </button>
@@ -449,7 +466,6 @@
             document.body.style.overflow = '';
         };
         document.getElementById('filter-trigger')?.addEventListener('click', openDrawer);
-        document.getElementById('filter-trigger-2')?.addEventListener('click', openDrawer);
         document.getElementById('drawer-close')?.addEventListener('click', closeDrawer);
         overlay?.addEventListener('click', closeDrawer);
 

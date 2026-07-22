@@ -41,6 +41,15 @@ class Organization extends Model
         return 'slug';
     }
 
+    /**
+     * The actual logo URL to render - an uploaded file (stored on the
+     * public disk, in the `logo` column) takes precedence over a pasted
+     * external URL (`logo_url`).
+     */
+    public function logoSrc(): ?string
+    {
+        return $this->logo ? \Illuminate\Support\Facades\Storage::url($this->logo) : $this->logo_url;
+    }
 
     /**
      * Get the user that owns the organization.

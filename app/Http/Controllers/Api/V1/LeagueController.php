@@ -15,15 +15,15 @@ class LeagueController extends Controller
 {
     use ApiResponses;
 
-    public function index(Organization $organization): JsonResponse
+    public function index(Request $request, Organization $organization): JsonResponse
     {
         $this->authorize('view', $organization);
 
         $leagues = League::where('organization_id', $organization->id)
             ->orderByDesc('created_at')
-            ->get();
+            ->paginate($this->perPage($request));
 
-        return $this->ok(LeagueResource::collection($leagues));
+        return $this->paginated($leagues, LeagueResource::class);
     }
 
     public function show(League $league): JsonResponse

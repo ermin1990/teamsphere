@@ -31,6 +31,9 @@ class PublicMatchController extends Controller
         if ($request->filled('sport_id')) {
             $competitionsQuery->where('competitions.sport_id', $request->sport_id);
         }
+        if ($request->filled('type')) {
+            $competitionsQuery->where('competitions.type', $request->type);
+        }
         $matchedPlayers = collect();
         if ($request->filled('q')) {
             $q = $request->q;

@@ -14,11 +14,11 @@ class CityController extends Controller
 {
     use ApiResponses;
 
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        $cities = City::orderBy('name')->get();
+        $cities = City::orderBy('name')->paginate($this->perPage($request, default: 50));
 
-        return $this->ok(CityResource::collection($cities));
+        return $this->paginated($cities, CityResource::class);
     }
 
     public function show(City $city): JsonResponse

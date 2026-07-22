@@ -26,9 +26,9 @@ class TeamController extends Controller
                 $query->where('competition_id', $request->competition_id);
             })
             ->orderByDesc('created_at')
-            ->get();
+            ->paginate($this->perPage($request));
 
-        return $this->ok(TeamResource::collection($teams));
+        return $this->paginated($teams, TeamResource::class);
     }
 
     public function show(Team $team): JsonResponse

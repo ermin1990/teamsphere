@@ -14,13 +14,13 @@ class SeasonController extends Controller
 {
     use ApiResponses;
 
-    public function index(Organization $organization): JsonResponse
+    public function index(Request $request, Organization $organization): JsonResponse
     {
         $this->authorize('view', $organization);
 
-        $seasons = $organization->seasons()->orderByDesc('starts_at')->get();
+        $seasons = $organization->seasons()->orderByDesc('starts_at')->paginate($this->perPage($request));
 
-        return $this->ok(SeasonResource::collection($seasons));
+        return $this->paginated($seasons, SeasonResource::class);
     }
 
     public function show(Organization $organization, Season $season): JsonResponse

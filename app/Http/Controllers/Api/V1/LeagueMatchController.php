@@ -16,16 +16,16 @@ class LeagueMatchController extends Controller
 {
     use ApiResponses;
 
-    public function index(League $league): JsonResponse
+    public function index(Request $request, League $league): JsonResponse
     {
         $this->authorize('view', $league->organization);
 
         $matches = LeagueMatch::where('competition_id', $league->id)
             ->orderBy('round')
             ->orderBy('scheduled_at')
-            ->get();
+            ->paginate($this->perPage($request));
 
-        return $this->ok(LeagueMatchResource::collection($matches));
+        return $this->paginated($matches, LeagueMatchResource::class);
     }
 
     public function show(League $league, LeagueMatch $match): JsonResponse

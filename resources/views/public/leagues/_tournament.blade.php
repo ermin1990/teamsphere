@@ -178,7 +178,12 @@
                                             $setDiff = ($standing->sets_won ?? 0) - ($standing->sets_lost ?? 0);
                                             $gemDiff = ($standing->points_won ?? 0) - ($standing->points_lost ?? 0);
                                             $advancing = $index < $advancingPlayers;
-                                            $clubName = $standing->player->organization->name ?? null;
+                                            // Only show the player's club if it's a different organization than
+                                            // the one running this tournament - otherwise it's just their
+                                            // default registration org, not a real club affiliation.
+                                            $clubName = ($standing->player && $standing->player->organization_id !== $competition->organization_id)
+                                                ? ($standing->player->organization->name ?? null)
+                                                : null;
                                         @endphp
                                         <tr class="transition-colors group {{ $advancing ? 'bg-primary/5' : 'hover:bg-surface-variant/30' }}">
                                             <td class="px-3 lg:px-4 py-2 lg:py-2.5 font-bold {{ $advancing ? 'text-primary' : '' }}">{{ $index + 1 }}</td>
@@ -239,6 +244,11 @@
                                 $awayWin = $completed && $awaySetsWon > $homeSetsWon;
                                 $homeName = $match->homePlayer->name ?? 'TBD';
                                 $awayName = $match->awayPlayer->name ?? 'TBD';
+                                // Doubles pairs are stored as a single Player whose name is
+                                // "PLAYER ONE/PLAYER TWO" - split so each name gets its own line
+                                // instead of being squeezed/truncated onto one.
+                                $homeNameParts = explode('/', $homeName);
+                                $awayNameParts = explode('/', $awayName);
                                 $homeSeed = $playerPositionSeeding[$match->home_player_id] ?? null;
                                 $awaySeed = $playerPositionSeeding[$match->away_player_id] ?? null;
                             @endphp
@@ -257,7 +267,11 @@
                                 </div>
                                 <div class="space-y-3">
                                     <div class="flex justify-between items-center gap-3 {{ $awayWin ? 'opacity-60' : '' }}">
-                                        <span class="font-medium truncate">{{ $homeName }}</span>
+                                        <div class="min-w-0 flex-1 leading-tight">
+                                            @foreach($homeNameParts as $part)
+                                                <span class="font-medium truncate block">{{ trim($part) }}</span>
+                                            @endforeach
+                                        </div>
                                         <div class="flex items-center gap-2 shrink-0">
                                             <div class="flex items-center gap-1">
                                                 @for($i = 0; $i < $cellCount; $i++)
@@ -269,7 +283,11 @@
                                         </div>
                                     </div>
                                     <div class="flex justify-between items-center gap-3 {{ $homeWin ? 'opacity-60' : '' }}">
-                                        <span class="font-medium truncate">{{ $awayName }}</span>
+                                        <div class="min-w-0 flex-1 leading-tight">
+                                            @foreach($awayNameParts as $part)
+                                                <span class="font-medium truncate block">{{ trim($part) }}</span>
+                                            @endforeach
+                                        </div>
                                         <div class="flex items-center gap-2 shrink-0">
                                             <div class="flex items-center gap-1">
                                                 @for($i = 0; $i < $cellCount; $i++)

@@ -16,13 +16,13 @@ class OrganizationUserController extends Controller
 {
     use ApiResponses;
 
-    public function index(Organization $organization): JsonResponse
+    public function index(Request $request, Organization $organization): JsonResponse
     {
         Gate::authorize('manage-organization-users', $organization);
 
-        $organizationUsers = $organization->organizationUsers()->with('user')->get();
+        $organizationUsers = $organization->organizationUsers()->with('user')->paginate($this->perPage($request));
 
-        return $this->ok(OrganizationUserResource::collection($organizationUsers));
+        return $this->paginated($organizationUsers, OrganizationUserResource::class);
     }
 
     public function store(Request $request, Organization $organization): JsonResponse
@@ -31,7 +31,7 @@ class OrganizationUserController extends Controller
 
         $validated = $request->validate([
             'email' => ['required', 'email', 'exists:users,email'],
-            'role' => ['required', 'in:referee'],
+            'role' => ['required', 'in:referee,moderator'],
         ]);
 
         $user = User::where('email', $validated['email'])->first();

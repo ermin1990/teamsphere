@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\V1\CityController;
 use App\Http\Controllers\Api\V1\CompetitionController;
 use App\Http\Controllers\Api\V1\CompetitionJoinRequestController;
 use App\Http\Controllers\Api\V1\CompetitionMatchController;
+use App\Http\Controllers\Api\V1\DeviceTokenController;
 use App\Http\Controllers\Api\V1\FriendlyMatchController;
 use App\Http\Controllers\Api\V1\LeagueController;
 use App\Http\Controllers\Api\V1\LeagueMatchController;
@@ -32,9 +33,14 @@ Route::get('/user', function (Request $request) {
 
 Route::prefix('v1')->name('api.v1.')->group(function () {
 
-    // Auth
-    Route::post('/register', [AuthController::class, 'register'])->name('auth.register');
-    Route::post('/login', [AuthController::class, 'login'])->name('auth.login');
+    // Auth (throttled - these are unauthenticated brute-force/enumeration targets)
+    Route::middleware('throttle:6,1')->group(function () {
+        Route::post('/register', [AuthController::class, 'register'])->name('auth.register');
+        Route::post('/login', [AuthController::class, 'login'])->name('auth.login');
+        Route::post('/auth/google', [AuthController::class, 'google'])->name('auth.google');
+        Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])->name('auth.forgot-password');
+        Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('auth.reset-password');
+    });
 
     // Public reference data
     Route::get('/sports', [SportController::class, 'index'])->name('sports.index');
@@ -47,7 +53,17 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
     Route::middleware('auth:sanctum')->group(function () {
 
         Route::post('/logout', [AuthController::class, 'logout'])->name('auth.logout');
+        Route::post('/logout-all', [AuthController::class, 'logoutAll'])->name('auth.logout-all');
+        Route::get('/tokens', [AuthController::class, 'tokens'])->name('auth.tokens.index');
+        Route::delete('/tokens/{tokenId}', [AuthController::class, 'revokeToken'])->name('auth.tokens.destroy');
         Route::get('/me', [AuthController::class, 'me'])->name('auth.me');
+        Route::post('/me/avatar', [AuthController::class, 'uploadAvatar'])->name('auth.avatar');
+        Route::post('/email/verification-notification', [AuthController::class, 'sendVerificationNotification'])
+            ->middleware('throttle:6,1')->name('auth.verification.send');
+
+        // Push notification device tokens
+        Route::post('/device-tokens', [DeviceTokenController::class, 'store'])->name('device-tokens.store');
+        Route::delete('/device-tokens', [DeviceTokenController::class, 'destroy'])->name('device-tokens.destroy');
 
         // Reference data writes (admin-only, enforced in controllers)
         Route::post('/sports', [SportController::class, 'store'])->name('sports.store');
@@ -66,6 +82,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         Route::get('/organizations/{organization}', [OrganizationController::class, 'show'])->name('organizations.show');
         Route::put('/organizations/{organization}', [OrganizationController::class, 'update'])->name('organizations.update');
         Route::delete('/organizations/{organization}', [OrganizationController::class, 'destroy'])->name('organizations.destroy');
+        Route::post('/organizations/{organization}/logo', [OrganizationController::class, 'uploadLogo'])->name('organizations.logo');
 
         Route::get('/organizations/{organization}/users', [OrganizationUserController::class, 'index'])->name('organizations.users.index');
         Route::post('/organizations/{organization}/users', [OrganizationUserController::class, 'store'])->name('organizations.users.store');

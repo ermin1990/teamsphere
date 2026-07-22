@@ -19,16 +19,16 @@ class CompetitionController extends Controller
     /**
      * List competitions for an organization.
      */
-    public function index(Organization $organization): JsonResponse
+    public function index(Request $request, Organization $organization): JsonResponse
     {
         $this->authorize('view', $organization);
 
         $competitions = $organization->competitions()
             ->withCount(['players', 'matches', 'tournamentGroups'])
             ->orderByDesc('created_at')
-            ->get();
+            ->paginate($this->perPage($request));
 
-        return $this->ok(CompetitionResource::collection($competitions));
+        return $this->paginated($competitions, CompetitionResource::class);
     }
 
     /**

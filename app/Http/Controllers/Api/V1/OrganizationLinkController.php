@@ -15,11 +15,13 @@ class OrganizationLinkController extends Controller
 {
     use ApiResponses;
 
-    public function index(Organization $organization): JsonResponse
+    public function index(Request $request, Organization $organization): JsonResponse
     {
         Gate::authorize('view', $organization);
 
-        return $this->ok(OrganizationLinkResource::collection($organization->links));
+        $links = $organization->links()->paginate($this->perPage($request));
+
+        return $this->paginated($links, OrganizationLinkResource::class);
     }
 
     public function store(Request $request, Organization $organization): JsonResponse

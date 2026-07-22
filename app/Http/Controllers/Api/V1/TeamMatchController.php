@@ -14,7 +14,7 @@ class TeamMatchController extends Controller
 {
     use ApiResponses;
 
-    public function index(Competition $competition): JsonResponse
+    public function index(Request $request, Competition $competition): JsonResponse
     {
         $this->authorize('view', $competition->organization);
 
@@ -22,9 +22,9 @@ class TeamMatchController extends Controller
             ->with(['homeTeam', 'awayTeam'])
             ->orderBy('round')
             ->orderBy('scheduled_at')
-            ->get();
+            ->paginate($this->perPage($request));
 
-        return $this->ok(TeamMatchResource::collection($teamMatches));
+        return $this->paginated($teamMatches, TeamMatchResource::class);
     }
 
     public function show(Competition $competition, TeamMatch $teamMatch): JsonResponse

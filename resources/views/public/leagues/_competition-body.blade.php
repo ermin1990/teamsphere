@@ -202,7 +202,12 @@
                                         $sd = $d['s'] ?? null; $gd = $d['g'] ?? null;
                                         $played = ($standing->won ?? 0) + ($standing->drawn ?? 0) + ($standing->lost ?? 0);
                                         $advancing = $advancingPlayers > 0 && $index < $advancingPlayers;
-                                        $clubName = !$competition->is_team_based ? ($standing->player->organization->name ?? null) : null;
+                                        // Only show the player's club if it's a different organization than
+                                        // the one running this league - otherwise it's just their default
+                                        // registration org, not a real "playing for another club" affiliation.
+                                        $clubName = (!$competition->is_team_based && $standing->player && $standing->player->organization_id !== $competition->organization_id)
+                                            ? ($standing->player->organization->name ?? null)
+                                            : null;
                                     @endphp
                                     <tr class="transition-colors group {{ $advancing ? 'bg-primary/5' : 'hover:bg-surface-variant/30' }}">
                                         <td class="px-3 lg:px-4 py-2 lg:py-2.5 font-bold {{ $index < 3 ? 'text-primary' : '' }}">{{ $index + 1 }}</td>
@@ -440,6 +445,8 @@
                     <span class="material-symbols-outlined text-[18px]">emoji_events</span> Sva takmičenja organizacije
                 </a>
             </section>
+
+            @include('public.leagues._banners', ['placement' => \App\Models\Banner::PLACEMENT_LEAGUE])
         </aside>
     </div>
 @endif

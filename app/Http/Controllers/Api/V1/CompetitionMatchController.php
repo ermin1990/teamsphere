@@ -31,9 +31,9 @@ class CompetitionMatchController extends Controller
         $matches = $query
             ->orderBy('round_number')
             ->orderBy('match_order')
-            ->get();
+            ->paginate($this->perPage($request));
 
-        return $this->ok(CompetitionMatchResource::collection($matches));
+        return $this->paginated($matches, CompetitionMatchResource::class);
     }
 
     /**

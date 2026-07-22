@@ -22,9 +22,9 @@ class SportController extends Controller
             $query->where('active', $request->boolean('active'));
         }
 
-        $sports = $query->orderBy('name')->get();
+        $sports = $query->orderBy('name')->paginate($this->perPage($request, default: 50));
 
-        return $this->ok(SportResource::collection($sports));
+        return $this->paginated($sports, SportResource::class);
     }
 
     public function show(Sport $sport): JsonResponse

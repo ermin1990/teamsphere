@@ -18,16 +18,16 @@ class CompetitionJoinRequestController extends Controller
     /**
      * List join requests for a competition. Organizer-only.
      */
-    public function index(Competition $competition): JsonResponse
+    public function index(Request $request, Competition $competition): JsonResponse
     {
         $this->authorize('update', $competition->organization);
 
         $joinRequests = $competition->joinRequests()
             ->with('user')
             ->latest()
-            ->get();
+            ->paginate($this->perPage($request));
 
-        return $this->ok(CompetitionJoinRequestResource::collection($joinRequests));
+        return $this->paginated($joinRequests, CompetitionJoinRequestResource::class);
     }
 
     /**

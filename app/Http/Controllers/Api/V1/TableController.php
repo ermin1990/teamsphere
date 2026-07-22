@@ -14,15 +14,15 @@ class TableController extends Controller
 {
     use ApiResponses;
 
-    public function index(Organization $organization): JsonResponse
+    public function index(Request $request, Organization $organization): JsonResponse
     {
         $this->authorize('view', $organization);
 
         $tables = Table::where('organization_id', $organization->id)
             ->orderBy('name')
-            ->get();
+            ->paginate($this->perPage($request));
 
-        return $this->ok(TableResource::collection($tables));
+        return $this->paginated($tables, TableResource::class);
     }
 
     public function show(Organization $organization, Table $table): JsonResponse

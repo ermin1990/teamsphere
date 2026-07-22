@@ -8,6 +8,7 @@ use App\Http\Resources\Api\V1\OrganizationResource;
 use App\Models\Organization;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class OrganizationController extends Controller
@@ -21,9 +22,9 @@ class OrganizationController extends Controller
         $organizations = Organization::where('user_id', $user->id)
             ->orWhereHas('users', fn ($q) => $q->where('users.id', $user->id))
             ->orderByDesc('created_at')
-            ->get();
+            ->paginate($this->perPage($request));
 
-        return $this->ok(OrganizationResource::collection($organizations));
+        return $this->paginated($organizations, OrganizationResource::class);
     }
 
     public function show(Organization $organization): JsonResponse
@@ -81,5 +82,27 @@ class OrganizationController extends Controller
         $organization->delete();
 
         return $this->ok(null, 'Organization deleted successfully');
+    }
+
+    /**
+     * Upload (or replace) the organization's logo image.
+     */
+    public function uploadLogo(Request $request, Organization $organization): JsonResponse
+    {
+        $this->authorize('update', $organization);
+
+        $request->validate([
+            'logo' => ['required', 'image', 'max:4096'],
+        ]);
+
+        if ($organization->logo) {
+            Storage::disk('public')->delete($organization->logo);
+        }
+
+        $organization->update([
+            'logo' => $request->file('logo')->store('organizations', 'public'),
+        ]);
+
+        return $this->ok(new OrganizationResource($organization), 'Logo uploaded successfully');
     }
 }

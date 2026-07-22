@@ -193,6 +193,11 @@
     </section>
 
     @isset($organization)
+    <div class="grid grid-cols-1 xl:grid-cols-12 gap-6 lg:gap-8">
+    <div class="xl:col-span-9 min-w-0">
+    @endisset
+
+    @isset($organization)
         <div class="flex items-center gap-1 mb-6 lg:mb-8 border-b border-outline-variant">
             <a href="{{ route('competitions.organization', $organization) }}"
                class="px-4 py-3 font-label-bold text-sm border-b-2 border-primary text-primary">
@@ -343,6 +348,15 @@
         </div>
     @endif
 
+    @isset($organization)
+    </div>
+
+    <aside class="xl:col-span-3 space-y-6">
+        @include('public.leagues._banners', ['placement' => \App\Models\Banner::PLACEMENT_ORGANIZATION])
+    </aside>
+    </div>
+    @endisset
+
     <!-- Footer -->
     <div class="mt-10 text-center pb-6">
         <div class="inline-block px-4 py-2 rounded-full border text-xs border-outline-variant text-on-surface-variant">
@@ -351,24 +365,7 @@
     </div>
 </main>
 
-<!-- BottomNavBar for Mobile -->
-<nav class="fixed bottom-0 w-full h-16 bg-surface-container-highest/95 backdrop-blur-md border-t border-outline-variant z-50 flex lg:hidden items-center justify-around px-4 rounded-t-xl shadow-[0_-10px_20px_rgba(0,0,0,0.4)]">
-    <a href="{{ route('home') }}" class="flex flex-col items-center justify-center text-on-surface-variant">
-        <span class="material-symbols-outlined">home</span><span class="text-[10px] font-label-bold">Home</span>
-    </a>
-    <a href="{{ route('competitions.index') }}" class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-full px-4 py-1">
-        <span class="material-symbols-outlined">emoji_events</span><span class="text-[10px] font-label-bold">Takmičenja</span>
-    </a>
-    @auth
-        <a href="{{ auth()->user()->isOrganizerOrStaff() ? route('dashboard') : route('player.dashboard') }}" class="flex flex-col items-center justify-center text-on-surface-variant">
-            <span class="material-symbols-outlined">person</span><span class="text-[10px] font-label-bold">Nalog</span>
-        </a>
-    @else
-        <a href="{{ route('login') }}" class="flex flex-col items-center justify-center text-on-surface-variant">
-            <span class="material-symbols-outlined">login</span><span class="text-[10px] font-label-bold">Prijava</span>
-        </a>
-    @endauth
-</nav>
+@include('public.leagues._bottom-nav')
 
 <x-pwa-install-prompt />
 

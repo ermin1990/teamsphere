@@ -15,11 +15,13 @@ class CategoryController extends Controller
 {
     use ApiResponses;
 
-    public function index(Organization $organization): JsonResponse
+    public function index(Request $request, Organization $organization): JsonResponse
     {
         $this->authorize('view', $organization);
 
-        return $this->ok(CategoryResource::collection($organization->categories()->orderBy('name')->get()));
+        $categories = $organization->categories()->orderBy('name')->paginate($this->perPage($request));
+
+        return $this->paginated($categories, CategoryResource::class);
     }
 
     public function store(Request $request, Organization $organization): JsonResponse

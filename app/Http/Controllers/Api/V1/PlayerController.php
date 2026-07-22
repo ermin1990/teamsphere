@@ -43,9 +43,9 @@ class PlayerController extends Controller
             }
         }
 
-        $players = $query->orderBy('name')->get();
+        $players = $query->orderBy('name')->paginate($this->perPage($request));
 
-        return $this->ok(PlayerResource::collection($players));
+        return $this->paginated($players, PlayerResource::class);
     }
 
     public function show(Organization $organization, Player $player): JsonResponse
