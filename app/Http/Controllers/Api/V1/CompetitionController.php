@@ -166,13 +166,9 @@ class CompetitionController extends Controller
      */
     public function myCompetition(Request $request, Competition $competition): JsonResponse
     {
-        $player = $request->user()->playerProfile;
+        $isMember = $competition->players()->where('players.user_id', $request->user()->id)->exists();
 
-        if (!$player) {
-            return $this->fail('No player profile linked to this account.', 403);
-        }
-
-        if (!$competition->players()->where('players.id', $player->id)->exists()) {
+        if (!$isMember) {
             return $this->fail('You are not registered for this competition.', 403);
         }
 
