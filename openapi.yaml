@@ -546,7 +546,7 @@ components:
       in: path
       required: true
       schema: { type: string }
-      description: Slug takmičenja/lige (npr. "kup-2026-abc123")
+      description: Slug takmičenja/lige (npr. "kup-2026-abc123") ILI numerički id - oba rade.
     LeagueSlug:
       name: league
       in: path

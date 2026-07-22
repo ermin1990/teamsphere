@@ -21,13 +21,13 @@
         theme: {
             extend: {
                 colors: {
-                    "surface-container-lowest": "#0b0e14", "surface-dim": "#10131a", "surface": "#10131a",
-                    "surface-container-low": "#191c22", "surface-container": "#1d2026", "surface-container-high": "#272a31",
-                    "surface-container-highest": "#32353c", "surface-variant": "#32353c", "surface-bright": "#363940",
-                    "on-surface": "#e1e2eb", "on-surface-variant": "#bacac5", "outline": "#859490", "outline-variant": "#3c4a46",
-                    "primary": "#57f1db", "primary-container": "#2dd4bf", "on-primary": "#003731", "on-primary-container": "#00574d",
-                    "secondary": "#ffb95f", "secondary-container": "#ee9800", "on-secondary-container": "#5b3800",
-                    "tertiary-container": "#b3bed5", "on-tertiary-container": "#424d61", "error": "#ffb4ab",
+                    "surface-container-lowest": "var(--c-surface-container-lowest)", "surface-dim": "var(--c-surface-dim)", "surface": "var(--c-surface)",
+                    "surface-container-low": "var(--c-surface-container-low)", "surface-container": "var(--c-surface-container)", "surface-container-high": "var(--c-surface-container-high)",
+                    "surface-container-highest": "var(--c-surface-container-highest)", "surface-variant": "var(--c-surface-variant)", "surface-bright": "var(--c-surface-bright)",
+                    "on-surface": "var(--c-on-surface)", "on-surface-variant": "var(--c-on-surface-variant)", "outline": "var(--c-outline)", "outline-variant": "var(--c-outline-variant)",
+                    "primary": "var(--c-primary)", "primary-container": "var(--c-primary-container)", "on-primary": "var(--c-on-primary)", "on-primary-container": "var(--c-on-primary-container)",
+                    "secondary": "var(--c-secondary)", "secondary-container": "var(--c-secondary-container)", "on-secondary-container": "var(--c-on-secondary-container)",
+                    "tertiary-container": "var(--c-tertiary-container)", "on-tertiary-container": "var(--c-on-tertiary-container)", "error": "var(--c-error)", "primary-soft": "var(--c-primary-soft)", "error-soft": "var(--c-error-soft)", "secondary-soft": "var(--c-secondary-soft)",
                 },
                 borderRadius: { DEFAULT: "0.25rem", lg: "0.5rem", xl: "0.75rem", full: "9999px" },
                 spacing: { gutter: "24px", "margin-mobile": "16px", "sidebar-width": "260px", "container-max": "1280px" },
@@ -52,14 +52,14 @@
 <style>
     html { scroll-behavior: smooth; }
     .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; vertical-align: middle; }
-    body { background-color: #0b0e14; color: #e1e2eb; overflow-x: hidden; }
+    body { background-color: var(--c-surface-container-lowest); color: var(--c-on-surface); overflow-x: hidden; }
     .custom-scrollbar::-webkit-scrollbar { display: none; }
     .custom-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     ::-webkit-scrollbar { width: 8px; }
-    ::-webkit-scrollbar-track { background: #10131a; }
-    ::-webkit-scrollbar-thumb { background: #32353c; border-radius: 4px; }
+    ::-webkit-scrollbar-track { background: var(--c-surface-dim); }
+    ::-webkit-scrollbar-thumb { background: var(--c-surface-container-highest); border-radius: 4px; }
     .score-card { transition: border-color 0.3s ease, box-shadow 0.3s ease; }
-    .score-card:hover { border-color: #57f1db; box-shadow: 0 0 15px rgba(87, 241, 219, 0.15); }
+    .score-card:hover { border-color: var(--c-primary); box-shadow: 0 0 15px rgba(87, 241, 219, 0.15); }
     @keyframes score-pop {
         0% { transform: scale(1.4); }
         60% { transform: scale(0.94); }
@@ -67,6 +67,7 @@
     }
     .score-pop { animation: score-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); }
 </style>
+@include('partials.theme-vars')
 </head>
 <body class="font-body-md bg-surface-container-lowest text-on-surface min-h-screen pb-24 lg:pb-8">
 

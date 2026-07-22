@@ -21,29 +21,29 @@
         theme: {
             extend: {
                 colors: {
-                    "surface-container-lowest": "#0b0e14",
-                    "surface-dim": "#10131a",
-                    "surface": "#10131a",
-                    "surface-container-low": "#191c22",
-                    "surface-container": "#1d2026",
-                    "surface-container-high": "#272a31",
-                    "surface-container-highest": "#32353c",
-                    "surface-variant": "#32353c",
-                    "surface-bright": "#363940",
-                    "on-surface": "#e1e2eb",
-                    "on-surface-variant": "#bacac5",
-                    "outline": "#859490",
-                    "outline-variant": "#3c4a46",
-                    "primary": "#57f1db",
-                    "primary-container": "#2dd4bf",
-                    "on-primary": "#003731",
-                    "on-primary-container": "#00574d",
-                    "secondary": "#ffb95f",
-                    "secondary-container": "#ee9800",
-                    "on-secondary-container": "#5b3800",
-                    "tertiary-container": "#b3bed5",
-                    "on-tertiary-container": "#424d61",
-                    "error": "#ffb4ab",
+                    "surface-container-lowest": "var(--c-surface-container-lowest)",
+                    "surface-dim": "var(--c-surface-dim)",
+                    "surface": "var(--c-surface)",
+                    "surface-container-low": "var(--c-surface-container-low)",
+                    "surface-container": "var(--c-surface-container)",
+                    "surface-container-high": "var(--c-surface-container-high)",
+                    "surface-container-highest": "var(--c-surface-container-highest)",
+                    "surface-variant": "var(--c-surface-variant)",
+                    "surface-bright": "var(--c-surface-bright)",
+                    "on-surface": "var(--c-on-surface)",
+                    "on-surface-variant": "var(--c-on-surface-variant)",
+                    "outline": "var(--c-outline)",
+                    "outline-variant": "var(--c-outline-variant)",
+                    "primary": "var(--c-primary)",
+                    "primary-container": "var(--c-primary-container)",
+                    "on-primary": "var(--c-on-primary)",
+                    "on-primary-container": "var(--c-on-primary-container)",
+                    "secondary": "var(--c-secondary)",
+                    "secondary-container": "var(--c-secondary-container)",
+                    "on-secondary-container": "var(--c-on-secondary-container)",
+                    "tertiary-container": "var(--c-tertiary-container)",
+                    "on-tertiary-container": "var(--c-on-tertiary-container)",
+                    "error": "var(--c-error)", "primary-soft": "var(--c-primary-soft)", "error-soft": "var(--c-error-soft)", "secondary-soft": "var(--c-secondary-soft)",
                 },
                 borderRadius: { DEFAULT: "0.25rem", lg: "0.5rem", xl: "0.75rem", full: "9999px" },
                 spacing: { gutter: "24px", "margin-mobile": "16px", "sidebar-width": "260px", "container-max": "1280px", base: "8px" },
@@ -67,25 +67,18 @@
 </script>
 <style>
     .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; vertical-align: middle; }
-    body { background-color: #0b0e14; color: #e1e2eb; overflow-x: hidden; -webkit-tap-highlight-color: transparent; }
+    body { background-color: var(--c-surface-container-lowest); color: var(--c-on-surface); overflow-x: hidden; -webkit-tap-highlight-color: transparent; }
     .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-    .custom-scrollbar::-webkit-scrollbar-track { background: #10131a; }
-    .custom-scrollbar::-webkit-scrollbar-thumb { background: #32353c; border-radius: 10px; }
-    .match-card:hover, .match-card:active { border-color: #57f1db; box-shadow: 0 0 15px rgba(45, 212, 191, 0.15); }
+    .custom-scrollbar::-webkit-scrollbar-track { background: var(--c-surface-dim); }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: var(--c-surface-container-highest); border-radius: 10px; }
+    .match-card:hover, .match-card:active { border-color: var(--c-primary); box-shadow: 0 0 15px rgba(45, 212, 191, 0.15); }
 </style>
+@include('partials.theme-vars')
 </head>
 <body class="font-body-md bg-surface-container-lowest text-on-surface min-h-screen pb-24 lg:pb-8">
 
 @php
     $initials = mb_strtoupper(collect(preg_split('/\s+/', trim(auth()->user()->name ?? '')))->filter()->map(fn ($p) => mb_substr($p, 0, 1))->take(2)->implode('')) ?: '?';
-
-    $newMatchCompetitions = \App\Models\Competition::whereHas('players', function ($q) {
-            $q->where('players.user_id', auth()->id());
-        })
-        ->where('is_team_based', false)
-        ->where('status', 'active')
-        ->orderBy('name')
-        ->get();
 @endphp
 
 <!-- Persistent SideNavBar (desktop) -->
@@ -155,21 +148,6 @@
             <h1 class="font-headline-lg-mobile lg:font-display text-headline-lg-mobile lg:text-headline-lg text-primary tracking-tight">Moje lige</h1>
             <p class="text-on-surface-variant text-sm lg:text-base mt-1">Tvoji mečevi i takmičenja na jednom mjestu</p>
         </div>
-
-        @if($newMatchCompetitions->count() === 1)
-            <a href="{{ route('player.matches.create', $newMatchCompetitions->first()) }}"
-               class="inline-flex items-center gap-1.5 self-start bg-primary-container text-on-primary-container font-label-bold px-4 py-2.5 lg:px-6 rounded-full hover:opacity-90 transition-all active:scale-95">
-                <span class="material-symbols-outlined text-lg">add</span> Novi meč
-            </a>
-        @elseif($newMatchCompetitions->count() > 1)
-            <select onchange="if(this.value) window.location = this.value;"
-                    class="self-start bg-primary-container text-on-primary-container font-label-bold px-4 py-2.5 lg:px-6 rounded-full border-0 focus:ring-2 focus:ring-primary transition-all">
-                <option value="">+ Novi meč...</option>
-                @foreach($newMatchCompetitions as $newMatchCompetition)
-                    <option value="{{ route('player.matches.create', $newMatchCompetition) }}">{{ $newMatchCompetition->name }}</option>
-                @endforeach
-            </select>
-        @endif
     </div>
 
     <!-- Matches Grid -->
@@ -207,7 +185,7 @@
                                 </p>
                             </div>
                             @if($match->status === 'in_progress')
-                                <span class="bg-secondary/15 text-secondary text-[10px] px-2 py-1 rounded-full font-bold border border-secondary/20 animate-pulse shrink-0">UŽIVO</span>
+                                <span class="bg-secondary-soft text-secondary text-[10px] px-2 py-1 rounded-full font-bold border border-secondary/20 animate-pulse shrink-0">UŽIVO</span>
                             @else
                                 <span class="bg-surface-container-highest text-secondary text-[10px] px-2 py-0.5 rounded border border-outline-variant shrink-0">Zakazano</span>
                             @endif
@@ -309,9 +287,9 @@
                                 </div>
                             </div>
                             <div class="flex flex-wrap items-center gap-3 lg:gap-4 lg:border-t-0 border-t border-outline-variant pt-3 lg:pt-0">
-                                @if($competition->isLeague())
+                                @if($competition->isLeague() && !$competition->is_team_based && $competition->status === 'active')
                                     <a href="{{ route('player.matches.create', $competition) }}" class="flex-1 lg:flex-none justify-center px-5 py-2 rounded-lg border border-primary text-primary font-bold text-xs lg:text-[13px] hover:bg-primary/5 transition-colors flex items-center gap-2">
-                                        <span class="material-symbols-outlined text-lg">note_add</span> Zabilježi
+                                        <span class="material-symbols-outlined text-lg">add</span> Novi meč
                                     </a>
                                 @endif
                                 <a href="{{ route('player.leagues.show', $competition) }}" class="flex-1 lg:flex-none justify-center px-5 py-2 rounded-lg bg-primary text-on-primary font-bold text-xs lg:text-[13px] hover:opacity-90 transition-opacity flex items-center gap-2">

@@ -38,6 +38,22 @@ class ProfileController extends Controller
     }
 
     /**
+     * Switch between the light and dark theme on public/player pages -
+     * separate from the main profile form since it's a single, instant
+     * toggle rather than something to "save" alongside other fields.
+     */
+    public function updateTheme(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'theme' => ['required', 'in:light,dark'],
+        ]);
+
+        $request->user()->update(['theme' => $request->theme]);
+
+        return back()->with('status', 'theme-updated');
+    }
+
+    /**
      * Delete the user's account.
      */
     public function destroy(Request $request): RedirectResponse

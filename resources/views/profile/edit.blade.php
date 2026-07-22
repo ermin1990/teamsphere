@@ -22,13 +22,13 @@
         theme: {
             extend: {
                 colors: {
-                    "surface-container-lowest": "#0b0e14", "surface-dim": "#10131a", "surface": "#10131a",
-                    "surface-container-low": "#191c22", "surface-container": "#1d2026", "surface-container-high": "#272a31",
-                    "surface-container-highest": "#32353c", "surface-variant": "#32353c", "surface-bright": "#363940",
-                    "on-surface": "#e1e2eb", "on-surface-variant": "#bacac5", "outline": "#859490", "outline-variant": "#3c4a46",
-                    "primary": "#57f1db", "primary-container": "#2dd4bf", "on-primary": "#003731", "on-primary-container": "#00574d",
-                    "secondary": "#ffb95f", "secondary-container": "#ee9800", "on-secondary-container": "#5b3800",
-                    "tertiary-container": "#b3bed5", "on-tertiary-container": "#424d61", "error": "#ffb4ab", "error-container": "#93000a", "on-error-container": "#ffdad6",
+                    "surface-container-lowest": "var(--c-surface-container-lowest)", "surface-dim": "var(--c-surface-dim)", "surface": "var(--c-surface)",
+                    "surface-container-low": "var(--c-surface-container-low)", "surface-container": "var(--c-surface-container)", "surface-container-high": "var(--c-surface-container-high)",
+                    "surface-container-highest": "var(--c-surface-container-highest)", "surface-variant": "var(--c-surface-variant)", "surface-bright": "var(--c-surface-bright)",
+                    "on-surface": "var(--c-on-surface)", "on-surface-variant": "var(--c-on-surface-variant)", "outline": "var(--c-outline)", "outline-variant": "var(--c-outline-variant)",
+                    "primary": "var(--c-primary)", "primary-container": "var(--c-primary-container)", "on-primary": "var(--c-on-primary)", "on-primary-container": "var(--c-on-primary-container)",
+                    "secondary": "var(--c-secondary)", "secondary-container": "var(--c-secondary-container)", "on-secondary-container": "var(--c-on-secondary-container)",
+                    "tertiary-container": "var(--c-tertiary-container)", "on-tertiary-container": "var(--c-on-tertiary-container)", "error": "var(--c-error)", "primary-soft": "var(--c-primary-soft)", "error-soft": "var(--c-error-soft)", "secondary-soft": "var(--c-secondary-soft)", "error-container": "var(--c-error-container)", "on-error-container": "var(--c-on-error-container)",
                 },
                 borderRadius: { DEFAULT: "0.25rem", lg: "0.5rem", xl: "0.75rem", full: "9999px" },
                 spacing: { gutter: "24px", "margin-mobile": "16px", "sidebar-width": "260px" },
@@ -49,11 +49,11 @@
 </script>
 <style>
     .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; vertical-align: middle; }
-    body { background-color: #0b0e14; color: #e1e2eb; overflow-x: hidden; -webkit-tap-highlight-color: transparent; }
+    body { background-color: var(--c-surface-container-lowest); color: var(--c-on-surface); overflow-x: hidden; -webkit-tap-highlight-color: transparent; }
     .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-    .custom-scrollbar::-webkit-scrollbar-track { background: #10131a; }
-    .custom-scrollbar::-webkit-scrollbar-thumb { background: #32353c; border-radius: 10px; }
-    .input-focus-ring:focus { border-color: #57f1db; box-shadow: inset 0 0 8px rgba(87, 241, 219, 0.1); outline: none; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: var(--c-surface-dim); }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: var(--c-surface-container-highest); border-radius: 10px; }
+    .input-focus-ring:focus { border-color: var(--c-primary); box-shadow: inset 0 0 8px rgba(87, 241, 219, 0.1); outline: none; }
 
     {{-- The shared profile.partials.* forms and x-text-input/x-primary-button/etc. components
          read these custom properties - defining them here recolors those shared components
@@ -66,6 +66,7 @@
         --accent-blue: #57f1db; --shadow-primary: rgba(0, 0, 0, 0.65);
     }
 </style>
+@include('partials.theme-vars')
 </head>
 <body class="font-body-md bg-surface-container-lowest text-on-surface min-h-screen pb-24 lg:pb-8">
 
@@ -147,6 +148,40 @@
             </div>
             <div class="p-4">
                 @include('profile.partials.update-profile-information-form')
+            </div>
+        </div>
+    </section>
+
+    <!-- Appearance Card -->
+    <section class="mb-6">
+        <div class="bg-surface-container border border-outline-variant rounded-xl overflow-hidden">
+            <div class="p-4 border-b border-outline-variant flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary">palette</span>
+                <h2 class="font-headline-md text-[18px]">Izgled</h2>
+            </div>
+            <div class="p-4">
+                @php $currentTheme = auth()->user()->theme === 'light' ? 'light' : 'dark'; @endphp
+                <p class="text-on-surface-variant font-body-sm mb-4">Bira temu za javne stranice i "Moje lige".</p>
+                <div class="grid grid-cols-2 gap-3">
+                    <form method="POST" action="{{ route('profile.theme') }}">
+                        @csrf
+                        <input type="hidden" name="theme" value="dark">
+                        <button type="submit"
+                                class="w-full flex flex-col items-center gap-2 px-4 py-3 rounded-lg border-2 transition-colors {{ $currentTheme === 'dark' ? 'border-primary bg-primary/5' : 'border-outline-variant' }}">
+                            <span class="material-symbols-outlined {{ $currentTheme === 'dark' ? 'text-primary' : 'text-on-surface-variant' }}">dark_mode</span>
+                            <span class="font-label-bold text-[13px] {{ $currentTheme === 'dark' ? 'text-primary' : 'text-on-surface-variant' }}">Tamna</span>
+                        </button>
+                    </form>
+                    <form method="POST" action="{{ route('profile.theme') }}">
+                        @csrf
+                        <input type="hidden" name="theme" value="light">
+                        <button type="submit"
+                                class="w-full flex flex-col items-center gap-2 px-4 py-3 rounded-lg border-2 transition-colors {{ $currentTheme === 'light' ? 'border-primary bg-primary/5' : 'border-outline-variant' }}">
+                            <span class="material-symbols-outlined {{ $currentTheme === 'light' ? 'text-primary' : 'text-on-surface-variant' }}">light_mode</span>
+                            <span class="font-label-bold text-[13px] {{ $currentTheme === 'light' ? 'text-primary' : 'text-on-surface-variant' }}">Svijetla</span>
+                        </button>
+                    </form>
+                </div>
             </div>
         </div>
     </section>

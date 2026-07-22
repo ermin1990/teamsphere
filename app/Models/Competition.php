@@ -133,6 +133,22 @@ class Competition extends Model
     }
 
     /**
+     * Resolve route binding by slug (the default) OR by numeric id - the API
+     * returns both `id` and `slug` for a competition, and a numeric id is the
+     * more obvious thing for an API consumer to build a URL with. Slugs are
+     * never purely numeric (always name + "-" + suffix), so there's no
+     * ambiguity between the two.
+     */
+    public function resolveRouteBinding($value, $field = null)
+    {
+        if ($field === null && ctype_digit((string) $value)) {
+            return $this->where('id', $value)->first();
+        }
+
+        return parent::resolveRouteBinding($value, $field);
+    }
+
+    /**
      * Get the organization that owns the competition.
      */
     public function organization(): BelongsTo

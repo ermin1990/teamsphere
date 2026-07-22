@@ -122,6 +122,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::post('/profile/theme', [ProfileController::class, 'updateTheme'])->name('profile.theme');
     Route::post('/plan-upgrade-request', [\App\Http\Controllers\PlanUpgradeController::class, 'store'])->name('plan-upgrade.request');
     Route::get('/moj-plan', [\App\Http\Controllers\PlanController::class, 'show'])->name('plan.show');
 
