@@ -388,6 +388,8 @@ class LiveScore extends Component
                 'set_durations' => null,
                 'played_at' => null,
                 'current_set_started_at' => null,
+                'current_set_home_score' => 0,
+                'current_set_away_score' => 0,
             ]);
 
             \Log::info('Match reset complete', [
@@ -409,11 +411,12 @@ class LiveScore extends Component
             }
 
             // Load sets history - home_score/away_score is the sets-won tally,
-            // not the live point score of whichever set is in progress, so the
-            // current set's points restart at 0-0 on a refresh (same accepted
-            // trade-off TennisLiveScore uses for its in-progress game state).
-            $this->homeScore = 0;
-            $this->awayScore = 0;
+            // not the live point score of whichever set is in progress. The
+            // live point score is persisted separately in
+            // current_set_home_score/current_set_away_score, so it survives
+            // a page refresh and can be shown on the public match page too.
+            $this->homeScore = $match->current_set_home_score ?? 0;
+            $this->awayScore = $match->current_set_away_score ?? 0;
             $this->sets = $match->sets ?? [];
             $this->setDurations = $match->set_durations ?? [];
             $this->currentSet = count($this->sets) + 1;
@@ -523,6 +526,8 @@ class LiveScore extends Component
             'set_durations' => null,
             'played_at' => null,
             'current_set_started_at' => null,
+            'current_set_home_score' => 0,
+            'current_set_away_score' => 0,
         ]);
 
         // Clear local storage
@@ -604,10 +609,12 @@ class LiveScore extends Component
         // Optimized batch update using raw SQL for maximum speed. Note:
         // home_score/away_score are NOT touched here - they hold the match's
         // sets-won tally (what public/admin/player tables display), not the
-        // live point count of whichever set is in progress.
+        // live point count of whichever set is in progress - that lives in
+        // current_set_home_score/current_set_away_score instead, so the
+        // public match page can poll and display it.
         \DB::update(
-            'UPDATE matches SET current_server = ?, updated_at = ? WHERE id = ?',
-            [$this->currentServer, now(), $this->match->id]
+            'UPDATE matches SET current_server = ?, current_set_home_score = ?, current_set_away_score = ?, updated_at = ? WHERE id = ?',
+            [$this->currentServer, $this->homeScore, $this->awayScore, now(), $this->match->id]
         );
 
         // Check for set completion
@@ -642,10 +649,12 @@ class LiveScore extends Component
         // Optimized batch update using raw SQL for maximum speed. Note:
         // home_score/away_score are NOT touched here - they hold the match's
         // sets-won tally (what public/admin/player tables display), not the
-        // live point count of whichever set is in progress.
+        // live point count of whichever set is in progress - that lives in
+        // current_set_home_score/current_set_away_score instead, so the
+        // public match page can poll and display it.
         \DB::update(
-            'UPDATE matches SET current_server = ?, updated_at = ? WHERE id = ?',
-            [$this->currentServer, now(), $this->match->id]
+            'UPDATE matches SET current_server = ?, current_set_home_score = ?, current_set_away_score = ?, updated_at = ? WHERE id = ?',
+            [$this->currentServer, $this->homeScore, $this->awayScore, now(), $this->match->id]
         );
 
         // Check for set completion
@@ -678,6 +687,8 @@ class LiveScore extends Component
                 'current_server' => $this->currentServer,
                 'sets' => $this->sets,
                 'set_durations' => $this->setDurations,
+                'current_set_home_score' => $this->homeScore,
+                'current_set_away_score' => $this->awayScore,
             ]);
 
             // Force UI update
@@ -773,6 +784,8 @@ class LiveScore extends Component
             'first_server' => $this->firstServer,
             'home_score' => $homeSetsWon,
             'away_score' => $awaySetsWon,
+            'current_set_home_score' => 0,
+            'current_set_away_score' => 0,
         ]);
 
         \Log::info('Database update result', [

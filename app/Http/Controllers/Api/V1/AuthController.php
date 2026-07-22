@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Api\V1\Concerns\ApiResponses;
 use App\Http\Controllers\Controller;
+use App\Http\Resources\Api\V1\CompetitionResource;
 use App\Http\Resources\Api\V1\UserResource;
+use App\Models\Competition;
 use App\Models\Player;
 use App\Models\User;
 use App\Services\FirebaseAuthService;
@@ -205,6 +207,30 @@ class AuthController extends Controller
     public function me(Request $request): JsonResponse
     {
         return $this->ok(new UserResource($request->user()->load('playerProfile')));
+    }
+
+    /**
+     * Competitions (leagues and tournaments) the authenticated user's player
+     * profile has joined - not everything public, just what "belongs" to them,
+     * for a mobile "my leagues" home screen.
+     */
+    public function myCompetitions(Request $request): JsonResponse
+    {
+        $player = $request->user()->playerProfile;
+
+        if (!$player) {
+            return $this->ok([], 'No player profile linked to this account.');
+        }
+
+        $competitions = Competition::whereHas('players', function ($query) use ($player) {
+                $query->where('players.id', $player->id);
+            })
+            ->with('organization')
+            ->withCount(['players', 'matches'])
+            ->orderByDesc('created_at')
+            ->paginate($this->perPage($request));
+
+        return $this->paginated($competitions, CompetitionResource::class);
     }
 
     /**

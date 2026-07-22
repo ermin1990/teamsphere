@@ -256,6 +256,7 @@
                                 $awaySeed = $playerPositionSeeding[$match->away_player_id] ?? null;
                                 $groupHomeUrl = $match->homePlayer ? route('competitions.player.show', $match->homePlayer) : null;
                                 $groupAwayUrl = $match->awayPlayer ? route('competitions.player.show', $match->awayPlayer) : null;
+                                $groupDetailsUrl = route('competitions.matches.show', [$competition, $match]);
                             @endphp
                             <div>
                                 <div class="flex justify-between items-center mb-2 text-label-bold text-on-surface-variant uppercase">
@@ -347,6 +348,11 @@
                                         </div>
                                     </div>
                                 @endif
+                                <div class="mt-3 pt-3 border-t border-outline-variant text-right">
+                                    <a href="{{ $groupDetailsUrl }}" class="inline-flex items-center gap-1 text-xs font-label-bold text-primary hover:underline">
+                                        Detalji meča <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+                                    </a>
+                                </div>
                             </div>
                             @endforeach
                         </div>
@@ -569,6 +575,13 @@
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                                                     </svg>
                                                 </button>
+                                            </div>
+                                            @endif
+                                            @if(!$match->is_bye)
+                                            <div class="mt-2 text-center">
+                                                <a href="{{ route('competitions.matches.show', [$competition, $match]) }}" class="text-xs font-label-bold text-primary hover:underline inline-flex items-center gap-1">
+                                                    Detalji meča <span class="material-symbols-outlined text-[12px]">arrow_forward</span>
+                                                </a>
                                             </div>
                                             @endif
                                         </div>

@@ -10,6 +10,8 @@ class PublicLiveScore extends Component
     public $match;
     public $homeScore = 0;
     public $awayScore = 0;
+    public $currentSetHomeScore = 0;
+    public $currentSetAwayScore = 0;
     public $sets = [];
     public $matchStatus = 'scheduled';
     public $lastUpdated;
@@ -38,6 +40,8 @@ class PublicLiveScore extends Component
         
         $this->homeScore = $freshMatch->home_score ?? 0;
         $this->awayScore = $freshMatch->away_score ?? 0;
+        $this->currentSetHomeScore = $freshMatch->current_set_home_score ?? 0;
+        $this->currentSetAwayScore = $freshMatch->current_set_away_score ?? 0;
         $this->sets = $freshMatch->sets ?? [];
         $this->matchStatus = $freshMatch->status;
         $this->lastUpdated = now();
@@ -63,6 +67,8 @@ class PublicLiveScore extends Component
             'isIndividualMatch' => $isIndividualMatch,
             'homeScore' => $this->homeScore,
             'awayScore' => $this->awayScore,
+            'currentSetHomeScore' => $this->currentSetHomeScore,
+            'currentSetAwayScore' => $this->currentSetAwayScore,
             'sets' => $this->sets,
             'matchStatus' => $this->matchStatus,
             'lastUpdated' => $this->lastUpdated,

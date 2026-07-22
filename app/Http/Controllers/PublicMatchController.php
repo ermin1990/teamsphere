@@ -232,7 +232,8 @@ class PublicMatchController extends Controller
             'competition.organization',
             'moderator',
             'referee',
-            'table'
+            'table',
+            'venue'
         ]);
 
         $organization = $competition->organization;
@@ -467,6 +468,8 @@ class PublicMatchController extends Controller
                 'round' => $match->round ?? $match->round_number ?? null,
                 'home_score' => $match->home_score ?? 0,
                 'away_score' => $match->away_score ?? 0,
+                'current_set_home_score' => $match->current_set_home_score ?? 0,
+                'current_set_away_score' => $match->current_set_away_score ?? 0,
                 'status' => $match->status,
                 'updated_at' => $match->updated_at->toISOString(),
                 'home_player' => $match->homePlayer ? [

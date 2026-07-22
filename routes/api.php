@@ -58,6 +58,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         Route::delete('/tokens/{tokenId}', [AuthController::class, 'revokeToken'])->name('auth.tokens.destroy');
         Route::get('/me', [AuthController::class, 'me'])->name('auth.me');
         Route::post('/me/avatar', [AuthController::class, 'uploadAvatar'])->name('auth.avatar');
+        Route::get('/me/competitions', [AuthController::class, 'myCompetitions'])->name('auth.competitions');
         Route::post('/email/verification-notification', [AuthController::class, 'sendVerificationNotification'])
             ->middleware('throttle:6,1')->name('auth.verification.send');
 

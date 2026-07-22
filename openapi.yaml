@@ -681,6 +681,35 @@ paths:
                       data: { $ref: "#/components/schemas/User" }
         "401": { $ref: "#/components/responses/Unauthorized" }
 
+  /me/competitions:
+    get:
+      tags: [Auth]
+      summary: Takmičenja (lige i turniri) u kojima je prijavljeni igrač učlanjen
+      description: |
+        Vraća samo takmičenja koja "pripadaju" prijavljenom korisniku (njegov player
+        profil je učlanjen preko prijave/dodavanja), ne sva javna takmičenja - za
+        "moje lige" početni ekran u mobilnoj app. Ako nalog nema povezan player profil
+        (npr. organizatorski nalog), vraća praznu listu.
+      parameters:
+        - name: per_page
+          in: query
+          schema: { type: integer, default: 20, maximum: 100 }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items: { $ref: "#/components/schemas/Competition" }
+                      meta: { $ref: "#/components/schemas/PaginationMeta" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+
   /auth/google:
     post:
       tags: [Auth]

@@ -297,6 +297,9 @@
                                             $mShowHeader = $mLive || ($mDate && !$mScheduled);
                                             $mHomeUrl = !$isTeamMatch && $match->homePlayer ? route('competitions.player.show', $match->homePlayer) : null;
                                             $mAwayUrl = !$isTeamMatch && $match->awayPlayer ? route('competitions.player.show', $match->awayPlayer) : null;
+                                            $mDetailsUrl = $isTeamMatch
+                                                ? route('competitions.team-matches.show', [$competition, $match])
+                                                : route('competitions.matches.show', [$competition, $match]);
                                         @endphp
                                         <div>
                                             @if($mShowHeader)
@@ -388,13 +391,18 @@
                                                     </div>
                                                 </div>
                                             @endif
-                                            @if($mVenue)
-                                                <div class="mt-4 pt-4 border-t border-outline-variant">
+                                            <div class="mt-3 pt-3 border-t border-outline-variant flex items-center justify-between gap-2">
+                                                @if($mVenue)
                                                     <span class="text-label-bold text-on-surface-variant flex items-center gap-1">
                                                         <span class="material-symbols-outlined text-[14px]">location_on</span> {{ $mVenue->name }}
                                                     </span>
-                                                </div>
-                                            @endif
+                                                @else
+                                                    <span></span>
+                                                @endif
+                                                <a href="{{ $mDetailsUrl }}" class="inline-flex items-center gap-1 text-xs font-label-bold text-primary hover:underline shrink-0">
+                                                    Detalji meča <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+                                                </a>
+                                            </div>
                                         </div>
                                     @endforeach
                                 </div>

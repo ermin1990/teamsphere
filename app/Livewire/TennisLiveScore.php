@@ -52,6 +52,8 @@ class TennisLiveScore extends Component
         $this->completedSets = $this->match->sets ?? [];
         $this->homeSets = $this->match->home_score ?? 0;
         $this->awaySets = $this->match->away_score ?? 0;
+        $this->homeGames = $this->match->current_set_home_score ?? 0;
+        $this->awayGames = $this->match->current_set_away_score ?? 0;
         $this->currentServer = $this->match->current_server;
         $this->needsServerSelection = empty($this->currentServer) && $this->match->status !== 'completed';
         $this->matchComplete = $this->match->status === 'completed';
@@ -64,9 +66,11 @@ class TennisLiveScore extends Component
             ? \App\Models\Venue::where('city_id', $competition->city_id)->orderBy('name')->get(['id', 'name'])->toArray()
             : [];
 
-        // Resume in-progress game/set state if cached (kept only in memory per-session;
-        // a page refresh mid-game restarts the current game at 0-0, which is an
-        // acceptable trade-off given games/sets already won are persisted).
+        // Games won in the current set are persisted (current_set_home_score/
+        // current_set_away_score) and restored above, so both a page refresh
+        // and the public match page can show them. Only the current game's
+        // point tally (homePoints/awayPoints) is memory-only and restarts at
+        // 0-0 on a refresh - an accepted trade-off since it changes every point.
     }
 
     /**
@@ -310,6 +314,10 @@ class TennisLiveScore extends Component
             'current_server' => $this->currentServer,
             'status' => $this->matchComplete ? 'completed' : 'in_progress',
             'played_at' => $this->matchComplete ? now() : $this->match->played_at,
+            // Games won in the set currently being played - lets the public
+            // match page show live progress (e.g. "1-0" games) between sets.
+            'current_set_home_score' => $this->matchComplete ? 0 : $this->homeGames,
+            'current_set_away_score' => $this->matchComplete ? 0 : $this->awayGames,
         ]);
     }
 
@@ -374,6 +382,8 @@ class TennisLiveScore extends Component
             'first_server' => null,
             'status' => 'scheduled',
             'played_at' => null,
+            'current_set_home_score' => 0,
+            'current_set_away_score' => 0,
         ]);
 
         // Recompute league standings so a reset match's contribution is gone.
