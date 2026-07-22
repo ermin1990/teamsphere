@@ -28,5 +28,13 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        // API routes have no session/login page to redirect to - always
+        // return JSON instead of the default HTML-redirect-to-login
+        // behavior, which kicked in for any request without an explicit
+        // Accept: application/json header (e.g. opening the URL in a browser).
+        $exceptions->render(function (\Illuminate\Auth\AuthenticationException $e, \Illuminate\Http\Request $request) {
+            if ($request->is('api/*')) {
+                return response()->json(['success' => false, 'message' => 'Unauthenticated.'], 401);
+            }
+        });
     })->create();

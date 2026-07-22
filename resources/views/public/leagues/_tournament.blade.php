@@ -184,11 +184,18 @@
                                             $clubName = ($standing->player && $standing->player->organization_id !== $competition->organization_id)
                                                 ? ($standing->player->organization->name ?? null)
                                                 : null;
+                                            // Doubles pairs are stored as "PLAYER ONE/PLAYER TWO" -
+                                            // split so each name gets its own line, same as match cards.
+                                            $standingNameParts = explode('/', $standing->player->name);
                                         @endphp
                                         <tr class="transition-colors group {{ $advancing ? 'bg-primary/5' : 'hover:bg-surface-variant/30' }}">
                                             <td class="px-3 lg:px-4 py-2 lg:py-2.5 font-bold {{ $advancing ? 'text-primary' : '' }}">{{ $index + 1 }}</td>
                                             <td class="px-2 lg:px-4 py-2 lg:py-2.5">
-                                                <span class="font-semibold group-hover:text-primary transition-colors truncate block">{{ $standing->player->name }}</span>
+                                                <span class="font-semibold group-hover:text-primary transition-colors leading-tight block">
+                                                    @foreach($standingNameParts as $part)
+                                                        <span class="truncate block">{{ trim($part) }}</span>
+                                                    @endforeach
+                                                </span>
                                                 @if($clubName)
                                                     <span class="text-xs text-on-surface-variant truncate block">{{ $clubName }}</span>
                                                 @endif
@@ -224,7 +231,7 @@
                                 $displaySets = collect($match->sets ?? [])->map(fn ($s) => [
                                     'h' => $s['home_score'] ?? $s['home'] ?? null,
                                     'a' => $s['away_score'] ?? $s['away'] ?? null,
-                                ])->filter(fn ($s) => !is_null($s['h']) || !is_null($s['a']));
+                                ])->filter(fn ($s) => !is_null($s['h']) && !is_null($s['a']))->values();
                                 foreach ($displaySets as $s) {
                                     if ((int) $s['h'] > (int) $s['a']) $homeSetsWon++;
                                     if ((int) $s['a'] > (int) $s['h']) $awaySetsWon++;
@@ -233,72 +240,113 @@
                                     $homeSetsWon = $match->home_score ?? 0;
                                     $awaySetsWon = $match->away_score ?? 0;
                                 }
-                                $displaySets = $displaySets->values();
-                                // Cap placeholders at the competition's actual max sets
-                                // (best-of-(2*sets_to_win - 1)) instead of a hardcoded 5.
-                                $maxPossibleSets = max(1, (2 * ($competition->sets_to_win ?: 1)) - 1);
-                                $cellCount = max($maxPossibleSets, $displaySets->count());
                                 $completed = $match->status === 'completed';
                                 $live = $match->status === 'in_progress';
+                                $scheduled = !$completed && !$live;
                                 $homeWin = $completed && $homeSetsWon > $awaySetsWon;
                                 $awayWin = $completed && $awaySetsWon > $homeSetsWon;
                                 $homeName = $match->homePlayer->name ?? 'TBD';
                                 $awayName = $match->awayPlayer->name ?? 'TBD';
                                 // Doubles pairs are stored as a single Player whose name is
-                                // "PLAYER ONE/PLAYER TWO" - split so each name gets its own line
-                                // instead of being squeezed/truncated onto one.
+                                // "PLAYER ONE/PLAYER TWO" - split so each name gets its own
+                                // (smaller) line instead of being squeezed/truncated onto one.
                                 $homeNameParts = explode('/', $homeName);
                                 $awayNameParts = explode('/', $awayName);
                                 $homeSeed = $playerPositionSeeding[$match->home_player_id] ?? null;
                                 $awaySeed = $playerPositionSeeding[$match->away_player_id] ?? null;
+                                $groupHomeUrl = $match->homePlayer ? route('competitions.player.show', $match->homePlayer) : null;
+                                $groupAwayUrl = $match->awayPlayer ? route('competitions.player.show', $match->awayPlayer) : null;
                             @endphp
-                            <div class="bg-surface-container-low p-4 lg:p-5 rounded-xl transition-all-200 {{ $completed ? 'border-l-4 border-primary rounded-r-xl' : ($live ? 'border-l-4 border-secondary rounded-r-xl' : 'border border-outline-variant hover:border-primary/50') }}">
-                                <div class="flex justify-between items-center mb-3 text-label-bold text-on-surface-variant uppercase text-xs">
-                                    @if($completed)
-                                        <span>Završeno</span>
-                                    @elseif($live)
+                            <div>
+                                <div class="flex justify-between items-center mb-2 text-label-bold text-on-surface-variant uppercase">
+                                    @if($live)
                                         <span class="text-secondary animate-pulse">Uživo</span>
                                     @else
-                                        <span class="text-secondary">Zakazano</span>
+                                        <span></span>
                                     @endif
                                     @if($homeSeed || $awaySeed)
                                         <span>{{ $homeSeed ? '#' . $homeSeed : '' }}@if($homeSeed && $awaySeed) vs @endif{{ $awaySeed ? '#' . $awaySeed : '' }}</span>
                                     @endif
                                 </div>
-                                <div class="space-y-3">
-                                    <div class="flex justify-between items-center gap-3 {{ $awayWin ? 'opacity-60' : '' }}">
-                                        <div class="min-w-0 flex-1 leading-tight">
-                                            @foreach($homeNameParts as $part)
-                                                <span class="font-medium truncate block">{{ trim($part) }}</span>
-                                            @endforeach
-                                        </div>
-                                        <div class="flex items-center gap-2 shrink-0">
-                                            <div class="flex items-center gap-1">
-                                                @for($i = 0; $i < $cellCount; $i++)
-                                                    @php $c = $displaySets[$i] ?? null; @endphp
-                                                    <span class="w-[18px] text-center text-[11px] font-bold {{ $c && !is_null($c['h']) ? ((int) $c['h'] >= (int) $c['a'] ? 'text-primary' : 'text-on-surface-variant/50') : 'text-on-surface-variant/30' }}">{{ $c && !is_null($c['h']) ? $c['h'] : '-' }}</span>
-                                                @endfor
-                                            </div>
-                                            <span class="font-bold {{ $homeWin ? 'text-primary' : 'text-on-surface-variant' }} text-body-lg">{{ $completed || $live ? $homeSetsWon : '-' }}</span>
+                                @if($displaySets->isNotEmpty())
+                                    <div class="border border-outline-variant rounded-lg overflow-hidden">
+                                        <div class="overflow-x-auto">
+                                        <table class="w-full border-collapse" style="min-width: {{ 120 + $displaySets->count() * 40 }}px">
+                                            <thead>
+                                                <tr class="bg-surface-container-highest">
+                                                    <th class="text-left px-3 py-1.5 text-[10px] font-bold uppercase tracking-wide text-on-surface-variant sticky left-0 bg-surface-container-highest">Igrač</th>
+                                                    @foreach($displaySets as $i => $set)
+                                                        <th class="text-center px-2 py-1.5 text-[10px] font-bold uppercase tracking-wide text-on-surface-variant w-10 whitespace-nowrap">{{ $i + 1 }}.</th>
+                                                    @endforeach
+                                                    <th class="text-center px-3 py-1.5 text-[10px] font-bold uppercase tracking-wide text-primary border-l border-outline-variant whitespace-nowrap">Rezultat</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr class="{{ $awayWin ? 'opacity-60' : '' }}">
+                                                    <td class="px-3 py-2 font-medium max-w-[8rem] sticky left-0 bg-surface-container-low leading-tight">@if($groupHomeUrl)<a href="{{ $groupHomeUrl }}" class="hover:text-primary transition-colors block">@foreach($homeNameParts as $part)<span class="truncate block {{ count($homeNameParts) > 1 ? 'text-xs' : 'text-sm' }}">{{ trim($part) }}</span>@endforeach</a>@else<span class="block">@foreach($homeNameParts as $part)<span class="truncate block {{ count($homeNameParts) > 1 ? 'text-xs' : 'text-sm' }}">{{ trim($part) }}</span>@endforeach</span>@endif</td>
+                                                    @foreach($displaySets as $set)
+                                                        <td class="text-center px-2 py-2 text-sm tabular-nums whitespace-nowrap {{ $set['h'] > $set['a'] ? 'font-bold text-primary' : 'text-on-surface-variant' }}">{{ $set['h'] }}</td>
+                                                    @endforeach
+                                                    <td class="text-center px-3 py-2 font-bold text-body-lg tabular-nums whitespace-nowrap border-l border-outline-variant {{ $homeWin ? 'text-primary' : 'text-on-surface-variant' }}">{{ $homeSetsWon }}</td>
+                                                </tr>
+                                                <tr class="border-t border-outline-variant {{ $homeWin ? 'opacity-60' : '' }}">
+                                                    <td class="px-3 py-2 font-medium max-w-[8rem] sticky left-0 bg-surface-container-low leading-tight">@if($groupAwayUrl)<a href="{{ $groupAwayUrl }}" class="hover:text-primary transition-colors block">@foreach($awayNameParts as $part)<span class="truncate block {{ count($awayNameParts) > 1 ? 'text-xs' : 'text-sm' }}">{{ trim($part) }}</span>@endforeach</a>@else<span class="block">@foreach($awayNameParts as $part)<span class="truncate block {{ count($awayNameParts) > 1 ? 'text-xs' : 'text-sm' }}">{{ trim($part) }}</span>@endforeach</span>@endif</td>
+                                                    @foreach($displaySets as $set)
+                                                        <td class="text-center px-2 py-2 text-sm tabular-nums whitespace-nowrap {{ $set['a'] > $set['h'] ? 'font-bold text-primary' : 'text-on-surface-variant' }}">{{ $set['a'] }}</td>
+                                                    @endforeach
+                                                    <td class="text-center px-3 py-2 font-bold text-body-lg tabular-nums whitespace-nowrap border-l border-outline-variant {{ $awayWin ? 'text-primary' : 'text-on-surface-variant' }}">{{ $awaySetsWon }}</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
                                         </div>
                                     </div>
-                                    <div class="flex justify-between items-center gap-3 {{ $homeWin ? 'opacity-60' : '' }}">
-                                        <div class="min-w-0 flex-1 leading-tight">
-                                            @foreach($awayNameParts as $part)
-                                                <span class="font-medium truncate block">{{ trim($part) }}</span>
-                                            @endforeach
-                                        </div>
-                                        <div class="flex items-center gap-2 shrink-0">
-                                            <div class="flex items-center gap-1">
-                                                @for($i = 0; $i < $cellCount; $i++)
-                                                    @php $c = $displaySets[$i] ?? null; @endphp
-                                                    <span class="w-[18px] text-center text-[11px] font-bold {{ $c && !is_null($c['a']) ? ((int) $c['a'] >= (int) $c['h'] ? 'text-primary' : 'text-on-surface-variant/50') : 'text-on-surface-variant/30' }}">{{ $c && !is_null($c['a']) ? $c['a'] : '-' }}</span>
-                                                @endfor
-                                            </div>
-                                            <span class="font-bold {{ $awayWin ? 'text-primary' : 'text-on-surface-variant' }} text-body-lg">{{ $completed || $live ? $awaySetsWon : '-' }}</span>
+                                @elseif($scheduled)
+                                    <div class="border border-outline-variant rounded-lg overflow-hidden">
+                                        <div class="overflow-x-auto">
+                                        <table class="w-full border-collapse" style="min-width: 200px">
+                                            <thead>
+                                                <tr class="bg-surface-container-highest">
+                                                    <th class="text-left px-3 py-1.5 text-[10px] font-bold uppercase tracking-wide text-on-surface-variant sticky left-0 bg-surface-container-highest">Igrač</th>
+                                                    <th class="text-center px-3 py-1.5 text-[10px] font-bold uppercase tracking-wide text-secondary border-l border-outline-variant whitespace-nowrap">Zakazano</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td class="px-3 py-2 font-medium max-w-[8rem] sticky left-0 bg-surface-container-low leading-tight">@if($groupHomeUrl)<a href="{{ $groupHomeUrl }}" class="hover:text-primary transition-colors block">@foreach($homeNameParts as $part)<span class="truncate block {{ count($homeNameParts) > 1 ? 'text-xs' : 'text-sm' }}">{{ trim($part) }}</span>@endforeach</a>@else<span class="block">@foreach($homeNameParts as $part)<span class="truncate block {{ count($homeNameParts) > 1 ? 'text-xs' : 'text-sm' }}">{{ trim($part) }}</span>@endforeach</span>@endif</td>
+                                                    <td class="text-center px-3 py-2 font-bold text-body-lg tabular-nums whitespace-nowrap border-l border-outline-variant text-on-surface-variant">–</td>
+                                                </tr>
+                                                <tr class="border-t border-outline-variant">
+                                                    <td class="px-3 py-2 font-medium max-w-[8rem] sticky left-0 bg-surface-container-low leading-tight">@if($groupAwayUrl)<a href="{{ $groupAwayUrl }}" class="hover:text-primary transition-colors block">@foreach($awayNameParts as $part)<span class="truncate block {{ count($awayNameParts) > 1 ? 'text-xs' : 'text-sm' }}">{{ trim($part) }}</span>@endforeach</a>@else<span class="block">@foreach($awayNameParts as $part)<span class="truncate block {{ count($awayNameParts) > 1 ? 'text-xs' : 'text-sm' }}">{{ trim($part) }}</span>@endforeach</span>@endif</td>
+                                                    <td class="text-center px-3 py-2 font-bold text-body-lg tabular-nums whitespace-nowrap border-l border-outline-variant text-on-surface-variant">–</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
                                         </div>
                                     </div>
-                                </div>
+                                @else
+                                    <div class="border border-outline-variant rounded-lg overflow-hidden">
+                                        <div class="overflow-x-auto">
+                                        <table class="w-full border-collapse" style="min-width: 200px">
+                                            <thead>
+                                                <tr class="bg-surface-container-highest">
+                                                    <th class="text-left px-3 py-1.5 text-[10px] font-bold uppercase tracking-wide text-on-surface-variant sticky left-0 bg-surface-container-highest">Igrač</th>
+                                                    <th class="text-center px-3 py-1.5 text-[10px] font-bold uppercase tracking-wide {{ $match->forfeited_by ? 'text-orange-500' : 'text-primary' }} border-l border-outline-variant whitespace-nowrap">{{ $match->forfeited_by ? 'WO' : 'Rezultat' }}</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr class="{{ $awayWin ? 'opacity-60' : '' }}">
+                                                    <td class="px-3 py-2 font-medium max-w-[8rem] sticky left-0 bg-surface-container-low leading-tight">@if($groupHomeUrl)<a href="{{ $groupHomeUrl }}" class="hover:text-primary transition-colors block">@foreach($homeNameParts as $part)<span class="truncate block {{ count($homeNameParts) > 1 ? 'text-xs' : 'text-sm' }}">{{ trim($part) }}</span>@endforeach</a>@else<span class="block">@foreach($homeNameParts as $part)<span class="truncate block {{ count($homeNameParts) > 1 ? 'text-xs' : 'text-sm' }}">{{ trim($part) }}</span>@endforeach</span>@endif</td>
+                                                    <td class="text-center px-3 py-2 font-bold text-body-lg tabular-nums whitespace-nowrap border-l border-outline-variant {{ $homeWin ? 'text-primary' : 'text-on-surface-variant' }}">{{ $match->home_score }}</td>
+                                                </tr>
+                                                <tr class="border-t border-outline-variant {{ $homeWin ? 'opacity-60' : '' }}">
+                                                    <td class="px-3 py-2 font-medium max-w-[8rem] sticky left-0 bg-surface-container-low leading-tight">@if($groupAwayUrl)<a href="{{ $groupAwayUrl }}" class="hover:text-primary transition-colors block">@foreach($awayNameParts as $part)<span class="truncate block {{ count($awayNameParts) > 1 ? 'text-xs' : 'text-sm' }}">{{ trim($part) }}</span>@endforeach</a>@else<span class="block">@foreach($awayNameParts as $part)<span class="truncate block {{ count($awayNameParts) > 1 ? 'text-xs' : 'text-sm' }}">{{ trim($part) }}</span>@endforeach</span>@endif</td>
+                                                    <td class="text-center px-3 py-2 font-bold text-body-lg tabular-nums whitespace-nowrap border-l border-outline-variant {{ $awayWin ? 'text-primary' : 'text-on-surface-variant' }}">{{ $match->away_score }}</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                        </div>
+                                    </div>
+                                @endif
                             </div>
                             @endforeach
                         </div>

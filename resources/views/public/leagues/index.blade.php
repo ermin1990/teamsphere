@@ -317,7 +317,7 @@
                                 <div class="flex items-center gap-3 min-w-0">
                                     <span class="material-symbols-outlined text-on-surface-variant text-lg shrink-0">{{ $competition->type === 'tournament' ? 'workspace_premium' : 'emoji_events' }}</span>
                                     <div class="min-w-0">
-                                        <span class="font-body-md text-on-surface truncate block">{{ $competition->name }}</span>
+                                        <span class="font-body-md text-sm lg:text-base text-on-surface truncate block">{{ $competition->name }}</span>
                                         @if(!isset($organization))
                                             <span class="text-xs text-on-surface-variant truncate block">{{ $competition->organization->name }}</span>
                                         @endif

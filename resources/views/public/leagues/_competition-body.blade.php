@@ -208,14 +208,25 @@
                                         $clubName = (!$competition->is_team_based && $standing->player && $standing->player->organization_id !== $competition->organization_id)
                                             ? ($standing->player->organization->name ?? null)
                                             : null;
+                                        // Doubles pairs are stored as "PLAYER ONE/PLAYER TWO" -
+                                        // split so each name gets its own line, same as match cards.
+                                        $participantNameParts = explode('/', $standing->participant_name);
                                     @endphp
                                     <tr class="transition-colors group {{ $advancing ? 'bg-primary/5' : 'hover:bg-surface-variant/30' }}">
                                         <td class="px-3 lg:px-4 py-2 lg:py-2.5 font-bold {{ $index < 3 ? 'text-primary' : '' }}">{{ $index + 1 }}</td>
                                         <td class="px-2 lg:px-4 py-2 lg:py-2.5">
                                             @if($standing->player)
-                                                <a href="{{ route('competitions.player.show', $standing->player) }}" class="font-semibold group-hover:text-primary transition-colors truncate block">{{ $standing->participant_name }}</a>
+                                                <a href="{{ route('competitions.player.show', $standing->player) }}" class="font-semibold group-hover:text-primary transition-colors leading-tight">
+                                                    @foreach($participantNameParts as $part)
+                                                        <span class="truncate block">{{ trim($part) }}</span>
+                                                    @endforeach
+                                                </a>
                                             @else
-                                                <span class="font-semibold group-hover:text-primary transition-colors truncate block">{{ $standing->participant_name }}</span>
+                                                <span class="font-semibold group-hover:text-primary transition-colors leading-tight block">
+                                                    @foreach($participantNameParts as $part)
+                                                        <span class="truncate block">{{ trim($part) }}</span>
+                                                    @endforeach
+                                                </span>
                                             @endif
                                             @if($clubName)
                                                 <span class="text-xs text-on-surface-variant truncate block">{{ $clubName }}</span>
@@ -264,6 +275,11 @@
                                             $isTeamMatch = $competition->is_team_based;
                                             $mHomeName = $isTeamMatch ? ($match->homeTeam->name ?? 'Domaći') : ($match->homePlayer->name ?? 'Domaći');
                                             $mAwayName = $isTeamMatch ? ($match->awayTeam->name ?? 'Gost') : ($match->awayPlayer->name ?? 'Gost');
+                                            // Doubles pairs are stored as a single Player whose name is
+                                            // "PLAYER ONE/PLAYER TWO" - split so each name gets its own
+                                            // (smaller) line instead of being squeezed/truncated onto one.
+                                            $mHomeNameParts = explode('/', $mHomeName);
+                                            $mAwayNameParts = explode('/', $mAwayName);
                                             $mCompleted = in_array($match->status, ['completed', 'forfeited']);
                                             $mLive = $match->status === 'in_progress';
                                             $mHomeWin = $mCompleted && $match->home_score > $match->away_score;
@@ -308,14 +324,14 @@
                                                         </thead>
                                                         <tbody>
                                                             <tr class="{{ $mAwayWin ? 'opacity-60' : '' }}">
-                                                                <td class="px-3 py-2 font-medium text-sm truncate max-w-[8rem] sticky left-0 bg-surface-container-low">@if($mHomeUrl)<a href="{{ $mHomeUrl }}" class="hover:text-primary transition-colors">{{ $mHomeName }}</a>@else{{ $mHomeName }}@endif</td>
+                                                                <td class="px-3 py-2 font-medium max-w-[8rem] sticky left-0 bg-surface-container-low leading-tight">@if($mHomeUrl)<a href="{{ $mHomeUrl }}" class="hover:text-primary transition-colors block">@foreach($mHomeNameParts as $part)<span class="truncate block {{ count($mHomeNameParts) > 1 ? 'text-xs' : 'text-sm' }}">{{ trim($part) }}</span>@endforeach</a>@else<span class="block">@foreach($mHomeNameParts as $part)<span class="truncate block {{ count($mHomeNameParts) > 1 ? 'text-xs' : 'text-sm' }}">{{ trim($part) }}</span>@endforeach</span>@endif</td>
                                                                 @foreach($mSetRows as $set)
                                                                     <td class="text-center px-2 py-2 text-sm tabular-nums whitespace-nowrap {{ $set['home'] > $set['away'] ? 'font-bold text-primary' : 'text-on-surface-variant' }}">{{ $set['home'] }}</td>
                                                                 @endforeach
                                                                 <td class="text-center px-3 py-2 font-bold text-body-lg tabular-nums whitespace-nowrap border-l border-outline-variant {{ $mHomeWin ? 'text-primary' : 'text-on-surface-variant' }}">{{ $match->home_score }}</td>
                                                             </tr>
                                                             <tr class="border-t border-outline-variant {{ $mHomeWin ? 'opacity-60' : '' }}">
-                                                                <td class="px-3 py-2 font-medium text-sm truncate max-w-[8rem] sticky left-0 bg-surface-container-low">@if($mAwayUrl)<a href="{{ $mAwayUrl }}" class="hover:text-primary transition-colors">{{ $mAwayName }}</a>@else{{ $mAwayName }}@endif</td>
+                                                                <td class="px-3 py-2 font-medium max-w-[8rem] sticky left-0 bg-surface-container-low leading-tight">@if($mAwayUrl)<a href="{{ $mAwayUrl }}" class="hover:text-primary transition-colors block">@foreach($mAwayNameParts as $part)<span class="truncate block {{ count($mAwayNameParts) > 1 ? 'text-xs' : 'text-sm' }}">{{ trim($part) }}</span>@endforeach</a>@else<span class="block">@foreach($mAwayNameParts as $part)<span class="truncate block {{ count($mAwayNameParts) > 1 ? 'text-xs' : 'text-sm' }}">{{ trim($part) }}</span>@endforeach</span>@endif</td>
                                                                 @foreach($mSetRows as $set)
                                                                     <td class="text-center px-2 py-2 text-sm tabular-nums whitespace-nowrap {{ $set['away'] > $set['home'] ? 'font-bold text-primary' : 'text-on-surface-variant' }}">{{ $set['away'] }}</td>
                                                                 @endforeach
@@ -337,11 +353,11 @@
                                                         </thead>
                                                         <tbody>
                                                             <tr>
-                                                                <td class="px-3 py-2 font-medium text-sm truncate max-w-[8rem] sticky left-0 bg-surface-container-low">@if($mHomeUrl)<a href="{{ $mHomeUrl }}" class="hover:text-primary transition-colors">{{ $mHomeName }}</a>@else{{ $mHomeName }}@endif</td>
+                                                                <td class="px-3 py-2 font-medium max-w-[8rem] sticky left-0 bg-surface-container-low leading-tight">@if($mHomeUrl)<a href="{{ $mHomeUrl }}" class="hover:text-primary transition-colors block">@foreach($mHomeNameParts as $part)<span class="truncate block {{ count($mHomeNameParts) > 1 ? 'text-xs' : 'text-sm' }}">{{ trim($part) }}</span>@endforeach</a>@else<span class="block">@foreach($mHomeNameParts as $part)<span class="truncate block {{ count($mHomeNameParts) > 1 ? 'text-xs' : 'text-sm' }}">{{ trim($part) }}</span>@endforeach</span>@endif</td>
                                                                 <td class="text-center px-3 py-2 font-bold text-body-lg tabular-nums whitespace-nowrap border-l border-outline-variant text-on-surface-variant">–</td>
                                                             </tr>
                                                             <tr class="border-t border-outline-variant">
-                                                                <td class="px-3 py-2 font-medium text-sm truncate max-w-[8rem] sticky left-0 bg-surface-container-low">@if($mAwayUrl)<a href="{{ $mAwayUrl }}" class="hover:text-primary transition-colors">{{ $mAwayName }}</a>@else{{ $mAwayName }}@endif</td>
+                                                                <td class="px-3 py-2 font-medium max-w-[8rem] sticky left-0 bg-surface-container-low leading-tight">@if($mAwayUrl)<a href="{{ $mAwayUrl }}" class="hover:text-primary transition-colors block">@foreach($mAwayNameParts as $part)<span class="truncate block {{ count($mAwayNameParts) > 1 ? 'text-xs' : 'text-sm' }}">{{ trim($part) }}</span>@endforeach</a>@else<span class="block">@foreach($mAwayNameParts as $part)<span class="truncate block {{ count($mAwayNameParts) > 1 ? 'text-xs' : 'text-sm' }}">{{ trim($part) }}</span>@endforeach</span>@endif</td>
                                                                 <td class="text-center px-3 py-2 font-bold text-body-lg tabular-nums whitespace-nowrap border-l border-outline-variant text-on-surface-variant">–</td>
                                                             </tr>
                                                         </tbody>
@@ -360,11 +376,11 @@
                                                         </thead>
                                                         <tbody>
                                                             <tr class="{{ $mAwayWin ? 'opacity-60' : '' }}">
-                                                                <td class="px-3 py-2 font-medium text-sm truncate max-w-[8rem] sticky left-0 bg-surface-container-low">@if($mHomeUrl)<a href="{{ $mHomeUrl }}" class="hover:text-primary transition-colors">{{ $mHomeName }}</a>@else{{ $mHomeName }}@endif</td>
+                                                                <td class="px-3 py-2 font-medium max-w-[8rem] sticky left-0 bg-surface-container-low leading-tight">@if($mHomeUrl)<a href="{{ $mHomeUrl }}" class="hover:text-primary transition-colors block">@foreach($mHomeNameParts as $part)<span class="truncate block {{ count($mHomeNameParts) > 1 ? 'text-xs' : 'text-sm' }}">{{ trim($part) }}</span>@endforeach</a>@else<span class="block">@foreach($mHomeNameParts as $part)<span class="truncate block {{ count($mHomeNameParts) > 1 ? 'text-xs' : 'text-sm' }}">{{ trim($part) }}</span>@endforeach</span>@endif</td>
                                                                 <td class="text-center px-3 py-2 font-bold text-body-lg tabular-nums whitespace-nowrap border-l border-outline-variant {{ $mHomeWin ? 'text-primary' : 'text-on-surface-variant' }}">{{ $match->home_score }}</td>
                                                             </tr>
                                                             <tr class="border-t border-outline-variant {{ $mHomeWin ? 'opacity-60' : '' }}">
-                                                                <td class="px-3 py-2 font-medium text-sm truncate max-w-[8rem] sticky left-0 bg-surface-container-low">@if($mAwayUrl)<a href="{{ $mAwayUrl }}" class="hover:text-primary transition-colors">{{ $mAwayName }}</a>@else{{ $mAwayName }}@endif</td>
+                                                                <td class="px-3 py-2 font-medium max-w-[8rem] sticky left-0 bg-surface-container-low leading-tight">@if($mAwayUrl)<a href="{{ $mAwayUrl }}" class="hover:text-primary transition-colors block">@foreach($mAwayNameParts as $part)<span class="truncate block {{ count($mAwayNameParts) > 1 ? 'text-xs' : 'text-sm' }}">{{ trim($part) }}</span>@endforeach</a>@else<span class="block">@foreach($mAwayNameParts as $part)<span class="truncate block {{ count($mAwayNameParts) > 1 ? 'text-xs' : 'text-sm' }}">{{ trim($part) }}</span>@endforeach</span>@endif</td>
                                                                 <td class="text-center px-3 py-2 font-bold text-body-lg tabular-nums whitespace-nowrap border-l border-outline-variant {{ $mAwayWin ? 'text-primary' : 'text-on-surface-variant' }}">{{ $match->away_score }}</td>
                                                             </tr>
                                                         </tbody>
