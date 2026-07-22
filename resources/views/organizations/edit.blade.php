@@ -78,6 +78,25 @@
                         @enderror
                     </div>
 
+                    <!-- Default city -->
+                    <div>
+                        <label for="city_id" class="block text-sm font-medium text-white mb-2">
+                            Grad organizacije
+                            <span class="text-gray-400 text-xs">(default za sve lige)</span>
+                        </label>
+                        <select id="city_id" name="city_id"
+                                class="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200">
+                            <option value="">— nije odabran —</option>
+                            @foreach($cities as $city)
+                                <option value="{{ $city->id }}" {{ (string) old('city_id', $organization->city_id) === (string) $city->id ? 'selected' : '' }}>{{ $city->name }}</option>
+                            @endforeach
+                        </select>
+                        <p class="mt-1 text-xs text-gray-400">Nova takmičenja/lige će po defaultu koristiti ovaj grad - i dalje možeš postaviti drugi grad za pojedinačnu ligu u njenim Postavkama.</p>
+                        @error('city_id')
+                            <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
+                        @enderror
+                    </div>
+
                     <!-- Current Info -->
                     <div class="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4">
                         <h4 class="text-white font-medium mb-2">Trenutne Informacije</h4>

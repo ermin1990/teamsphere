@@ -133,9 +133,19 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Organization routes
     Route::resource('organizations', OrganizationController::class);
+    Route::get('organizations/{organization}/pravila', [OrganizationController::class, 'showRules'])->name('organizations.rules');
+    Route::post('organizations/{organization}/pravila', [OrganizationController::class, 'updateRules'])->name('organizations.update-rules');
     Route::get('organizations/{organization}/links', [App\Http\Controllers\OrganizationLinkController::class, 'index'])->name('organizations.links.index');
     Route::post('organizations/{organization}/links', [App\Http\Controllers\OrganizationLinkController::class, 'store'])->name('organizations.links.store');
     Route::get('organizations/{organization}/links/{link}/delete', [App\Http\Controllers\OrganizationLinkController::class, 'destroy'])->name('organizations.links.destroy');
+
+    // Announcement (obavijesti) routes
+    Route::get('organizations/{organization}/objave', [App\Http\Controllers\AnnouncementController::class, 'index'])->name('organizations.announcements.index');
+    Route::get('organizations/{organization}/objave/create', [App\Http\Controllers\AnnouncementController::class, 'create'])->name('organizations.announcements.create');
+    Route::post('organizations/{organization}/objave', [App\Http\Controllers\AnnouncementController::class, 'store'])->name('organizations.announcements.store');
+    Route::get('organizations/{organization}/objave/{announcement}/edit', [App\Http\Controllers\AnnouncementController::class, 'edit'])->name('organizations.announcements.edit');
+    Route::put('organizations/{organization}/objave/{announcement}', [App\Http\Controllers\AnnouncementController::class, 'update'])->name('organizations.announcements.update');
+    Route::delete('organizations/{organization}/objave/{announcement}', [App\Http\Controllers\AnnouncementController::class, 'destroy'])->name('organizations.announcements.destroy');
 
     // Season routes
     Route::get('organizations/{organization}/seasons', [App\Http\Controllers\SeasonController::class, 'index'])->name('organizations.seasons.index');
@@ -237,6 +247,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('organizations/{organization}/competitions/{competition}/save-groups', [CompetitionController::class, 'saveGroups'])->name('organizations.competitions.save-groups');
     Route::get('organizations/{organization}/competitions/{competition}/settings', [CompetitionController::class, 'showSettings'])->name('organizations.competitions.settings');
     Route::post('organizations/{organization}/competitions/{competition}/settings', [CompetitionController::class, 'updateSettings'])->name('organizations.competitions.update-settings');
+    Route::get('organizations/{organization}/competitions/{competition}/pravila', [CompetitionController::class, 'showRules'])->name('organizations.competitions.rules');
+    Route::post('organizations/{organization}/competitions/{competition}/pravila', [CompetitionController::class, 'updateRules'])->name('organizations.competitions.update-rules');
     Route::post('organizations/{organization}/competitions/{competition}/start', [CompetitionController::class, 'startCompetition'])->name('organizations.competitions.start');
     Route::post('organizations/{organization}/competitions/{competition}/generate-groups', [CompetitionController::class, 'generateGroups'])->name('organizations.competitions.generate-groups');
     Route::post('organizations/{organization}/competitions/{competition}/groups/{group}/advance', [CompetitionController::class, 'advanceGroupPlayers'])->name('organizations.competitions.groups.advance');
@@ -354,8 +366,11 @@ Route::prefix('projector')->name('projector.')->group(function () {
 Route::name('competitions.')->group(function () {
     Route::get('/takmicenja', [App\Http\Controllers\PublicMatchController::class, 'indexLeagues'])->name('index');
     Route::get('/organizacija/{organization}', [App\Http\Controllers\PublicMatchController::class, 'indexLeaguesByOrganization'])->name('organization');
+    Route::get('/organizacija/{organization}/obavijesti', [App\Http\Controllers\PublicMatchController::class, 'organizationAnnouncements'])->name('organization.announcements');
     Route::get('/grad/{city}', [App\Http\Controllers\PublicMatchController::class, 'indexLeaguesByCity'])->name('by-city');
     Route::get('/takmicenja/{competition}', [App\Http\Controllers\PublicMatchController::class, 'showLeague'])->name('show');
+    Route::get('/takmicenja/{competition}/obavijesti', [App\Http\Controllers\PublicMatchController::class, 'competitionAnnouncements'])->name('announcements');
+    Route::get('/takmicenja/{competition}/pravila', [App\Http\Controllers\PublicMatchController::class, 'competitionRules'])->name('rules');
     Route::get('/takmicenja/{competition}/semafor', [App\Http\Controllers\PublicMatchController::class, 'competitionSemafor'])->name('semafor');
     Route::get('/igrac/{player}', [App\Http\Controllers\PublicPlayerController::class, 'show'])->name('player.show');
 

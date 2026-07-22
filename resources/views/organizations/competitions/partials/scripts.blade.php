@@ -26,6 +26,8 @@
 
         document.getElementById('homePlayerName').textContent = homeName;
         document.getElementById('awayPlayerName').textContent = awayName;
+        document.getElementById('forfeitHomeOption').textContent = homeName;
+        document.getElementById('forfeitAwayOption').textContent = awayName;
 
         document.getElementById('homeScoreInput').value = (homeScore ?? '') === null ? '' : (homeScore ?? '');
         document.getElementById('awayScoreInput').value = (awayScore ?? '') === null ? '' : (awayScore ?? '');
@@ -34,6 +36,11 @@
         if (venueSelect) venueSelect.value = venueId || '';
         document.getElementById('setScoresContainer').innerHTML = '';
         setScoreCount = 0;
+
+        // Reset WO/forfeit state - always starts unchecked, score fields visible
+        document.getElementById('quickForfeitToggle').checked = false;
+        document.getElementById('quickForfeitedBy').value = '';
+        toggleForfeitFields();
 
         // Ako mec vec ima setove (editovanje zavrsenog meca), popuni ih; inace
         // ostavi prazno - polja za setove ostaju opciona.
@@ -45,6 +52,32 @@
         form.action = `/competitions/matches/${matchId}/quick-result`;
 
         document.getElementById('quickResultModal').classList.remove('hidden');
+    };
+
+    // Toggles between manual score entry and WO/forfeit mode - a forfeited
+    // match has no sets to play, so the score section is hidden and its
+    // inputs stop being required, while the "who forfeited" select becomes
+    // the required field instead.
+    window.toggleForfeitFields = function() {
+        const isForfeit = document.getElementById('quickForfeitToggle').checked;
+        const scoreSection = document.getElementById('quickScoreSection');
+        const setsSection = document.getElementById('quickSetsSection');
+        const forfeitSelectWrap = document.getElementById('quickForfeitSelectWrap');
+        const forfeitedBySelect = document.getElementById('quickForfeitedBy');
+        const homeScoreInput = document.getElementById('homeScoreInput');
+        const awayScoreInput = document.getElementById('awayScoreInput');
+
+        scoreSection.classList.toggle('hidden', isForfeit);
+        setsSection.classList.toggle('hidden', isForfeit);
+        forfeitSelectWrap.classList.toggle('hidden', !isForfeit);
+
+        homeScoreInput.required = !isForfeit;
+        awayScoreInput.required = !isForfeit;
+        forfeitedBySelect.required = isForfeit;
+
+        if (!isForfeit) {
+            forfeitedBySelect.value = '';
+        }
     };
 
     window.closeQuickResultModal = function() {

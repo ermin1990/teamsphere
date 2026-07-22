@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="csrf-token" content="{{ csrf_token() }}">
-<title>{{ $competition->name }} - {{ $organization->name }}</title>
+<title>Pravila - {{ $competition->name }} - {{ $organization->name }}</title>
 
 <link rel="manifest" href="{{ asset('manifest.webmanifest') }}">
 <meta name="theme-color" content="#0b0e14">
@@ -53,23 +53,14 @@
     html { scroll-behavior: smooth; }
     .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; vertical-align: middle; }
     body { background-color: #0b0e14; color: #e1e2eb; overflow-x: hidden; }
-    .card-glow:hover { box-shadow: 0 0 15px rgba(87, 241, 219, 0.2); border-color: #57f1db; }
     .custom-scrollbar::-webkit-scrollbar { display: none; }
     .custom-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     ::-webkit-scrollbar { width: 8px; }
     ::-webkit-scrollbar-track { background: #10131a; }
     ::-webkit-scrollbar-thumb { background: #32353c; border-radius: 4px; }
-    section[id] { scroll-margin-top: 140px; }
-    details.round > summary { list-style: none; }
-    details.round > summary::-webkit-details-marker { display: none; }
-    details.round[open] .round-chevron { transform: rotate(180deg); }
 </style>
 </head>
 <body class="font-body-md bg-surface-container-lowest text-on-surface min-h-screen pb-24 lg:pb-8">
-
-@php
-    $isTournament = $competition->type === 'tournament';
-@endphp
 
 <!-- Persistent Left Sidebar (desktop) -->
 <aside class="hidden lg:flex w-sidebar-width h-screen fixed left-0 top-0 border-r border-outline-variant bg-surface-container-low flex-col py-2 z-50">
@@ -105,7 +96,7 @@
 <header class="lg:hidden sticky top-0 z-40 bg-surface/90 backdrop-blur-md border-b border-outline-variant px-4 py-3">
     <div class="flex items-center justify-between">
         <div class="flex items-center gap-3 min-w-0">
-            <a href="{{ route('competitions.index') }}" class="w-9 h-9 flex items-center justify-center rounded-lg bg-surface-container-high shrink-0">
+            <a href="{{ route('competitions.show', $competition) }}" class="w-9 h-9 flex items-center justify-center rounded-lg bg-surface-container-high shrink-0">
                 <span class="material-symbols-outlined text-primary">arrow_back</span>
             </a>
             <div class="min-w-0">
@@ -122,19 +113,29 @@
         <a class="text-on-surface-variant hover:text-primary transition-all font-medium" href="{{ route('home') }}">Home</a>
         <a class="text-primary font-bold border-b-2 border-primary pb-1" href="{{ route('competitions.index') }}">Takmičenja</a>
     </nav>
-    @if($isTournament)
-        <div class="flex items-center gap-3">
-            <a href="{{ route('projector.display', ['ids' => $competition->id, 'resolution' => '1024x768', 'layout' => 'single']) }}" target="_blank" class="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-lg bg-primary/10 text-primary border border-primary/30 hover:bg-primary/20 transition-colors">
-                <span class="material-symbols-outlined text-[18px]">cast</span> Projektor
-            </a>
-        </div>
-    @endif
 </header>
 
 <!-- Main Content Canvas -->
 <main class="lg:ml-[260px] lg:mt-16 mt-0 p-margin-mobile lg:p-gutter min-h-screen">
     <div class="max-w-container-max mx-auto">
-        @include('public.leagues._competition-body', ['hideAnnouncementsSection' => true, 'hideRulesSection' => true, 'showTabs' => true])
+        @include('public.leagues._hero')
+
+        @include('public.leagues._tabs', ['activeTab' => 'rules'])
+
+        @include('public.leagues._rules-summary')
+
+        @php $effectiveRulesText = $competition->effectiveRulesText(); @endphp
+        @if($effectiveRulesText)
+            <div class="p-4 lg:p-6 bg-surface-container-low border border-outline-variant rounded-xl">
+                <p class="text-sm text-on-surface-variant whitespace-pre-line">{{ $effectiveRulesText }}</p>
+            </div>
+        @else
+            <div class="text-center py-16 bg-surface-container-low border border-outline-variant rounded-xl">
+                <span class="material-symbols-outlined text-5xl text-on-surface-variant mb-4 block">gavel</span>
+                <h4 class="font-headline-md text-on-surface-variant mb-2">Nema dodatnih pravila</h4>
+                <p class="text-on-surface-variant text-sm">Organizator još nije dodao dodatna pravila za ovo takmičenje.</p>
+            </div>
+        @endif
     </div>
 </main>
 

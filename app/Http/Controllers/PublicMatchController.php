@@ -139,6 +139,18 @@ class PublicMatchController extends Controller
     }
 
     /**
+     * Display the dedicated "Obavijesti" tab for a public organization page
+     * (organization-wide announcements only - each competition has its own
+     * tab for its own + organization-wide announcements).
+     */
+    public function organizationAnnouncements(Organization $organization)
+    {
+        $announcements = $organization->organizationWideAnnouncements()->latest()->get();
+
+        return view('public.leagues.organization-announcements', compact('organization', 'announcements'));
+    }
+
+    /**
      * Display a specific public competition (league or tournament).
      */
     public function showLeague(Competition $competition)
@@ -163,6 +175,39 @@ class PublicMatchController extends Controller
             ]);
             abort(500, 'Error loading competition: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Display the dedicated "Obavijesti" tab for a public competition (org-wide
+     * announcements plus this competition's own).
+     */
+    public function competitionAnnouncements(Competition $competition)
+    {
+        $isOwner = auth()->check() && auth()->id() === $competition->organization->user_id;
+        if (!$competition->is_public && !$isOwner) {
+            abort(404, 'Competition not found.');
+        }
+
+        $organization = $competition->organization;
+        $announcements = $competition->visibleAnnouncements();
+
+        return view('public.leagues.announcements', compact('competition', 'organization', 'announcements'));
+    }
+
+    /**
+     * Display the dedicated "Pravila" tab for a public competition (auto
+     * scoring settings plus the organizer's free-text rules).
+     */
+    public function competitionRules(Competition $competition)
+    {
+        $isOwner = auth()->check() && auth()->id() === $competition->organization->user_id;
+        if (!$competition->is_public && !$isOwner) {
+            abort(404, 'Competition not found.');
+        }
+
+        $organization = $competition->organization;
+
+        return view('public.leagues.rules', compact('competition', 'organization'));
     }
 
     /**

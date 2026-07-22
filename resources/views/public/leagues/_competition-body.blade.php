@@ -69,38 +69,28 @@
     }
 @endphp
 
-<!-- Hero -->
-<section class="-mx-margin-mobile lg:mx-0 mb-6 lg:mb-10 bg-surface-container-low lg:p-8 border-y lg:border border-outline-variant lg:rounded-xl relative overflow-hidden">
-    <div class="absolute top-0 right-0 p-6 lg:p-8 opacity-10 hidden sm:block">
-        <span class="material-symbols-outlined text-[80px] lg:text-[120px]">{{ $sportIcon($competition->sport) }}</span>
+@include('public.leagues._hero')
+
+@if($showTabs ?? false)
+    @include('public.leagues._tabs', ['activeTab' => 'overview'])
+@endif
+
+@php
+    $featuredAnnouncement = $competition->featuredAnnouncement();
+@endphp
+@if($featuredAnnouncement)
+<section class="-mx-margin-mobile lg:mx-0 mb-6 lg:mb-8 bg-primary/10 border-y lg:border border-primary/30 lg:rounded-xl px-margin-mobile py-4 lg:p-5">
+    <div class="flex flex-wrap items-center gap-2 mb-2">
+        <span class="material-symbols-outlined text-primary text-[18px]">push_pin</span>
+        @if($featuredAnnouncement->isOrganizationWide())
+            <span class="bg-secondary/20 text-secondary px-2.5 py-0.5 rounded-full text-label-bold uppercase">Organizacija</span>
+        @endif
+        <span class="text-xs text-on-surface-variant">{{ $featuredAnnouncement->created_at->format('d.m.Y.') }}</span>
     </div>
-    <div class="relative z-10 px-margin-mobile py-5 lg:p-0">
-        <div class="flex flex-wrap items-center gap-2 mb-3 lg:mb-4">
-            <span class="bg-primary/20 text-primary px-3 py-1 rounded-full text-label-bold uppercase">
-                @if($competition->status === 'completed') Završeno
-                @elseif($competition->status === 'in_progress') U toku
-                @elseif($competition->status === 'active') Aktivno
-                @elseif($competition->status === 'cancelled') Otkazano
-                @else Zakazano @endif
-            </span>
-            <span class="bg-secondary/20 text-secondary px-3 py-1 rounded-full text-label-bold uppercase">{{ $isTournament ? 'Turnir' : 'Liga' }}</span>
-            @if($competition->season)
-                <span class="bg-surface-container-highest text-on-surface-variant px-3 py-1 rounded-full text-label-bold uppercase">{{ $competition->season->name }}</span>
-            @endif
-            @if($competition->sets_to_win)
-                <span class="bg-surface-container-highest text-on-surface-variant px-3 py-1 rounded-full text-label-bold uppercase">Do {{ $competition->sets_to_win }} dobijena</span>
-            @endif
-        </div>
-        <h1 class="font-display text-3xl lg:text-display mb-2 truncate">{{ $competition->name }}</h1>
-        <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-on-surface-variant text-sm lg:text-body-md">
-            <a href="{{ route('competitions.organization', $organization) }}" class="flex items-center gap-1 hover:text-primary transition-colors"><span class="material-symbols-outlined text-body-sm">group</span> {{ $organization->name }}</a>
-            <span class="flex items-center gap-1"><span class="material-symbols-outlined text-body-sm">{{ $sportIcon($competition->sport) }}</span> {{ $competition->sport->name }}</span>
-            @if($competition->city)
-                <span class="flex items-center gap-1"><span class="material-symbols-outlined text-body-sm">location_on</span> {{ $competition->city->name }}</span>
-            @endif
-        </div>
-    </div>
+    <h3 class="font-headline-md">{{ $featuredAnnouncement->title }}</h3>
+    <p class="text-sm text-on-surface-variant mt-1 whitespace-pre-line">{{ $featuredAnnouncement->body }}</p>
 </section>
+@endif
 
 @if($competition->description || $competition->location || $competition->organizer_contact || $competition->entry_fee)
 <section class="-mx-margin-mobile lg:mx-0 mb-6 lg:mb-8 bg-surface-container-low border-y lg:border border-outline-variant lg:rounded-xl px-margin-mobile py-4 lg:p-5 space-y-2">
@@ -150,6 +140,31 @@
     <p class="text-sm text-on-surface-variant">📋 Prijave su otvorene, ali je ovo timsko takmičenje — kontaktiraj organizatora direktno da prijaviš svoj tim{{ $competition->organizer_contact ? ' (' . $competition->organizer_contact . ')' : '' }}.</p>
 </section>
 @endif
+
+@unless($hideAnnouncementsSection ?? false)
+@php
+    $announcements = $competition->visibleAnnouncements();
+@endphp
+@if($announcements->isNotEmpty())
+<section id="announcements-section" class="-mx-margin-mobile lg:mx-0 mb-6 lg:mb-8 bg-surface-container-low border-y lg:border border-outline-variant lg:rounded-xl px-margin-mobile py-5 lg:p-6">
+    <h2 class="font-headline-md mb-4 flex items-center gap-2"><span class="material-symbols-outlined text-primary">campaign</span> Obavijesti</h2>
+    <div class="space-y-4">
+        @foreach($announcements as $announcement)
+            <div class="p-4 bg-surface-container-lowest border border-outline-variant rounded-lg">
+                <div class="flex flex-wrap items-center gap-2 mb-2">
+                    @if($announcement->isOrganizationWide())
+                        <span class="bg-secondary/20 text-secondary px-2.5 py-0.5 rounded-full text-label-bold uppercase">Organizacija</span>
+                    @endif
+                    <span class="text-xs text-on-surface-variant">{{ $announcement->created_at->format('d.m.Y.') }}</span>
+                </div>
+                <h3 class="font-bold">{{ $announcement->title }}</h3>
+                <p class="text-sm text-on-surface-variant mt-1 whitespace-pre-line">{{ $announcement->body }}</p>
+            </div>
+        @endforeach
+    </div>
+</section>
+@endif
+@endunless
 
 @if($isTournament)
     <!-- Tournament: reuse the existing group/knockout renderer, wrapped in the new shell -->
@@ -422,3 +437,18 @@
         </aside>
     </div>
 @endif
+
+@unless($hideRulesSection ?? false)
+@php $effectiveRulesText = $competition->effectiveRulesText(); @endphp
+@if($effectiveRulesText || $competition->sets_to_win)
+<section id="rules-section" class="-mx-margin-mobile lg:mx-0 mt-6 lg:mt-8 bg-surface-container-low border-y lg:border border-outline-variant lg:rounded-xl px-margin-mobile py-5 lg:p-6">
+    <h2 class="font-headline-md mb-4 flex items-center gap-2"><span class="material-symbols-outlined text-primary">gavel</span> Pravila</h2>
+
+    @include('public.leagues._rules-summary')
+
+    @if($effectiveRulesText)
+        <p class="text-sm text-on-surface-variant whitespace-pre-line">{{ $effectiveRulesText }}</p>
+    @endif
+</section>
+@endif
+@endunless

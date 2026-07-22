@@ -56,4 +56,12 @@ class OrganizationUser extends Model
     {
         return $this->role === 'referee';
     }
+
+    /**
+     * Check if user is a moderator.
+     */
+    public function isModerator(): bool
+    {
+        return $this->role === 'moderator';
+    }
 }

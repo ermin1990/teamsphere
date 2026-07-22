@@ -180,7 +180,7 @@
                         <p class="text-xs mt-1 text-on-surface-variant truncate">
                             {{ $competition->organization->name }}
                             @if($competition->sport) &middot; {{ $competition->sport->name }} @endif
-                            @if($competition->city) &middot; {{ $competition->city->name }} @endif
+                            @if($competition->effectiveCity()) &middot; {{ $competition->effectiveCity()->name }} @endif
                             @if($competition->season) &middot; {{ $competition->season->name }} @endif
                         </p>
                     </div>

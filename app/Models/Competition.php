@@ -63,6 +63,11 @@ class Competition extends Model
         'has_tiebreak',
         'tiebreak_points',
         'manual_knockout_selection',
+        'rules_text',
+        'forfeit_winner_points',
+        'forfeit_loser_points',
+        'forfeit_winner_counts_as_played',
+        'forfeit_loser_counts_as_played',
     ];
 
     protected $casts = [
@@ -103,6 +108,10 @@ class Competition extends Model
         'has_tiebreak' => 'boolean',
         'tiebreak_points' => 'integer',
         'manual_knockout_selection' => 'boolean',
+        'forfeit_winner_points' => 'integer',
+        'forfeit_loser_points' => 'integer',
+        'forfeit_winner_counts_as_played' => 'boolean',
+        'forfeit_loser_counts_as_played' => 'boolean',
     ];
 
     /**
@@ -185,6 +194,95 @@ class Competition extends Model
     public function joinRequests(): HasMany
     {
         return $this->hasMany(CompetitionJoinRequest::class);
+    }
+
+    /**
+     * Get the announcements published for this specific competition/league.
+     * Does not include organization-wide announcements - use
+     * visibleAnnouncements() for the combined feed shown to spectators.
+     */
+    public function announcements(): HasMany
+    {
+        return $this->hasMany(Announcement::class);
+    }
+
+    /**
+     * Get the announcements visible on this competition's page: its own
+     * plus any organization-wide ones, newest first.
+     */
+    public function visibleAnnouncements()
+    {
+        return Announcement::where('organization_id', $this->organization_id)
+            ->where(function ($query) {
+                $query->whereNull('competition_id')
+                    ->orWhere('competition_id', $this->id);
+            })
+            ->latest()
+            ->get();
+    }
+
+    /**
+     * Points the winning side gets when the opponent forfeits/no-shows,
+     * falling back to the normal win points if no forfeit-specific value
+     * has been configured.
+     */
+    public function forfeitWinnerPoints(): int
+    {
+        return $this->forfeit_winner_points ?? ($this->points_for_win ?? 2);
+    }
+
+    /**
+     * Points the forfeiting side gets, falling back to the normal loss
+     * points if no forfeit-specific value has been configured.
+     */
+    public function forfeitLoserPoints(): int
+    {
+        return $this->forfeit_loser_points ?? ($this->points_for_loss ?? 0);
+    }
+
+    /**
+     * Get the city that actually applies to this competition: its own
+     * override if set, otherwise the organization's default city.
+     */
+    public function effectiveCity(): ?City
+    {
+        return $this->city ?: $this->organization->city;
+    }
+
+    /**
+     * Get the rules text that actually applies to this competition: its own
+     * override if set, otherwise the organization's default rules.
+     */
+    public function effectiveRulesText(): ?string
+    {
+        return $this->rules_text ?: $this->organization->rules_text;
+    }
+
+    /**
+     * Check whether this competition has its own rules text overriding the
+     * organization's default (as opposed to inheriting it).
+     */
+    public function hasRulesOverride(): bool
+    {
+        return filled($this->rules_text);
+    }
+
+    /**
+     * Get the single announcement (this competition's own, or an
+     * organization-wide one) currently pinned to show in the featured slot
+     * on this competition's public page - the most recently created one
+     * with is_featured enabled, or null if none.
+     */
+    public function featuredAnnouncement(): ?Announcement
+    {
+        return Announcement::where('organization_id', $this->organization_id)
+            ->where('is_featured', true)
+            ->where(function ($query) {
+                $query->whereNull('competition_id')
+                    ->orWhere('competition_id', $this->id);
+            })
+            ->latest()
+            ->first();
     }
 
     /**

@@ -102,18 +102,35 @@ class LeagueStandingsService
         $pointsForDraw = $competition->points_for_draw ?? 1;
         $pointsForLoss = $competition->points_for_loss ?? 0;
 
-        // A walkover only counts as "played" for the side that showed up and
-        // won; the forfeiting side gets no played/loss credit at all (matches
-        // how this league's official tables are kept - a no-show isn't a
-        // played match for the absent player).
-        if ($match->forfeited_by === 'home') {
-            $awayStanding->increment('played');
-            $awayStanding->increment('won');
-            $awayStanding->increment('points', $pointsForWin);
-        } elseif ($match->forfeited_by === 'away') {
-            $homeStanding->increment('played');
-            $homeStanding->increment('won');
-            $homeStanding->increment('points', $pointsForWin);
+        // Forfeit points/played-credit are organizer-configurable per
+        // competition (see Competition::forfeitWinnerPoints()/
+        // forfeitLoserPoints() and the forfeit_*_counts_as_played flags) -
+        // there's no fixed convention, since different leagues want
+        // different treatment of a no-show.
+        if ($match->forfeited_by === 'home' || $match->forfeited_by === 'away') {
+            $winnerStanding = $match->forfeited_by === 'home' ? $awayStanding : $homeStanding;
+            $loserStanding = $match->forfeited_by === 'home' ? $homeStanding : $awayStanding;
+
+            if ($competition->forfeit_winner_counts_as_played) {
+                $winnerStanding->increment('played');
+                $winnerStanding->increment('won');
+            }
+            $winnerStanding->increment('points', $competition->forfeitWinnerPoints());
+
+            // The forfeiting side only gets points if the organizer explicitly
+            // configured some (forfeit_loser_points set), or if the match is
+            // being counted as a played/lost match for them (in which case
+            // it falls back to the normal loss points) - by default (not
+            // counted as played, no explicit override) they get nothing,
+            // matching how this was always handled before it was
+            // configurable.
+            if ($competition->forfeit_loser_counts_as_played) {
+                $loserStanding->increment('played');
+                $loserStanding->increment('lost');
+                $loserStanding->increment('points', $competition->forfeitLoserPoints());
+            } elseif (!is_null($competition->forfeit_loser_points)) {
+                $loserStanding->increment('points', $competition->forfeit_loser_points);
+            }
         } else {
             $homeStanding->increment('played');
             $awayStanding->increment('played');

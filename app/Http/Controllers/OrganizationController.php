@@ -59,8 +59,40 @@ class OrganizationController extends Controller
             ->where('users.id', auth()->id())
             ->where('organization_user.role', 'referee')
             ->exists();
+        $canManageAnnouncements = Gate::allows('manage-announcements', $organization);
 
-        return view('organizations.show', compact('organization', 'isOwner', 'isPlayer', 'isReferee', 'seasons', 'selectedSeasonId'));
+        return view('organizations.show', compact('organization', 'isOwner', 'isPlayer', 'isReferee', 'seasons', 'selectedSeasonId', 'canManageAnnouncements'));
+    }
+
+    /**
+     * Show the default rules page for the organization - free text that
+     * applies to every league unless a league sets its own override.
+     */
+    public function showRules(Organization $organization)
+    {
+        Gate::authorize('view', $organization);
+
+        $competitions = $organization->competitions()->orderBy('name')->get();
+
+        return view('organizations.rules', compact('organization', 'competitions'));
+    }
+
+    /**
+     * Update the organization's default rules text.
+     */
+    public function updateRules(Request $request, Organization $organization)
+    {
+        Gate::authorize('manage-announcements', $organization);
+
+        $request->validate([
+            'rules_text' => ['nullable', 'string'],
+        ]);
+
+        $organization->update(['rules_text' => $request->rules_text]);
+
+        return redirect()
+            ->route('organizations.rules', $organization)
+            ->with('success', 'Pravila organizacije su uspješno sačuvana.');
     }
 
     /**
@@ -72,7 +104,9 @@ class OrganizationController extends Controller
 
         Gate::authorize('update', $organization);
 
-        return view('organizations.edit', compact('organization'));
+        $cities = \App\Models\City::orderBy('name')->get();
+
+        return view('organizations.edit', compact('organization', 'cities'));
     }
 
     /**
@@ -89,6 +123,7 @@ class OrganizationController extends Controller
             'description' => ['nullable', 'string', 'max:1000'],
             'slug' => ['required', 'string', 'max:255', Rule::unique('organizations')->ignore($organization->id)],
             'logo_url' => ['nullable', 'url', 'max:500'],
+            'city_id' => ['nullable', 'exists:cities,id'],
         ]);
 
         $organization->update([
@@ -96,6 +131,7 @@ class OrganizationController extends Controller
             'slug' => $request->slug,
             'description' => $request->description,
             'logo_url' => $request->logo_url,
+            'city_id' => $request->city_id,
         ]);
 
         return redirect()->route('organizations.show', $organization)->with('success', __('Organization updated successfully!'));

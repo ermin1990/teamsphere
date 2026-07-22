@@ -53,6 +53,7 @@
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full
                                         @if($orgUser->role === 'owner') bg-purple-500/20 text-purple-300 border border-purple-500/30
+                                        @elseif($orgUser->role === 'moderator') bg-emerald-500/20 text-emerald-300 border border-emerald-500/30
                                         @else bg-blue-500/20 text-blue-300 border border-blue-500/30 @endif">
                                         {{ ucfirst($orgUser->role) }}
                                     </span>

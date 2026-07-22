@@ -192,6 +192,33 @@
         @endif
     </section>
 
+    @isset($organization)
+        <div class="flex items-center gap-1 mb-6 lg:mb-8 border-b border-outline-variant">
+            <a href="{{ route('competitions.organization', $organization) }}"
+               class="px-4 py-3 font-label-bold text-sm border-b-2 border-primary text-primary">
+                Pregled
+            </a>
+            <a href="{{ route('competitions.organization.announcements', $organization) }}"
+               class="px-4 py-3 font-label-bold text-sm border-b-2 border-transparent text-on-surface-variant hover:text-on-surface transition-colors flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-[18px]">campaign</span> Obavijesti
+            </a>
+        </div>
+
+        @php
+            $featuredAnnouncement = $organization->featuredAnnouncement();
+        @endphp
+        @if($featuredAnnouncement)
+        <section class="-mx-margin-mobile lg:mx-0 mb-6 lg:mb-8 bg-primary/10 border-y lg:border border-primary/30 lg:rounded-xl px-margin-mobile py-4 lg:p-5">
+            <div class="flex flex-wrap items-center gap-2 mb-2">
+                <span class="material-symbols-outlined text-primary text-[18px]">push_pin</span>
+                <span class="text-xs text-on-surface-variant">{{ $featuredAnnouncement->created_at->format('d.m.Y.') }}</span>
+            </div>
+            <h3 class="font-headline-md">{{ $featuredAnnouncement->title }}</h3>
+            <p class="text-sm text-on-surface-variant mt-1 whitespace-pre-line">{{ $featuredAnnouncement->body }}</p>
+        </section>
+        @endif
+    @endisset
+
     @if(isset($organization) && $organization->links->count() > 0)
         <!-- Organization Links/Banners -->
         <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-4 mb-6 lg:mb-8">

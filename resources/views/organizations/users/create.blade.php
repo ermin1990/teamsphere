@@ -30,8 +30,9 @@
                         <label for="role" class="block text-sm font-medium text-white mb-2">Role</label>
                         <select name="role" id="role" class="w-full bg-gray-700/50 border border-gray-600/50 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200" required>
                             <option value="referee" {{ old('role') === 'referee' ? 'selected' : '' }}>Referee (Can edit match results)</option>
+                            <option value="moderator" {{ old('role') === 'moderator' ? 'selected' : '' }}>Moderator (Može objavljivati obavijesti i pravila)</option>
                         </select>
-                        <p class="mt-2 text-sm text-gray-400">Referees can only edit match results, nothing else</p>
+                        <p class="mt-2 text-sm text-gray-400">Referees can only edit match results. Moderators can only publish announcements and rules.</p>
                     </div>
 
                     <div class="flex items-center justify-between pt-4 border-t border-gray-700/50">

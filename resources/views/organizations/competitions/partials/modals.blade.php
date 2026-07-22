@@ -22,21 +22,41 @@
             <input type="hidden" id="scrollPosition" name="scroll_position">
 
             <div class="p-4 space-y-4">
-                {{-- Score --}}
-                <div class="flex items-center justify-between gap-2">
-                    <div class="flex-1 text-center space-y-1 p-2.5 rounded-2xl bg-gray-900/60 border border-white/5">
-                        <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest truncate" id="homePlayerName">Player 1</p>
-                        <input type="number" name="home_score" id="homeScoreInput" min="0" max="10" required onblur="syncSetScoreRows()"
-                               class="w-full bg-transparent border-none text-center text-4xl p-0 font-black text-white outline-none focus:ring-0">
-                    </div>
-                    <div class="text-xl font-black text-gray-700 shrink-0">:</div>
-                    <div class="flex-1 text-center space-y-1 p-2.5 rounded-2xl bg-gray-900/60 border border-white/5">
-                        <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest truncate" id="awayPlayerName">Player 2</p>
-                        <input type="number" name="away_score" id="awayScoreInput" min="0" max="10" required onblur="syncSetScoreRows()"
-                               class="w-full bg-transparent border-none text-center text-4xl p-0 font-black text-white outline-none focus:ring-0">
+                {{-- WO / Forfeit toggle --}}
+                <div class="bg-gray-900/60 border border-white/5 rounded-2xl p-3">
+                    <label class="flex items-center gap-2.5 cursor-pointer">
+                        <input type="checkbox" id="quickForfeitToggle" onchange="toggleForfeitFields()"
+                               class="w-4 h-4 rounded bg-gray-700 border-gray-600 text-red-500 focus:ring-red-500/40">
+                        <span class="text-white text-xs font-black uppercase tracking-widest">Meč je WO (odustao / nije se pojavio)</span>
+                    </label>
+                    <div id="quickForfeitSelectWrap" class="hidden mt-3">
+                        <label for="quickForfeitedBy" class="text-[9px] font-black text-gray-500 uppercase tracking-widest px-1">Ko je odustao / nije se pojavio?</label>
+                        <select id="quickForfeitedBy" name="forfeited_by"
+                                class="w-full bg-gray-900/60 border border-white/5 rounded-xl p-2.5 text-white font-bold outline-none focus:ring-2 focus:ring-red-500/40 text-xs mt-1">
+                            <option value="">— odaberi —</option>
+                            <option value="home" id="forfeitHomeOption">Player 1</option>
+                            <option value="away" id="forfeitAwayOption">Player 2</option>
+                        </select>
                     </div>
                 </div>
-                <p class="text-gray-500 text-[9px] font-bold uppercase tracking-widest text-center -mt-2">Broj osvojenih setova</p>
+
+                {{-- Score --}}
+                <div id="quickScoreSection">
+                    <div class="flex items-center justify-between gap-2">
+                        <div class="flex-1 text-center space-y-1 p-2.5 rounded-2xl bg-gray-900/60 border border-white/5">
+                            <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest truncate" id="homePlayerName">Player 1</p>
+                            <input type="number" name="home_score" id="homeScoreInput" min="0" max="10" required onblur="syncSetScoreRows()"
+                                   class="w-full bg-transparent border-none text-center text-4xl p-0 font-black text-white outline-none focus:ring-0">
+                        </div>
+                        <div class="text-xl font-black text-gray-700 shrink-0">:</div>
+                        <div class="flex-1 text-center space-y-1 p-2.5 rounded-2xl bg-gray-900/60 border border-white/5">
+                            <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest truncate" id="awayPlayerName">Player 2</p>
+                            <input type="number" name="away_score" id="awayScoreInput" min="0" max="10" required onblur="syncSetScoreRows()"
+                                   class="w-full bg-transparent border-none text-center text-4xl p-0 font-black text-white outline-none focus:ring-0">
+                        </div>
+                    </div>
+                    <p class="text-gray-500 text-[9px] font-bold uppercase tracking-widest text-center -mt-2 mt-1">Broj osvojenih setova</p>
+                </div>
 
                 <div class="space-y-1">
                     <label for="quickPlayedAt" class="text-[9px] font-black text-gray-500 uppercase tracking-widest px-1">Datum i vrijeme</label>
@@ -58,7 +78,7 @@
                 @endif
 
                 {{-- Set scores --}}
-                <div class="bg-gray-900/60 border border-white/5 rounded-[20px] p-3">
+                <div id="quickSetsSection" class="bg-gray-900/60 border border-white/5 rounded-[20px] p-3">
                     <div class="flex items-center justify-between mb-2">
                         <div>
                             <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest">Setovi (opcionalno)</p>

@@ -69,7 +69,7 @@
 
             <!-- Page Heading -->
             @isset($header)
-                <header class="bg-gray-800/50 backdrop-blur-xl border-b border-gray-700/50 shadow-2xl">
+                <header class="relative z-[60] bg-gray-800/50 backdrop-blur-xl border-b border-gray-700/50 shadow-2xl">
                     <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
                         {{ $header }}
                     </div>

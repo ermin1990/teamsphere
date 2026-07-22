@@ -17,10 +17,12 @@ class Organization extends Model
         'name',
         'slug',
         'description',
+        'rules_text',
         'logo',
         'logo_url',
         'user_id',
         'sport_id',
+        'city_id',
         'is_active',
     ];
 
@@ -28,6 +30,7 @@ class Organization extends Model
         'is_active' => 'boolean',
         'user_id' => 'integer',
         'sport_id' => 'integer',
+        'city_id' => 'integer',
     ];
 
     /**
@@ -54,6 +57,16 @@ class Organization extends Model
     public function sport(): BelongsTo
     {
         return $this->belongsTo(Sport::class);
+    }
+
+    /**
+     * Get the organization's default city - used as the fallback for any
+     * competition/league that doesn't set its own (see
+     * Competition::effectiveCity()).
+     */
+    public function city(): BelongsTo
+    {
+        return $this->belongsTo(City::class);
     }
 
     /**
@@ -128,6 +141,37 @@ class Organization extends Model
     public function players(): HasMany
     {
         return $this->hasMany(Player::class);
+    }
+
+    /**
+     * Get all announcements published within this organization (org-wide and
+     * per-competition ones).
+     */
+    public function announcements(): HasMany
+    {
+        return $this->hasMany(Announcement::class);
+    }
+
+    /**
+     * Get only the announcements that apply to the whole organization
+     * (not scoped to a single competition/league).
+     */
+    public function organizationWideAnnouncements(): HasMany
+    {
+        return $this->hasMany(Announcement::class)->whereNull('competition_id');
+    }
+
+    /**
+     * Get the single organization-wide announcement currently pinned to show
+     * in the featured slot on this organization's public page - the most
+     * recently created one with is_featured enabled, or null if none.
+     */
+    public function featuredAnnouncement(): ?Announcement
+    {
+        return $this->organizationWideAnnouncements()
+            ->where('is_featured', true)
+            ->latest()
+            ->first();
     }
 
     /**

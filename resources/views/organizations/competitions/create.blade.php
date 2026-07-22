@@ -144,10 +144,13 @@
                                     class="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200">
                                 <option value="">Bez grada</option>
                                 @foreach($cities as $city)
-                                    <option value="{{ $city->id }}" {{ old('city_id') == $city->id ? 'selected' : '' }}>{{ $city->name }}</option>
+                                    <option value="{{ $city->id }}" {{ (string) old('city_id', $organization->city_id) === (string) $city->id ? 'selected' : '' }}>{{ $city->name }}</option>
                                 @endforeach
                             </select>
-                            <p class="mt-1 text-xs text-gray-400">Koristi se za javno pretraživanje liga po gradu.</p>
+                            <p class="mt-1 text-xs text-gray-400">
+                                Koristi se za javno pretraživanje liga po gradu.
+                                @if($organization->city)Default je grad organizacije ({{ $organization->city->name }}) - promijeni ovdje ako je ova liga u drugom gradu.@endif
+                            </p>
                         </div>
                         <div>
                             <label for="season_id" class="block text-sm font-medium text-white mb-2">Sezona</label>

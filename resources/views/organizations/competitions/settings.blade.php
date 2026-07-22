@@ -158,6 +158,9 @@
                                     <option value="{{ $city->id }}" {{ old('city_id', $competition->city_id) == $city->id ? 'selected' : '' }}>{{ $city->name }}</option>
                                 @endforeach
                             </select>
+                            @if($organization->city)
+                                <p class="mt-1 text-xs text-gray-400">Ostavi na "Bez grada" da koristiš grad organizacije ({{ $organization->city->name }}).</p>
+                            @endif
                         </div>
 
                         <!-- Season -->
@@ -502,11 +505,47 @@
                             <label for="points_for_loss" class="block text-sm font-medium text-white mb-2">
                                 Bodovi za Poraz <span class="text-red-400">*</span>
                             </label>
-                            <input type="number" id="points_for_loss" name="points_for_loss" 
+                            <input type="number" id="points_for_loss" name="points_for_loss"
                                    value="{{ old('points_for_loss', $competition->points_for_loss ?? 0) }}"
                                    min="0" max="10" required
                                    class="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <p class="text-gray-400 text-xs mt-1">Bodovi dodijeljeni za izgubljeni meč</p>
+                        </div>
+                    </div>
+
+                    <!-- Forfeit / odustajanje -->
+                    <div class="mt-6 pt-6 border-t border-gray-700/50">
+                        <h4 class="text-lg font-semibold text-white mb-1">Pravila za odustajanje (forfeit)</h4>
+                        <p class="text-gray-400 text-xs mb-4">Šta se dešava kad se meč odustane (walkover). Pobjednik uvijek dobija bodove (prazno = isto kao za normalnu pobjedu). Onaj ko je odustao dobija bodove SAMO ako mu se meč računa kao odigran ispod, ili ako ovdje eksplicitno upišeš broj bodova - inače dobija 0.</p>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="forfeit_winner_points" class="block text-sm font-medium text-white mb-2">Bodovi za pobjednika</label>
+                                <input type="number" id="forfeit_winner_points" name="forfeit_winner_points"
+                                       value="{{ old('forfeit_winner_points', $competition->forfeit_winner_points) }}"
+                                       min="0" max="10" placeholder="Isto kao za pobjedu ({{ $competition->points_for_win ?? 2 }})"
+                                       class="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label for="forfeit_loser_points" class="block text-sm font-medium text-white mb-2">Bodovi za onog ko je odustao</label>
+                                <input type="number" id="forfeit_loser_points" name="forfeit_loser_points"
+                                       value="{{ old('forfeit_loser_points', $competition->forfeit_loser_points) }}"
+                                       min="0" max="10" placeholder="0 (osim ako je dolje označeno da se računa kao odigran)"
+                                       class="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                        </div>
+                        <div class="mt-4 space-y-3">
+                            <label class="flex items-center space-x-3 cursor-pointer">
+                                <input type="checkbox" name="forfeit_winner_counts_as_played" value="1"
+                                       {{ old('forfeit_winner_counts_as_played', $competition->forfeit_winner_counts_as_played ?? true) ? 'checked' : '' }}
+                                       class="w-5 h-5 bg-gray-700 border-gray-600 rounded text-blue-600 focus:ring-blue-500">
+                                <span class="text-white text-sm">Pobjedniku se meč računa kao odigran</span>
+                            </label>
+                            <label class="flex items-center space-x-3 cursor-pointer">
+                                <input type="checkbox" name="forfeit_loser_counts_as_played" value="1"
+                                       {{ old('forfeit_loser_counts_as_played', $competition->forfeit_loser_counts_as_played ?? false) ? 'checked' : '' }}
+                                       class="w-5 h-5 bg-gray-700 border-gray-600 rounded text-blue-600 focus:ring-blue-500">
+                                <span class="text-white text-sm">Onom ko je odustao se meč računa kao odigran (i dobija bodove za poraz iznad, osim ako je gore upisan drugi broj)</span>
+                            </label>
                         </div>
                     </div>
                 </div>

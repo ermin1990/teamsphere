@@ -329,7 +329,7 @@
                                     <a href="{{ route('competitions.show', $competition) }}" class="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
                                         <span class="material-symbols-outlined text-on-surface-variant text-lg shrink-0">{{ $sportIcon($competition->sport) }}</span>
                                         <span class="font-body-md text-on-surface truncate">{{ $competition->name }}</span>
-                                        <span class="hidden md:inline text-xs text-on-surface-variant truncate shrink-0">{{ $competition->city->name ?? '' }}</span>
+                                        <span class="hidden md:inline text-xs text-on-surface-variant truncate shrink-0">{{ $competition->effectiveCity()?->name ?? '' }}</span>
                                         <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase shrink-0 bg-secondary/10 text-secondary">
                                             {{ $badge }}
                                         </span>
@@ -343,7 +343,7 @@
                                     <div class="flex items-center gap-3 sm:gap-4 min-w-0">
                                         <span class="material-symbols-outlined text-on-surface-variant text-lg shrink-0">{{ $sportIcon($competition->sport) }}</span>
                                         <span class="font-body-md text-on-surface truncate">{{ $competition->name }}</span>
-                                        <span class="hidden md:inline text-xs text-on-surface-variant truncate shrink-0">{{ $competition->city->name ?? '' }}</span>
+                                        <span class="hidden md:inline text-xs text-on-surface-variant truncate shrink-0">{{ $competition->effectiveCity()?->name ?? '' }}</span>
                                         <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase shrink-0 {{ $cCompleted ? 'bg-outline-variant/20 text-on-surface-variant' : ($cLive ? 'bg-primary/10 text-primary animate-pulse' : 'bg-secondary/10 text-secondary') }}">
                                         {{ $badge }}
                                     </span>

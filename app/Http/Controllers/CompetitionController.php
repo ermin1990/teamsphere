@@ -725,6 +725,10 @@ class CompetitionController extends Controller
             'points_for_loss' => ['required', 'integer', 'min:0', 'max:10'],
             'has_tiebreak' => ['boolean'],
             'tiebreak_points' => ['nullable', 'integer', 'min:5', 'max:15'],
+            'forfeit_winner_points' => ['nullable', 'integer', 'min:0', 'max:10'],
+            'forfeit_loser_points' => ['nullable', 'integer', 'min:0', 'max:10'],
+            'forfeit_winner_counts_as_played' => ['boolean'],
+            'forfeit_loser_counts_as_played' => ['boolean'],
             'is_double_round' => ['nullable', 'boolean'],
             'is_recreational' => ['nullable', 'boolean'],
             'allow_rematches' => ['nullable', 'boolean'],
@@ -752,6 +756,10 @@ class CompetitionController extends Controller
             'points_for_loss' => $request->points_for_loss,
             'has_tiebreak' => $request->boolean('has_tiebreak'),
             'tiebreak_points' => $request->tiebreak_points ?? $competition->tiebreak_points,
+            'forfeit_winner_points' => $request->forfeit_winner_points,
+            'forfeit_loser_points' => $request->forfeit_loser_points,
+            'forfeit_winner_counts_as_played' => $request->boolean('forfeit_winner_counts_as_played'),
+            'forfeit_loser_counts_as_played' => $request->boolean('forfeit_loser_counts_as_played'),
             'is_double_round' => $request->boolean('is_double_round'),
             'is_recreational' => $request->boolean('is_recreational'),
             'allow_rematches' => $request->boolean('allow_rematches'),
@@ -772,6 +780,43 @@ class CompetitionController extends Controller
         return redirect()
             ->route('organizations.competitions.show', [$organization, $competition])
             ->with('success', 'Competition settings updated successfully!');
+    }
+
+    /**
+     * Show the rules page for a competition (free-text rules plus a
+     * read-only view of the scoring settings configured on the Postavke page).
+     */
+    public function showRules(Request $request, Organization $organization, Competition $competition)
+    {
+        Gate::authorize('view', $organization);
+
+        if ($competition->organization_id !== $organization->id) {
+            abort(404);
+        }
+
+        return view('organizations.competitions.rules', compact('organization', 'competition'));
+    }
+
+    /**
+     * Update the free-text rules for a competition.
+     */
+    public function updateRules(Request $request, Organization $organization, Competition $competition)
+    {
+        Gate::authorize('manage-announcements', $organization);
+
+        if ($competition->organization_id !== $organization->id) {
+            abort(404);
+        }
+
+        $request->validate([
+            'rules_text' => ['nullable', 'string'],
+        ]);
+
+        $competition->update(['rules_text' => $request->rules_text]);
+
+        return redirect()
+            ->route('organizations.competitions.rules', [$organization, $competition])
+            ->with('success', 'Pravila su uspješno sačuvana.');
     }
 
     /**
@@ -1011,8 +1056,9 @@ class CompetitionController extends Controller
         Gate::authorize('view', $organization);
 
         $request->validate([
-            'home_score' => 'required|integer|min:0|max:10',
-            'away_score' => 'required|integer|min:0|max:10',
+            'forfeited_by' => ['nullable', 'in:home,away'],
+            'home_score' => ['required_unless:forfeited_by,home,away', 'nullable', 'integer', 'min:0', 'max:10'],
+            'away_score' => ['required_unless:forfeited_by,home,away', 'nullable', 'integer', 'min:0', 'max:10'],
             'sets' => 'nullable|array',
             'sets.*.home' => 'required_with:sets|integer|min:0',
             'sets.*.away' => 'required_with:sets|integer|min:0',
@@ -1026,36 +1072,53 @@ class CompetitionController extends Controller
             session(['scroll_position' => $request->scroll_position]);
         }
 
-        // Normalize sets format from home_score/away_score to home/away
-        $normalizedSets = [];
-        if (!empty($request->sets)) {
-            foreach ($request->sets as $set) {
-                $normalizedSets[] = [
-                    'home' => $set['home_score'] ?? $set['home'] ?? 0,
-                    'away' => $set['away_score'] ?? $set['away'] ?? 0,
-                ];
+        $forfeitedBy = $request->filled('forfeited_by') ? $request->forfeited_by : null;
+
+        if ($forfeitedBy) {
+            // WO/odustajanje - no set-by-set play, so the score just reflects
+            // a clean win for whoever showed up (standings math for a
+            // forfeit reads forfeited_by, not these scores - see
+            // LeagueStandingsService::applyMatch()).
+            $setsToWin = $competition->sets_to_win ?? 1;
+            $homeScore = $forfeitedBy === 'away' ? $setsToWin : 0;
+            $awayScore = $forfeitedBy === 'home' ? $setsToWin : 0;
+            $normalizedSets = [];
+        } else {
+            $homeScore = $request->home_score;
+            $awayScore = $request->away_score;
+
+            // Normalize sets format from home_score/away_score to home/away
+            $normalizedSets = [];
+            if (!empty($request->sets)) {
+                foreach ($request->sets as $set) {
+                    $normalizedSets[] = [
+                        'home' => $set['home_score'] ?? $set['home'] ?? 0,
+                        'away' => $set['away_score'] ?? $set['away'] ?? 0,
+                    ];
+                }
             }
-        }
-        
-        // Only generate empty set placeholders if sets were explicitly provided
-        // Don't auto-generate 0-0 sets when no sets are entered
-        if (empty($normalizedSets) && !empty($request->sets)) {
-            $totalSets = max($request->home_score, $request->away_score);
-            for ($i = 0; $i < $totalSets; $i++) {
-                $normalizedSets[] = [
-                    'home' => 0,
-                    'away' => 0,
-                ];
+
+            // Only generate empty set placeholders if sets were explicitly provided
+            // Don't auto-generate 0-0 sets when no sets are entered
+            if (empty($normalizedSets) && !empty($request->sets)) {
+                $totalSets = max($homeScore, $awayScore);
+                for ($i = 0; $i < $totalSets; $i++) {
+                    $normalizedSets[] = [
+                        'home' => 0,
+                        'away' => 0,
+                    ];
+                }
             }
         }
 
         // Update match with results
         $match->update([
-            'home_score' => $request->home_score,
-            'away_score' => $request->away_score,
+            'home_score' => $homeScore,
+            'away_score' => $awayScore,
             'sets' => $normalizedSets,
             'venue_id' => $request->venue_id ?: $match->venue_id,
             'status' => 'completed',
+            'forfeited_by' => $forfeitedBy,
             'played_at' => $request->filled('played_at') ? $request->played_at : now(),
         ]);
 

@@ -42,7 +42,7 @@ class OrganizationUserController extends Controller
 
         $request->validate([
             'email' => 'required|email|exists:users,email',
-            'role' => 'required|in:referee',
+            'role' => 'required|in:referee,moderator',
         ]);
 
         $user = User::where('email', $request->email)->first();

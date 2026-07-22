@@ -83,4 +83,20 @@ class OrganizationPolicy
     {
         return $user->id === $organization->user_id;
     }
+
+    /**
+     * Determine whether the user can publish/manage announcements and rules
+     * for this organization (owner or a moderator - not a referee).
+     */
+    public function manageAnnouncements(User $user, Organization $organization): bool
+    {
+        if ($user->id === $organization->user_id) {
+            return true;
+        }
+
+        return $organization->organizationUsers()
+            ->where('user_id', $user->id)
+            ->where('role', 'moderator')
+            ->exists();
+    }
 }
