@@ -716,6 +716,7 @@ class CompetitionController extends Controller
             'city_id' => ['nullable', 'exists:cities,id'],
             'season_id' => ['nullable', 'exists:seasons,id'],
             'registration_deadline' => ['nullable', 'date'],
+            'end_date' => ['nullable', 'date'],
             'sets_to_win' => ['required', 'integer', 'min:1', 'max:7'],
             'points_per_set' => ['nullable', 'integer', 'min:7', 'max:21'],
             'deuce_at' => ['nullable', 'integer', 'min:5'],
@@ -747,6 +748,7 @@ class CompetitionController extends Controller
             'city_id' => $request->city_id,
             'season_id' => $organization->seasons()->where('id', $request->season_id)->exists() ? $request->season_id : null,
             'registration_deadline' => $request->registration_deadline,
+            'end_date' => $request->end_date,
             'sets_to_win' => $request->sets_to_win,
             'points_per_set' => $request->points_per_set ?? $competition->points_per_set,
             'deuce_at' => $request->deuce_at ?? $competition->deuce_at,
@@ -1041,6 +1043,27 @@ class CompetitionController extends Controller
         ]);
 
         return back()->with('success', 'Competition has been reset to draft status!');
+    }
+
+    /**
+     * Reopen a completed competition back to "active" - unlike reset() above,
+     * this keeps every match/standing/group as-is, so an organizer can extend
+     * the season (e.g. push end_date out) and keep entering results instead
+     * of starting over.
+     */
+    public function reactivate(Request $request, Organization $organization, Competition $competition)
+    {
+        Gate::authorize('update', $organization);
+
+        if ($competition->organization_id !== $organization->id) {
+            abort(404);
+        }
+
+        abort_unless($competition->status === 'completed', 400, 'Takmičenje nije u statusu "završeno".');
+
+        $competition->update(['status' => 'active']);
+
+        return back()->with('success', 'Takmičenje je ponovo aktivno.');
     }
 
     /**

@@ -184,6 +184,14 @@
                                    value="{{ old('registration_deadline', optional($competition->registration_deadline)->format('Y-m-d\TH:i')) }}"
                                    class="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
                         </div>
+
+                        <!-- End date -->
+                        <div>
+                            <label for="end_date" class="block text-sm font-medium text-white mb-2">Datum do kada se igra {{ $competition->isLeague() ? 'liga' : 'turnir' }}</label>
+                            <input type="date" id="end_date" name="end_date"
+                                   value="{{ old('end_date', optional($competition->end_date)->format('Y-m-d')) }}"
+                                   class="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+                        </div>
                     </div>
 
                     <div class="mt-6">

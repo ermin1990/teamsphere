@@ -66,6 +66,15 @@
                 </button>
             </form>
         @endif
+        {{-- Reopen a completed competition without wiping matches/standings --}}
+        @if($competition->status === 'completed')
+            <form method="POST" action="{{ route('organizations.competitions.reactivate', [$organization, $competition]) }}" onsubmit="return confirm('Vratiti takmičenje u status aktivno?');" class="w-full sm:w-auto">
+                @csrf
+                <button type="submit" class="w-full sm:w-auto inline-flex items-center justify-center px-3 py-2 sm:px-4 sm:py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors font-semibold text-sm sm:text-base">
+                    ↻ Vrati u aktivno
+                </button>
+            </form>
+        @endif
         {{-- Reset competition to factory defaults --}}
         <form method="POST" action="{{ route('organizations.competitions.reset', [$organization, $competition]) }}" class="w-full sm:w-auto sm:ml-auto" onsubmit="return confirm('Resetovati takmičenje na fabrička podešavanja? Svi mečevi, grupe i rezultati biće obrisani.');">
             @csrf
