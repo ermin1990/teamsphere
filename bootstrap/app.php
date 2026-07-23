@@ -21,6 +21,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(\App\Http\Middleware\SetLocale::class);
         $middleware->web(\App\Http\Middleware\CompressResponse::class);
         $middleware->web(\App\Http\Middleware\LogLivewireRequests::class);
+        $middleware->api(prepend: [
+            \App\Http\Middleware\ForceJsonResponse::class,
+        ]);
         $middleware->alias([
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
             'log.organization' => \App\Http\Middleware\LogOrganizationAccess::class,
