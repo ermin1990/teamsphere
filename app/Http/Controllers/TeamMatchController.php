@@ -25,13 +25,14 @@ class TeamMatchController extends Controller
             'scheduled_at' => 'nullable|date',
         ]);
 
-        $competition->teamMatches()->create([
+        $teamMatch = $competition->teamMatches()->create([
             'home_team_id' => $request->home_team_id,
             'away_team_id' => $request->away_team_id,
             'round' => $request->round,
             'scheduled_at' => $request->scheduled_at,
             'status' => 'scheduled',
         ]);
+        $teamMatch->ensureSingleMatchGame();
 
         // Ensure standings exist for these teams
         foreach ([$request->home_team_id, $request->away_team_id] as $teamId) {
@@ -53,7 +54,17 @@ class TeamMatchController extends Controller
     public function show(Organization $organization, Competition $competition, TeamMatch $teamMatch)
     {
         $teamMatch->load(['homeTeam', 'awayTeam', 'individualMatches.homePlayer', 'individualMatches.awayPlayer', 'homeCaptain', 'awayCaptain']);
-        
+
+        // Ensure a Padel-style single-match tie has its one individual match
+        // even for older ties created before this competition's sport
+        // opted into single_match ties, or if it was somehow missed.
+        $teamMatch->ensureSingleMatchGame();
+        if ($teamMatch->usesSingleMatchTie()) {
+            $teamMatch->load('individualMatches');
+        }
+
+        $singleMatch = $teamMatch->usesSingleMatchTie() ? $teamMatch->individualMatches->first() : null;
+
         $doublesPlayers = [
             'home_1' => null,
             'home_2' => null,
@@ -82,13 +93,17 @@ class TeamMatchController extends Controller
         $awayPlayers = $teamMatch->awayTeam->players;
         $venues = Venue::orderBy('name')->get();
 
-        return view('organizations.competitions.team-matches.show', compact('organization', 'competition', 'teamMatch', 'doublesPlayers', 'homePlayers', 'awayPlayers', 'venues'));
+        return view('organizations.competitions.team-matches.show', compact('organization', 'competition', 'teamMatch', 'doublesPlayers', 'homePlayers', 'awayPlayers', 'venues', 'singleMatch'));
     }
 
     public function protocol(Organization $organization, Competition $competition, TeamMatch $teamMatch)
     {
         $this->authorize('update', $organization);
-        
+
+        if ($teamMatch->usesSingleMatchTie()) {
+            return redirect()->route('organizations.competitions.team-matches.show', [$organization, $competition, $teamMatch]);
+        }
+
         if ($teamMatch->status !== 'scheduled') {
             return redirect()->route('organizations.competitions.team-matches.show', [$organization, $competition, $teamMatch])
                 ->with('error', 'Protokol je već popunjen.');

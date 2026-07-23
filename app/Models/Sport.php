@@ -118,4 +118,17 @@ class Sport extends Model
     {
         return $this->getRule('scoring', []);
     }
+
+    /**
+     * Whether a team-based competition's "tie" between two teams should be
+     * a single match with one result (like Padel/Tennis doubles - a "team"
+     * is just a pair playing one match together), instead of the default
+     * BiH Corbillon-style tie with several individual singles/doubles games
+     * inside it (table tennis). Opt-in via `rules.team_tie_format` so
+     * existing team sports keep their current multi-game behavior.
+     */
+    public function usesSingleMatchTies(): bool
+    {
+        return $this->getRule('team_tie_format') === 'single_match';
+    }
 }

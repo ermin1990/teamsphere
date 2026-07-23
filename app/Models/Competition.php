@@ -340,12 +340,13 @@ class Competition extends Model
                 $away = $teams[$numTeams - 1 - $i];
 
                 if ($home !== null && $away !== null) {
-                    $this->teamMatches()->create([
+                    $teamMatch = $this->teamMatches()->create([
                         'home_team_id' => $home,
                         'away_team_id' => $away,
                         'round' => $round,
                         'status' => 'scheduled',
                     ]);
+                    $teamMatch->ensureSingleMatchGame();
                 }
             }
 
@@ -371,12 +372,13 @@ class Competition extends Model
                     $away = $teams[$numTeams - 1 - $i];
 
                     if ($home !== null && $away !== null) {
-                        $this->teamMatches()->create([
+                        $teamMatch = $this->teamMatches()->create([
                             'home_team_id' => $away, // Swapped
                             'away_team_id' => $home, // Swapped
                             'round' => $round + $numRounds, // Next half
                             'status' => 'scheduled',
                         ]);
+                        $teamMatch->ensureSingleMatchGame();
                     }
                 }
 

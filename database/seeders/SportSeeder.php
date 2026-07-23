@@ -47,6 +47,7 @@ class SportSeeder extends Seeder
                     'deuce' => true,
                     'time_limits' => null,
                     'players_per_team' => 2,
+                    'team_tie_format' => 'single_match',
                     'scoring' => [
                         'point_values' => [15, 30, 40, 'game'],
                         'special_rules' => 'Tie-break at 6-6'

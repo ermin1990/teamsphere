@@ -86,6 +86,32 @@
             </div>
         </div>
 
+        @if($teamMatch->usesSingleMatchTie())
+        <!-- Single Match (e.g. Padel doubles - the team already IS the pair) -->
+        <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl border border-gray-700/50 overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-700/50 bg-gray-900/50">
+                <h3 class="font-bold text-white">Rezultat Meča</h3>
+            </div>
+            <div class="p-6 flex items-center justify-between gap-4">
+                <div class="text-sm text-gray-400">
+                    @if($singleMatch && $singleMatch->status === 'completed')
+                        <span class="text-white font-bold text-lg">{{ $singleMatch->home_score }} : {{ $singleMatch->away_score }}</span>
+                        @if(!empty($singleMatch->sets))
+                            <span class="ml-2 text-gray-500">({{ collect($singleMatch->sets)->map(fn($s) => ($s['home'] ?? $s['home_score'] ?? 0) . '-' . ($s['away'] ?? $s['away_score'] ?? 0))->implode(', ') }})</span>
+                        @endif
+                    @else
+                        <span class="italic">Rezultat još nije unesen.</span>
+                    @endif
+                </div>
+                @if($singleMatch)
+                    <button onclick="openQuickResultModal({{ $singleMatch->id }}, '{{ $teamMatch->homeTeam->name ?? 'Domaćin' }}', '{{ $teamMatch->awayTeam->name ?? 'Gost' }}', {{ $singleMatch->home_score ?? 'null' }}, {{ $singleMatch->away_score ?? 'null' }}, {{ json_encode($singleMatch->sets ?? []) }}, '{{ $singleMatch->played_at?->format('Y-m-d\TH:i') }}', '{{ $singleMatch->venue_id }}')"
+                            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-bold rounded-lg text-white bg-yellow-600/80 hover:bg-yellow-600 shadow-sm transition-colors duration-150">
+                        {{ $singleMatch->status === 'completed' ? 'Izmijeni rezultat' : '⚡ Unesi rezultat' }}
+                    </button>
+                @endif
+            </div>
+        </div>
+        @else
         <!-- Individual Matches -->
         <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl border border-gray-700/50 overflow-hidden">
             <div class="px-6 py-4 border-b border-gray-700/50 bg-gray-900/50 flex justify-between items-center">
@@ -231,6 +257,7 @@
                 </table>
             </div>
         </div>
+        @endif
     </div>
 </div>
 

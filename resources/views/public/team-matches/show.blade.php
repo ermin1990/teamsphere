@@ -112,9 +112,11 @@
             <div class="px-6 py-4 border-b flex items-center justify-between" style="background: rgba(0,0,0,0.2); border-color: var(--border-primary);">
                 <div class="flex items-center gap-3">
                     <div class="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]"></div>
-                    <h3 class="font-bold text-white text-sm md:text-base uppercase tracking-wider">Pojedinačni Mečevi</h3>
+                    <h3 class="font-bold text-white text-sm md:text-base uppercase tracking-wider">{{ $teamMatch->usesSingleMatchTie() ? 'Rezultat Meča' : 'Pojedinačni Mečevi' }}</h3>
                 </div>
+                @unless($teamMatch->usesSingleMatchTie())
                 <span class="text-[10px] font-bold text-gray-500 uppercase tracking-widest hidden md:block">Corbillon sistem</span>
+                @endunless
             </div>
             
             <!-- Desktop Table -->
@@ -143,7 +145,7 @@
                                     </div>
                                 @else
                                     <span class="font-medium {{ $match->status === 'completed' && $match->home_score > $match->away_score ? 'text-green-400 font-bold' : '' }}">
-                                        {{ $match->homePlayer->name ?? 'Nepoznat igrač' }}
+                                        {{ $match->homePlayer->name ?? $teamMatch->homeTeam->name ?? 'Nepoznat igrač' }}
                                     </span>
                                 @endif
                             </td>
@@ -155,7 +157,7 @@
                                     </div>
                                 @else
                                     <span class="font-medium {{ $match->status === 'completed' && $match->away_score > $match->home_score ? 'text-green-400 font-bold' : '' }}">
-                                        {{ $match->awayPlayer->name ?? 'Nepoznat igrač' }}
+                                        {{ $match->awayPlayer->name ?? $teamMatch->awayTeam->name ?? 'Nepoznat igrač' }}
                                     </span>
                                 @endif
                             </td>
@@ -232,7 +234,7 @@
                                 </div>
                             @else
                                 <span class="text-sm font-bold {{ $match->status === 'completed' && $match->home_score > $match->away_score ? 'text-green-400' : 'text-white' }}">
-                                    {{ $match->homePlayer->name ?? 'Nepoznat' }}
+                                    {{ $match->homePlayer->name ?? $teamMatch->homeTeam->name ?? 'Nepoznat' }}
                                 </span>
                             @endif
                         </div>
@@ -255,7 +257,7 @@
                                 </div>
                             @else
                                 <span class="text-sm font-bold {{ $match->status === 'completed' && $match->away_score > $match->home_score ? 'text-green-400' : 'text-white' }}">
-                                    {{ $match->awayPlayer->name ?? 'Nepoznat' }}
+                                    {{ $match->awayPlayer->name ?? $teamMatch->awayTeam->name ?? 'Nepoznat' }}
                                 </span>
                             @endif
                         </div>
