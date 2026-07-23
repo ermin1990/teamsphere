@@ -289,6 +289,41 @@ components:
           schema: { $ref: "#/components/schemas/ErrorEnvelope" }
 
 paths:
+  /register:
+    post:
+      tags: [Auth]
+      summary: Registracija email/lozinka, vraća novi token
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, email, password, password_confirmation, role]
+              properties:
+                name: { type: string }
+                email: { type: string, format: email }
+                password: { type: string }
+                password_confirmation: { type: string }
+                role: { type: string, enum: [organizer, player, venue] }
+      responses:
+        "201":
+          description: Nalog kreiran
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          user: { $ref: "#/components/schemas/User" }
+                          token: { type: string }
+        "422": { $ref: "#/components/responses/ValidationError" }
+
   /login:
     post:
       tags: [Auth]
@@ -330,7 +365,7 @@ paths:
         šalje ga ovdje na verifikaciju. Ako korisnik već postoji, vraća token odmah. Ako je
         nov, a `role` nije poslan, vraća `data.needs_role = true` + `data.profile`
         (name/email/avatar iz Google naloga) - app treba pitati korisnika ulogu
-        (organizer/player) i pozvati endpoint ponovo sa istim `id_token` i sad popunjenim
+        (organizer/player/venue) i pozvati endpoint ponovo sa istim `id_token` i sad popunjenim
         `role`, čime se nalog kreira.
       security: []
       requestBody:
@@ -342,7 +377,7 @@ paths:
               required: [id_token]
               properties:
                 id_token: { type: string }
-                role: { type: string, enum: [organizer, player] }
+                role: { type: string, enum: [organizer, player, venue] }
       responses:
         "200":
           description: Prijava (postojeći nalog) ili "potrebna uloga" odgovor za nov nalog

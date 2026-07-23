@@ -13,6 +13,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
 
     // Auth (throttled - these are unauthenticated brute-force/enumeration targets)
     Route::middleware('throttle:6,1')->group(function () {
+        Route::post('/register', [AuthController::class, 'register'])->name('auth.register');
         Route::post('/login', [AuthController::class, 'login'])->name('auth.login');
         Route::post('/auth/google', [AuthController::class, 'google'])->name('auth.google');
     });

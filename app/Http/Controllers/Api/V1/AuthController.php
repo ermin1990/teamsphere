@@ -8,6 +8,7 @@ use App\Http\Resources\Api\V1\CompetitionResource;
 use App\Http\Resources\Api\V1\UserResource;
 use App\Models\Competition;
 use App\Models\Player;
+use App\Models\Setting;
 use App\Models\User;
 use App\Services\FirebaseAuthService;
 use Illuminate\Auth\Events\PasswordReset;
@@ -30,16 +31,28 @@ class AuthController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
-            'password' => ['required', 'confirmed', 'min:8'],
+            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'role' => ['required', 'in:organizer,player,venue'],
         ]);
 
         $user = User::create([
             'name' => $validated['name'],
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
+            'role' => $validated['role'],
         ]);
 
+        if ($validated['role'] === 'player') {
+            Player::create([
+                'name' => $user->name,
+                'email' => $user->email,
+                'user_id' => $user->id,
+                'organization_id' => null,
+            ]);
+        }
+
         event(new Registered($user));
+        $this->notifyAdminsOfNewUser($user);
 
         $token = $user->createToken($this->tokenName($request))->plainTextToken;
 
@@ -83,7 +96,7 @@ class AuthController extends Controller
     {
         $request->validate([
             'id_token' => ['required', 'string'],
-            'role' => ['sometimes', 'in:organizer,player'],
+            'role' => ['sometimes', 'in:organizer,player,venue'],
         ]);
 
         $claims = $firebaseAuth->verify($request->input('id_token'));
@@ -131,6 +144,7 @@ class AuthController extends Controller
             'email' => $email,
             'google_id' => $googleId,
             'avatar' => $avatar,
+            'role' => $request->input('role'),
         ]);
         $user->forceFill(['email_verified_at' => now()])->save();
 
@@ -144,6 +158,7 @@ class AuthController extends Controller
         }
 
         event(new Registered($user));
+        $this->notifyAdminsOfNewUser($user);
 
         $token = $user->createToken($this->tokenName($request))->plainTextToken;
 
@@ -313,5 +328,20 @@ class AuthController extends Controller
     private function tokenName(Request $request): string
     {
         return $request->input('device_name') ?: ($request->userAgent() ?? 'api');
+    }
+
+    private function notifyAdminsOfNewUser(User $user): void
+    {
+        $recipients = Setting::notificationRecipients();
+
+        if (empty($recipients)) {
+            return;
+        }
+
+        try {
+            \Illuminate\Support\Facades\Mail::to($recipients)->send(new \App\Mail\NewUserRegistered($user));
+        } catch (\Exception $e) {
+            \Log::error('Failed to send new user registration notification email', ['error' => $e->getMessage()]);
+        }
     }
 }
