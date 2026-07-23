@@ -51,6 +51,39 @@ class CompetitionController extends Controller
     }
 
     /**
+     * Every publicly visible, currently active competition across every
+     * organization - unlike browse() above this isn't limited to
+     * competitions open for registration, it's for browsing/discovery.
+     */
+    public function publicIndex(Request $request): JsonResponse
+    {
+        $query = Competition::where('is_public', true)
+            ->where('status', 'active')
+            ->with(['organization', 'sport', 'city', 'season']);
+
+        if ($search = $request->input('search')) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', '%' . $search . '%')
+                  ->orWhere('description', 'like', '%' . $search . '%');
+            });
+        }
+
+        if ($sportId = $request->input('sport_id')) {
+            $query->where('sport_id', $sportId);
+        }
+
+        if ($cityId = $request->input('city_id')) {
+            $query->where('city_id', $cityId);
+        }
+
+        $competitions = $query->withCount(['players', 'matches'])
+            ->orderByDesc('created_at')
+            ->paginate($this->perPage($request));
+
+        return $this->paginated($competitions, CompetitionResource::class);
+    }
+
+    /**
      * List competitions for an organization.
      */
     public function index(Request $request, Organization $organization): JsonResponse

@@ -26,5 +26,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         Route::get('/me/matches', [PlayerMatchController::class, 'index'])->name('me.matches.index');
         Route::get('/me/matches/upcoming', [PlayerMatchController::class, 'upcoming'])->name('me.matches.upcoming');
         Route::get('/me/matches/completed', [PlayerMatchController::class, 'completed'])->name('me.matches.completed');
+
+        Route::get('/competitions', [CompetitionController::class, 'publicIndex'])->name('competitions.index');
     });
 });
