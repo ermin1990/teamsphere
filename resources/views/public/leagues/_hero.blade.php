@@ -35,7 +35,7 @@
                 <span class="bg-surface-container-highest text-on-surface-variant px-3 py-1 rounded-full text-label-bold uppercase">Do {{ $competition->sets_to_win }} dobijena</span>
             @endif
         </div>
-        <h1 class="font-display text-3xl lg:text-display mb-2 truncate">{{ $competition->name }}</h1>
+        <h1 class="font-display text-xl lg:text-2xl mb-2 leading-tight">{{ $competition->name }}</h1>
         <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-on-surface-variant text-sm lg:text-body-md">
             <a href="{{ route('competitions.organization', $organization) }}" class="flex items-center gap-1 hover:text-primary transition-colors"><span class="material-symbols-outlined text-body-sm">group</span> {{ $organization->name }}</a>
             <span class="flex items-center gap-1"><span class="material-symbols-outlined text-body-sm">{{ $sportIcon($competition->sport) }}</span> {{ $competition->sport->name }}</span>
