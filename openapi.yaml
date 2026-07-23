@@ -3,10 +3,11 @@ info:
   title: MojTurnir API
   version: "1.0"
   description: |
-    REST API za MojTurnir (Laravel 12 / Sanctum token auth). Namjerno svedena na minimalan,
-    read-only skup igračkih endpoint-a - prijava i "moje" podaci (moja takmičenja, moji mečevi)
-    plus javni referentni podaci (sportovi, gradovi). Svi ostali endpoint-i (organizatorski CRUD,
-    timovi, lige, standing-i, upload, tokeni itd.) su ukinuti.
+    REST API za MojTurnir (Laravel 12 / Sanctum token auth). Namjerno svedena na minimalan
+    skup igračkih endpoint-a - prijava, "moje" podaci (moja takmičenja, moji mečevi),
+    samostalni unos meča/rezultata, plus javni referentni podaci (sportovi, gradovi). Svi
+    ostali endpoint-i (organizatorski CRUD, timovi, lige, standing-i, upload, tokeni itd.)
+    su ukinuti.
 
     Svi odgovori su omotani u istu envelopu:
       { "success": true|false, "data": ..., "message": "..." }
@@ -542,6 +543,115 @@ paths:
                         items: { $ref: "#/components/schemas/CompetitionMatch" }
                       meta: { $ref: "#/components/schemas/PaginationMeta" }
         "401": { $ref: "#/components/responses/Unauthorized" }
+
+  /me/competitions/{competition}/matches:
+    post:
+      tags: [PlayerMatches]
+      summary: Zabilježi novi meč (rezultat) protiv odabranog protivnika iz istog takmičenja
+      description: |
+        Samostalni unos odigranog meča ("Novi meč") - dostupno samo za pojedinačna
+        (ne-ekipna) takmičenja sa statusom `active`, i samo ako je prijavljeni korisnik
+        učlanjen kao igrač na tom takmičenju. Protivnik mora biti prijavljen na isto
+        takmičenje. Ponovni meč protiv istog protivnika je odbijen (422) osim ako
+        takmičenje ima `allow_rematches` ili `is_recreational`. Setovi se šalju iz
+        perspektive prijavljenog igrača (`mine`/`theirs`) i interno se normalizuju u
+        `home`/`away` - prazni krajnji setovi (0:0) se odsijecaju. Ako je takmičenje
+        konfigurisano sa `sets_to_win`, rezultat mora biti stvarno odlučen tim brojem
+        setova (422 u suprotnom). Meč se odmah upisuje kao `completed`, a standing-i
+        lige se prerađunavaju.
+      parameters: [{ $ref: "#/components/parameters/CompetitionSlug" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [opponent_id, sets]
+              properties:
+                opponent_id: { type: integer, description: "id igrača (player), ne user id" }
+                played_at: { type: string, format: date-time, nullable: true, description: "podrazumijeva se \"sada\" ako izostavljeno" }
+                sets:
+                  type: array
+                  minItems: 1
+                  items:
+                    type: object
+                    properties:
+                      mine: { type: integer, minimum: 0 }
+                      theirs: { type: integer, minimum: 0 }
+      responses:
+        "201":
+          description: Meč zabilježen
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data: { $ref: "#/components/schemas/CompetitionMatch" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403":
+          description: "Takmičenje je ekipno, nije aktivno, ili prijavljeni korisnik nije igrač na njemu"
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Envelope" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "422": { $ref: "#/components/responses/ValidationError" }
+
+  /me/matches/{match}/result:
+    put:
+      tags: [PlayerMatches]
+      summary: Upiši/izmijeni rezultat postojećeg meča prijavljenog igrača
+      description: |
+        Za meč koji je već zakazan (ili odigran) između dva igrača - protivnik je fiksan,
+        za razliku od POST /me/competitions/{competition}/matches koji bilježi sasvim nov
+        meč. Dostupno samo za lige (ne turnire), pojedinačna takmičenja sa statusom
+        `active`, i samo ako je prijavljeni korisnik jedan od dva igrača u meču. Isto
+        pravilo za setove (`mine`/`theirs`, `sets_to_win`) kao kod POST-a. Meč se
+        postavlja na `completed`, a standing-i lige se prerađunavaju.
+      parameters:
+        - name: match
+          in: path
+          required: true
+          schema: { type: integer }
+          description: Id meča
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [played_at, sets]
+              properties:
+                played_at: { type: string, format: date-time }
+                venue_id: { type: integer, nullable: true }
+                sets:
+                  type: array
+                  minItems: 1
+                  items:
+                    type: object
+                    properties:
+                      mine: { type: integer, minimum: 0 }
+                      theirs: { type: integer, minimum: 0 }
+      responses:
+        "200":
+          description: Rezultat sačuvan
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data: { $ref: "#/components/schemas/CompetitionMatch" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403":
+          description: "Takmičenje je ekipno/turnir, nije aktivno, ili prijavljeni korisnik nije jedan od igrača u meču"
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Envelope" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "422": { $ref: "#/components/responses/ValidationError" }
 
   /sports:
     get:

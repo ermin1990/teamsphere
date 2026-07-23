@@ -26,6 +26,8 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         Route::get('/me/matches', [PlayerMatchController::class, 'index'])->name('me.matches.index');
         Route::get('/me/matches/upcoming', [PlayerMatchController::class, 'upcoming'])->name('me.matches.upcoming');
         Route::get('/me/matches/completed', [PlayerMatchController::class, 'completed'])->name('me.matches.completed');
+        Route::post('/me/competitions/{competition}/matches', [PlayerMatchController::class, 'store'])->name('me.matches.store');
+        Route::put('/me/matches/{match}/result', [PlayerMatchController::class, 'updateResult'])->name('me.matches.result.update');
 
         Route::get('/competitions', [CompetitionController::class, 'publicIndex'])->name('competitions.index');
     });
