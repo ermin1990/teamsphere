@@ -65,6 +65,7 @@ class CompetitionResource extends JsonResource
             'matches_count' => $this->whenCounted('matches'),
             'groups_count' => $this->whenCounted('tournamentGroups'),
             'is_member' => $this->when(!is_null($this->is_member), fn () => (bool) $this->is_member),
+            'has_pending_join_request' => $this->when(!is_null($this->has_pending_join_request), fn () => (bool) $this->has_pending_join_request),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

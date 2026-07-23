@@ -60,8 +60,10 @@ class CompetitionController extends Controller
      * can't be self-joined via CompetitionJoinRequestController::store and
      * should be flagged for "contact organizer" using `is_team_based`.
      * Returns competitions regardless of whether the authenticated user is
-     * already a member - each result carries `is_member`, and the `member`
-     * query param can filter to just one side.
+     * already a member - each result carries `is_member` and
+     * `has_pending_join_request` (a prior POST .../join-requests awaiting
+     * the organizer's decision), and the `member` query param can filter to
+     * just one side.
      */
     public function publicIndex(Request $request): JsonResponse
     {
@@ -97,6 +99,7 @@ class CompetitionController extends Controller
 
         $competitions = $query
             ->withExists(['players as is_member' => fn ($q) => $q->where('players.user_id', $userId)])
+            ->withExists(['joinRequests as has_pending_join_request' => fn ($q) => $q->where('user_id', $userId)->where('status', 'pending')])
             ->withCount(['players', 'matches'])
             ->orderByDesc('created_at')
             ->paginate($this->perPage($request));

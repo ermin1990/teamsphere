@@ -165,6 +165,7 @@ components:
         matches_count: { type: integer, nullable: true }
         groups_count: { type: integer, nullable: true }
         is_member: { type: boolean, nullable: true, description: "Da li je prijavljeni korisnik već član - prisutno samo na GET /competitions" }
+        has_pending_join_request: { type: boolean, nullable: true, description: "Da li prijavljeni korisnik ima zahtjev na čekanju (POST .../join-requests) - prisutno samo na GET /competitions" }
         created_at: { type: string, format: date-time }
         updated_at: { type: string, format: date-time }
 
@@ -468,7 +469,11 @@ paths:
         "kontaktiraj organizatora" umjesto dugmeta za prijavu. Vraća i takmičenja gdje je
         prijavljeni korisnik već član i ona gdje nije (vidi `is_member` u odgovoru i
         `member` filter niže) - ovo NIJE isto što i /me/competitions (to su SAMO
-        takmičenja u kojima je prijavljeni igrač već učlanjen).
+        takmičenja u kojima je prijavljeni igrač već učlanjen). Svaki rezultat nosi i
+        `has_pending_join_request` - `true` ako je prijavljeni korisnik već poslao zahtjev
+        (POST .../join-requests) koji čeka odluku organizatora, korisno da klijent prikaže
+        "Zahtjev poslan" umjesto dugmeta za prijavu i izbjegne duplirani POST (koji vraća
+        422 "Već imaš zahtjev na čekanju za ovo takmičenje.").
       parameters:
         - name: search
           in: query
