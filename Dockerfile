@@ -88,7 +88,7 @@ COPY --from=frontend-builder /app/public/build /var/www/html/public/build
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/public
 
 # Baked kopija public/ vlasnistva www-data - koristi se da inicijalno "posadi" prazan
 # named docker volumen (public_assets) ispravnim vlasnistvom kad se prvi put montira u

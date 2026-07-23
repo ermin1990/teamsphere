@@ -17,7 +17,7 @@ php artisan config:cache
 php artisan route:cache
 php artisan view:cache
 
-php artisan storage:link || true
+php artisan storage:link
 
 # named volume se popuni iz image-a SAMO pri prvom kreiranju, pa bi direktan mount
 # zamrznuo assets na prvi deploy. Zato ovdje eksplicitno kopiramo svjež sadržaj
