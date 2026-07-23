@@ -55,7 +55,11 @@
                 </div>
                 <h3 class="text-sm md:text-lg font-bold text-on-surface truncate w-full">{{ $homeName }}</h3>
                 @if($homeRoster->isNotEmpty())
-                    <p class="text-xs text-on-surface-variant -mt-1 mb-1">{{ $homeRoster->pluck('name')->implode(' / ') }}</p>
+                    <div class="text-xs text-on-surface-variant -mt-1 mb-1 leading-tight">
+                        @foreach($homeRoster as $player)
+                            <p class="truncate w-full">{{ $player->name }}</p>
+                        @endforeach
+                    </div>
                 @endif
                 <div id="home-score-value" class="text-4xl md:text-display font-display {{ $homeIsWinner ? 'text-primary' : 'text-on-surface' }} leading-none my-2 md:my-4">
                     {{ $matchStatus === 'scheduled' ? '-' : $homeDisplayScore }}
@@ -72,7 +76,11 @@
                 </div>
                 <h3 class="text-sm md:text-lg font-bold text-on-surface truncate w-full">{{ $awayName }}</h3>
                 @if($awayRoster->isNotEmpty())
-                    <p class="text-xs text-on-surface-variant -mt-1 mb-1">{{ $awayRoster->pluck('name')->implode(' / ') }}</p>
+                    <div class="text-xs text-on-surface-variant -mt-1 mb-1 leading-tight">
+                        @foreach($awayRoster as $player)
+                            <p class="truncate w-full">{{ $player->name }}</p>
+                        @endforeach
+                    </div>
                 @endif
                 <div id="away-score-value" class="text-4xl md:text-display font-display {{ $awayIsWinner ? 'text-primary' : 'text-on-surface' }} leading-none my-2 md:my-4">
                     {{ $matchStatus === 'scheduled' ? '-' : $awayDisplayScore }}
