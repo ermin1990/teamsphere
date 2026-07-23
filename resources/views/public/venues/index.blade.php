@@ -225,21 +225,7 @@
     </section>
 </main>
 
-<!-- Mobile Bottom Navigation -->
-<nav class="lg:hidden fixed bottom-0 w-full z-50 bg-surface-container-high rounded-t-xl border-t border-outline-variant flex justify-around items-center h-16 px-4 pb-[env(safe-area-inset-bottom)]">
-    <a class="flex flex-col items-center justify-center text-on-surface-variant" href="{{ route('home') }}">
-        <span class="material-symbols-outlined">dashboard</span>
-        <span class="text-[10px] font-label-bold">Početna</span>
-    </a>
-    <a class="flex flex-col items-center justify-center text-on-surface-variant" href="{{ route('competitions.index') }}">
-        <span class="material-symbols-outlined">emoji_events</span>
-        <span class="text-[10px] font-label-bold">Takmičenja</span>
-    </a>
-    <a class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-full px-4 py-1" href="{{ route('venues.public.index') }}">
-        <span class="material-symbols-outlined">location_on</span>
-        <span class="text-[10px] font-label-bold">Tereni</span>
-    </a>
-</nav>
+@include('public.leagues._bottom-nav')
 
 </body>
 </html>
