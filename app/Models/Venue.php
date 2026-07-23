@@ -26,14 +26,6 @@ class Venue extends Model
     ];
 
     /**
-     * Get the route key for the model.
-     */
-    public function getRouteKeyName(): string
-    {
-        return 'slug';
-    }
-
-    /**
      * The actual logo URL to render - an uploaded file (stored on the
      * public disk, in the `logo` column) takes precedence over a pasted
      * external URL (`logo_url`).

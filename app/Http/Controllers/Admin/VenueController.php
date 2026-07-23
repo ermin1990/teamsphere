@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\City;
 use App\Models\Venue;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class VenueController extends Controller
 {
@@ -26,7 +27,9 @@ class VenueController extends Controller
             'contact_email' => ['nullable', 'email', 'max:255'],
         ]);
 
-        Venue::create($request->only('name', 'city_id', 'address', 'contact_email'));
+        Venue::create($request->only('name', 'city_id', 'address', 'contact_email') + [
+            'slug' => $this->uniqueSlug($request->input('name')),
+        ]);
 
         return redirect()->route('admin.venues.index')->with('status', 'Teren je dodan.');
     }
@@ -50,5 +53,22 @@ class VenueController extends Controller
         $venue->delete();
 
         return redirect()->route('admin.venues.index')->with('status', 'Teren je obrisan.');
+    }
+
+    /**
+     * Generate a unique slug from the venue name, following the same
+     * convention as the self-service VenueController.
+     */
+    private function uniqueSlug(string $name): string
+    {
+        $base = Str::slug($name);
+        $slug = $base;
+        $i = 1;
+
+        while (Venue::where('slug', $slug)->exists()) {
+            $slug = $base . '-' . (++$i);
+        }
+
+        return $slug;
     }
 }
