@@ -55,9 +55,14 @@ class CompetitionController extends Controller
      * are currently joinable - registration_open, individual (not
      * team-based) and the registration deadline (if any) hasn't passed.
      * Mirrors the eligibility checks in CompetitionJoinRequestController::store.
+     * Returns leagues regardless of whether the authenticated user is
+     * already a member - each result carries `is_member`, and the `member`
+     * query param can filter to just one side.
      */
     public function publicIndex(Request $request): JsonResponse
     {
+        $userId = $request->user()->id;
+
         $query = Competition::where('is_public', true)
             ->where('status', 'active')
             ->where('type', 'league')
@@ -84,7 +89,14 @@ class CompetitionController extends Controller
             $query->where('city_id', $cityId);
         }
 
-        $competitions = $query->withCount(['players', 'matches'])
+        if ($request->has('member')) {
+            $method = $request->boolean('member') ? 'whereHas' : 'whereDoesntHave';
+            $query->{$method}('players', fn ($q) => $q->where('players.user_id', $userId));
+        }
+
+        $competitions = $query
+            ->withExists(['players as is_member' => fn ($q) => $q->where('players.user_id', $userId)])
+            ->withCount(['players', 'matches'])
             ->orderByDesc('created_at')
             ->paginate($this->perPage($request));
 

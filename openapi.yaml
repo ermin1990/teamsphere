@@ -162,6 +162,7 @@ components:
         players_count: { type: integer, nullable: true }
         matches_count: { type: integer, nullable: true }
         groups_count: { type: integer, nullable: true }
+        is_member: { type: boolean, nullable: true, description: "Da li je prijavljeni korisnik već član - prisutno samo na GET /competitions" }
         created_at: { type: string, format: date-time }
         updated_at: { type: string, format: date-time }
 
@@ -430,8 +431,10 @@ paths:
         Samo lige (`type=league`, ne turniri) koje su javne (`is_public=true`), aktivne,
         pojedinačne (`is_team_based=false`) i trenutno otvorene za prijave
         (`registration_open=true`, rok za prijavu ako postoji nije prošao) - isti uslovi
-        koje provjerava POST /competitions/{competition}/join-requests. Ovo NIJE isto što
-        i /me/competitions (to su takmičenja u kojima je prijavljeni igrač VEĆ učlanjen).
+        koje provjerava POST /competitions/{competition}/join-requests. Vraća i lige gdje
+        je prijavljeni korisnik već član i one gdje nije (vidi `is_member` u odgovoru i
+        `member` filter niže) - ovo NIJE isto što i /me/competitions (to su SAMO
+        takmičenja u kojima je prijavljeni igrač već učlanjen).
       parameters:
         - name: search
           in: query
@@ -443,6 +446,12 @@ paths:
         - name: city_id
           in: query
           schema: { type: integer }
+        - name: member
+          in: query
+          description: >
+            Filtriraj po članstvu prijavljenog korisnika - `true` vraća samo lige gdje je već
+            član, `false` samo one gdje nije. Izostavljeno = obje, razlikuju se preko `is_member`.
+          schema: { type: boolean }
         - name: per_page
           in: query
           schema: { type: integer, default: 20, maximum: 100 }
