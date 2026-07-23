@@ -27,6 +27,29 @@
             </a>
         </div>
 
+        @if($competition->is_team_based)
+        <div class="bg-gray-800/50 rounded-lg p-4">
+            <div class="flex items-center mb-2">
+                <div class="w-8 h-8 rounded-full {{ $competition->teams->count() > 0 ? 'bg-green-600' : 'bg-gray-600' }} flex items-center justify-center mr-3">
+                    @if($competition->teams->count() > 0)
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                    @else
+                        <span class="text-white font-bold text-sm">2</span>
+                    @endif
+                </div>
+                <h4 class="text-white font-semibold">Ekipe / Parovi</h4>
+            </div>
+            <p class="text-gray-400 text-sm mb-3">
+                {{ $competition->teams->count() }} ekipa kreirano - napravite ekipu (npr. par za Padel) i odmah dodajte igrače u nju
+            </p>
+            <a href="{{ route('organizations.teams.index', [$organization, 'competition_id' => $competition->id]) }}"
+               class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-3 py-2 rounded transition-colors inline-block">
+                Upravljaj Ekipama
+            </a>
+        </div>
+        @else
         <div class="bg-gray-800/50 rounded-lg p-4">
             <div class="flex items-center mb-2">
                 <div class="w-8 h-8 rounded-full {{ $competition->players->count() > 0 ? 'bg-green-600' : 'bg-gray-600' }} flex items-center justify-center mr-3">
@@ -44,27 +67,6 @@
             <a href="{{ route('organizations.competitions.manage-players', [$organization, $competition]) }}"
                class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-3 py-2 rounded transition-colors inline-block">
                 Upravljaj Igračima
-            </a>
-        </div>
-
-        @if($competition->is_team_based)
-        <div class="bg-gray-800/50 rounded-lg p-4">
-            <div class="flex items-center mb-2">
-                <div class="w-8 h-8 rounded-full {{ $competition->teams->count() > 0 ? 'bg-green-600' : 'bg-gray-600' }} flex items-center justify-center mr-3">
-                    @if($competition->teams->count() > 0)
-                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                        </svg>
-                    @else
-                        <span class="text-white font-bold text-sm">3</span>
-                    @endif
-                </div>
-                <h4 class="text-white font-semibold">Ekipe i Rosteri</h4>
-            </div>
-            <p class="text-gray-400 text-sm mb-3">{{ $competition->teams->count() }} ekipa kreirano</p>
-            <a href="{{ route('organizations.teams.index', [$organization, 'competition_id' => $competition->id]) }}"
-               class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-3 py-2 rounded transition-colors inline-block">
-                Upravljaj Ekipama
             </a>
         </div>
         @endif
@@ -122,7 +124,7 @@
                             </svg>
                         @else
                             <span class="text-white font-bold text-sm">
-                                @if($competition->type === 'tournament') 4 @elseif($competition->is_team_based) 4 @else 3 @endif
+                                @if($competition->type === 'tournament') 4 @else 3 @endif
                             </span>
                         @endif
                     </div>
