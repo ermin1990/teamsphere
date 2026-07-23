@@ -33,6 +33,9 @@ class DashboardController extends Controller
         // (which would otherwise still populate $allOrganizationIds above).
         // A freshly registered organizer who hasn't created their first
         // organization yet is sent there instead of being misread as a player.
+        if ($user->needsVenueOnboarding()) {
+            return redirect()->route('venues.create');
+        }
         if ($user->needsOrganizationOnboarding()) {
             return redirect()->route('organizations.create');
         }

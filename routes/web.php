@@ -143,6 +143,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('organizations/{organization}/competitions/{competition}/join-requests/{joinRequest}/approve', [\App\Http\Controllers\CompetitionJoinRequestController::class, 'approve'])->name('organizations.competitions.join-requests.approve');
     Route::post('organizations/{organization}/competitions/{competition}/join-requests/{joinRequest}/reject', [\App\Http\Controllers\CompetitionJoinRequestController::class, 'reject'])->name('organizations.competitions.join-requests.reject');
 
+    // Venue (teren) self-service routes
+    Route::resource('venues', \App\Http\Controllers\VenueController::class)->only(['index', 'create', 'store', 'edit', 'update']);
+    Route::get('/tereni-povezivanje', [\App\Http\Controllers\VenueClaimController::class, 'index'])->name('venues.claim.index');
+    Route::post('/tereni-povezivanje/{venue}', [\App\Http\Controllers\VenueClaimController::class, 'store'])->name('venues.claim.store');
+
     // Organization routes
     Route::resource('organizations', OrganizationController::class);
     Route::get('organizations/{organization}/pravila', [OrganizationController::class, 'showRules'])->name('organizations.rules');
@@ -391,6 +396,9 @@ Route::name('competitions.')->group(function () {
     Route::get('/takmicenja/{competition}/ekipni-mecevi/{teamMatch}', [App\Http\Controllers\PublicMatchController::class, 'showTeamMatch'])->name('team-matches.show');
     Route::get('/takmicenja/{competition}/mecevi/{match}/uzivo', [App\Http\Controllers\PublicMatchController::class, 'liveScore'])->name('matches.live');
 });
+
+// Public venue (teren) profile
+Route::get('/tereni/{venue:slug}', [App\Http\Controllers\PublicMatchController::class, 'showVenue'])->name('venues.public.show');
 
 // Public team/club profile
 Route::get('/tim/{team}', [App\Http\Controllers\PublicMatchController::class, 'showTeam'])->name('teams.show');

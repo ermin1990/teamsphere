@@ -11,7 +11,7 @@ class VenueController extends Controller
 {
     public function index()
     {
-        $venues = Venue::with('city')->orderBy('name')->get();
+        $venues = Venue::with(['city', 'user'])->orderBy('name')->get();
         $cities = City::orderBy('name')->get();
 
         return view('admin.venues.index', compact('venues', 'cities'));
@@ -23,9 +23,10 @@ class VenueController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'city_id' => ['nullable', 'exists:cities,id'],
             'address' => ['nullable', 'string', 'max:255'],
+            'contact_email' => ['nullable', 'email', 'max:255'],
         ]);
 
-        Venue::create($request->only('name', 'city_id', 'address'));
+        Venue::create($request->only('name', 'city_id', 'address', 'contact_email'));
 
         return redirect()->route('admin.venues.index')->with('status', 'Teren je dodan.');
     }
@@ -36,9 +37,10 @@ class VenueController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'city_id' => ['nullable', 'exists:cities,id'],
             'address' => ['nullable', 'string', 'max:255'],
+            'contact_email' => ['nullable', 'email', 'max:255'],
         ]);
 
-        $venue->update($request->only('name', 'city_id', 'address'));
+        $venue->update($request->only('name', 'city_id', 'address', 'contact_email'));
 
         return redirect()->route('admin.venues.index')->with('status', 'Teren je izmijenjen.');
     }

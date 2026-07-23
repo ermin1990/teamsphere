@@ -11,6 +11,7 @@ use App\Models\TeamMatch;
 use App\Models\Organization;
 use App\Models\Player;
 use App\Models\Team;
+use App\Models\Venue;
 use Illuminate\Http\Request;
 
 class PublicMatchController extends Controller
@@ -151,6 +152,49 @@ class PublicMatchController extends Controller
         $announcements = $organization->organizationWideAnnouncements()->latest()->get();
 
         return view('public.leagues.organization-announcements', compact('organization', 'announcements'));
+    }
+
+    /**
+     * Display the public profile page for a venue (teren): its info plus
+     * the public competitions that have played matches there and a feed of
+     * recent/upcoming matches at this venue.
+     */
+    public function showVenue(Venue $venue)
+    {
+        $venue->load('city', 'user');
+
+        $competitionIds = LeagueMatch::where('venue_id', $venue->id)->pluck('competition_id')
+            ->merge(\App\Models\CompetitionMatch::where('venue_id', $venue->id)->pluck('competition_id'))
+            ->unique();
+
+        $competitions = Competition::whereIn('id', $competitionIds)
+            ->where('is_public', true)
+            ->with(['organization', 'sport'])
+            ->orderByDesc('updated_at')
+            ->get();
+
+        $publicCompetitionIds = $competitions->pluck('id');
+
+        $recentLeagueMatches = LeagueMatch::where('venue_id', $venue->id)
+            ->whereIn('competition_id', $publicCompetitionIds)
+            ->with(['competition', 'homePlayer', 'awayPlayer', 'homeTeam', 'awayTeam'])
+            ->orderByDesc('scheduled_at')
+            ->limit(15)
+            ->get();
+
+        $recentTournamentMatches = \App\Models\CompetitionMatch::where('venue_id', $venue->id)
+            ->whereIn('competition_id', $publicCompetitionIds)
+            ->with(['competition', 'homePlayer', 'awayPlayer'])
+            ->orderByDesc('scheduled_at')
+            ->limit(15)
+            ->get();
+
+        $recentMatches = $recentLeagueMatches->concat($recentTournamentMatches)
+            ->sortByDesc(fn ($match) => $match->scheduled_at ?? $match->created_at)
+            ->take(15)
+            ->values();
+
+        return view('public.venues.show', compact('venue', 'competitions', 'recentMatches'));
     }
 
     /**

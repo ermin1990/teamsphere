@@ -41,6 +41,10 @@ class VenueController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'city_id' => ['nullable', 'exists:cities,id'],
             'address' => ['nullable', 'string', 'max:255'],
+            'description' => ['nullable', 'string', 'max:1000'],
+            'contact_email' => ['nullable', 'email', 'max:255'],
+            'phone' => ['nullable', 'string', 'max:50'],
+            'website' => ['nullable', 'url', 'max:255'],
         ]);
 
         $venue = Venue::create($validated);
@@ -56,6 +60,10 @@ class VenueController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'city_id' => ['nullable', 'exists:cities,id'],
             'address' => ['nullable', 'string', 'max:255'],
+            'description' => ['nullable', 'string', 'max:1000'],
+            'contact_email' => ['nullable', 'email', 'max:255'],
+            'phone' => ['nullable', 'string', 'max:50'],
+            'website' => ['nullable', 'url', 'max:255'],
         ]);
 
         $venue->update($validated);

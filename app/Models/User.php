@@ -27,6 +27,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'google_id',
         'avatar',
         'theme',
+        'role',
     ];
 
     /**
@@ -91,6 +92,32 @@ class User extends Authenticatable implements MustVerifyEmail
     public function playerProfile(): HasOne
     {
         return $this->hasOne(Player::class);
+    }
+
+    /**
+     * Get the venues (tereni) this user owns/manages.
+     */
+    public function venues(): HasMany
+    {
+        return $this->hasMany(Venue::class);
+    }
+
+    /**
+     * Whether this user owns at least one venue.
+     */
+    public function isVenueOwner(): bool
+    {
+        return $this->venues()->exists();
+    }
+
+    /**
+     * A user who registered choosing the "venue" role but hasn't created or
+     * claimed a venue yet - sent to venue creation instead of the generic
+     * organizer/player onboarding (see needsOrganizationOnboarding()).
+     */
+    public function needsVenueOnboarding(): bool
+    {
+        return $this->role === 'venue' && !$this->isVenueOwner();
     }
 
     /**

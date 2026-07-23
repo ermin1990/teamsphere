@@ -48,6 +48,11 @@
                        class="w-full px-4 py-2 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
             <div class="md:col-span-3">
+                <label class="block text-sm font-medium text-gray-400 mb-2">Kontakt email <span class="text-xs">(vlasnik terena će moći povezati svoj nalog preko ovog email-a)</span></label>
+                <input type="email" name="contact_email"
+                       class="w-full px-4 py-2 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div class="md:col-span-3">
                 <button type="submit" class="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-medium rounded-lg transition-all duration-200">
                     Dodaj teren
                 </button>
@@ -64,6 +69,7 @@
                     <th class="px-6 py-4 text-gray-400 text-sm font-medium">Naziv</th>
                     <th class="px-6 py-4 text-gray-400 text-sm font-medium">Grad</th>
                     <th class="px-6 py-4 text-gray-400 text-sm font-medium">Adresa</th>
+                    <th class="px-6 py-4 text-gray-400 text-sm font-medium">Vlasnik</th>
                     <th class="px-6 py-4 text-gray-400 text-sm font-medium text-right">Akcije</th>
                 </tr>
             </thead>
@@ -73,6 +79,13 @@
                         <td class="px-6 py-4 text-white font-medium">{{ $venue->name }}</td>
                         <td class="px-6 py-4 text-gray-300">{{ $venue->city->name ?? '—' }}</td>
                         <td class="px-6 py-4 text-gray-300">{{ $venue->address ?? '—' }}</td>
+                        <td class="px-6 py-4">
+                            @if($venue->user)
+                                <span class="text-green-400 text-sm">{{ $venue->user->name }}</span>
+                            @else
+                                <span class="text-gray-500 text-sm">Nepovezano{{ $venue->contact_email ? ' (' . $venue->contact_email . ')' : '' }}</span>
+                            @endif
+                        </td>
                         <td class="px-6 py-4 text-right">
                             <form method="POST" action="{{ route('admin.venues.destroy', $venue) }}"
                                   onsubmit="return confirm('Obrisati teren {{ $venue->name }}?')" class="inline">
@@ -84,7 +97,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="4" class="px-6 py-8 text-center text-gray-500">Nema dodanih terena.</td>
+                        <td colspan="5" class="px-6 py-8 text-center text-gray-500">Nema dodanih terena.</td>
                     </tr>
                 @endforelse
             </tbody>
