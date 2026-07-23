@@ -185,9 +185,14 @@
                             @if($competition->season) &middot; {{ $competition->season->name }} @endif
                         </p>
                     </div>
-                    <div class="shrink-0">
+                    <div class="shrink-0 flex items-center gap-2">
                         @if($memberCompetitionIds->contains($competition->id))
                             <span class="px-3 py-1.5 text-xs rounded-full font-semibold bg-primary-soft text-primary">Već si član</span>
+                            @if(!$competition->is_team_based && $competition->status === 'active')
+                                <a href="{{ route('player.matches.create', $competition) }}" class="px-3 py-1.5 text-xs rounded-full font-semibold bg-primary-container text-on-primary-container inline-flex items-center gap-1 hover:opacity-90 transition-all">
+                                    <span class="material-symbols-outlined text-sm">add</span> Novi meč
+                                </a>
+                            @endif
                         @elseif($pendingCompetitionIds->contains($competition->id))
                             <span class="px-3 py-1.5 text-xs rounded-full font-semibold bg-secondary-soft text-secondary">Zahtjev poslan</span>
                         @elseif($competition->is_team_based)

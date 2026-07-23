@@ -341,38 +341,30 @@
                                 $cLive = $competition->status === 'in_progress';
                                 $cCompleted = $competition->status === 'completed';
                                 $cUpcomingOpen = !$cCompleted && !$cLive && $competition->registration_open
-                                    && (!$competition->start_date || $competition->start_date->isFuture());
+                                    && (!$competition->start_date || $competition->start_date->copy()->startOfDay()->gte(now()->startOfDay()))
+                                    && (!$competition->registration_deadline || $competition->registration_deadline->isFuture());
+                                $cCanApply = $cUpcomingOpen && !$competition->is_team_based;
                                 $badge = $cCompleted ? 'Završeno' : ($cLive ? 'U toku' : ($cUpcomingOpen ? 'Prijave otvorene' : 'Aktivno'));
                             @endphp
-                            @if($statusFilter === 'uskoro')
-                                <div class="flex items-center justify-between gap-3 px-4 py-3 hover:bg-surface-variant/30 transition-colors">
-                                    <a href="{{ route('competitions.show', $competition) }}" class="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
-                                        <span class="material-symbols-outlined text-on-surface-variant text-lg shrink-0">{{ $sportIcon($competition->sport) }}</span>
-                                        <span class="font-body-md text-sm lg:text-base text-on-surface truncate">{{ $competition->name }}</span>
-                                        <span class="hidden md:inline text-xs text-on-surface-variant truncate shrink-0">{{ $competition->effectiveCity()?->name ?? '' }}</span>
-                                        <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase shrink-0 bg-secondary/10 text-secondary">
-                                            {{ $badge }}
-                                        </span>
-                                    </a>
-                                    <a href="{{ route('player.leagues.index') }}" class="shrink-0 px-3 py-1.5 rounded-full bg-primary text-on-primary text-xs font-label-bold hover:bg-primary-container transition-colors">
-                                        Prijavi se
-                                    </a>
-                                </div>
-                            @else
-                                <a href="{{ route('competitions.show', $competition) }}" class="flex items-center justify-between gap-3 px-4 py-3 hover:bg-surface-variant/30 transition-colors group">
-                                    <div class="flex items-center gap-3 sm:gap-4 min-w-0">
-                                        <span class="material-symbols-outlined text-on-surface-variant text-lg shrink-0">{{ $sportIcon($competition->sport) }}</span>
-                                        <span class="font-body-md text-sm lg:text-base text-on-surface truncate">{{ $competition->name }}</span>
-                                        <span class="hidden md:inline text-xs text-on-surface-variant truncate shrink-0">{{ $competition->effectiveCity()?->name ?? '' }}</span>
-                                        <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase shrink-0 {{ $cCompleted ? 'bg-outline-variant/20 text-on-surface-variant' : ($cLive ? 'bg-primary/10 text-primary animate-pulse' : 'bg-secondary/10 text-secondary') }}">
+                            <div class="flex items-center justify-between gap-3 px-4 py-3 hover:bg-surface-variant/30 transition-colors group">
+                                <a href="{{ route('competitions.show', $competition) }}" class="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
+                                    <span class="material-symbols-outlined text-on-surface-variant text-lg shrink-0">{{ $sportIcon($competition->sport) }}</span>
+                                    <span class="font-body-md text-sm lg:text-base text-on-surface truncate">{{ $competition->name }}</span>
+                                    <span class="hidden md:inline text-xs text-on-surface-variant truncate shrink-0">{{ $competition->effectiveCity()?->name ?? '' }}</span>
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase shrink-0 {{ $cCompleted ? 'bg-outline-variant/20 text-on-surface-variant' : ($cLive ? 'bg-primary/10 text-primary animate-pulse' : 'bg-secondary/10 text-secondary') }}">
                                         {{ $badge }}
                                     </span>
-                                    </div>
-                                    <span class="text-primary opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 text-xs font-label-bold shrink-0">
-                                        Pogledaj <span class="material-symbols-outlined text-xs">chevron_right</span>
-                                    </span>
                                 </a>
-                            @endif
+                                @if($cCanApply)
+                                    <a href="{{ route('competitions.show', $competition) }}" class="shrink-0 px-3 py-1.5 rounded-full bg-primary text-on-primary text-xs font-label-bold hover:bg-primary-container transition-colors">
+                                        Prijavi se
+                                    </a>
+                                @else
+                                    <a href="{{ route('competitions.show', $competition) }}" class="text-primary opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 text-xs font-label-bold shrink-0">
+                                        Pogledaj <span class="material-symbols-outlined text-xs">chevron_right</span>
+                                    </a>
+                                @endif
+                            </div>
                         @endforeach
                     </div>
                 </div>

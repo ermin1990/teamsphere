@@ -139,57 +139,32 @@
         <div class="mb-6 rounded-xl p-4 text-sm bg-primary/10 border border-primary/30 text-primary">{{ session('success') }}</div>
     @endif
 
-    @php
-        $singleCompetition = request()->filled('competition_id')
-            ? $competitions->firstWhere('id', (int) request('competition_id'))
-            : ($competitions->count() === 1 ? $competitions->first() : null);
-
-        $newMatchCompetitions = \App\Models\Competition::whereHas('players', function ($q) {
-                $q->where('players.user_id', auth()->id());
-            })
-            ->where('is_team_based', false)
-            ->where('status', 'active')
-            ->orderBy('name')
-            ->get();
-    @endphp
-
     <!-- Page Header -->
     <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-4 lg:gap-6 mb-6 lg:mb-8">
         <div>
             <h1 class="font-headline-lg-mobile lg:font-display text-headline-lg-mobile lg:text-headline-lg text-primary tracking-tight">Moji mečevi</h1>
             <p class="text-on-surface-variant text-sm lg:text-base mt-1">Svi tvoji mečevi u svim takmičenjima</p>
-            @if($singleCompetition)
-                <a href="{{ route('player.leagues.show', $singleCompetition) }}" class="inline-flex items-center gap-1 text-primary text-sm font-label-bold mt-2 hover:underline">
-                    Pogledaj ligu <span class="material-symbols-outlined text-sm">arrow_forward</span>
-                </a>
-            @endif
         </div>
-
-        @if($newMatchCompetitions->count() === 1)
-            <a href="{{ route('player.matches.create', $newMatchCompetitions->first()) }}"
-               class="inline-flex items-center gap-1.5 self-start bg-primary-container text-on-primary-container font-label-bold px-4 py-2.5 lg:px-6 rounded-full hover:opacity-90 transition-all active:scale-95">
-                <span class="material-symbols-outlined text-lg">add</span> Novi meč
-            </a>
-        @elseif($newMatchCompetitions->count() > 1)
-            <select onchange="if(this.value) window.location = this.value;"
-                    class="self-start bg-primary-container text-on-primary-container font-label-bold px-4 py-2.5 lg:px-6 rounded-full border-0 focus:ring-2 focus:ring-primary transition-all">
-                <option value="">+ Novi meč...</option>
-                @foreach($newMatchCompetitions as $newMatchCompetition)
-                    <option value="{{ route('player.matches.create', $newMatchCompetition) }}">{{ $newMatchCompetition->name }}</option>
-                @endforeach
-            </select>
-        @endif
     </div>
 
     <!-- Filters -->
-    @if($seasons->count() > 1 || $competitions->count() > 1 || $rounds->count() > 1)
-        <form method="GET" action="{{ route('player.dashboard.matches') }}" class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6 lg:mb-8">
+    @if($seasons->count() > 1 || $sports->count() > 1 || $competitions->count() > 1 || $rounds->count() > 1)
+        <form method="GET" action="{{ route('player.dashboard.matches') }}" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-6 lg:mb-8">
             @if($seasons->count() > 1)
                 <select name="season_id" onchange="this.form.submit()"
                         class="w-full px-4 py-2.5 rounded-xl text-sm bg-surface-container-low border border-outline-variant text-on-surface focus:outline-none focus:border-primary transition-all">
                     <option value="">Sve sezone</option>
                     @foreach($seasons as $season)
                         <option value="{{ $season->id }}" {{ (string) request('season_id') === (string) $season->id ? 'selected' : '' }}>{{ $season->name }}</option>
+                    @endforeach
+                </select>
+            @endif
+            @if($sports->count() > 1)
+                <select name="sport_id" onchange="this.form.submit()"
+                        class="w-full px-4 py-2.5 rounded-xl text-sm bg-surface-container-low border border-outline-variant text-on-surface focus:outline-none focus:border-primary transition-all">
+                    <option value="">Svi sportovi</option>
+                    @foreach($sports as $sport)
+                        <option value="{{ $sport->id }}" {{ (string) request('sport_id') === (string) $sport->id ? 'selected' : '' }}>{{ $sport->name }}</option>
                     @endforeach
                 </select>
             @endif
@@ -263,7 +238,9 @@
                 <div class="p-4">
                     <div class="flex items-center justify-between gap-2 mb-3">
                         <p class="font-label-bold text-[11px] text-on-surface-variant uppercase truncate">
-                            {{ $competition->name ?? '' }}
+                            @if($competition)
+                                <a href="{{ route('player.leagues.show', $competition) }}" class="hover:text-primary hover:underline">{{ $competition->name }}</a>
+                            @endif
                             @if($match->scheduled_at || $match->played_at) &middot; {{ optional($match->played_at ?? $match->scheduled_at)->format('d.m.Y. H:i') }} @endif
                         </p>
                         @if($scheduled)

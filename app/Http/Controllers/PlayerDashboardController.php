@@ -103,12 +103,16 @@ class PlayerDashboardController extends Controller
         });
 
         $competitionIds = $playerMatches()->distinct()->pluck('competition_id');
-        $competitions = Competition::whereIn('id', $competitionIds)->with('season')->orderBy('name')->get();
+        $competitions = Competition::whereIn('id', $competitionIds)->with(['season', 'sport'])->orderBy('name')->get();
         $seasons = $competitions->pluck('season')->filter()->unique('id')->sortBy('name')->values();
+        $sports = $competitions->pluck('sport')->filter()->unique('id')->sortBy('name')->values();
 
         $filteredQuery = fn () => $playerMatches()
             ->when($request->filled('season_id'), function ($query) use ($competitions, $request) {
                 $query->whereIn('competition_id', $competitions->where('season_id', $request->season_id)->pluck('id'));
+            })
+            ->when($request->filled('sport_id'), function ($query) use ($competitions, $request) {
+                $query->whereIn('competition_id', $competitions->where('sport_id', $request->sport_id)->pluck('id'));
             })
             ->when($request->filled('competition_id'), fn ($query) => $query->where('competition_id', $request->competition_id));
 
@@ -126,6 +130,6 @@ class PlayerDashboardController extends Controller
             ->paginate(20)
             ->withQueryString();
 
-        return view('player.matches.index', compact('matches', 'playerIds', 'competitions', 'seasons', 'rounds'));
+        return view('player.matches.index', compact('matches', 'playerIds', 'competitions', 'seasons', 'sports', 'rounds'));
     }
 }

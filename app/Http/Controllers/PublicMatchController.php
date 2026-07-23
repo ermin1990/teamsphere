@@ -73,7 +73,7 @@ class PublicMatchController extends Controller
             $competitionsQuery->where('registration_open', true)
                 ->whereIn('status', ['draft', 'active'])
                 ->where(fn ($q) => $q->whereNull('registration_deadline')->orWhere('registration_deadline', '>=', now()))
-                ->where(fn ($q) => $q->whereNull('start_date')->orWhere('start_date', '>', now()));
+                ->where(fn ($q) => $q->whereNull('start_date')->orWhere('start_date', '>=', now()->startOfDay()));
         }
 
         // Grouped by organization (sorted alphabetically) so visitors can
