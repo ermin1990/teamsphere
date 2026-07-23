@@ -78,6 +78,35 @@ class PlayerMatchController extends Controller
     }
 
     /**
+     * All matches in the competition, grouped by round - unlike index()/
+     * upcoming()/completed() above this is NOT filtered to the caller's own
+     * matches. Visibility mirrors show() below (public competition, member,
+     * or the organizing owner), not the stricter "must be a member" check
+     * used by CompetitionController::myCompetition/standings.
+     */
+    public function competitionMatches(Request $request, Competition $competition): JsonResponse
+    {
+        $isMember = $competition->players()->where('players.user_id', $request->user()->id)->exists();
+        $isOwner = $request->user()->id === $competition->organization->user_id;
+
+        abort_unless($competition->is_public || $isMember || $isOwner, 403);
+
+        $rounds = $competition->matches()
+            ->with(['competition.organization', 'homePlayer', 'awayPlayer', 'homeTeam', 'awayTeam', 'venue'])
+            ->orderBy('round')
+            ->orderBy('match_order')
+            ->get()
+            ->groupBy('round');
+
+        $data = $rounds->map(fn ($matches, $round) => [
+            'round' => (int) $round,
+            'matches' => CompetitionMatchResource::collection($matches->values()),
+        ])->values();
+
+        return $this->ok($data);
+    }
+
+    /**
      * Match details - visible to anyone if the competition is public,
      * otherwise only to members/the organization owner - mirrors the
      * visibility check in PlayerLeagueController::show.

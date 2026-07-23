@@ -4,10 +4,10 @@ info:
   version: "1.0"
   description: |
     REST API za MojTurnir (Laravel 12 / Sanctum token auth). Namjerno svedena na minimalan
-    skup igračkih endpoint-a - prijava, "moje" podaci (moja takmičenja, moji mečevi),
-    samostalni unos meča/rezultata, plus javni referentni podaci (sportovi, gradovi). Svi
-    ostali endpoint-i (organizatorski CRUD, timovi, lige, standing-i, upload, tokeni itd.)
-    su ukinuti.
+    skup igračkih endpoint-a - prijava, "moje" podaci (moja takmičenja, moji mečevi,
+    tabela takmičenja, svi mečevi takmičenja), samostalni unos meča/rezultata, plus javni
+    referentni podaci (sportovi, gradovi). Svi ostali endpoint-i (organizatorski CRUD,
+    timovi, lige, upload, tokeni itd.) su ukinuti.
 
     Svi odgovori su omotani u istu envelopu:
       { "success": true|false, "data": ..., "message": "..." }
@@ -206,6 +206,29 @@ components:
         away_captain_id: { type: integer, nullable: true }
         created_at: { type: string, format: date-time }
         updated_at: { type: string, format: date-time }
+
+    PlayerStanding:
+      type: object
+      description: >
+        Redak tabele - isti oblik za pojedinačna i ekipna takmičenja
+        (player_id/player_name se odnose na ekipu kad je takmičenje ekipno).
+      properties:
+        rank: { type: integer, description: "Pozicija u tabeli, 1 = prvo mjesto" }
+        player_id: { type: integer, nullable: true }
+        player_name: { type: string }
+        played: { type: integer, description: "Broj odigranih mečeva" }
+        wins: { type: integer }
+        losses: { type: integer }
+        set_difference: { type: string, description: "Razlika setova sa predznakom, npr. \"+2\", \"-2\", \"0\"" }
+        points: { type: integer }
+
+    MatchRound:
+      type: object
+      properties:
+        round: { type: integer }
+        matches:
+          type: array
+          items: { $ref: "#/components/schemas/CompetitionMatch" }
 
     CompetitionJoinRequest:
       type: object
@@ -490,6 +513,37 @@ paths:
               schema: { $ref: "#/components/schemas/Envelope" }
         "404": { $ref: "#/components/responses/NotFound" }
 
+  /me/competitions/{competition}/standings:
+    get:
+      tags: [Auth]
+      summary: Tabela takmičenja - lista svih igrača/ekipa sa trenutnom pozicijom
+      description: |
+        Isti uslov članstva kao GET /me/competitions/{competition} - 403 ako prijavljeni
+        korisnik nije učlanjen kao igrač. Sortirano po `rank` rastuće. Za turnir sa više
+        grupa vraća redove iz svih grupa zajedno (svaka grupa sortirana zasebno po poziciji,
+        bez posebnog polja koje označava kojoj grupi red pripada).
+      parameters: [{ $ref: "#/components/parameters/CompetitionSlug" }]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items: { $ref: "#/components/schemas/PlayerStanding" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403":
+          description: "Prijavljeni korisnik nije prijavljen kao igrač na ovom takmičenju"
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Envelope" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
   /competitions:
     get:
       tags: [Competitions]
@@ -519,6 +573,10 @@ paths:
           schema: { type: integer }
         - name: city_id
           in: query
+          schema: { type: integer }
+        - name: organization_id
+          in: query
+          description: Filtriraj samo na takmičenja jedne organizacije ("Sva takmičenja organizacije" dugme)
           schema: { type: integer }
         - name: member
           in: query
@@ -658,6 +716,38 @@ paths:
         "401": { $ref: "#/components/responses/Unauthorized" }
 
   /me/competitions/{competition}/matches:
+    get:
+      tags: [PlayerMatches]
+      summary: Svi mečevi takmičenja, grupisani po kolu (round)
+      description: |
+        Vraća SVE mečeve u takmičenju, ne samo mečeve prijavljenog korisnika - uključuje
+        i mečeve u kojima prijavljeni korisnik ne učestvuje. Grupisano po `round`, sortirano
+        rastuće po kolu pa po redoslijedu meča unutar kola; svaki element `matches` niza ima
+        isti oblik kao GET /me/matches (CompetitionMatch, sa home_player/away_player/
+        venue/competition uključenim). Vidljivost: takmičenje mora biti javno
+        (`is_public=true`), ILI prijavljeni korisnik mora biti učlanjen kao igrač, ILI biti
+        vlasnik organizacije koja vodi takmičenje - inače 403.
+      parameters: [{ $ref: "#/components/parameters/CompetitionSlug" }]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items: { $ref: "#/components/schemas/MatchRound" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403":
+          description: "Takmičenje nije javno, prijavljeni korisnik nije član niti vlasnik organizacije"
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Envelope" }
+        "404": { $ref: "#/components/responses/NotFound" }
     post:
       tags: [PlayerMatches]
       summary: Zabilježi novi meč (rezultat) protiv odabranog protivnika iz istog takmičenja

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Api\V1\Concerns\ApiResponses;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Api\V1\CompetitionResource;
+use App\Http\Resources\Api\V1\PlayerStandingResource;
 use App\Models\Competition;
 use App\Models\Organization;
 use App\Models\Standing;
@@ -90,6 +91,10 @@ class CompetitionController extends Controller
 
         if ($cityId = $request->input('city_id')) {
             $query->where('city_id', $cityId);
+        }
+
+        if ($organizationId = $request->input('organization_id')) {
+            $query->where('organization_id', $organizationId);
         }
 
         if ($request->has('member')) {
@@ -233,6 +238,29 @@ class CompetitionController extends Controller
             ->loadCount(['players', 'matches']);
 
         return $this->ok(new CompetitionResource($competition));
+    }
+
+    /**
+     * Standings table for a competition - membership gated like
+     * myCompetition() above. For a tournament this returns every group's
+     * rows combined (still flat, ordered by position within each group);
+     * clients that need per-group standings should filter client-side or
+     * use the organizer-facing GET .../standings?group_id= instead.
+     */
+    public function standings(Request $request, Competition $competition): JsonResponse
+    {
+        $isMember = $competition->players()->where('players.user_id', $request->user()->id)->exists();
+
+        if (!$isMember) {
+            return $this->fail('You are not registered for this competition.', 403);
+        }
+
+        $standings = $competition->standings()
+            ->with(['player', 'team'])
+            ->orderBy('position')
+            ->get();
+
+        return $this->ok(PlayerStandingResource::collection($standings));
     }
 
     /**

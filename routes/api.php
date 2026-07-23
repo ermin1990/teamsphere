@@ -27,9 +27,11 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         Route::get('/me', [AuthController::class, 'me'])->name('auth.me');
         Route::get('/me/competitions', [AuthController::class, 'myCompetitions'])->name('auth.competitions');
         Route::get('/me/competitions/{competition}', [CompetitionController::class, 'myCompetition'])->name('me.competitions.show');
+        Route::get('/me/competitions/{competition}/standings', [CompetitionController::class, 'standings'])->name('me.competitions.standings');
         Route::get('/me/matches', [PlayerMatchController::class, 'index'])->name('me.matches.index');
         Route::get('/me/matches/upcoming', [PlayerMatchController::class, 'upcoming'])->name('me.matches.upcoming');
         Route::get('/me/matches/completed', [PlayerMatchController::class, 'completed'])->name('me.matches.completed');
+        Route::get('/me/competitions/{competition}/matches', [PlayerMatchController::class, 'competitionMatches'])->name('me.competitions.matches.index');
         Route::post('/me/competitions/{competition}/matches', [PlayerMatchController::class, 'store'])->name('me.matches.store');
         Route::put('/me/matches/{match}/result', [PlayerMatchController::class, 'updateResult'])->name('me.matches.result.update');
 
