@@ -425,12 +425,13 @@ paths:
   /competitions:
     get:
       tags: [Competitions]
-      summary: Pretraga svih javno vidljivih aktivnih takmičenja
+      summary: Pretraga javno vidljivih liga na koje se trenutno može prijaviti
       description: |
-        Sva takmičenja (lige i turniri) koja su označena kao javna (`is_public=true`) i
-        trenutno u statusu `active`, preko svih organizacija - za pregled/otkrivanje, bez
-        obzira da li trenutno primaju prijave. Ovo NIJE isto što i /me/competitions (to su
-        takmičenja u kojima je prijavljeni igrač VEĆ učlanjen).
+        Samo lige (`type=league`, ne turniri) koje su javne (`is_public=true`), aktivne,
+        pojedinačne (`is_team_based=false`) i trenutno otvorene za prijave
+        (`registration_open=true`, rok za prijavu ako postoji nije prošao) - isti uslovi
+        koje provjerava POST /competitions/{competition}/join-requests. Ovo NIJE isto što
+        i /me/competitions (to su takmičenja u kojima je prijavljeni igrač VEĆ učlanjen).
       parameters:
         - name: search
           in: query

@@ -51,14 +51,22 @@ class CompetitionController extends Controller
     }
 
     /**
-     * Every publicly visible, currently active competition across every
-     * organization - unlike browse() above this isn't limited to
-     * competitions open for registration, it's for browsing/discovery.
+     * Publicly visible, active leagues (type=league, not tournaments) that
+     * are currently joinable - registration_open, individual (not
+     * team-based) and the registration deadline (if any) hasn't passed.
+     * Mirrors the eligibility checks in CompetitionJoinRequestController::store.
      */
     public function publicIndex(Request $request): JsonResponse
     {
         $query = Competition::where('is_public', true)
             ->where('status', 'active')
+            ->where('type', 'league')
+            ->where('registration_open', true)
+            ->where('is_team_based', false)
+            ->where(function ($q) {
+                $q->whereNull('registration_deadline')
+                  ->orWhere('registration_deadline', '>=', now());
+            })
             ->with(['organization', 'sport', 'city', 'season']);
 
         if ($search = $request->input('search')) {
