@@ -51,11 +51,15 @@ class CompetitionController extends Controller
     }
 
     /**
-     * Publicly visible, active leagues (type=league, not tournaments) that
-     * are currently joinable - registration_open, individual (not
-     * team-based) and the registration deadline (if any) hasn't passed.
-     * Mirrors the eligibility checks in CompetitionJoinRequestController::store.
-     * Returns leagues regardless of whether the authenticated user is
+     * Browse every competition open for registration - the mobile
+     * equivalent of the "Takmičenja" page (PlayerLeagueController::index).
+     * registration_open is the sole gate (separate from is_public, which
+     * only controls spectator visibility - see the migration note on
+     * add_registration_open_to_competitions_table), so this also includes
+     * draft-status, tournament and team-based competitions; team-based ones
+     * can't be self-joined via CompetitionJoinRequestController::store and
+     * should be flagged for "contact organizer" using `is_team_based`.
+     * Returns competitions regardless of whether the authenticated user is
      * already a member - each result carries `is_member`, and the `member`
      * query param can filter to just one side.
      */
@@ -63,11 +67,8 @@ class CompetitionController extends Controller
     {
         $userId = $request->user()->id;
 
-        $query = Competition::where('is_public', true)
-            ->where('status', 'active')
-            ->where('type', 'league')
-            ->where('registration_open', true)
-            ->where('is_team_based', false)
+        $query = Competition::where('registration_open', true)
+            ->whereIn('status', ['draft', 'active'])
             ->where(function ($q) {
                 $q->whereNull('registration_deadline')
                   ->orWhere('registration_deadline', '>=', now());
