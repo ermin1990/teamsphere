@@ -150,6 +150,7 @@
     <nav class="flex gap-6">
         <a class="text-on-surface-variant hover:text-primary transition-all font-medium" href="{{ route('home') }}">Home</a>
         <a class="text-primary font-bold border-b-2 border-primary pb-1" href="{{ route('competitions.index') }}">Takmičenja</a>
+        <a class="text-on-surface-variant hover:text-primary transition-all font-medium" href="{{ route('venues.public.index') }}">Tereni</a>
     </nav>
 </header>
 
