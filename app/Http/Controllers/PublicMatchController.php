@@ -155,13 +155,9 @@ class PublicMatchController extends Controller
     }
 
     /**
-     * Display the public profile page for a venue (teren): its info plus
-     * the public competitions that have played matches there and a feed of
-     * recent/upcoming matches at this venue.
-     */
-    /**
      * Directory of all venues (tereni) - lets a visitor browse to any
-     * venue's page to see which leagues/matches are played there.
+     * venue's page to see which leagues/matches are played there. Grouped
+     * by city in the view; filterable by city and searchable by name.
      */
     public function indexVenues(Request $request)
     {
@@ -174,10 +170,15 @@ class PublicMatchController extends Controller
             $query->where('city_id', $request->input('city_id'));
         }
 
+        if ($request->filled('q')) {
+            $query->where('name', 'like', '%' . $request->input('q') . '%');
+        }
+
         $venues = $query->orderBy('name')->get();
+        $venuesByCity = $venues->groupBy(fn ($venue) => $venue->city?->name ?? 'Ostalo')->sortKeys();
         $cities = City::whereHas('venues')->orderBy('name')->get();
 
-        return view('public.venues.index', compact('venues', 'cities'));
+        return view('public.venues.index', compact('venues', 'venuesByCity', 'cities'));
     }
 
     public function showVenue(Venue $venue)

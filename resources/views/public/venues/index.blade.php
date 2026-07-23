@@ -150,14 +150,26 @@
         </div>
     </section>
 
+    <!-- Search -->
+    <section class="mb-6">
+        <form method="GET" action="{{ route('venues.public.index') }}" class="relative">
+            @if(request('city_id'))
+                <input type="hidden" name="city_id" value="{{ request('city_id') }}">
+            @endif
+            <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+            <input type="text" name="q" value="{{ request('q') }}" placeholder="Pretraži terene po nazivu..."
+                   class="w-full bg-surface-container-low border border-outline-variant rounded-lg py-3 pl-12 pr-4 text-on-surface placeholder-on-surface-variant focus:border-primary focus:ring-1 focus:ring-primary/30 outline-none transition-all">
+        </form>
+    </section>
+
     @if($cities->isNotEmpty())
     <section class="mb-6 flex flex-wrap gap-2">
-        <a href="{{ route('venues.public.index') }}"
+        <a href="{{ route('venues.public.index', ['q' => request('q')]) }}"
            class="px-3 py-1.5 rounded-full text-xs font-label-bold uppercase tracking-wider border {{ request('city_id') ? 'border-outline-variant text-on-surface-variant hover:text-on-surface' : 'border-primary bg-primary/10 text-primary' }}">
             Svi gradovi
         </a>
         @foreach($cities as $city)
-            <a href="{{ route('venues.public.index', ['city_id' => $city->id]) }}"
+            <a href="{{ route('venues.public.index', ['city_id' => $city->id, 'q' => request('q')]) }}"
                class="px-3 py-1.5 rounded-full text-xs font-label-bold uppercase tracking-wider border {{ (string) request('city_id') === (string) $city->id ? 'border-primary bg-primary/10 text-primary' : 'border-outline-variant text-on-surface-variant hover:text-on-surface' }}">
                 {{ $city->name }}
             </a>
@@ -165,35 +177,50 @@
     </section>
     @endif
 
-    <section>
+    <section class="space-y-8">
         @if($venues->isEmpty())
             <div class="-mx-margin-mobile lg:mx-0 bg-surface-container-low border-y lg:border border-outline-variant lg:rounded-xl px-margin-mobile py-8 text-center">
-                <p class="text-on-surface-variant text-sm">Još nema registrovanih terena.</p>
+                <p class="text-on-surface-variant text-sm">
+                    @if(request('q') || request('city_id'))
+                        Nema terena koji odgovaraju pretrazi.
+                    @else
+                        Još nema registrovanih terena.
+                    @endif
+                </p>
             </div>
         @else
-            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-                @foreach($venues as $venue)
-                    <a href="{{ route('venues.public.show', $venue) }}"
-                       class="-mx-margin-mobile lg:mx-0 bg-surface-container-low border-y lg:border border-outline-variant lg:rounded-xl px-margin-mobile py-4 lg:p-5 flex items-center gap-4 hover:border-primary transition-colors">
-                        @if($venue->logoSrc())
-                            <img src="{{ $venue->logoSrc() }}" alt="{{ $venue->name }}" class="w-14 h-14 rounded-xl object-contain bg-surface-container-lowest border border-outline-variant shrink-0">
-                        @else
-                            <div class="w-14 h-14 rounded-xl bg-surface-container-highest border border-outline-variant flex items-center justify-center shrink-0">
-                                <span class="material-symbols-outlined text-2xl text-on-surface-variant">location_on</span>
-                            </div>
-                        @endif
-                        <div class="min-w-0">
-                            <h3 class="font-headline-md text-on-surface truncate">{{ $venue->name }}</h3>
-                            @if($venue->city || $venue->address)
-                                <p class="text-xs text-on-surface-variant truncate">{{ collect([$venue->address, $venue->city?->name])->filter()->implode(', ') }}</p>
-                            @endif
-                            <p class="text-xs text-on-surface-variant mt-1">
-                                {{ $venue->league_matches_count + $venue->tournament_matches_count }} odigranih/zakazanih mečeva
-                            </p>
-                        </div>
-                    </a>
-                @endforeach
-            </div>
+            @foreach($venuesByCity as $cityName => $cityVenues)
+                <div>
+                    <h2 class="font-label-bold text-on-surface-variant uppercase tracking-widest text-xs mb-3 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-[16px] text-primary">location_city</span>
+                        {{ $cityName }}
+                        <span class="text-on-surface-variant/60 normal-case">({{ $cityVenues->count() }})</span>
+                    </h2>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+                        @foreach($cityVenues as $venue)
+                            <a href="{{ route('venues.public.show', $venue) }}"
+                               class="-mx-margin-mobile lg:mx-0 bg-surface-container-low border-y lg:border border-outline-variant lg:rounded-xl px-margin-mobile py-4 lg:p-5 flex items-center gap-4 hover:border-primary transition-colors">
+                                @if($venue->logoSrc())
+                                    <img src="{{ $venue->logoSrc() }}" alt="{{ $venue->name }}" class="w-14 h-14 rounded-xl object-contain bg-surface-container-lowest border border-outline-variant shrink-0">
+                                @else
+                                    <div class="w-14 h-14 rounded-xl bg-surface-container-highest border border-outline-variant flex items-center justify-center shrink-0">
+                                        <span class="material-symbols-outlined text-2xl text-on-surface-variant">location_on</span>
+                                    </div>
+                                @endif
+                                <div class="min-w-0">
+                                    <h3 class="font-headline-md text-on-surface truncate">{{ $venue->name }}</h3>
+                                    @if($venue->address)
+                                        <p class="text-xs text-on-surface-variant truncate">{{ $venue->address }}</p>
+                                    @endif
+                                    <p class="text-xs text-on-surface-variant mt-1">
+                                        {{ $venue->league_matches_count + $venue->tournament_matches_count }} odigranih/zakazanih mečeva
+                                    </p>
+                                </div>
+                            </a>
+                        @endforeach
+                    </div>
+                </div>
+            @endforeach
         @endif
     </section>
 </main>

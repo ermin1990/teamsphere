@@ -111,6 +111,9 @@
             <a class="flex items-center gap-3 px-4 py-3 text-primary border-l-4 border-primary bg-primary/5 font-label-bold" href="{{ route('competitions.index') }}">
                 <span class="material-symbols-outlined">emoji_events</span><span>Takmičenja</span>
             </a>
+            <a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface font-body-md hover:bg-surface-variant/50 transition-colors duration-200" href="{{ route('venues.public.index') }}">
+                <span class="material-symbols-outlined">location_on</span><span>Tereni</span>
+            </a>
         </div>
 
         @if($cities->isNotEmpty())

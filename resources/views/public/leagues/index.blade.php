@@ -102,6 +102,9 @@
         <a class="flex items-center gap-3 px-4 py-3 text-primary border-l-4 border-primary bg-primary/5 font-label-bold" href="{{ route('competitions.index') }}">
             <span class="material-symbols-outlined">emoji_events</span><span>Takmičenja</span>
         </a>
+        <a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface font-body-md hover:bg-surface-variant/50 transition-colors duration-200 rounded-lg" href="{{ route('venues.public.index') }}">
+            <span class="material-symbols-outlined">location_on</span><span>Tereni</span>
+        </a>
         @isset($organization)
             <a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface font-body-md hover:bg-surface-variant/50 transition-colors duration-200 rounded-lg" href="{{ route('competitions.organization', $organization) }}">
                 <span class="material-symbols-outlined">corporate_fare</span><span class="truncate">{{ \Illuminate\Support\Str::limit($organization->name, 18) }}</span>

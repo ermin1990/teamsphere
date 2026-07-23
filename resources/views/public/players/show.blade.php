@@ -83,6 +83,9 @@
         <a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-surface-variant/50 transition-colors duration-200 font-body-md rounded-lg" href="{{ route('competitions.index') }}">
             <span class="material-symbols-outlined">emoji_events</span> Takmičenja
         </a>
+        <a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-surface-variant/50 transition-colors duration-200 font-body-md rounded-lg" href="{{ route('venues.public.index') }}">
+            <span class="material-symbols-outlined">location_on</span> Tereni
+        </a>
         @if($player->organization)
             <a class="flex items-center gap-3 px-4 py-3 text-primary border-l-4 border-primary bg-primary/5 font-label-bold rounded-r-lg" href="{{ route('competitions.organization', $player->organization) }}">
                 <span class="material-symbols-outlined">corporate_fare</span> {{ \Illuminate\Support\Str::limit($player->organization->name, 18) }}
