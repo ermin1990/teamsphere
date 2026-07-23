@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\V1\CityController;
 use App\Http\Controllers\Api\V1\CompetitionController;
 use App\Http\Controllers\Api\V1\PlayerMatchController;
 use App\Http\Controllers\Api\V1\SportController;
+use App\Http\Controllers\Api\V1\VenueController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->name('api.v1.')->group(function () {
@@ -18,6 +19,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
     // Public reference data
     Route::get('/sports', [SportController::class, 'index'])->name('sports.index');
     Route::get('/cities', [CityController::class, 'index'])->name('cities.index');
+    Route::get('/venues', [VenueController::class, 'index'])->name('venues.index');
 
     Route::middleware('auth:sanctum')->group(function () {
         Route::get('/me', [AuthController::class, 'me'])->name('auth.me');

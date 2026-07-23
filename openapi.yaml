@@ -45,6 +45,7 @@ tags:
   - name: PlayerMatches
   - name: Sports
   - name: Cities
+  - name: Venues
 
 components:
   securitySchemes:
@@ -224,6 +225,20 @@ components:
         id: { type: integer }
         name: { type: string }
         slug: { type: string }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+
+    Venue:
+      type: object
+      description: >
+        Teren/dvorana - dijeljena infrastruktura vezana za grad (city_id), ne za
+        organizaciju - vise organizacija u istom gradu moze igrati na istom terenu.
+      properties:
+        id: { type: integer }
+        city_id: { type: integer, nullable: true }
+        name: { type: string }
+        address: { type: string, nullable: true }
+        city: { $ref: "#/components/schemas/City" }
         created_at: { type: string, format: date-time }
         updated_at: { type: string, format: date-time }
 
@@ -652,6 +667,37 @@ paths:
               schema: { $ref: "#/components/schemas/Envelope" }
         "404": { $ref: "#/components/responses/NotFound" }
         "422": { $ref: "#/components/responses/ValidationError" }
+
+  /venues:
+    get:
+      tags: [Venues]
+      summary: Lista svih terena/dvorana (javno)
+      description: |
+        Vraca sve terene, opcionalno filtrirane po gradu. Koristi se za popunjavanje
+        dropdown-a pri unosu/izmjeni rezultata meca (npr. venue_id na
+        PUT /me/matches/{match}/result).
+      security: []
+      parameters:
+        - name: city_id
+          in: query
+          schema: { type: integer }
+        - name: per_page
+          in: query
+          schema: { type: integer, default: 50, maximum: 100 }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items: { $ref: "#/components/schemas/Venue" }
+                      meta: { $ref: "#/components/schemas/PaginationMeta" }
 
   /sports:
     get:
