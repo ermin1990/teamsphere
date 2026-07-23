@@ -685,8 +685,9 @@ class CompetitionController extends Controller
         $categories = $organization->categories()->active()->get();
         $cities = \App\Models\City::orderBy('name')->get();
         $seasons = $organization->seasons()->orderByDesc('starts_at')->get();
+        $venues = \App\Models\Venue::orderBy('name')->get();
 
-        return view('organizations.competitions.settings', compact('organization', 'competition', 'categories', 'cities', 'seasons'));
+        return view('organizations.competitions.settings', compact('organization', 'competition', 'categories', 'cities', 'seasons', 'venues'));
     }
 
     /**
@@ -714,6 +715,7 @@ class CompetitionController extends Controller
             'entry_fee' => ['nullable', 'string', 'max:255'],
             'category_id' => ['nullable', 'exists:categories,id'],
             'city_id' => ['nullable', 'exists:cities,id'],
+            'default_venue_id' => ['nullable', 'exists:venues,id'],
             'season_id' => ['nullable', 'exists:seasons,id'],
             'registration_deadline' => ['nullable', 'date'],
             'end_date' => ['nullable', 'date'],
@@ -746,6 +748,7 @@ class CompetitionController extends Controller
             'entry_fee' => $request->entry_fee,
             'category_id' => $request->category_id,
             'city_id' => $request->city_id,
+            'default_venue_id' => $request->default_venue_id,
             'season_id' => $organization->seasons()->where('id', $request->season_id)->exists() ? $request->season_id : null,
             'registration_deadline' => $request->registration_deadline,
             'end_date' => $request->end_date,

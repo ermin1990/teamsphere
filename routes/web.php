@@ -397,7 +397,8 @@ Route::name('competitions.')->group(function () {
     Route::get('/takmicenja/{competition}/mecevi/{match}/uzivo', [App\Http\Controllers\PublicMatchController::class, 'liveScore'])->name('matches.live');
 });
 
-// Public venue (teren) profile
+// Public venue (teren) directory + profile
+Route::get('/tereni', [App\Http\Controllers\PublicMatchController::class, 'indexVenues'])->name('venues.public.index');
 Route::get('/tereni/{venue:slug}', [App\Http\Controllers\PublicMatchController::class, 'showVenue'])->name('venues.public.show');
 
 // Public team/club profile

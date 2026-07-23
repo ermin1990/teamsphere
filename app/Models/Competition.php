@@ -27,6 +27,7 @@ class Competition extends Model
         'category_id',
         'season_id',
         'city_id',
+        'default_venue_id',
         'registration_deadline',
         'status',
         'start_date',
@@ -76,6 +77,7 @@ class Competition extends Model
         'category_id' => 'integer',
         'season_id' => 'integer',
         'city_id' => 'integer',
+        'default_venue_id' => 'integer',
         'registration_deadline' => 'datetime',
         'start_date' => 'date',
         'end_date' => 'date',
@@ -180,6 +182,16 @@ class Competition extends Model
     public function city(): BelongsTo
     {
         return $this->belongsTo(City::class);
+    }
+
+    /**
+     * Get the default venue (teren) applied to newly generated matches for
+     * this competition - lets an organizer set "always play at X" once
+     * instead of picking the venue on every single match.
+     */
+    public function defaultVenue(): BelongsTo
+    {
+        return $this->belongsTo(Venue::class, 'default_venue_id');
     }
 
     /**
@@ -1064,6 +1076,7 @@ class Competition extends Model
                 'status' => 'scheduled',
                 'phase' => 'groups',
                 'scheduled_at' => $this->start_date?->addDays(((int) $round) - 1),
+                'venue_id' => $this->default_venue_id,
             ]);
 
             $remaining = $remaining->reject(fn ($id) => $id === $byeOpponent)->values();
@@ -1083,6 +1096,7 @@ class Competition extends Model
                 'status' => 'scheduled',
                 'phase' => 'groups',
                 'scheduled_at' => $this->start_date?->addDays($round - 1),
+                'venue_id' => $this->default_venue_id,
             ]);
             $created++;
         }

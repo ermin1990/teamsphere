@@ -163,6 +163,19 @@
                             @endif
                         </div>
 
+                        <!-- Default Venue -->
+                        <div>
+                            <label for="default_venue_id" class="block text-sm font-medium text-white mb-2">Default Teren</label>
+                            <select id="default_venue_id" name="default_venue_id"
+                                    class="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+                                <option value="">Bez podrazumijevanog terena</option>
+                                @foreach($venues as $venue)
+                                    <option value="{{ $venue->id }}" {{ (string) old('default_venue_id', $competition->default_venue_id) === (string) $venue->id ? 'selected' : '' }}>{{ $venue->name }}{{ $venue->city ? ' ('.$venue->city->name.')' : '' }}</option>
+                                @endforeach
+                            </select>
+                            <p class="mt-1 text-xs text-gray-400">Novi mečevi u ovom takmičenju će automatski dobiti ovaj teren - i dalje možeš promijeniti teren za pojedinačni meč.</p>
+                        </div>
+
                         <!-- Season -->
                         <div>
                             <label for="season_id" class="block text-sm font-medium text-white mb-2">Sezona</label>

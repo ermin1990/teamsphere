@@ -104,6 +104,7 @@ class TeamMatch extends Model
             'status' => 'scheduled',
             'sets_to_win' => $competition->sets_to_win ?? $competition->sport?->getSetsToWin() ?: 2,
             'points_per_set' => $competition->points_per_set ?? 0,
+            'venue_id' => $competition->default_venue_id,
         ]);
     }
 

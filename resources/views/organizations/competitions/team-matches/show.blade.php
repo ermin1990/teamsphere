@@ -38,6 +38,7 @@
             </div>
         </div>
 
+        @unless($teamMatch->usesSingleMatchTie())
         <!-- Captains and Referee -->
         <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl border border-gray-700/50 overflow-hidden mb-8">
             <div class="px-6 py-4 border-b border-gray-700/50 bg-gray-900/50">
@@ -48,7 +49,7 @@
                     <!-- Home Captain -->
                     <div>
                         <label class="block text-sm font-bold text-gray-400 mb-2 uppercase tracking-wider">Kapetan domaćina</label>
-                        <select onchange="updateCaptainsAndReferee('home_captain_id', this.value)" 
+                        <select onchange="updateCaptainsAndReferee('home_captain_id', this.value)"
                             class="w-full bg-gray-900/50 border border-gray-700 text-white focus:border-blue-500 focus:ring-blue-500 rounded-xl p-3">
                             <option value="">Odaberi kapitena...</option>
                             @foreach($homePlayers as $player)
@@ -62,7 +63,7 @@
                     <!-- Away Captain -->
                     <div>
                         <label class="block text-sm font-bold text-gray-400 mb-2 uppercase tracking-wider">Kapetan gosta</label>
-                        <select onchange="updateCaptainsAndReferee('away_captain_id', this.value)" 
+                        <select onchange="updateCaptainsAndReferee('away_captain_id', this.value)"
                             class="w-full bg-gray-900/50 border border-gray-700 text-white focus:border-blue-500 focus:ring-blue-500 rounded-xl p-3">
                             <option value="">Odaberi kapitena...</option>
                             @foreach($awayPlayers as $player)
@@ -76,8 +77,8 @@
                     <!-- Referee -->
                     <div>
                         <label class="block text-sm font-bold text-gray-400 mb-2 uppercase tracking-wider">Sudija</label>
-                        <input type="text" 
-                            value="{{ $teamMatch->referee_name }}" 
+                        <input type="text"
+                            value="{{ $teamMatch->referee_name }}"
                             onchange="updateCaptainsAndReferee('referee_name', this.value)"
                             placeholder="Unesite ime sudije..."
                             class="w-full bg-gray-900/50 border border-gray-700 text-white focus:border-blue-500 focus:ring-blue-500 rounded-xl p-3">
@@ -85,29 +86,64 @@
                 </div>
             </div>
         </div>
+        @endunless
 
         @if($teamMatch->usesSingleMatchTie())
-        <!-- Single Match (e.g. Padel doubles - the team already IS the pair) -->
+        <!-- Single Match (e.g. Padel doubles - the team already IS the pair, played as one match like Tennis) -->
         <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl border border-gray-700/50 overflow-hidden">
-            <div class="px-6 py-4 border-b border-gray-700/50 bg-gray-900/50">
+            <div class="px-6 py-4 border-b border-gray-700/50 bg-gray-900/50 flex items-center justify-between">
                 <h3 class="font-bold text-white">Rezultat Meča</h3>
+                @if($singleMatch?->venue)
+                    <a href="{{ route('venues.public.show', $singleMatch->venue) }}" target="_blank" class="text-xs font-bold text-gray-400 hover:text-blue-400 transition-colors flex items-center gap-1">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.828 0l-4.243-4.243a8 8 0 1111.314 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        </svg>
+                        {{ $singleMatch->venue->name }}
+                    </a>
+                @endif
             </div>
-            <div class="p-6 flex items-center justify-between gap-4">
-                <div class="text-sm text-gray-400">
-                    @if($singleMatch && $singleMatch->status === 'completed')
-                        <span class="text-white font-bold text-lg">{{ $singleMatch->home_score }} : {{ $singleMatch->away_score }}</span>
-                        @if(!empty($singleMatch->sets))
-                            <span class="ml-2 text-gray-500">({{ collect($singleMatch->sets)->map(fn($s) => ($s['home'] ?? $s['home_score'] ?? 0) . '-' . ($s['away'] ?? $s['away_score'] ?? 0))->implode(', ') }})</span>
-                        @endif
-                    @else
-                        <span class="italic">Rezultat još nije unesen.</span>
+            <div class="bg-gray-900/50 rounded-xl p-3 sm:p-4 m-4 sm:m-6 border border-gray-700/30 flex flex-wrap sm:flex-nowrap sm:items-center">
+                <div class="w-1/2 sm:w-auto sm:flex-1 text-left sm:text-right pr-2 sm:pr-4 min-w-0 order-1">
+                    <span class="text-white font-medium text-sm sm:text-base break-words">{{ $teamMatch->homeTeam->name ?? 'TBD' }}</span>
+                </div>
+                <div class="w-full sm:w-auto flex flex-col items-center px-2 sm:px-4 sm:min-w-[110px] shrink-0 order-3 sm:order-2 mt-3 sm:mt-0">
+                    <span class="text-lg sm:text-xl font-black text-white">
+                        {{ !$singleMatch || $singleMatch->status !== 'completed' ? '-' : $singleMatch->home_score }} : {{ !$singleMatch || $singleMatch->status !== 'completed' ? '-' : $singleMatch->away_score }}
+                    </span>
+                    @if($singleMatch && $singleMatch->status === 'completed' && !empty($singleMatch->sets))
+                        <div class="flex flex-wrap items-center justify-center gap-1 mt-1.5">
+                            @foreach($singleMatch->sets as $set)
+                                @php
+                                    $sh = $set['home'] ?? $set['home_score'] ?? null;
+                                    $sa = $set['away'] ?? $set['away_score'] ?? null;
+                                @endphp
+                                @if($sh !== null && $sa !== null)
+                                    <span class="text-[10px] font-bold text-gray-400 bg-gray-800/80 border border-gray-700/50 rounded px-1.5 py-0.5 tabular-nums">{{ $sh }}:{{ $sa }}</span>
+                                @endif
+                            @endforeach
+                        </div>
                     @endif
                 </div>
+                <div class="w-1/2 sm:w-auto sm:flex-1 text-right sm:text-left pl-2 sm:pl-4 min-w-0 order-2 sm:order-3">
+                    <span class="text-white font-medium text-sm sm:text-base break-words">{{ $teamMatch->awayTeam->name ?? 'TBD' }}</span>
+                </div>
+
                 @if($singleMatch)
-                    <button onclick="openQuickResultModal({{ $singleMatch->id }}, '{{ $teamMatch->homeTeam->name ?? 'Domaćin' }}', '{{ $teamMatch->awayTeam->name ?? 'Gost' }}', {{ $singleMatch->home_score ?? 'null' }}, {{ $singleMatch->away_score ?? 'null' }}, {{ json_encode($singleMatch->sets ?? []) }}, '{{ $singleMatch->played_at?->format('Y-m-d\TH:i') }}', '{{ $singleMatch->venue_id }}')"
-                            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-bold rounded-lg text-white bg-yellow-600/80 hover:bg-yellow-600 shadow-sm transition-colors duration-150">
-                        {{ $singleMatch->status === 'completed' ? 'Izmijeni rezultat' : '⚡ Unesi rezultat' }}
-                    </button>
+                    <div class="w-full sm:w-auto flex items-center justify-center gap-5 sm:gap-1 mt-3 sm:mt-0 pt-3 sm:pt-0 border-t sm:border-t-0 border-gray-700/30 sm:ml-2 order-4">
+                        <button type="button"
+                                onclick="openQuickResultModal({{ $singleMatch->id }}, '{{ addslashes($teamMatch->homeTeam->name ?? 'TBD') }}', '{{ addslashes($teamMatch->awayTeam->name ?? 'TBD') }}', {{ $singleMatch->status === 'completed' ? $singleMatch->home_score : 'null' }}, {{ $singleMatch->status === 'completed' ? $singleMatch->away_score : 'null' }}, {{ json_encode($singleMatch->sets ?? []) }}, '{{ $singleMatch->played_at ? $singleMatch->played_at->format('Y-m-d\TH:i') : '' }}', '{{ $singleMatch->venue_id }}')"
+                                class="text-gray-500 hover:text-yellow-400 transition-colors p-1" title="{{ $singleMatch->status === 'completed' ? 'Izmijeni rezultat' : 'Brzi unos rezultata' }}">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                            </svg>
+                        </button>
+                        <a href="{{ route('organizations.competitions.matches.edit', [$organization, $competition, $singleMatch]) }}" class="text-gray-600 hover:text-blue-400 transition-colors p-1" title="Uredi meč (teren, datum, detalji)">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                            </svg>
+                        </a>
+                    </div>
                 @endif
             </div>
         </div>

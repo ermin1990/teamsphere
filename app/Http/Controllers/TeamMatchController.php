@@ -53,7 +53,7 @@ class TeamMatchController extends Controller
 
     public function show(Organization $organization, Competition $competition, TeamMatch $teamMatch)
     {
-        $teamMatch->load(['homeTeam', 'awayTeam', 'individualMatches.homePlayer', 'individualMatches.awayPlayer', 'homeCaptain', 'awayCaptain']);
+        $teamMatch->load(['homeTeam', 'awayTeam', 'individualMatches.homePlayer', 'individualMatches.awayPlayer', 'individualMatches.venue', 'homeCaptain', 'awayCaptain']);
 
         // Ensure a Padel-style single-match tie has its one individual match
         // even for older ties created before this competition's sport

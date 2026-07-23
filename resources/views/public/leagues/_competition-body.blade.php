@@ -291,7 +291,11 @@
                                                 ])
                                                 ->filter(fn ($s) => $s['home'] !== null && $s['away'] !== null)
                                                 ->values();
-                                            $mVenue = !$isTeamMatch ? $match->venue : null;
+                                            // TeamMatch itself has no venue column - but a Padel-style
+                                            // single-match tie's one individual game does carry it.
+                                            $mVenue = $isTeamMatch
+                                                ? ($competition->sport?->usesSingleMatchTies() ? optional($match->individualMatches->first())->venue : null)
+                                                : $match->venue;
                                             $mDate = $match->played_at ?? $match->scheduled_at;
                                             $mScheduled = !$mCompleted && !$mLive;
                                             $mShowHeader = $mLive || ($mDate && !$mScheduled);
@@ -393,9 +397,9 @@
                                             @endif
                                             <div class="mt-3 pt-3 border-t border-outline-variant flex items-center justify-between gap-2">
                                                 @if($mVenue)
-                                                    <span class="text-label-bold text-on-surface-variant flex items-center gap-1">
+                                                    <a href="{{ route('venues.public.show', $mVenue) }}" class="text-label-bold text-on-surface-variant hover:text-primary transition-colors flex items-center gap-1">
                                                         <span class="material-symbols-outlined text-[14px]">location_on</span> {{ $mVenue->name }}
-                                                    </span>
+                                                    </a>
                                                 @else
                                                     <span></span>
                                                 @endif

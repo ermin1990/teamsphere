@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="csrf-token" content="{{ csrf_token() }}">
-<title>{{ $venue->name }} - MojTurnir</title>
+<title>Tereni - MojTurnir</title>
 
 <link rel="manifest" href="{{ asset('manifest.webmanifest') }}">
 <meta name="theme-color" content="#0b0e14">
@@ -89,8 +89,8 @@
         <a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface font-body-md hover:bg-surface-variant/50 transition-colors duration-200 rounded-lg" href="{{ route('competitions.index') }}">
             <span class="material-symbols-outlined">emoji_events</span><span>Takmičenja</span>
         </a>
-        <a class="flex items-center gap-3 px-4 py-3 text-primary border-l-4 border-primary bg-primary/5 font-label-bold" href="{{ route('venues.public.show', $venue) }}">
-            <span class="material-symbols-outlined">location_on</span><span class="truncate">{{ \Illuminate\Support\Str::limit($venue->name, 18) }}</span>
+        <a class="flex items-center gap-3 px-4 py-3 text-primary border-l-4 border-primary bg-primary/5 font-label-bold" href="{{ route('venues.public.index') }}">
+            <span class="material-symbols-outlined">location_on</span><span>Tereni</span>
         </a>
     </div>
     <div class="p-4 space-y-1">
@@ -112,7 +112,7 @@
         <a href="{{ route('competitions.index') }}" class="w-9 h-9 flex items-center justify-center rounded-lg bg-surface-container-high shrink-0">
             <span class="material-symbols-outlined text-primary">arrow_back</span>
         </a>
-        <span class="font-headline-md text-on-surface truncate">{{ $venue->name }}</span>
+        <span class="font-headline-md text-on-surface truncate">Tereni</span>
     </div>
     <div class="flex items-center gap-2">
         @auth
@@ -132,118 +132,66 @@
     <nav class="flex gap-6">
         <a class="text-on-surface-variant hover:text-primary transition-all font-medium" href="{{ route('home') }}">Home</a>
         <a class="text-on-surface-variant hover:text-primary transition-all font-medium" href="{{ route('competitions.index') }}">Takmičenja</a>
-        <a class="text-primary font-bold border-b-2 border-primary pb-1" href="{{ route('venues.public.show', $venue) }}">Tereni</a>
+        <a class="text-primary font-bold border-b-2 border-primary pb-1" href="{{ route('venues.public.index') }}">Tereni</a>
     </nav>
 </header>
 
 <!-- Main Content Canvas -->
 <main class="lg:ml-[260px] lg:mt-16 mt-16 p-margin-mobile lg:p-gutter min-h-screen">
 
-    <a href="{{ route('venues.public.index') }}" class="inline-flex items-center gap-1 text-xs font-label-bold text-on-surface-variant hover:text-primary transition-colors mb-3">
-        <span class="material-symbols-outlined text-[16px]">arrow_back</span> Svi tereni
-    </a>
-
     <!-- Hero -->
     <section class="-mx-margin-mobile lg:mx-0 mb-6 lg:mb-8 bg-surface-container-low border-y lg:border border-outline-variant lg:rounded-xl overflow-hidden">
-        <div class="px-margin-mobile py-5 lg:p-8 flex flex-col sm:flex-row items-start sm:items-center gap-4 lg:gap-6">
-            @if($venue->logoSrc())
-                <img src="{{ $venue->logoSrc() }}"
-                     alt="{{ $venue->name }}"
-                     class="w-16 h-16 lg:w-20 lg:h-20 rounded-xl object-contain bg-surface-container-lowest border border-outline-variant shrink-0">
-            @else
-                <div class="w-16 h-16 lg:w-20 lg:h-20 rounded-xl bg-surface-container-highest border border-outline-variant flex items-center justify-center shrink-0">
-                    <span class="material-symbols-outlined text-3xl text-on-surface-variant">location_on</span>
-                </div>
-            @endif
-            <div class="min-w-0">
-                <h1 class="font-display text-2xl lg:text-display text-on-surface truncate">{{ $venue->name }}</h1>
-                @if($venue->city || $venue->address)
-                    <p class="text-on-surface-variant text-sm lg:text-base flex items-center gap-1">
-                        <span class="material-symbols-outlined text-[16px]">location_on</span>
-                        {{ collect([$venue->address, $venue->city?->name])->filter()->implode(', ') }}
-                    </p>
-                @endif
-                @if($venue->description)
-                    <p class="mt-2 text-sm text-on-surface-variant">{{ Str::limit($venue->description, 220) }}</p>
-                @endif
-                @if($venue->phone || $venue->website)
-                    <div class="flex flex-wrap gap-4 mt-3 text-sm text-on-surface-variant">
-                        @if($venue->phone)
-                            <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[16px]">call</span>{{ $venue->phone }}</span>
-                        @endif
-                        @if($venue->website)
-                            <a href="{{ $venue->website }}" target="_blank" rel="noopener" class="flex items-center gap-1 text-primary hover:underline"><span class="material-symbols-outlined text-[16px]">language</span>{{ $venue->website }}</a>
-                        @endif
-                    </div>
-                @endif
+        <div class="px-margin-mobile py-5 lg:p-8 flex items-center gap-3">
+            <span class="material-symbols-outlined text-primary text-3xl lg:text-4xl">location_on</span>
+            <div>
+                <h1 class="font-display text-2xl lg:text-display text-on-surface">Tereni</h1>
+                <p class="text-on-surface-variant text-sm lg:text-base">Svi registrovani tereni i klubovi - pogledaj gdje se igraju koje lige i turniri</p>
             </div>
         </div>
     </section>
 
-    <!-- Lige i turniri odigrani na ovom terenu -->
-    <section class="mb-6 lg:mb-8">
-        <h2 class="font-headline-lg-mobile lg:font-headline-lg text-headline-lg-mobile lg:text-headline-lg text-on-surface mb-4">Lige i turniri</h2>
+    @if($cities->isNotEmpty())
+    <section class="mb-6 flex flex-wrap gap-2">
+        <a href="{{ route('venues.public.index') }}"
+           class="px-3 py-1.5 rounded-full text-xs font-label-bold uppercase tracking-wider border {{ request('city_id') ? 'border-outline-variant text-on-surface-variant hover:text-on-surface' : 'border-primary bg-primary/10 text-primary' }}">
+            Svi gradovi
+        </a>
+        @foreach($cities as $city)
+            <a href="{{ route('venues.public.index', ['city_id' => $city->id]) }}"
+               class="px-3 py-1.5 rounded-full text-xs font-label-bold uppercase tracking-wider border {{ (string) request('city_id') === (string) $city->id ? 'border-primary bg-primary/10 text-primary' : 'border-outline-variant text-on-surface-variant hover:text-on-surface' }}">
+                {{ $city->name }}
+            </a>
+        @endforeach
+    </section>
+    @endif
 
-        @if($competitions->isEmpty())
+    <section>
+        @if($venues->isEmpty())
             <div class="-mx-margin-mobile lg:mx-0 bg-surface-container-low border-y lg:border border-outline-variant lg:rounded-xl px-margin-mobile py-8 text-center">
-                <p class="text-on-surface-variant text-sm">Za sada nema javnih takmičenja odigranih na ovom terenu.</p>
+                <p class="text-on-surface-variant text-sm">Još nema registrovanih terena.</p>
             </div>
         @else
             <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-                @foreach($competitions as $competition)
-                    <a href="{{ route('competitions.show', $competition) }}"
-                       class="-mx-margin-mobile lg:mx-0 bg-surface-container-low border-y lg:border border-outline-variant lg:rounded-xl px-margin-mobile py-4 lg:p-5 flex flex-col gap-2 hover:border-primary transition-colors">
-                        <div class="flex items-center justify-between gap-2">
-                            <h3 class="font-headline-md text-on-surface truncate">{{ $competition->name }}</h3>
-                            <span class="shrink-0 text-[10px] font-label-bold uppercase tracking-wider px-2 py-0.5 rounded-full {{ $competition->status === 'in_progress' ? 'bg-secondary/10 text-secondary border border-secondary/20' : 'bg-primary/10 text-primary border border-primary/20' }}">
-                                {{ $competition->isLeague() ? 'Liga' : 'Turnir' }}
-                            </span>
-                        </div>
-                        @if($competition->organization)
-                            <p class="text-xs text-on-surface-variant truncate">{{ $competition->organization->name }}</p>
-                        @endif
-                    </a>
-                @endforeach
-            </div>
-        @endif
-    </section>
-
-    <!-- Zadnji mečevi na ovom terenu -->
-    <section>
-        <h2 class="font-headline-lg-mobile lg:font-headline-lg text-headline-lg-mobile lg:text-headline-lg text-on-surface mb-4">Zadnji mečevi</h2>
-
-        @if($recentMatches->isEmpty())
-            <div class="-mx-margin-mobile lg:mx-0 bg-surface-container-low border-y lg:border border-outline-variant lg:rounded-xl px-margin-mobile py-8 text-center">
-                <p class="text-on-surface-variant text-sm">Još nema odigranih mečeva na ovom terenu.</p>
-            </div>
-        @else
-            <div class="-mx-margin-mobile lg:mx-0 bg-surface-container-low border-y lg:border border-outline-variant lg:rounded-xl divide-y divide-outline-variant">
-                @foreach($recentMatches as $match)
-                    @php
-                        $homeName = $match->homeTeam?->name ?? $match->homePlayer?->name ?? '—';
-                        $awayName = $match->awayTeam?->name ?? $match->awayPlayer?->name ?? '—';
-                        $homeWon = $match->status === 'completed' && $match->home_score > $match->away_score;
-                        $awayWon = $match->status === 'completed' && $match->away_score > $match->home_score;
-                    @endphp
-                    <div class="px-margin-mobile lg:px-5 py-3 flex items-center justify-between gap-3">
-                        <div class="min-w-0">
-                            <p class="text-xs text-on-surface-variant truncate">{{ $match->competition?->name }}</p>
-                            <div class="flex items-center gap-2 text-sm">
-                                <span class="{{ $homeWon ? 'text-primary font-bold' : 'text-on-surface' }} truncate">{{ $homeName }}</span>
-                                <span class="text-on-surface-variant text-xs">vs</span>
-                                <span class="{{ $awayWon ? 'text-primary font-bold' : 'text-on-surface' }} truncate">{{ $awayName }}</span>
+                @foreach($venues as $venue)
+                    <a href="{{ route('venues.public.show', $venue) }}"
+                       class="-mx-margin-mobile lg:mx-0 bg-surface-container-low border-y lg:border border-outline-variant lg:rounded-xl px-margin-mobile py-4 lg:p-5 flex items-center gap-4 hover:border-primary transition-colors">
+                        @if($venue->logoSrc())
+                            <img src="{{ $venue->logoSrc() }}" alt="{{ $venue->name }}" class="w-14 h-14 rounded-xl object-contain bg-surface-container-lowest border border-outline-variant shrink-0">
+                        @else
+                            <div class="w-14 h-14 rounded-xl bg-surface-container-highest border border-outline-variant flex items-center justify-center shrink-0">
+                                <span class="material-symbols-outlined text-2xl text-on-surface-variant">location_on</span>
                             </div>
-                        </div>
-                        <div class="text-right shrink-0">
-                            @if($match->status === 'completed')
-                                <span class="font-display text-sm text-on-surface">{{ $match->home_score }}:{{ $match->away_score }}</span>
-                            @else
-                                <span class="text-[10px] font-label-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-secondary/10 text-secondary border border-secondary/20">
-                                    {{ $match->scheduled_at?->format('d.m. H:i') ?? 'Zakazano' }}
-                                </span>
+                        @endif
+                        <div class="min-w-0">
+                            <h3 class="font-headline-md text-on-surface truncate">{{ $venue->name }}</h3>
+                            @if($venue->city || $venue->address)
+                                <p class="text-xs text-on-surface-variant truncate">{{ collect([$venue->address, $venue->city?->name])->filter()->implode(', ') }}</p>
                             @endif
+                            <p class="text-xs text-on-surface-variant mt-1">
+                                {{ $venue->league_matches_count + $venue->tournament_matches_count }} odigranih/zakazanih mečeva
+                            </p>
                         </div>
-                    </div>
+                    </a>
                 @endforeach
             </div>
         @endif
@@ -260,9 +208,9 @@
         <span class="material-symbols-outlined">emoji_events</span>
         <span class="text-[10px] font-label-bold">Takmičenja</span>
     </a>
-    <a class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-full px-4 py-1" href="{{ route('venues.public.show', $venue) }}">
+    <a class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-full px-4 py-1" href="{{ route('venues.public.index') }}">
         <span class="material-symbols-outlined">location_on</span>
-        <span class="text-[10px] font-label-bold">Teren</span>
+        <span class="text-[10px] font-label-bold">Tereni</span>
     </a>
 </nav>
 

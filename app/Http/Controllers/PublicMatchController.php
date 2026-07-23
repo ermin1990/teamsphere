@@ -159,6 +159,27 @@ class PublicMatchController extends Controller
      * the public competitions that have played matches there and a feed of
      * recent/upcoming matches at this venue.
      */
+    /**
+     * Directory of all venues (tereni) - lets a visitor browse to any
+     * venue's page to see which leagues/matches are played there.
+     */
+    public function indexVenues(Request $request)
+    {
+        $query = Venue::with('city')->withCount([
+            'leagueMatches',
+            'tournamentMatches',
+        ]);
+
+        if ($request->filled('city_id')) {
+            $query->where('city_id', $request->input('city_id'));
+        }
+
+        $venues = $query->orderBy('name')->get();
+        $cities = City::whereHas('venues')->orderBy('name')->get();
+
+        return view('public.venues.index', compact('venues', 'cities'));
+    }
+
     public function showVenue(Venue $venue)
     {
         $venue->load('city', 'user');
