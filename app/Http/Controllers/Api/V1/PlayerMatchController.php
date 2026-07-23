@@ -126,6 +126,7 @@ class PlayerMatchController extends Controller
         $request->validate([
             'opponent_id' => ['required', 'exists:players,id'],
             'played_at' => ['nullable', 'date', 'before_or_equal:now'],
+            'venue_id' => ['nullable', 'exists:venues,id'],
             'sets' => ['required', 'array', 'min:1'],
             'sets.*.mine' => ['nullable', 'integer', 'min:0'],
             'sets.*.theirs' => ['nullable', 'integer', 'min:0'],
@@ -179,6 +180,7 @@ class PlayerMatchController extends Controller
                 'round_number' => $nextRound,
                 'status' => 'completed',
                 'played_at' => $request->played_at ?? now(),
+                'venue_id' => $request->venue_id,
             ]);
         });
 
@@ -186,7 +188,7 @@ class PlayerMatchController extends Controller
             $standingsService->rebuildForCompetition($competition);
         }
 
-        return $this->created(new CompetitionMatchResource($match->load(['homePlayer', 'awayPlayer'])), 'Meč je zabilježen!');
+        return $this->created(new CompetitionMatchResource($match->load(['homePlayer', 'awayPlayer', 'venue'])), 'Meč je zabilježen!');
     }
 
     /**
