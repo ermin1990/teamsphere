@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\CityController;
 use App\Http\Controllers\Api\V1\CompetitionController;
+use App\Http\Controllers\Api\V1\CompetitionJoinRequestController;
 use App\Http\Controllers\Api\V1\PlayerMatchController;
 use App\Http\Controllers\Api\V1\SportController;
 use App\Http\Controllers\Api\V1\VenueController;
@@ -32,5 +33,6 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         Route::put('/me/matches/{match}/result', [PlayerMatchController::class, 'updateResult'])->name('me.matches.result.update');
 
         Route::get('/competitions', [CompetitionController::class, 'publicIndex'])->name('competitions.index');
+        Route::post('/competitions/{competition}/join-requests', [CompetitionJoinRequestController::class, 'store'])->name('competitions.join-requests.store');
     });
 });

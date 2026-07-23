@@ -206,6 +206,21 @@ components:
         created_at: { type: string, format: date-time }
         updated_at: { type: string, format: date-time }
 
+    CompetitionJoinRequest:
+      type: object
+      properties:
+        id: { type: integer }
+        competition_id: { type: integer }
+        user_id: { type: integer }
+        user_name: { type: string, nullable: true }
+        user_email: { type: string, nullable: true }
+        status: { type: string, enum: [pending, approved, rejected] }
+        message: { type: string, nullable: true }
+        decided_by: { type: integer, nullable: true }
+        decided_at: { type: string, format: date-time, nullable: true }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+
     Sport:
       type: object
       properties:
@@ -442,13 +457,16 @@ paths:
   /competitions:
     get:
       tags: [Competitions]
-      summary: Pretraga javno vidljivih liga na koje se trenutno može prijaviti
+      summary: Pretraga svih takmičenja na koje se trenutno može prijaviti ("Takmičenja" ekran)
       description: |
-        Samo lige (`type=league`, ne turniri) koje su javne (`is_public=true`), aktivne,
-        pojedinačne (`is_team_based=false`) i trenutno otvorene za prijave
-        (`registration_open=true`, rok za prijavu ako postoji nije prošao) - isti uslovi
-        koje provjerava POST /competitions/{competition}/join-requests. Vraća i lige gdje
-        je prijavljeni korisnik već član i one gdje nije (vidi `is_member` u odgovoru i
+        Sva takmičenja (lige i turniri, uključujući ekipna) sa statusom `draft` ili `active`
+        koja su trenutno otvorena za prijave (`registration_open=true`, rok za prijavu ako
+        postoji nije prošao). `registration_open` je jedini uslov - `is_public` je odvojeno
+        polje koje kontroliše samo vidljivost za gledaoce, ne i prijavu. Ekipna takmičenja
+        (`is_team_based=true`) se ne mogu samostalno prijaviti preko
+        POST /competitions/{competition}/join-requests - klijent treba za njih prikazati
+        "kontaktiraj organizatora" umjesto dugmeta za prijavu. Vraća i takmičenja gdje je
+        prijavljeni korisnik već član i ona gdje nije (vidi `is_member` u odgovoru i
         `member` filter niže) - ovo NIJE isto što i /me/competitions (to su SAMO
         takmičenja u kojima je prijavljeni igrač već učlanjen).
       parameters:
@@ -486,6 +504,46 @@ paths:
                         items: { $ref: "#/components/schemas/Competition" }
                       meta: { $ref: "#/components/schemas/PaginationMeta" }
         "401": { $ref: "#/components/responses/Unauthorized" }
+
+  /competitions/{competition}/join-requests:
+    post:
+      tags: [Competitions]
+      summary: Prijavi se na takmičenje ("Prijavi se" dugme na "Takmičenja" ekranu)
+      description: |
+        Šalje zahtjev za pridruživanje organizatoru takmičenja - samostalno, bez potrebe
+        za članstvom u organizaciji. Dostupno samo dok je `registration_open=true`, i samo
+        za pojedinačna takmičenja (`is_team_based=false`) - za ekipna vrati 422, klijent
+        treba unaprijed sakriti dugme i prikazati "kontaktiraj organizatora" (vidi
+        `is_team_based` na GET /competitions). Ako je prijavljeni korisnik već član ili već
+        ima zahtjev na čekanju za ovo takmičenje, vraća 422. Zahtjev ostaje `pending` dok ga
+        organizator ne odobri ili odbije.
+      parameters: [{ $ref: "#/components/parameters/CompetitionSlug" }]
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message: { type: string, nullable: true, description: "Opciona poruka organizatoru" }
+      responses:
+        "201":
+          description: Zahtjev poslan
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - type: object
+                    properties:
+                      data: { $ref: "#/components/schemas/CompetitionJoinRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "422":
+          description: "Prijave zatvorene, ekipno takmičenje, već član, ili već postoji zahtjev na čekanju"
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Envelope" }
 
   /me/matches:
     get:
