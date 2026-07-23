@@ -87,19 +87,26 @@
 
             <div class="space-y-2">
                 <label class="font-label-bold text-label-bold text-on-surface-variant ml-1 uppercase">Registruj se kao</label>
-                <div class="grid grid-cols-2 gap-3">
+                <div class="grid grid-cols-3 gap-3">
                     <label class="relative cursor-pointer">
                         <input type="radio" name="role" value="organizer" class="peer sr-only" checked>
-                        <div class="px-4 py-3 bg-surface-container-lowest border border-outline-variant rounded-lg text-center text-on-surface-variant peer-checked:border-primary peer-checked:bg-primary/10 peer-checked:text-on-surface transition-all duration-200">
-                            <span class="block font-semibold">Organizator</span>
+                        <div class="px-3 py-3 bg-surface-container-lowest border border-outline-variant rounded-lg text-center text-on-surface-variant peer-checked:border-primary peer-checked:bg-primary/10 peer-checked:text-on-surface transition-all duration-200">
+                            <span class="block font-semibold text-sm">Organizator</span>
                             <span class="block text-xs opacity-70 mt-0.5">Vodim ligu/turnir</span>
                         </div>
                     </label>
                     <label class="relative cursor-pointer">
                         <input type="radio" name="role" value="player" class="peer sr-only">
-                        <div class="px-4 py-3 bg-surface-container-lowest border border-outline-variant rounded-lg text-center text-on-surface-variant peer-checked:border-secondary peer-checked:bg-secondary/10 peer-checked:text-on-surface transition-all duration-200">
-                            <span class="block font-semibold">Igrač</span>
+                        <div class="px-3 py-3 bg-surface-container-lowest border border-outline-variant rounded-lg text-center text-on-surface-variant peer-checked:border-secondary peer-checked:bg-secondary/10 peer-checked:text-on-surface transition-all duration-200">
+                            <span class="block font-semibold text-sm">Igrač</span>
                             <span class="block text-xs opacity-70 mt-0.5">Igram u ligama</span>
+                        </div>
+                    </label>
+                    <label class="relative cursor-pointer">
+                        <input type="radio" name="role" value="venue" class="peer sr-only">
+                        <div class="px-3 py-3 bg-surface-container-lowest border border-outline-variant rounded-lg text-center text-on-surface-variant peer-checked:border-primary peer-checked:bg-primary/10 peer-checked:text-on-surface transition-all duration-200">
+                            <span class="block font-semibold text-sm">Teren</span>
+                            <span class="block text-xs opacity-70 mt-0.5">Vodim teren/klub</span>
                         </div>
                     </label>
                 </div>

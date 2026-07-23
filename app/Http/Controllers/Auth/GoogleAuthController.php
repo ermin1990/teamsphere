@@ -69,11 +69,13 @@ class GoogleAuthController extends Controller
             Auth::login($user, remember: true);
             $request->session()->regenerate();
 
-            $home = $user->needsOrganizationOnboarding()
-                ? route('organizations.create', absolute: false)
-                : ($user->isOrganizerOrStaff()
-                    ? route('dashboard', absolute: false)
-                    : route('player.dashboard', absolute: false));
+            $home = $user->needsVenueOnboarding()
+                ? route('venues.create', absolute: false)
+                : ($user->needsOrganizationOnboarding()
+                    ? route('organizations.create', absolute: false)
+                    : ($user->isOrganizerOrStaff()
+                        ? route('dashboard', absolute: false)
+                        : route('player.dashboard', absolute: false)));
 
             return redirect()->intended($home);
         }
@@ -116,7 +118,7 @@ class GoogleAuthController extends Controller
             return redirect()->route('register');
         }
 
-        $request->validate(['role' => ['required', 'in:organizer,player']]);
+        $request->validate(['role' => ['required', 'in:organizer,player,venue']]);
 
         // Someone could have registered with this email in the time between
         // the Google popup and submitting this form - fall back to the
@@ -131,6 +133,7 @@ class GoogleAuthController extends Controller
             'email' => $pending['email'],
             'google_id' => $pending['google_id'],
             'avatar' => $pending['avatar'],
+            'role' => $request->input('role'),
         ]);
 
         // Google already verified this email - email_verified_at isn't
@@ -162,9 +165,11 @@ class GoogleAuthController extends Controller
         Auth::login($user, remember: true);
         $request->session()->regenerate();
 
-        $home = $request->input('role') === 'organizer'
-            ? route('organizations.create', absolute: false)
-            : route('player.dashboard', absolute: false);
+        $home = match ($request->input('role')) {
+            'organizer' => route('organizations.create', absolute: false),
+            'venue' => route('venues.create', absolute: false),
+            default => route('player.dashboard', absolute: false),
+        };
 
         return redirect($home);
     }
