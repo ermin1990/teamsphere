@@ -12,6 +12,9 @@
     <a class="flex flex-col items-center justify-center {{ request()->routeIs('competitions.*') ? 'text-primary' : 'text-on-surface-variant' }}" href="{{ route('competitions.index') }}">
         <span class="material-symbols-outlined">emoji_events</span><span class="text-[10px] font-label-bold">Takmičenja</span>
     </a>
+    <a class="flex flex-col items-center justify-center {{ request()->routeIs('venues.public.*') ? 'text-primary' : 'text-on-surface-variant' }}" href="{{ route('venues.public.index') }}">
+        <span class="material-symbols-outlined">location_on</span><span class="text-[10px] font-label-bold">Tereni</span>
+    </a>
     @auth
         <a class="flex flex-col items-center justify-center text-on-surface-variant" href="{{ auth()->user()->isOrganizerOrStaff() ? route('dashboard') : route('player.dashboard') }}">
             <span class="material-symbols-outlined">person</span><span class="text-[10px] font-label-bold">Nalog</span>

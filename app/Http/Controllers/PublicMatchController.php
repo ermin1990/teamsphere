@@ -317,6 +317,24 @@ class PublicMatchController extends Controller
             abort(404, 'Team match not found.');
         }
 
+        // A single-match tie (e.g. Padel doubles - the team already IS the
+        // pair) is just one match with sets, exactly like an individual
+        // Tennis match - render it with the very same template instead of
+        // the multi-game "ekipni susret" page, so it looks/behaves
+        // identically to Tennis.
+        if ($teamMatch->usesSingleMatchTie()) {
+            $teamMatch->ensureSingleMatchGame();
+            $match = $teamMatch->individualMatches()
+                ->with(['homeTeam', 'awayTeam', 'venue'])
+                ->first();
+
+            abort_if(!$match, 404, 'Match not found.');
+
+            $organization = $competition->organization;
+
+            return view('public.matches.show', compact('organization', 'competition', 'match'));
+        }
+
         // Load necessary relationships
         $teamMatch->load([
             'homeTeam',
