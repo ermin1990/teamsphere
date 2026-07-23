@@ -181,17 +181,17 @@
                 </div>
                 @if($sortedStandings->isNotEmpty())
                     <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse text-sm">
-                            <thead class="bg-surface-container-lowest text-on-surface-variant text-label-bold uppercase">
+                        <table class="w-full text-left border-collapse text-xs sm:text-sm">
+                            <thead class="bg-surface-container-lowest text-on-surface-variant text-[10px] sm:text-label-bold uppercase">
                                 <tr>
-                                    <th class="px-3 lg:px-4 py-2.5 lg:py-3">#</th>
-                                    <th class="px-2 lg:px-4 py-2.5 lg:py-3">{{ $competition->is_team_based ? 'Ekipa' : 'Igrač' }}</th>
-                                    <th class="hidden md:table-cell px-2 py-2.5 lg:py-3 text-center">M</th>
-                                    <th class="px-2 py-2.5 lg:py-3 text-center">P</th>
-                                    <th class="px-2 py-2.5 lg:py-3 text-center">I</th>
-                                    <th class="px-2 py-2.5 lg:py-3 text-center">S</th>
-                                    <th class="hidden sm:table-cell px-2 py-2.5 lg:py-3 text-center">G</th>
-                                    <th class="px-3 lg:px-4 py-2.5 lg:py-3 text-center text-primary">Bod</th>
+                                    <th class="px-2 sm:px-3 lg:px-4 py-1.5 sm:py-2.5 lg:py-3">#</th>
+                                    <th class="px-1.5 sm:px-2 lg:px-4 py-1.5 sm:py-2.5 lg:py-3">{{ $competition->is_team_based ? 'Ekipa' : 'Igrač' }}</th>
+                                    <th class="hidden md:table-cell px-2 py-1.5 sm:py-2.5 lg:py-3 text-center">M</th>
+                                    <th class="px-1.5 sm:px-2 py-1.5 sm:py-2.5 lg:py-3 text-center">P</th>
+                                    <th class="px-1.5 sm:px-2 py-1.5 sm:py-2.5 lg:py-3 text-center">I</th>
+                                    <th class="px-1.5 sm:px-2 py-1.5 sm:py-2.5 lg:py-3 text-center">S</th>
+                                    <th class="hidden sm:table-cell px-2 py-1.5 sm:py-2.5 lg:py-3 text-center">G</th>
+                                    <th class="px-2 sm:px-3 lg:px-4 py-1.5 sm:py-2.5 lg:py-3 text-center text-primary">Bod</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-outline-variant">
@@ -213,8 +213,8 @@
                                         $participantNameParts = explode('/', $standing->participant_name);
                                     @endphp
                                     <tr class="transition-colors group {{ $advancing ? 'bg-primary/5' : 'hover:bg-surface-variant/30' }}">
-                                        <td class="px-3 lg:px-4 py-2 lg:py-2.5 font-bold {{ $index < 3 ? 'text-primary' : '' }}">{{ $index + 1 }}</td>
-                                        <td class="px-2 lg:px-4 py-2 lg:py-2.5">
+                                        <td class="px-2 sm:px-3 lg:px-4 py-1.5 sm:py-2 lg:py-2.5 font-bold {{ $index < 3 ? 'text-primary' : '' }}">{{ $index + 1 }}</td>
+                                        <td class="px-1.5 sm:px-2 lg:px-4 py-1.5 sm:py-2 lg:py-2.5">
                                             @if($standing->player)
                                                 <a href="{{ route('competitions.player.show', $standing->player) }}" class="font-semibold group-hover:text-primary transition-colors leading-tight">
                                                     @foreach($participantNameParts as $part)
@@ -229,15 +229,15 @@
                                                 </span>
                                             @endif
                                             @if($clubName)
-                                                <span class="text-xs text-on-surface-variant truncate block">{{ $clubName }}</span>
+                                                <span class="text-[10px] sm:text-xs text-on-surface-variant truncate block">{{ $clubName }}</span>
                                             @endif
                                         </td>
-                                        <td class="hidden md:table-cell px-2 py-2 lg:py-2.5 text-center">{{ $played }}</td>
-                                        <td class="px-2 py-2 lg:py-2.5 text-center text-primary font-bold">{{ $standing->won ?? 0 }}</td>
-                                        <td class="px-2 py-2 lg:py-2.5 text-center text-error">{{ $standing->lost ?? 0 }}</td>
-                                        <td class="px-2 py-2 lg:py-2.5 text-center {{ is_null($sd) ? '' : ($sd > 0 ? 'text-primary' : ($sd < 0 ? 'text-error' : '')) }} font-bold">{{ is_null($sd) ? '–' : $fmtDiff($sd) }}</td>
-                                        <td class="hidden sm:table-cell px-2 py-2 lg:py-2.5 text-center {{ is_null($gd) ? '' : ($gd > 0 ? 'text-primary' : ($gd < 0 ? 'text-error' : '')) }}">{{ is_null($gd) ? '–' : $fmtDiff($gd) }}</td>
-                                        <td class="px-3 lg:px-4 py-2 lg:py-2.5 text-center"><span class="{{ $index < 3 ? 'bg-primary text-on-primary' : 'bg-surface-container-high text-on-surface-variant' }} px-2.5 py-1 rounded font-bold text-xs">{{ $standing->points ?? 0 }}</span></td>
+                                        <td class="hidden md:table-cell px-2 py-1.5 sm:py-2 lg:py-2.5 text-center">{{ $played }}</td>
+                                        <td class="px-1.5 sm:px-2 py-1.5 sm:py-2 lg:py-2.5 text-center text-primary font-bold">{{ $standing->won ?? 0 }}</td>
+                                        <td class="px-1.5 sm:px-2 py-1.5 sm:py-2 lg:py-2.5 text-center text-error">{{ $standing->lost ?? 0 }}</td>
+                                        <td class="px-1.5 sm:px-2 py-1.5 sm:py-2 lg:py-2.5 text-center {{ is_null($sd) ? '' : ($sd > 0 ? 'text-primary' : ($sd < 0 ? 'text-error' : '')) }} font-bold">{{ is_null($sd) ? '–' : $fmtDiff($sd) }}</td>
+                                        <td class="hidden sm:table-cell px-2 py-1.5 sm:py-2 lg:py-2.5 text-center {{ is_null($gd) ? '' : ($gd > 0 ? 'text-primary' : ($gd < 0 ? 'text-error' : '')) }}">{{ is_null($gd) ? '–' : $fmtDiff($gd) }}</td>
+                                        <td class="px-2 sm:px-3 lg:px-4 py-1.5 sm:py-2 lg:py-2.5 text-center"><span class="{{ $index < 3 ? 'bg-primary text-on-primary' : 'bg-surface-container-high text-on-surface-variant' }} px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded font-bold text-[10px] sm:text-xs">{{ $standing->points ?? 0 }}</span></td>
                                     </tr>
                                 @endforeach
                             </tbody>
@@ -269,7 +269,7 @@
                                     <div class="flex-1 h-px bg-outline-variant"></div>
                                     <span class="material-symbols-outlined round-chevron text-on-surface-variant transition-transform">expand_more</span>
                                 </summary>
-                                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                                <div class="border border-outline-variant rounded-lg overflow-hidden divide-y divide-outline-variant/60">
                                     @foreach($roundMatches->sortBy('scheduled_at') as $match)
                                         @php
                                             $isTeamMatch = $competition->is_team_based;
@@ -306,107 +306,36 @@
                                                 : route('competitions.matches.show', [$competition, $match]);
                                         @endphp
                                         <div>
-                                            @if($mShowHeader)
-                                                <div class="flex justify-between items-center mb-2 text-label-bold text-on-surface-variant uppercase">
-                                                    @if($mLive)
-                                                        <span class="text-secondary animate-pulse">Uživo</span>
+                                            <a href="{{ $mDetailsUrl }}" class="flex items-center gap-1.5 sm:gap-3 px-2 sm:px-3 py-1.5 sm:py-2 hover:bg-surface-variant/20 transition-colors">
+                                                <div class="flex-1 min-w-0 text-right leading-tight">
+                                                    @foreach($mHomeNameParts as $part)
+                                                        <span class="truncate block {{ count($mHomeNameParts) > 1 ? 'text-[11px] sm:text-xs' : 'text-xs sm:text-sm' }} font-semibold {{ $mHomeWin ? 'text-primary' : 'text-on-surface' }}">{{ trim($part) }}</span>
+                                                    @endforeach
+                                                </div>
+                                                <div class="shrink-0 min-w-[42px] sm:min-w-[52px] text-center">
+                                                    @if($mCompleted)
+                                                        <span class="inline-block px-1.5 sm:px-2 py-0.5 rounded {{ $match->forfeited_by ? 'bg-orange-500/15 text-orange-500' : 'bg-surface-container-highest text-on-surface' }} text-xs sm:text-sm font-bold tabular-nums">
+                                                            {{ $match->forfeited_by ? 'WO' : $match->home_score . ':' . $match->away_score }}
+                                                        </span>
+                                                    @elseif($mLive)
+                                                        <span class="text-secondary animate-pulse text-[10px] sm:text-xs font-bold uppercase">Uživo</span>
                                                     @else
-                                                        <span></span>
+                                                        <span class="text-[10px] sm:text-xs text-on-surface-variant whitespace-nowrap">{{ $mDate?->format('d.m. H:i') ?? '–' }}</span>
                                                     @endif
-                                                    <span>{{ $mDate?->format('d.m.Y. H:i') }}</span>
                                                 </div>
-                                            @endif
-                                            @if($mSetRows->isNotEmpty())
-                                                <div class="border border-outline-variant rounded-lg overflow-hidden">
-                                                    <div class="overflow-x-auto">
-                                                    <table class="w-full border-collapse" style="min-width: {{ 120 + $mSetRows->count() * 40 }}px">
-                                                        <thead>
-                                                            <tr class="bg-surface-container-highest">
-                                                                <th class="text-left px-3 py-1.5 text-[10px] font-bold uppercase tracking-wide text-on-surface-variant sticky left-0 bg-surface-container-highest">Igrač</th>
-                                                                @foreach($mSetRows as $i => $set)
-                                                                    <th class="text-center px-2 py-1.5 text-[10px] font-bold uppercase tracking-wide text-on-surface-variant w-10 whitespace-nowrap">{{ $i + 1 }}.</th>
-                                                                @endforeach
-                                                                <th class="text-center px-3 py-1.5 text-[10px] font-bold uppercase tracking-wide text-primary border-l border-outline-variant whitespace-nowrap">Rezultat</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            <tr class="{{ $mAwayWin ? 'opacity-60' : '' }}">
-                                                                <td class="px-3 py-2 font-medium max-w-[8rem] sticky left-0 bg-surface-container-low leading-tight">@if($mHomeUrl)<a href="{{ $mHomeUrl }}" class="hover:text-primary transition-colors block">@foreach($mHomeNameParts as $part)<span class="truncate block {{ count($mHomeNameParts) > 1 ? 'text-xs' : 'text-sm' }}">{{ trim($part) }}</span>@endforeach</a>@else<span class="block">@foreach($mHomeNameParts as $part)<span class="truncate block {{ count($mHomeNameParts) > 1 ? 'text-xs' : 'text-sm' }}">{{ trim($part) }}</span>@endforeach</span>@endif</td>
-                                                                @foreach($mSetRows as $set)
-                                                                    <td class="text-center px-2 py-2 text-sm tabular-nums whitespace-nowrap {{ $set['home'] > $set['away'] ? 'font-bold text-primary' : 'text-on-surface-variant' }}">{{ $set['home'] }}</td>
-                                                                @endforeach
-                                                                <td class="text-center px-3 py-2 font-bold text-body-lg tabular-nums whitespace-nowrap border-l border-outline-variant {{ $mHomeWin ? 'text-primary' : 'text-on-surface-variant' }}">{{ $match->home_score }}</td>
-                                                            </tr>
-                                                            <tr class="border-t border-outline-variant {{ $mHomeWin ? 'opacity-60' : '' }}">
-                                                                <td class="px-3 py-2 font-medium max-w-[8rem] sticky left-0 bg-surface-container-low leading-tight">@if($mAwayUrl)<a href="{{ $mAwayUrl }}" class="hover:text-primary transition-colors block">@foreach($mAwayNameParts as $part)<span class="truncate block {{ count($mAwayNameParts) > 1 ? 'text-xs' : 'text-sm' }}">{{ trim($part) }}</span>@endforeach</a>@else<span class="block">@foreach($mAwayNameParts as $part)<span class="truncate block {{ count($mAwayNameParts) > 1 ? 'text-xs' : 'text-sm' }}">{{ trim($part) }}</span>@endforeach</span>@endif</td>
-                                                                @foreach($mSetRows as $set)
-                                                                    <td class="text-center px-2 py-2 text-sm tabular-nums whitespace-nowrap {{ $set['away'] > $set['home'] ? 'font-bold text-primary' : 'text-on-surface-variant' }}">{{ $set['away'] }}</td>
-                                                                @endforeach
-                                                                <td class="text-center px-3 py-2 font-bold text-body-lg tabular-nums whitespace-nowrap border-l border-outline-variant {{ $mAwayWin ? 'text-primary' : 'text-on-surface-variant' }}">{{ $match->away_score }}</td>
-                                                            </tr>
-                                                        </tbody>
-                                                    </table>
-                                                    </div>
+                                                <div class="flex-1 min-w-0 text-left leading-tight">
+                                                    @foreach($mAwayNameParts as $part)
+                                                        <span class="truncate block {{ count($mAwayNameParts) > 1 ? 'text-[11px] sm:text-xs' : 'text-xs sm:text-sm' }} font-semibold {{ $mAwayWin ? 'text-primary' : 'text-on-surface' }}">{{ trim($part) }}</span>
+                                                    @endforeach
                                                 </div>
-                                            @elseif($mScheduled)
-                                                <div class="border border-outline-variant rounded-lg overflow-hidden">
-                                                    <div class="overflow-x-auto">
-                                                    <table class="w-full border-collapse" style="min-width: 200px">
-                                                        <thead>
-                                                            <tr class="bg-surface-container-highest">
-                                                                <th class="text-left px-3 py-1.5 text-[10px] font-bold uppercase tracking-wide text-on-surface-variant sticky left-0 bg-surface-container-highest">Igrač</th>
-                                                                <th class="text-center px-3 py-1.5 text-[10px] font-bold uppercase tracking-wide text-secondary border-l border-outline-variant whitespace-nowrap">Zakazano</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            <tr>
-                                                                <td class="px-3 py-2 font-medium max-w-[8rem] sticky left-0 bg-surface-container-low leading-tight">@if($mHomeUrl)<a href="{{ $mHomeUrl }}" class="hover:text-primary transition-colors block">@foreach($mHomeNameParts as $part)<span class="truncate block {{ count($mHomeNameParts) > 1 ? 'text-xs' : 'text-sm' }}">{{ trim($part) }}</span>@endforeach</a>@else<span class="block">@foreach($mHomeNameParts as $part)<span class="truncate block {{ count($mHomeNameParts) > 1 ? 'text-xs' : 'text-sm' }}">{{ trim($part) }}</span>@endforeach</span>@endif</td>
-                                                                <td class="text-center px-3 py-2 font-bold text-body-lg tabular-nums whitespace-nowrap border-l border-outline-variant text-on-surface-variant">–</td>
-                                                            </tr>
-                                                            <tr class="border-t border-outline-variant">
-                                                                <td class="px-3 py-2 font-medium max-w-[8rem] sticky left-0 bg-surface-container-low leading-tight">@if($mAwayUrl)<a href="{{ $mAwayUrl }}" class="hover:text-primary transition-colors block">@foreach($mAwayNameParts as $part)<span class="truncate block {{ count($mAwayNameParts) > 1 ? 'text-xs' : 'text-sm' }}">{{ trim($part) }}</span>@endforeach</a>@else<span class="block">@foreach($mAwayNameParts as $part)<span class="truncate block {{ count($mAwayNameParts) > 1 ? 'text-xs' : 'text-sm' }}">{{ trim($part) }}</span>@endforeach</span>@endif</td>
-                                                                <td class="text-center px-3 py-2 font-bold text-body-lg tabular-nums whitespace-nowrap border-l border-outline-variant text-on-surface-variant">–</td>
-                                                            </tr>
-                                                        </tbody>
-                                                    </table>
-                                                    </div>
-                                                </div>
-                                            @else
-                                                <div class="border border-outline-variant rounded-lg overflow-hidden">
-                                                    <div class="overflow-x-auto">
-                                                    <table class="w-full border-collapse" style="min-width: 200px">
-                                                        <thead>
-                                                            <tr class="bg-surface-container-highest">
-                                                                <th class="text-left px-3 py-1.5 text-[10px] font-bold uppercase tracking-wide text-on-surface-variant sticky left-0 bg-surface-container-highest">Igrač</th>
-                                                                <th class="text-center px-3 py-1.5 text-[10px] font-bold uppercase tracking-wide {{ $match->forfeited_by ? 'text-orange-500' : 'text-primary' }} border-l border-outline-variant whitespace-nowrap">{{ $match->forfeited_by ? 'WO' : 'Rezultat' }}</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            <tr class="{{ $mAwayWin ? 'opacity-60' : '' }}">
-                                                                <td class="px-3 py-2 font-medium max-w-[8rem] sticky left-0 bg-surface-container-low leading-tight">@if($mHomeUrl)<a href="{{ $mHomeUrl }}" class="hover:text-primary transition-colors block">@foreach($mHomeNameParts as $part)<span class="truncate block {{ count($mHomeNameParts) > 1 ? 'text-xs' : 'text-sm' }}">{{ trim($part) }}</span>@endforeach</a>@else<span class="block">@foreach($mHomeNameParts as $part)<span class="truncate block {{ count($mHomeNameParts) > 1 ? 'text-xs' : 'text-sm' }}">{{ trim($part) }}</span>@endforeach</span>@endif</td>
-                                                                <td class="text-center px-3 py-2 font-bold text-body-lg tabular-nums whitespace-nowrap border-l border-outline-variant {{ $mHomeWin ? 'text-primary' : 'text-on-surface-variant' }}">{{ $match->home_score }}</td>
-                                                            </tr>
-                                                            <tr class="border-t border-outline-variant {{ $mHomeWin ? 'opacity-60' : '' }}">
-                                                                <td class="px-3 py-2 font-medium max-w-[8rem] sticky left-0 bg-surface-container-low leading-tight">@if($mAwayUrl)<a href="{{ $mAwayUrl }}" class="hover:text-primary transition-colors block">@foreach($mAwayNameParts as $part)<span class="truncate block {{ count($mAwayNameParts) > 1 ? 'text-xs' : 'text-sm' }}">{{ trim($part) }}</span>@endforeach</a>@else<span class="block">@foreach($mAwayNameParts as $part)<span class="truncate block {{ count($mAwayNameParts) > 1 ? 'text-xs' : 'text-sm' }}">{{ trim($part) }}</span>@endforeach</span>@endif</td>
-                                                                <td class="text-center px-3 py-2 font-bold text-body-lg tabular-nums whitespace-nowrap border-l border-outline-variant {{ $mAwayWin ? 'text-primary' : 'text-on-surface-variant' }}">{{ $match->away_score }}</td>
-                                                            </tr>
-                                                        </tbody>
-                                                    </table>
-                                                    </div>
-                                                </div>
-                                            @endif
-                                            <div class="mt-3 pt-3 border-t border-outline-variant flex items-center justify-between gap-2">
-                                                @if($mVenue)
-                                                    <a href="{{ route('venues.public.show', $mVenue) }}" class="text-label-bold text-on-surface-variant hover:text-primary transition-colors flex items-center gap-1">
-                                                        <span class="material-symbols-outlined text-[14px]">location_on</span> {{ $mVenue->name }}
+                                            </a>
+                                            @if($mVenue)
+                                                <div class="text-center -mt-1 pb-1.5">
+                                                    <a href="{{ route('venues.public.show', $mVenue) }}" class="text-[10px] sm:text-[11px] text-on-surface-variant hover:text-primary transition-colors inline-flex items-center gap-1">
+                                                        <span class="material-symbols-outlined text-[12px]">location_on</span> {{ $mVenue->name }}
                                                     </a>
-                                                @else
-                                                    <span></span>
-                                                @endif
-                                                <a href="{{ $mDetailsUrl }}" class="inline-flex items-center gap-1 text-xs font-label-bold text-primary hover:underline shrink-0">
-                                                    Detalji meča <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
-                                                </a>
-                                            </div>
+                                                </div>
+                                            @endif
                                         </div>
                                     @endforeach
                                 </div>

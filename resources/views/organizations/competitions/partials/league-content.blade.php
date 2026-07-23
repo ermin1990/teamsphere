@@ -12,26 +12,26 @@
                 @endif
             </div>
             <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-700">
+                <table class="min-w-full divide-y divide-gray-700 text-xs sm:text-sm">
                     <thead>
                         <tr>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Poz</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Ekipa</th>
-                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider">OU</th>
-                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider">P</th>
-                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider">I</th>
-                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider">Bod</th>
+                            <th class="px-2 sm:px-4 py-2 sm:py-3 text-left text-[10px] sm:text-xs font-medium text-gray-400 uppercase tracking-wider">Poz</th>
+                            <th class="px-2 sm:px-4 py-2 sm:py-3 text-left text-[10px] sm:text-xs font-medium text-gray-400 uppercase tracking-wider">Ekipa</th>
+                            <th class="px-1.5 sm:px-4 py-2 sm:py-3 text-center text-[10px] sm:text-xs font-medium text-gray-400 uppercase tracking-wider">OU</th>
+                            <th class="px-1.5 sm:px-4 py-2 sm:py-3 text-center text-[10px] sm:text-xs font-medium text-gray-400 uppercase tracking-wider">P</th>
+                            <th class="px-1.5 sm:px-4 py-2 sm:py-3 text-center text-[10px] sm:text-xs font-medium text-gray-400 uppercase tracking-wider">I</th>
+                            <th class="px-2 sm:px-4 py-2 sm:py-3 text-center text-[10px] sm:text-xs font-medium text-gray-400 uppercase tracking-wider">Bod</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-700">
                         @foreach($competition->standings->sortBy('position') as $standing)
                         <tr>
-                            <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-300">{{ $loop->iteration }}.</td>
-                            <td class="px-4 py-4 whitespace-nowrap text-sm font-medium text-white">{{ $standing->team->name ?? 'Nepoznato' }}</td>
-                            <td class="px-4 py-4 whitespace-nowrap text-center text-sm text-gray-300">{{ $standing->played }}</td>
-                            <td class="px-4 py-4 whitespace-nowrap text-center text-sm text-gray-300">{{ $standing->won }}</td>
-                            <td class="px-4 py-4 whitespace-nowrap text-center text-sm text-gray-300">{{ $standing->lost }}</td>
-                            <td class="px-4 py-4 whitespace-nowrap text-center text-sm font-bold text-blue-400">{{ $standing->points }}</td>
+                            <td class="px-2 sm:px-4 py-1.5 sm:py-4 whitespace-nowrap text-gray-300">{{ $loop->iteration }}.</td>
+                            <td class="px-2 sm:px-4 py-1.5 sm:py-4 whitespace-nowrap font-medium text-white">{{ $standing->team->name ?? 'Nepoznato' }}</td>
+                            <td class="px-1.5 sm:px-4 py-1.5 sm:py-4 whitespace-nowrap text-center text-gray-300">{{ $standing->played }}</td>
+                            <td class="px-1.5 sm:px-4 py-1.5 sm:py-4 whitespace-nowrap text-center text-gray-300">{{ $standing->won }}</td>
+                            <td class="px-1.5 sm:px-4 py-1.5 sm:py-4 whitespace-nowrap text-center text-gray-300">{{ $standing->lost }}</td>
+                            <td class="px-2 sm:px-4 py-1.5 sm:py-4 whitespace-nowrap text-center font-bold text-blue-400">{{ $standing->points }}</td>
                         </tr>
                         @endforeach
                     </tbody>
@@ -73,23 +73,23 @@
                             <div class="h-px flex-1 bg-gray-700 group-hover:bg-blue-500/50 transition-colors"></div>
                         </div>
                         
-                        <div x-show="open" class="grid grid-cols-1 gap-4">
+                        <div x-show="open" class="grid grid-cols-1 gap-2">
                             @foreach($matches as $match)
-                                <div class="bg-gray-900/50 rounded-xl p-4 border border-gray-700/30 flex items-center justify-between hover:border-gray-600 transition-colors">
-                                    <div class="flex-1 text-right pr-4">
-                                        <span class="text-white font-medium">{{ $match->homeTeam->name ?? 'Nepoznato' }}</span>
+                                <div class="bg-gray-900/50 rounded-lg p-2 sm:p-3 border border-gray-700/30 flex items-center justify-between hover:border-gray-600 transition-colors">
+                                    <div class="flex-1 text-right pr-2 sm:pr-3 min-w-0">
+                                        <span class="text-white font-medium text-xs sm:text-sm truncate block">{{ $match->homeTeam->name ?? 'Nepoznato' }}</span>
                                     </div>
-                                    <div class="flex flex-col items-center px-4 min-w-[120px]">
+                                    <div class="flex flex-col items-center px-1.5 sm:px-3 min-w-[90px] shrink-0">
                                         @if($match->scheduled_at)
-                                            <span class="text-[10px] text-gray-500 uppercase mb-1">{{ $match->scheduled_at->format('d.m.Y H:i') }}</span>
+                                            <span class="text-[9px] text-gray-500 uppercase mb-0.5">{{ $match->scheduled_at->format('d.m.Y H:i') }}</span>
                                         @endif
                                         @if($competition->sport?->usesSingleMatchTies())
                                             @php
                                                 $match->ensureSingleMatchGame();
                                                 $singleMatch = $match->individualMatches->first();
                                             @endphp
-                                            <div class="flex items-center gap-2">
-                                                <span class="text-2xl font-black text-white">
+                                            <div class="flex items-center gap-1.5">
+                                                <span class="text-base sm:text-lg font-black text-white">
                                                     {{ $singleMatch && $singleMatch->status === 'completed' ? $singleMatch->home_score . ' : ' . $singleMatch->away_score : '- : -' }}
                                                 </span>
                                                 @if($isOwner && $singleMatch)
@@ -123,7 +123,7 @@
                                             </div>
                                         @else
                                             <div class="flex flex-col items-center gap-1">
-                                                <a href="{{ route('organizations.competitions.team-matches.show', [$organization, $competition, $match]) }}" class="text-2xl font-black text-white hover:text-blue-400 transition">
+                                                <a href="{{ route('organizations.competitions.team-matches.show', [$organization, $competition, $match]) }}" class="text-base sm:text-lg font-black text-white hover:text-blue-400 transition">
                                                     {{ $match->home_score }} : {{ $match->away_score }}
                                                 </a>
                                                 @if($match->individualMatches->count() < 7)
@@ -137,8 +137,8 @@
                                             </div>
                                         @endif
                                     </div>
-                                    <div class="flex-1 text-left pl-4 flex items-center justify-between">
-                                        <span class="text-white font-medium">{{ $match->awayTeam->name ?? 'Nepoznato' }}</span>
+                                    <div class="flex-1 text-left pl-2 sm:pl-3 flex items-center justify-between gap-2 min-w-0">
+                                        <span class="text-white font-medium text-xs sm:text-sm truncate">{{ $match->awayTeam->name ?? 'Nepoznato' }}</span>
                                         
                                         @if($isOwner)
                                             <form action="{{ route('organizations.competitions.team-matches.destroy', [$organization, $competition, $match]) }}" method="POST" onsubmit="return confirm('Sigurno želite obrisati ovaj meč?')">
@@ -194,30 +194,30 @@
                     @endif
                 </div>
                 <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-700">
+                    <table class="min-w-full divide-y divide-gray-700 text-xs sm:text-sm">
                         <thead>
                             <tr>
-                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Poz</th>
-                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Igrač</th>
-                                <th class="px-4 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider">OU</th>
-                                <th class="px-4 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider">P</th>
-                                <th class="px-4 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider">I</th>
-                                <th class="px-4 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider" title="Setovi (osvojeni:izgubljeni)">Set</th>
-                                <th class="px-4 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider" title="Gemovi (osvojeni:izgubljeni)">Gem</th>
-                                <th class="px-4 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider">Bod</th>
+                                <th class="px-2 sm:px-4 py-2 sm:py-3 text-left text-[10px] sm:text-xs font-medium text-gray-400 uppercase tracking-wider">Poz</th>
+                                <th class="px-2 sm:px-4 py-2 sm:py-3 text-left text-[10px] sm:text-xs font-medium text-gray-400 uppercase tracking-wider">Igrač</th>
+                                <th class="px-1.5 sm:px-4 py-2 sm:py-3 text-center text-[10px] sm:text-xs font-medium text-gray-400 uppercase tracking-wider">OU</th>
+                                <th class="px-1.5 sm:px-4 py-2 sm:py-3 text-center text-[10px] sm:text-xs font-medium text-gray-400 uppercase tracking-wider">P</th>
+                                <th class="px-1.5 sm:px-4 py-2 sm:py-3 text-center text-[10px] sm:text-xs font-medium text-gray-400 uppercase tracking-wider">I</th>
+                                <th class="px-1.5 sm:px-4 py-2 sm:py-3 text-center text-[10px] sm:text-xs font-medium text-gray-400 uppercase tracking-wider" title="Setovi (osvojeni:izgubljeni)">Set</th>
+                                <th class="hidden sm:table-cell px-4 py-2 sm:py-3 text-center text-[10px] sm:text-xs font-medium text-gray-400 uppercase tracking-wider" title="Gemovi (osvojeni:izgubljeni)">Gem</th>
+                                <th class="px-2 sm:px-4 py-2 sm:py-3 text-center text-[10px] sm:text-xs font-medium text-gray-400 uppercase tracking-wider">Bod</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-700">
                             @foreach($competition->standings->sortBy('position') as $standing)
                             <tr>
-                                <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-300">{{ $loop->iteration }}.</td>
-                                <td class="px-4 py-4 whitespace-nowrap text-sm font-medium text-white">{{ $standing->player->name ?? 'Nepoznato' }}</td>
-                                <td class="px-4 py-4 whitespace-nowrap text-center text-sm text-gray-300">{{ $standing->played }}</td>
-                                <td class="px-4 py-4 whitespace-nowrap text-center text-sm text-gray-300">{{ $standing->won }}</td>
-                                <td class="px-4 py-4 whitespace-nowrap text-center text-sm text-gray-300">{{ $standing->lost }}</td>
-                                <td class="px-4 py-4 whitespace-nowrap text-center text-sm text-gray-300 tabular-nums">{{ $standing->sets_won }}:{{ $standing->sets_lost }}</td>
-                                <td class="px-4 py-4 whitespace-nowrap text-center text-sm text-gray-300 tabular-nums">{{ $standing->points_won }}:{{ $standing->points_lost }}</td>
-                                <td class="px-4 py-4 whitespace-nowrap text-center text-sm font-bold text-blue-400">{{ $standing->points }}</td>
+                                <td class="px-2 sm:px-4 py-1.5 sm:py-4 whitespace-nowrap text-gray-300">{{ $loop->iteration }}.</td>
+                                <td class="px-2 sm:px-4 py-1.5 sm:py-4 whitespace-nowrap font-medium text-white">{{ $standing->player->name ?? 'Nepoznato' }}</td>
+                                <td class="px-1.5 sm:px-4 py-1.5 sm:py-4 whitespace-nowrap text-center text-gray-300">{{ $standing->played }}</td>
+                                <td class="px-1.5 sm:px-4 py-1.5 sm:py-4 whitespace-nowrap text-center text-gray-300">{{ $standing->won }}</td>
+                                <td class="px-1.5 sm:px-4 py-1.5 sm:py-4 whitespace-nowrap text-center text-gray-300">{{ $standing->lost }}</td>
+                                <td class="px-1.5 sm:px-4 py-1.5 sm:py-4 whitespace-nowrap text-center text-gray-300 tabular-nums">{{ $standing->sets_won }}:{{ $standing->sets_lost }}</td>
+                                <td class="hidden sm:table-cell px-4 py-4 whitespace-nowrap text-center text-gray-300 tabular-nums">{{ $standing->points_won }}:{{ $standing->points_lost }}</td>
+                                <td class="px-2 sm:px-4 py-1.5 sm:py-4 whitespace-nowrap text-center font-bold text-blue-400">{{ $standing->points }}</td>
                             </tr>
                             @endforeach
                         </tbody>
@@ -287,47 +287,47 @@
                             <div class="h-px flex-1 bg-gray-700 group-hover:bg-purple-500/50 transition-colors"></div>
                         </div>
 
-                        <div x-show="open || search.trim() !== ''" x-cloak class="grid grid-cols-1 gap-4">
+                        <div x-show="open || search.trim() !== ''" x-cloak class="grid grid-cols-1 gap-2">
                             @foreach($matches as $match)
                                 @php
                                     $matchSearchable = mb_strtolower(($match->homePlayer->name ?? '') . ' ' . ($match->awayPlayer->name ?? ''));
                                 @endphp
                                 <div x-show="search.trim() === '' || {{ \Illuminate\Support\Js::from($matchSearchable) }}.includes(search.trim().toLowerCase())"
-                                     class="bg-gray-900/50 rounded-xl p-3 sm:p-4 border border-gray-700/30 flex flex-wrap sm:flex-nowrap sm:items-center">
-                                    <div class="w-1/2 sm:w-auto sm:flex-1 text-left sm:text-right pr-2 sm:pr-4 min-w-0 order-1">
-                                        <span class="text-white font-medium text-sm sm:text-base break-words">{{ $match->homePlayer->name ?? 'TBD' }}</span>
+                                     class="bg-gray-900/50 rounded-lg p-2 sm:p-3 border border-gray-700/30 flex flex-wrap sm:flex-nowrap sm:items-center">
+                                    <div class="w-1/2 sm:w-auto sm:flex-1 text-left sm:text-right pr-2 sm:pr-3 min-w-0 order-1">
+                                        <span class="text-white font-medium text-xs sm:text-sm truncate block">{{ $match->homePlayer->name ?? 'TBD' }}</span>
                                     </div>
-                                    <div class="w-full sm:w-auto flex flex-col items-center px-2 sm:px-4 sm:min-w-[110px] shrink-0 order-3 sm:order-2 mt-3 sm:mt-0">
+                                    <div class="w-full sm:w-auto flex flex-col items-center px-1.5 sm:px-3 sm:min-w-[90px] shrink-0 order-3 sm:order-2 mt-1.5 sm:mt-0">
                                         @if($match->status === 'in_progress')
-                                            <span class="mb-1 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wide animate-pulse" style="background: rgba(248,113,113,0.2); color: #f87171;">🔴 Uživo</span>
+                                            <span class="mb-0.5 px-1.5 py-0.5 rounded-full text-[8px] font-bold uppercase tracking-wide animate-pulse" style="background: rgba(248,113,113,0.2); color: #f87171;">🔴 Uživo</span>
                                         @endif
-                                        <span class="text-lg sm:text-xl font-black text-white">
+                                        <span class="text-sm sm:text-base font-black text-white">
                                             {{ $match->status === 'scheduled' ? '-' : $match->home_score }} : {{ $match->status === 'scheduled' ? '-' : $match->away_score }}
                                         </span>
                                         @if($match->status === 'completed' && $match->forfeited_by)
-                                            <span class="mt-1 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wide bg-orange-500/20 text-orange-400 border border-orange-500/30" title="Meč predat bez igre (WalkOver)">WO</span>
+                                            <span class="mt-0.5 px-1.5 py-0.5 rounded-full text-[8px] font-bold uppercase tracking-wide bg-orange-500/20 text-orange-400 border border-orange-500/30" title="Meč predat bez igre (WalkOver)">WO</span>
                                         @endif
                                         @if($match->status === 'completed' && !$match->forfeited_by && !empty($match->sets))
-                                            <div class="flex flex-wrap items-center justify-center gap-1 mt-1.5">
+                                            <div class="flex flex-wrap items-center justify-center gap-1 mt-1">
                                                 @foreach($match->sets as $set)
                                                     @php
                                                         $sh = $set['home'] ?? $set['home_score'] ?? $set['p1'] ?? null;
                                                         $sa = $set['away'] ?? $set['away_score'] ?? $set['p2'] ?? null;
                                                     @endphp
                                                     @if($sh !== null && $sa !== null && !($sh === '' && $sa === ''))
-                                                        <span class="text-[10px] font-bold text-gray-400 bg-gray-800/80 border border-gray-700/50 rounded px-1.5 py-0.5 tabular-nums">{{ $sh }}:{{ $sa }}</span>
+                                                        <span class="text-[9px] font-bold text-gray-400 bg-gray-800/80 border border-gray-700/50 rounded px-1 py-0.5 tabular-nums">{{ $sh }}:{{ $sa }}</span>
                                                     @endif
                                                 @endforeach
                                             </div>
                                         @endif
                                     </div>
-                                    <div class="w-1/2 sm:w-auto sm:flex-1 text-right sm:text-left pl-2 sm:pl-4 min-w-0 order-2 sm:order-3">
-                                        <span class="text-white font-medium text-sm sm:text-base break-words">{{ $match->awayPlayer->name ?? 'TBD' }}</span>
+                                    <div class="w-1/2 sm:w-auto sm:flex-1 text-right sm:text-left pl-2 sm:pl-3 min-w-0 order-2 sm:order-3">
+                                        <span class="text-white font-medium text-xs sm:text-sm truncate block">{{ $match->awayPlayer->name ?? 'TBD' }}</span>
                                     </div>
 
                                     @if($match->venue)
-                                        <div class="w-full order-5 mt-2 sm:mt-1">
-                                            <a href="{{ route('venues.public.show', $match->venue) }}" target="_blank" class="inline-flex items-center gap-1 text-[11px] font-bold text-gray-500 hover:text-blue-400 transition-colors">
+                                        <div class="w-full order-5 mt-1 sm:mt-0.5">
+                                            <a href="{{ route('venues.public.show', $match->venue) }}" target="_blank" class="inline-flex items-center gap-1 text-[10px] font-bold text-gray-500 hover:text-blue-400 transition-colors">
                                                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.828 0l-4.243-4.243a8 8 0 1111.314 0z"></path>
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
