@@ -95,8 +95,24 @@ class TeamController extends Controller
         $this->authorize('update', $organization);
         
         $teamPlayers = $team->players;
+
+        // A player can't be on two teams within the same competition (e.g. a
+        // Padel player already paired up in one team shouldn't be pickable
+        // for another team in the same league) - exclude anyone already
+        // rostered on another team of this same competition, not just this
+        // team's own roster.
+        $unavailablePlayerIds = $teamPlayers->pluck('id');
+        if ($team->competition_id) {
+            $unavailablePlayerIds = $unavailablePlayerIds->merge(
+                Player::whereHas('teams', function ($q) use ($team) {
+                    $q->where('teams.competition_id', $team->competition_id)
+                        ->where('teams.id', '!=', $team->id);
+                })->pluck('id')
+            )->unique();
+        }
+
         $availablePlayers = $organization->players()
-            ->whereNotIn('id', $teamPlayers->pluck('id'))
+            ->whereNotIn('id', $unavailablePlayerIds)
             ->orderBy('name')
             ->get();
 
@@ -173,12 +189,19 @@ class TeamController extends Controller
             }
         }
 
+        [$playerIds, $blockedCount] = $this->excludePlayersOnOtherTeams($team, $playerIds);
+
         if (!empty($playerIds)) {
             $team->players()->syncWithoutDetaching($playerIds);
             $this->registerPlayersInTeamCompetition($team, $playerIds);
         }
 
-        return redirect()->back()->with('success', $addedCount . ' igrača dodano u tim.');
+        $message = count($playerIds) . ' igrača dodano u tim.';
+        if ($blockedCount > 0) {
+            $message .= ' ' . $blockedCount . ' preskočeno (već su u drugoj ekipi ovog takmičenja).';
+        }
+
+        return redirect()->back()->with('success', $message);
     }
 
     public function addPlayer(Request $request, Organization $organization, Team $team)
@@ -189,10 +212,41 @@ class TeamController extends Controller
             'player_id' => 'required|exists:players,id',
         ]);
 
-        $team->players()->syncWithoutDetaching([$request->player_id]);
-        $this->registerPlayersInTeamCompetition($team, [$request->player_id]);
+        [$playerIds, $blockedCount] = $this->excludePlayersOnOtherTeams($team, [$request->player_id]);
+
+        if (empty($playerIds)) {
+            return redirect()->back()->with('error', 'Igrač je već u drugoj ekipi ovog takmičenja.');
+        }
+
+        $team->players()->syncWithoutDetaching($playerIds);
+        $this->registerPlayersInTeamCompetition($team, $playerIds);
 
         return redirect()->back()->with('success', 'Igrač dodan u tim.');
+    }
+
+    /**
+     * A player can't be rostered on two teams within the same competition.
+     * Filters out any player id already on another team of this team's
+     * competition, returning [$allowedIds, $blockedCount] - defense in depth
+     * in case the roster form's "available players" list was stale.
+     */
+    private function excludePlayersOnOtherTeams(Team $team, array $playerIds): array
+    {
+        if (!$team->competition_id || empty($playerIds)) {
+            return [$playerIds, 0];
+        }
+
+        $takenIds = Player::whereIn('id', $playerIds)
+            ->whereHas('teams', function ($q) use ($team) {
+                $q->where('teams.competition_id', $team->competition_id)
+                    ->where('teams.id', '!=', $team->id);
+            })
+            ->pluck('id')
+            ->all();
+
+        $allowed = array_diff($playerIds, $takenIds);
+
+        return [array_values($allowed), count($takenIds)];
     }
 
     /**

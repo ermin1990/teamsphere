@@ -15,10 +15,15 @@
                 </div>
             </div>
             <div class="flex items-center gap-3">
+                @if($team->competition_id)
+                    <a href="{{ route('organizations.teams.create', ['organization' => $organization, 'competition_id' => $team->competition_id]) }}" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl transition-all text-sm font-medium">
+                        + Nova ekipa
+                    </a>
+                @endif
                 <a href="{{ route('organizations.teams.edit', [$organization, $team]) }}" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-xl transition-all text-sm font-medium">
                     Uredi Klub
                 </a>
-                <a href="{{ route('organizations.teams.index', $organization) }}" class="text-gray-400 hover:text-white transition-colors flex items-center text-sm font-medium">
+                <a href="{{ route('organizations.teams.index', array_filter(['organization' => $organization, 'competition_id' => $team->competition_id])) }}" class="text-gray-400 hover:text-white transition-colors flex items-center text-sm font-medium">
                     <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
                     </svg>
@@ -179,7 +184,7 @@
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                                 </svg>
-                                Bulk Dodavanje
+                                Dodaj u ekipu
                             </button>
                         </div>
                         <div class="overflow-x-auto">
@@ -229,32 +234,6 @@
                             </table>
                         </div>
                     </div>
-
-                    <!-- Individual Add -->
-                    <div class="bg-gray-800/50 backdrop-blur-xl rounded-2xl border border-gray-700/50 shadow-xl p-6">
-                        <h3 class="text-lg font-bold text-white mb-4">Dodaj pojedinačnog igrača</h3>
-                        <form action="{{ route('organizations.teams.roster.add', [$organization, $team]) }}" method="POST" class="flex gap-4">
-                            @csrf
-                            <div class="flex-1">
-                                <select name="player_id" class="w-full bg-gray-900/50 border-gray-700 text-white focus:border-emerald-500 focus:ring-emerald-500 rounded-xl" required>
-                                    <option value="">Odaberi igrača iz organizacije...</option>
-                                    @foreach($availablePlayers as $player)
-                                        <option value="{{ $player->id }}">
-                                            {{ $player->name }} 
-                                            @if($player->teams->count() > 0)
-                                                ({{ $player->teams->first()->name }})
-                                            @elseif($player->position)
-                                                ({{ $player->position }})
-                                            @endif
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2 rounded-xl font-bold transition shadow-lg shadow-emerald-500/20">
-                                Dodaj u tim
-                            </button>
-                        </form>
-                    </div>
                 </div>
             </div>
         </div>
@@ -264,7 +243,7 @@
     <div id="bulkAddModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-gray-800 rounded-2xl border border-gray-700 shadow-2xl max-w-2xl w-full max-h-[80vh] flex flex-col">
             <div class="p-6 border-b border-gray-700 flex items-center justify-between">
-                <h3 class="text-xl font-bold text-white">Bulk Dodavanje Igrača</h3>
+                <h3 class="text-xl font-bold text-white">Dodaj u Ekipu</h3>
                 <button onclick="document.getElementById('bulkAddModal').classList.add('hidden')" class="text-gray-400 hover:text-white">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
