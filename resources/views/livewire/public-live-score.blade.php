@@ -30,12 +30,21 @@
         // Big numbers: final sets tally once completed, otherwise the live
         // point/game score of whichever set is currently being played (not
         // the sets tally - that's shown as the small caption underneath).
+        // A completed match without a recorded set-by-set breakdown (entered
+        // as a final score only) falls back to the match's own home/away
+        // score instead of $currentSet*Score, which is only meaningful while
+        // a set is actually in progress and would otherwise show 0:0.
         $showFinalSets = $matchStatus === 'completed' && $sets && count($sets) > 0;
-        $homeDisplayScore = $showFinalSets ? $homeSetsWon : $currentSetHomeScore;
-        $awayDisplayScore = $showFinalSets ? $awaySetsWon : $currentSetAwayScore;
+        $homeDisplayScore = $matchStatus === 'completed' ? ($showFinalSets ? $homeSetsWon : $homeScore) : $currentSetHomeScore;
+        $awayDisplayScore = $matchStatus === 'completed' ? ($showFinalSets ? $awaySetsWon : $awayScore) : $currentSetAwayScore;
         $homeIsWinner = $matchStatus === 'completed' && $homeDisplayScore > $awayDisplayScore;
         $awayIsWinner = $matchStatus === 'completed' && $awayDisplayScore > $homeDisplayScore;
         $initials = fn ($name) => collect(explode(' ', trim($name ?? '?')))->map(fn ($p) => mb_substr($p, 0, 1))->take(2)->implode('');
+        // Doubles pairs are stored as a single name "PLAYER ONE/PLAYER TWO" -
+        // split so each player gets their own (smaller) line instead of being
+        // squeezed/truncated onto one.
+        $homeNameParts = explode('/', $homeName);
+        $awayNameParts = explode('/', $awayName);
     @endphp
     <!-- Individual Match Layout -->
     <div id="live-score-app" class="space-y-4 lg:space-y-6" data-poll-url="{{ route('api.match', $match) }}" data-home-name="{{ $homeName }}" data-away-name="{{ $awayName }}">
@@ -53,7 +62,11 @@
                 <div id="home-avatar" class="w-14 h-14 md:w-20 md:h-20 rounded-full flex items-center justify-center font-display text-lg md:text-2xl mb-2 md:mb-4 {{ $homeIsWinner ? 'bg-primary/20 text-primary border-2 border-primary' : 'bg-surface-container-highest text-on-surface-variant border-2 border-outline-variant' }}">
                     {{ $initials($homeName) }}
                 </div>
-                <h3 class="text-sm md:text-lg font-bold text-on-surface truncate w-full">{{ $homeName }}</h3>
+                <h3 class="font-bold text-on-surface w-full leading-tight {{ count($homeNameParts) > 1 ? 'text-xs md:text-sm' : 'text-sm md:text-lg' }}">
+                    @foreach($homeNameParts as $part)
+                        <span class="block truncate">{{ trim($part) }}</span>
+                    @endforeach
+                </h3>
                 @if($homeRoster->isNotEmpty())
                     <div class="text-xs text-on-surface-variant -mt-1 mb-1 leading-tight">
                         @foreach($homeRoster as $player)
@@ -74,7 +87,11 @@
                 <div id="away-avatar" class="w-14 h-14 md:w-20 md:h-20 rounded-full flex items-center justify-center font-display text-lg md:text-2xl mb-2 md:mb-4 {{ $awayIsWinner ? 'bg-primary/20 text-primary border-2 border-primary' : 'bg-surface-container-highest text-on-surface-variant border-2 border-outline-variant' }}">
                     {{ $initials($awayName) }}
                 </div>
-                <h3 class="text-sm md:text-lg font-bold text-on-surface truncate w-full">{{ $awayName }}</h3>
+                <h3 class="font-bold text-on-surface w-full leading-tight {{ count($awayNameParts) > 1 ? 'text-xs md:text-sm' : 'text-sm md:text-lg' }}">
+                    @foreach($awayNameParts as $part)
+                        <span class="block truncate">{{ trim($part) }}</span>
+                    @endforeach
+                </h3>
                 @if($awayRoster->isNotEmpty())
                     <div class="text-xs text-on-surface-variant -mt-1 mb-1 leading-tight">
                         @foreach($awayRoster as $player)
@@ -101,9 +118,13 @@
                     <thead>
                         <tr class="bg-surface-container-highest/50">
                             <th class="py-2 md:py-3 px-2 md:px-4 text-[10px] font-bold uppercase tracking-wide text-on-surface-variant">Set</th>
-                            <th class="py-2 md:py-3 px-2 md:px-4 text-[10px] font-bold uppercase tracking-wide text-primary truncate max-w-[8rem]">{{ $homeName }}</th>
+                            <th class="py-2 md:py-3 px-2 md:px-4 text-[10px] font-bold uppercase tracking-wide text-primary max-w-[8rem]">
+                                @foreach($homeNameParts as $part)<span class="block truncate">{{ trim($part) }}</span>@endforeach
+                            </th>
                             <th class="py-2 md:py-3 px-2 text-[10px] text-on-surface-variant/50">-</th>
-                            <th class="py-2 md:py-3 px-2 md:px-4 text-[10px] font-bold uppercase tracking-wide text-on-surface-variant truncate max-w-[8rem]">{{ $awayName }}</th>
+                            <th class="py-2 md:py-3 px-2 md:px-4 text-[10px] font-bold uppercase tracking-wide text-on-surface-variant max-w-[8rem]">
+                                @foreach($awayNameParts as $part)<span class="block truncate">{{ trim($part) }}</span>@endforeach
+                            </th>
                         </tr>
                     </thead>
                     <tbody id="sets-table-body" class="divide-y divide-outline-variant/30">

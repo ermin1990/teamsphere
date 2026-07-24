@@ -171,7 +171,7 @@
                     </div>
                 @endif
                 <div class="min-w-0">
-                    <h1 class="font-display text-2xl lg:text-display text-on-surface truncate">{{ $organization->name }}</h1>
+                    <h1 class="font-display text-lg sm:text-xl lg:text-2xl text-on-surface break-words leading-tight">{{ $organization->name }}</h1>
                     <p class="text-on-surface-variant text-sm lg:text-base">Aktivna takmičenja i rezultati uživo</p>
                     @if($organization->description)
                         <p class="mt-2 text-sm text-on-surface-variant">{{ Str::limit($organization->description, 160) }}</p>
@@ -319,10 +319,10 @@
                                     && (!$competition->start_date || $competition->start_date->isFuture());
                             @endphp
                             <a href="{{ route('competitions.show', $competition) }}" class="flex items-center justify-between gap-3 px-margin-mobile lg:px-4 py-3 hover:bg-surface-variant/30 transition-colors group">
-                                <div class="flex items-center gap-3 min-w-0">
+                                <div class="flex items-center gap-3 min-w-0 flex-1">
                                     <span class="material-symbols-outlined text-on-surface-variant text-lg shrink-0">{{ $competition->type === 'tournament' ? 'workspace_premium' : 'emoji_events' }}</span>
-                                    <div class="min-w-0">
-                                        <span class="font-body-md text-sm lg:text-base text-on-surface truncate block">{{ $competition->name }}</span>
+                                    <div class="min-w-0 flex-1">
+                                        <span class="font-body-md text-sm lg:text-base text-on-surface break-words block leading-snug">{{ $competition->name }}</span>
                                         @if(!isset($organization))
                                             <span class="text-xs text-on-surface-variant truncate block">{{ $competition->organization->name }}</span>
                                         @endif
@@ -332,11 +332,11 @@
                                             </span>
                                         @endif
                                     </div>
-                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase shrink-0 {{ $cCompleted ? 'bg-outline-variant/20 text-on-surface-variant' : ($cLive ? 'bg-primary/10 text-primary animate-pulse' : 'bg-secondary/10 text-secondary') }}">
-                                        {{ $cCompleted ? 'Završeno' : ($cLive ? 'U toku' : ($cUpcomingOpen ? 'Prijave otvorene' : 'Aktivno')) }}
-                                    </span>
                                 </div>
-                                <span class="text-primary opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 text-xs font-label-bold shrink-0">
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase shrink-0 {{ $cCompleted ? 'bg-outline-variant/20 text-on-surface-variant' : ($cLive ? 'bg-primary/10 text-primary animate-pulse' : 'bg-secondary/10 text-secondary') }}">
+                                    {{ $cCompleted ? 'Završeno' : ($cLive ? 'U toku' : ($cUpcomingOpen ? 'Prijave otvorene' : 'Aktivno')) }}
+                                </span>
+                                <span class="text-primary opacity-0 group-hover:opacity-100 transition-opacity hidden sm:flex items-center gap-1 text-xs font-label-bold shrink-0">
                                     Pogledaj <span class="material-symbols-outlined text-xs">chevron_right</span>
                                 </span>
                             </a>

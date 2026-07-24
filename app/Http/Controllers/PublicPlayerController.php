@@ -16,12 +16,17 @@ class PublicPlayerController extends Controller
     {
         $player->load('organization');
 
-        $leagues = $player->leagues()
+        // competitions(), not leagues() - leagues() excludes tournaments via
+        // a global scope, which used to leave tournament-only players with
+        // an empty profile (no stats, no recent matches, no competitions).
+        $leagues = $player->competitions()
             ->where('is_public', true)
             ->with(['season', 'organization'])
             ->get();
 
         $leagueIds = $leagues->pluck('id');
+        $tournamentIds = $leagues->where('type', 'tournament')->pluck('id');
+        $leagueTypeIds = $leagues->where('type', '!=', 'tournament')->pluck('id');
 
         $standings = Standing::where('player_id', $player->id)
             ->whereIn('competition_id', $leagueIds)
@@ -29,21 +34,37 @@ class PublicPlayerController extends Controller
             ->keyBy('competition_id');
 
         $matches = $player->homeMatches()
-            ->whereIn('competition_id', $leagueIds)
+            ->whereIn('competition_id', $leagueTypeIds)
             ->where('status', 'completed')
             ->with(['homePlayer', 'awayPlayer', 'competition'])
             ->get()
             ->merge(
                 $player->awayMatches()
-                    ->whereIn('competition_id', $leagueIds)
+                    ->whereIn('competition_id', $leagueTypeIds)
                     ->where('status', 'completed')
                     ->with(['homePlayer', 'awayPlayer', 'competition'])
                     ->get()
-            )
-            // No played_at is reliably set on historical/imported matches, so
-            // round number (then id) is the best available proxy for "most
-            // recently played" ordering.
-            ->sortByDesc(fn ($m) => [$m->played_at?->timestamp ?? 0, $m->round ?? 0, $m->id])
+            );
+
+        // Tournament matches (group + knockout) live on CompetitionMatch, not
+        // LeagueMatch - fetch those separately and merge in.
+        if ($tournamentIds->isNotEmpty()) {
+            $matches = $matches->merge(
+                \App\Models\CompetitionMatch::whereIn('competition_id', $tournamentIds)
+                    ->where('status', 'completed')
+                    ->where(function ($q) use ($player) {
+                        $q->where('home_player_id', $player->id)->orWhere('away_player_id', $player->id);
+                    })
+                    ->with(['homePlayer', 'awayPlayer', 'competition'])
+                    ->get()
+            );
+        }
+
+        // No played_at is reliably set on historical/imported matches, so
+        // round number (then id) is the best available proxy for "most
+        // recently played" ordering.
+        $matches = $matches
+            ->sortByDesc(fn ($m) => [$m->played_at?->timestamp ?? 0, $m->round ?? $m->round_number ?? 0, $m->id])
             ->values();
 
         $stats = $this->computeStats($player, $matches);

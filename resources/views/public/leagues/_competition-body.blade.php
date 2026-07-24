@@ -305,28 +305,69 @@
                                                 ? route('competitions.team-matches.show', [$competition, $match])
                                                 : route('competitions.matches.show', [$competition, $match]);
                                         @endphp
+                                        @php
+                                            // Cap set-cells at the league's actual max sets (best-of-(2*sets_to_win-1))
+                                            // instead of a hardcoded count - and only show them at all once the
+                                            // match has recorded sets (team matches never do, see $mSetRows above).
+                                            $mMaxSets = max(1, (2 * ($competition->sets_to_win ?: 1)) - 1);
+                                            $mSetCells = $mSetRows->isNotEmpty() ? $mSetRows->pad($mMaxSets, ['home' => null, 'away' => null])->take($mMaxSets) : collect();
+                                        @endphp
                                         <div>
-                                            <a href="{{ $mDetailsUrl }}" class="flex items-center gap-1.5 sm:gap-3 px-2 sm:px-3 py-1.5 sm:py-2 hover:bg-surface-variant/20 transition-colors">
-                                                <div class="flex-1 min-w-0 text-right leading-tight">
-                                                    @foreach($mHomeNameParts as $part)
-                                                        <span class="truncate block {{ count($mHomeNameParts) > 1 ? 'text-[11px] sm:text-xs' : 'text-xs sm:text-sm' }} font-semibold {{ $mHomeWin ? 'text-primary' : 'text-on-surface' }}">{{ trim($part) }}</span>
-                                                    @endforeach
-                                                </div>
-                                                <div class="shrink-0 min-w-[42px] sm:min-w-[52px] text-center">
+                                            <a href="{{ $mDetailsUrl }}" class="flex items-stretch gap-2 sm:gap-3 px-2 sm:px-3 py-2 hover:bg-surface-variant/20 transition-colors">
+                                                <div class="shrink-0 w-10 sm:w-12 flex flex-col items-center justify-center text-center leading-tight">
                                                     @if($mCompleted)
-                                                        <span class="inline-block px-1.5 sm:px-2 py-0.5 rounded {{ $match->forfeited_by ? 'bg-orange-500/15 text-orange-500' : 'bg-surface-container-highest text-on-surface' }} text-xs sm:text-sm font-bold tabular-nums">
-                                                            {{ $match->forfeited_by ? 'WO' : $match->home_score . ':' . $match->away_score }}
-                                                        </span>
+                                                        <span class="text-[9px] sm:text-[10px] font-bold {{ $match->forfeited_by ? 'text-orange-500' : 'text-on-surface-variant' }}">{{ $match->forfeited_by ? 'WO' : 'Kraj' }}</span>
+                                                        @if($mDate)<span class="text-[9px] text-on-surface-variant/70">{{ $mDate->format('H:i') }}</span>@endif
                                                     @elseif($mLive)
-                                                        <span class="text-secondary animate-pulse text-[10px] sm:text-xs font-bold uppercase">Uživo</span>
+                                                        <span class="text-secondary animate-pulse text-[9px] sm:text-[10px] font-bold uppercase">Uživo</span>
                                                     @else
-                                                        <span class="text-[10px] sm:text-xs text-on-surface-variant whitespace-nowrap">{{ $mDate?->format('d.m. H:i') ?? '–' }}</span>
+                                                        <span class="text-[9px] sm:text-[10px] font-bold text-on-surface">{{ $mDate?->format('d.m.') ?? '–' }}</span>
+                                                        @if($mDate)<span class="text-[9px] text-on-surface-variant/70">{{ $mDate->format('H:i') }}</span>@endif
                                                     @endif
                                                 </div>
-                                                <div class="flex-1 min-w-0 text-left leading-tight">
-                                                    @foreach($mAwayNameParts as $part)
-                                                        <span class="truncate block {{ count($mAwayNameParts) > 1 ? 'text-[11px] sm:text-xs' : 'text-xs sm:text-sm' }} font-semibold {{ $mAwayWin ? 'text-primary' : 'text-on-surface' }}">{{ trim($part) }}</span>
-                                                    @endforeach
+                                                <div class="flex-1 min-w-0 flex flex-col justify-center gap-1">
+                                                    {{-- Home row --}}
+                                                    <div class="flex items-center justify-between gap-2">
+                                                        <div class="min-w-0 leading-tight">
+                                                            @foreach($mHomeNameParts as $part)
+                                                                <span class="truncate block {{ count($mHomeNameParts) > 1 ? 'text-[11px]' : 'text-xs sm:text-sm' }} font-semibold {{ $mHomeWin ? 'text-primary' : 'text-on-surface' }}">{{ trim($part) }}</span>
+                                                            @endforeach
+                                                        </div>
+                                                        <div class="flex items-center gap-3 shrink-0">
+                                                            @if($mSetCells->isNotEmpty())
+                                                                <div class="hidden sm:flex gap-1.5">
+                                                                    @foreach($mSetCells as $s)
+                                                                        @php $hWin = $s['home'] !== null && $s['away'] !== null && $s['home'] >= $s['away']; @endphp
+                                                                        <span class="text-[10px] w-3 text-center font-medium {{ is_null($s['home']) ? 'text-on-surface-variant/30' : ($hWin ? 'text-primary font-bold' : 'text-on-surface-variant/50') }}">{{ $s['home'] ?? '–' }}</span>
+                                                                    @endforeach
+                                                                </div>
+                                                            @endif
+                                                            @if($mCompleted)
+                                                                <span class="text-xs sm:text-sm font-bold w-4 text-center {{ $mHomeWin ? 'text-primary' : 'text-on-surface-variant' }}">{{ $match->forfeited_by ? '' : $match->home_score }}</span>
+                                                            @endif
+                                                        </div>
+                                                    </div>
+                                                    {{-- Away row --}}
+                                                    <div class="flex items-center justify-between gap-2">
+                                                        <div class="min-w-0 leading-tight {{ $mHomeWin ? 'opacity-60' : '' }}">
+                                                            @foreach($mAwayNameParts as $part)
+                                                                <span class="truncate block {{ count($mAwayNameParts) > 1 ? 'text-[11px]' : 'text-xs sm:text-sm' }} font-semibold {{ $mAwayWin ? 'text-primary' : 'text-on-surface' }}">{{ trim($part) }}</span>
+                                                            @endforeach
+                                                        </div>
+                                                        <div class="flex items-center gap-3 shrink-0">
+                                                            @if($mSetCells->isNotEmpty())
+                                                                <div class="hidden sm:flex gap-1.5">
+                                                                    @foreach($mSetCells as $s)
+                                                                        @php $aWin = $s['home'] !== null && $s['away'] !== null && $s['away'] > $s['home']; @endphp
+                                                                        <span class="text-[10px] w-3 text-center font-medium {{ is_null($s['away']) ? 'text-on-surface-variant/30' : ($aWin ? 'text-primary font-bold' : 'text-on-surface-variant/50') }}">{{ $s['away'] ?? '–' }}</span>
+                                                                    @endforeach
+                                                                </div>
+                                                            @endif
+                                                            @if($mCompleted)
+                                                                <span class="text-xs sm:text-sm font-bold w-4 text-center {{ $mAwayWin ? 'text-primary' : 'text-on-surface-variant' }}">{{ $match->forfeited_by ? '' : $match->away_score }}</span>
+                                                            @endif
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </a>
                                             @if($mVenue)

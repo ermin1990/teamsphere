@@ -336,7 +336,7 @@
                 <div class="bg-surface-container-low rounded-xl border border-outline-variant overflow-hidden">
                     <a href="{{ route('competitions.organization', $orgCompetitions->first()->organization) }}" class="bg-surface-container-high px-4 py-2 border-b border-outline-variant flex items-center gap-3 hover:bg-surface-variant/50 transition-colors">
                         <span class="material-symbols-outlined text-primary text-lg">corporate_fare</span>
-                        <h4 class="font-label-bold text-sm text-on-surface uppercase tracking-wider truncate">{{ $organizationName }}</h4>
+                        <h4 class="font-label-bold text-xs text-on-surface uppercase tracking-wider break-words min-w-0">{{ $organizationName }}</h4>
                     </a>
                     <div class="divide-y divide-outline-variant/20">
                         @foreach($orgCompetitions as $competition)
@@ -352,11 +352,17 @@
                             <div class="flex items-center justify-between gap-3 px-4 py-3 hover:bg-surface-variant/30 transition-colors group">
                                 <a href="{{ route('competitions.show', $competition) }}" class="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
                                     <span class="material-symbols-outlined text-on-surface-variant text-lg shrink-0">{{ $sportIcon($competition->sport) }}</span>
-                                    <span class="font-body-md text-sm lg:text-base text-on-surface truncate">{{ $competition->name }}</span>
-                                    <span class="hidden md:inline text-xs text-on-surface-variant truncate shrink-0">{{ $competition->effectiveCity()?->name ?? '' }}</span>
-                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase shrink-0 {{ $cCompleted ? 'bg-outline-variant/20 text-on-surface-variant' : ($cLive ? 'bg-primary/10 text-primary animate-pulse' : 'bg-secondary/10 text-secondary') }}">
-                                        {{ $badge }}
+                                    <span class="min-w-0 flex-1">
+                                        <span class="font-body-md text-xs sm:text-sm text-on-surface break-words block leading-snug">{{ $competition->name }}</span>
+                                        @if($competition->effectiveCity()?->name)
+                                            <span class="text-xs text-on-surface-variant truncate block">{{ $competition->effectiveCity()->name }}</span>
+                                        @endif
                                     </span>
+                                    @if($badge !== 'Aktivno')
+                                        <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase shrink-0 {{ $cCompleted ? 'bg-outline-variant/20 text-on-surface-variant' : ($cLive ? 'bg-primary/10 text-primary animate-pulse' : 'bg-secondary/10 text-secondary') }}">
+                                            {{ $badge }}
+                                        </span>
+                                    @endif
                                 </a>
                                 @if($cCanApply)
                                     <a href="{{ route('competitions.show', $competition) }}" class="shrink-0 px-3 py-1.5 rounded-full bg-primary text-on-primary text-xs font-label-bold hover:bg-primary-container transition-colors">

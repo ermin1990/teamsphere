@@ -58,10 +58,28 @@ class Player extends Model
 
     /**
      * Get the leagues this player participates in.
+     *
+     * Note: League has a global scope for type='league', so this excludes
+     * tournaments - use competitions() when tournaments should be included too
+     * (e.g. the public player profile).
      */
     public function leagues(): BelongsToMany
     {
         return $this->belongsToMany(League::class, 'competition_player', 'player_id', 'competition_id')
+                    ->withPivot('joined_at')
+                    ->withTimestamps()
+                    ->withCasts([
+                        'joined_at' => 'datetime'
+                    ]);
+    }
+
+    /**
+     * Get all competitions (leagues and tournaments) this player participates
+     * in - unlike leagues(), not restricted to type='league'.
+     */
+    public function competitions(): BelongsToMany
+    {
+        return $this->belongsToMany(Competition::class, 'competition_player', 'player_id', 'competition_id')
                     ->withPivot('joined_at')
                     ->withTimestamps()
                     ->withCasts([
